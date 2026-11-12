@@ -49,6 +49,18 @@ These come from bugs that only appeared on Ryan's phone. Details: `docs/DEVICE_N
 
 ## Commands
 
+New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright install --only-shell chromium`):
+
+```
+npm run dev        # dev server; add `-- --host` to open it from the phone on the home network
+npm run check      # types, lint, build, tests: what GitHub runs on every branch
+npm run format     # let Prettier rewrite the files
+npm run site       # the whole Pages site into site/, as GitHub publishes it
+```
+
+GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
+`preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`.
+
 Legacy build (Python 3, Node, Playwright with Chromium):
 
 ```
@@ -56,8 +68,6 @@ cd legacy
 python3 build.py
 node tools/check.js
 ```
-
-The new pipeline's commands are added here as `docs/REFACTOR_PLAN.md` step 1 lands.
 
 ## Conventions
 

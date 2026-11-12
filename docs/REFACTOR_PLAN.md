@@ -10,7 +10,7 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 ## Status
 
 - [x] 0. Import build 78 and these notes
-- [ ] 1. Pipeline and publishing
+- [x] 1. Pipeline and publishing
 - [ ] 2. Picture comparison
 - [ ] 3. Lift and shift
 - [ ] 4. Clean, system by system
@@ -68,6 +68,13 @@ looked at the preview on his phone.
   `preview/<branch>/`, and `legacy/build78.html` to `legacy/` so old and new can be compared on the phone.
 - The page shows its version and commit where the build number is shown today.
 - Ryan: enable GitHub Pages for the repository with "GitHub Actions" as the source.
+- Ryan: under Settings, Environments, `github-pages`, set "Deployment branches and tags" to "No restriction",
+  so that branches other than `main` may publish their previews.
+
+As built: a Pages deployment replaces the whole site, so every run rebuilds `main` and each unmerged branch
+(`tools/assemble-site.ts`) and stores nothing; `preview/` lists the pages. Publishing does not wait for the
+checks, so a branch can be seen on the phone while its checks are being put right. TypeScript is 6.0 until the
+lint tooling supports 7.
 
 *Done when:* an empty page builds to one HTML file and appears on the phone from Pages.
 
