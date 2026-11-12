@@ -7,6 +7,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
 ## Where things stand
 
 - `legacy/` is build 78, the last build made before this repository existed. It is the reference: do not edit it.
+- `src/lifted/` is build 78's program inside the new build: the same code as modules, not yet cleaned. The code
+  standards apply to a file from the moment it is cleaned and leaves that folder (step 4 of the plan).
 - The project is being rebuilt around Vite and TypeScript **without changing anything that can be seen**.
   The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it before starting work.
 - New features (rain, night, things to gather, survival systems) wait until the refactor is done.

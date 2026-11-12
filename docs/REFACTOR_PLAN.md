@@ -12,7 +12,7 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 - [x] 0. Import build 78 and these notes
 - [x] 1. Pipeline and publishing
 - [x] 2. Picture comparison
-- [ ] 3. Lift and shift
+- [x] 3. Lift and shift
 - [ ] 4. Clean, system by system
 - [ ] 5. Readable shaders
 - [ ] 6. Merge duplicates
@@ -103,6 +103,19 @@ limits are eight times tighter than build 78's own check, which let a changed sh
 
 *Done when:* the picture comparison shows no difference in any view and Ryan sees no change on the phone.
 From here on `legacy/` is only the reference.
+
+As built: build 78's 29 program files are in `src/lifted/js/` under their old names, with its shader chunks
+beside them in `src/lifted/glsl/` and `src/lifted/shared/`. A script converted the files: imports at the top,
+exports at the bottom, and nine assignments to another file's variable turned into calls to a setter in the file
+that owns it. Each file imports the one before it first and `src/main.ts` imports the last, which runs them in
+build 78's order whatever else they import. Four edits were made by hand: three.js comes from npm; the build
+number gives way to the version and commit; a failed WebGL start throws where it used to return; and the
+wildlife's random stream is named outright (it was named after a function, and the bundler shortens function
+names). `tools/shader-chunks-plugin.ts` supplies the table of shader chunks and the island's shape functions,
+character for character as `build.py` did.
+
+The lifted files stay JavaScript, unformatted and outside the code standards, until step 4 cleans each one and
+moves it to its folder. ESLint holds them to one rule: every name a file uses is defined.
 
 ### 4. Clean, system by system
 

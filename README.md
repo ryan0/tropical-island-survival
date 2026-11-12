@@ -21,7 +21,7 @@ python3 build.py
 
 The page is written to `legacy/dist/index.html`. `legacy/README.md` describes the legacy layout and tools.
 
-The new project (Node 22), an empty page until the scene is brought across:
+The new project (Node 22), which draws the same scene:
 
 ```
 npm ci
