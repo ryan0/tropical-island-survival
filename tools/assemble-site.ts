@@ -37,7 +37,8 @@ function branchesNotMergedIntoMain(): string[] {
     '--format=%(refname:lstrip=3)',
     `refs/remotes/${REMOTE}`,
   );
-  return names === '' ? [] : names.split('\n');
+  // A clone also holds origin/HEAD, a pointer to the remote's default branch and not a branch.
+  return names.split('\n').filter((name) => name !== '' && name !== 'HEAD');
 }
 
 function buildPage(branch: string, folder: string): Page {
