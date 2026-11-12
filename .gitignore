@@ -1,0 +1,19 @@
+# build output
+dist/
+legacy/dist/
+
+# dependencies
+node_modules/
+
+# reference photographs: kept on each machine, never in the repository (see docs/LOOK.md)
+reference-photos/
+
+# editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# test output
+test-results/
+playwright-report/
