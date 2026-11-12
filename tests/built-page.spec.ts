@@ -4,13 +4,12 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { expect, test } from '@playwright/test';
 import packageJson from '../package.json' with { type: 'json' };
+import { builtPage, projectRoot } from './pages';
 
-const projectRoot = path.resolve(import.meta.dirname, '..');
-const dist = path.join(projectRoot, 'dist');
-const pageUrl = pathToFileURL(path.join(dist, 'index.html')).href;
+const pageUrl = pathToFileURL(builtPage).href;
 
 test('the build is one HTML file', () => {
-  expect(readdirSync(dist, { recursive: true })).toEqual(['index.html']);
+  expect(readdirSync(path.dirname(builtPage), { recursive: true })).toEqual(['index.html']);
 });
 
 test('the page loads nothing but itself', async ({ page }) => {

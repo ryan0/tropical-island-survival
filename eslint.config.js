@@ -12,5 +12,11 @@ export default defineConfig(
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
   },
+  {
+    rules: {
+      // `${count} pixels` is clearer than `${String(count)} pixels`.
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+    },
+  },
   { files: ['**/*.js'], extends: [tseslint.configs.disableTypeChecked] },
 );

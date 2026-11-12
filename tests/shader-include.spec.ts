@@ -1,8 +1,8 @@
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { createServer, type ViteDevServer } from 'vite';
+import { projectRoot } from './pages';
 
-const projectRoot = path.resolve(import.meta.dirname, '..');
 const fixtures = path.join(import.meta.dirname, 'fixtures/shader-include');
 
 let vite: ViteDevServer;
