@@ -1,0 +1,10 @@
+# build 78 is the reference and is never edited
+legacy/
+
+# the notes are wrapped by hand
+*.md
+
+dist/
+site/
+test-results/
+playwright-report/
