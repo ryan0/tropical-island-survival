@@ -1,0 +1,57 @@
+name: Checks and publish
+
+on:
+  push:
+    branches: ['**']
+  # a deleted branch must leave the site
+  delete:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    if: github.event_name != 'delete'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps --only-shell chromium
+      - run: npm run check
+
+  # Not gated on the checks: the site shows every branch that builds, so that a branch can be
+  # looked at on the phone while its checks are still being put right.
+  publish:
+    if: github.event_name != 'delete' || github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}${{ github.ref_name != 'main' && format('preview/{0}/', github.ref_name) || '' }}
+    # Each run publishes the whole site, so runs go one at a time and the newest one waiting wins.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # every branch, with enough history to tell which are merged into main
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm run site
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v5
