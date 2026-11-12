@@ -53,10 +53,15 @@ New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright insta
 
 ```
 npm run dev        # dev server; add `-- --host` to open it from the phone on the home network
-npm run check      # types, lint, build, tests: what GitHub runs on every branch
+npm run check      # types, lint, build, tests: what GitHub runs on every branch (about three minutes)
+npm run pictures   # only the picture comparison with build 78; `-- -g lagoon` for the views so named
 npm run format     # let Prettier rewrite the files
 npm run site       # the whole Pages site into site/, as GitHub publishes it
 ```
+
+The tests draw every view in `tests/reference-views.ts` from `legacy/build78.html` and from the page under test
+and fail on any pixel that differs; the pictures of a failure (reference, page under test, difference) are in
+`test-results/`. They also compile every shader and compare the wave model's two copies.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
 `preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`.

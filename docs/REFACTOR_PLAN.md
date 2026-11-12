@@ -11,7 +11,7 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 
 - [x] 0. Import build 78 and these notes
 - [x] 1. Pipeline and publishing
-- [ ] 2. Picture comparison
+- [x] 2. Picture comparison
 - [ ] 3. Lift and shift
 - [ ] 4. Clean, system by system
 - [ ] 5. Readable shaders
@@ -87,6 +87,12 @@ lint tooling supports 7.
 
 *Done when:* legacy compared with itself passes, and a deliberate one-line change to a shader fails.
 
+As built: `npm run pictures` (also part of `npm run check`). The tests replace the page's clock with one they
+step, so both pages live through exactly the same frames and build 78 drawn twice is the same to the last
+pixel; a picture passes only if no pixel differs. Each test also proves it can fail, on a copy of build 78
+with one line changed. Until step 3 the page under test is build 78 itself (`tests/pages.ts`). The wave mirror's
+limits are eight times tighter than build 78's own check, which let a changed shoaling curve through.
+
 ### 3. Lift and shift
 
 - Bring the legacy source into the new build with the fewest edits that make it modules. Each legacy file becomes
@@ -148,8 +154,12 @@ bring the docs up to date.
 ## Reference views
 
 A view is a camera pose, a time, a wind strength and a cloud cover. Pose is `x, y, z, yaw, pitch`; looking along
-`(-sin yaw, -cos yaw)`. Every view is taken at midday (`phase 0.5`) with cloud cover 1 unless noted.
-The legacy sets in `legacy/tools/views.json`, `gviews.json` and `abviews.json` belong here too.
+`(-sin yaw, -cos yaw)`.
+
+The views are defined once, in `tests/reference-views.ts`. They are the eleven sea views below, the legacy sets
+from `legacy/tools/views.json`, `gviews.json` and `abviews.json`, and views at dawn, golden hour, sunset and
+night under clear and partly cloudy skies, under water, in a calm, and of the controls. The table records where
+the first eleven came from; the file is what the tests use.
 
 | Name | Pose | Time (s) | Wind | Shows |
 |---|---|---|---|---|
@@ -165,9 +175,7 @@ The legacy sets in `legacy/tools/views.json`, `gviews.json` and `abviews.json` b
 | ocean-shore | 5, eye 1.7 m above the sand, 163.8, 3.1416, -0.22 (fov 66) | 34.7, 35.0, 35.3, 35.9 | 0.66 | a wave breaking on the ocean beach |
 | ocean-shore-along | 5, eye 1.7 m above the sand, 164.8, 1.85, -0.20 (fov 66) | same | 0.66 | the same wave along the beach |
 
-Add views at dawn, golden hour, sunset and night, with cloud cover 0 and 0.45, and under water, before step 3.
-
-Debug hooks the views use (legacy names):
+Debug hooks the views use (legacy names; typed in `tests/scene-hooks.d.ts`, used only by `tests/scene-page.ts`):
 
 | Hook | Does |
 |---|---|
@@ -176,9 +184,10 @@ Debug hooks the views use (legacy names):
 | `window.__wind`, `window.__weather` | fix wind strength and cloud cover |
 | `__lag.phase(p)` | time of day, 0 midnight, 0.5 noon |
 | `__lag.hgt(x, z)`, `__lag.waveH(x, z, t)` | ground height; water height |
-| `LAGOON_CLOUDW` (environment) | a smaller cloud picture, for speed in the software renderer |
+| `window.__cloudW`, `window.__noq` (before load) | a smaller cloud picture, for speed in the software renderer; no automatic quality |
 
-After placing a view, wait about three seconds: the cloud pictures are drawn a slice at a time.
+The page must take the time only from `requestAnimationFrame` and `performance.now`: those are what the tests
+replace to step the clock.
 
 ## Risks
 
