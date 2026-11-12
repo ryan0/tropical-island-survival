@@ -3,6 +3,7 @@ import { defineConfig } from 'vite';
 import glsl from 'vite-plugin-glsl';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import packageJson from './package.json' with { type: 'json' };
+import { shaderChunks } from './tools/shader-chunks-plugin.ts';
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: import.meta.dirname, encoding: 'utf8' }).trim();
@@ -26,6 +27,7 @@ export default defineConfig({
   plugins: [
     // Chunks include what they need, so two chunks may both include a third: it must appear once.
     glsl({ removeDuplicatedImports: true, warnDuplicatedImports: false }),
+    shaderChunks({ chunks: 'src/lifted/glsl', shared: 'src/lifted/shared' }),
     viteSingleFile(),
   ],
 });

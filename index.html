@@ -1,33 +1,75 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    />
-    <title>Tropical Island Survival</title>
-    <style>
-      html,
-      body {
-        margin: 0;
-        height: 100%;
-        background: #0a2a4a;
-      }
-      .build-label {
-        position: fixed;
-        left: 50%;
-        bottom: 3px;
-        transform: translateX(-50%);
-        z-index: 2;
-        font: 9px monospace;
-        color: #fff;
-        opacity: 0.4;
-        pointer-events: none;
-      }
-    </style>
-  </head>
-  <body>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Tropical Island Survival</title>
+<style>
+  html,body{margin:0;height:100%;background:#0a2a4a;overflow:hidden;
+    font-family:ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  canvas{filter:contrast(1.07) saturate(1.14)}
+  #vig{position:fixed;inset:0;pointer-events:none;z-index:1;
+    background:radial-gradient(ellipse at 50% 45%,rgba(0,0,0,0) 55%,rgba(0,0,10,.34) 100%)}
+  .pill,#joy,#hint{z-index:2}
+  #glare{position:fixed;left:0;top:0;width:90vmax;height:90vmax;margin:-45vmax 0 0 -45vmax;border-radius:50%;pointer-events:none;z-index:1;opacity:0;
+    mix-blend-mode:screen;will-change:transform,opacity;
+    background:radial-gradient(circle,rgba(255,246,220,.75) 0%,rgba(255,226,170,.28) 18%,rgba(255,210,150,.08) 42%,rgba(255,210,150,0) 65%)}
+  #uw{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .3s ease;
+    background:linear-gradient(rgba(0,130,160,.22),rgba(0,45,85,.48))}
+  #uw:before{content:'';position:absolute;top:-10%;bottom:0;left:-30%;right:-30%;mix-blend-mode:screen;opacity:var(--ray,1);
+    background:repeating-linear-gradient(103deg,rgba(255,255,255,0) 0,rgba(255,255,255,0) 7%,rgba(200,255,250,.13) 9%,rgba(200,255,250,.13) 11%,rgba(255,255,255,0) 14%,rgba(255,255,255,0) 23%,rgba(200,255,250,.09) 25%,rgba(200,255,250,.09) 29%,rgba(255,255,255,0) 32%,rgba(255,255,255,0) 40%);
+    -webkit-mask-image:linear-gradient(#000 0%,rgba(0,0,0,.55) 45%,transparent 82%);mask-image:linear-gradient(#000 0%,rgba(0,0,0,.55) 45%,transparent 82%);
+    animation:rays 9s ease-in-out infinite alternate}
+  @keyframes rays{from{transform:translateX(-5%) skewX(-4deg)}to{transform:translateX(5%) skewX(4deg)}}
+  #title{position:fixed;left:0;right:0;top:30%;text-align:center;color:#fff;pointer-events:none;z-index:2;transition:opacity 2.2s ease;
+    text-shadow:0 2px 18px rgba(0,20,40,.55)}
+  #title h1{margin:0;font-weight:300;font-size:44px;letter-spacing:.42em;text-indent:.42em}
+  #title p{margin:10px 0 0;font-size:12px;letter-spacing:.3em;text-transform:uppercase;opacity:.85}
+  #cap{position:fixed;left:0;right:0;top:17%;text-align:center;color:#fff;pointer-events:none;z-index:2;opacity:0;transition:opacity 1.1s ease;
+    text-shadow:0 1px 12px rgba(0,20,40,.6)}
+  #cap b{display:block;font-weight:400;font-size:22px;letter-spacing:.3em;text-indent:.3em;text-transform:uppercase}
+  #cap span{display:block;margin-top:7px;font-size:11px;letter-spacing:.2em;font-style:italic;opacity:.85}
+  .pill,#joy,#hint{transition:opacity 1.5s ease}
+  body.intro .pill,body.intro #joy,body.intro #hint{opacity:0}
+  .pill{position:fixed;top:14px;background:rgba(255,255,255,.18);color:#fff;
+    border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 14px;font:inherit;
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #tod{right:14px}
+  #menu{position:fixed;top:56px;right:10px;z-index:3;padding:8px 10px;border-radius:14px;max-width:95vw;color:#fff;
+    background:rgba(8,28,48,.58);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #menu .mrow{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:6px 0;padding-left:44px}
+  #menu .mrow span{width:44px;margin-left:-44px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;opacity:.7}
+  .mopt{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:7px 8px;
+    font:inherit;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase}
+  .mopt.on{background:rgba(255,255,255,.88);color:#123}
+  body.intro #menu{display:none}
+  #joy{position:fixed;left:22px;bottom:34px;width:128px;height:128px;border-radius:50%;
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.45);touch-action:none}
+  #knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;
+    background:rgba(255,255,255,.55);pointer-events:none}
+  #hint{position:fixed;left:170px;right:14px;bottom:84px;text-align:center;pointer-events:none;
+    font-size:11px;letter-spacing:.16em;line-height:1.7;text-transform:uppercase;color:#fff;
+    text-shadow:0 1px 6px rgba(0,0,0,.5);transition:opacity 2s ease}
+  #err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+    padding:30px;text-align:center;line-height:1.6;color:#fff;background:#0a2a4a}
+  .build-label{position:fixed;left:50%;bottom:3px;transform:translateX(-50%);z-index:2;font:9px monospace;color:#fff;opacity:.4;pointer-events:none}
+</style>
+</head>
+<body>
+<button id="snd" class="mopt" style="display:none">waves off</button>
+<button id="tod" class="pill">day</button>
+<div id="joy"><div id="knob"></div></div>
+<div id="hint">stick to walk<br>drag to look</div>
+<div id="vig"></div>
+<div id="glare"></div>
+<div id="uw"></div>
+<div id="title"><h1>LAGOON</h1><p>an island made of code</p></div>
+<div id="cap"></div>
+<div id="err"></div>
+<script type="module" src="/src/main.ts"></script>
+
+</body>
 </html>

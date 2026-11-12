@@ -34,5 +34,8 @@
     "vite": "^8.3.8",
     "vite-plugin-glsl": "^1.6.2",
     "vite-plugin-singlefile": "^2.3.4"
+  },
+  "dependencies": {
+    "three": "0.128.0"
   }
 }
