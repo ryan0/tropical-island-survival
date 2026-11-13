@@ -1,9 +1,9 @@
-import { writeFileSync } from 'node:fs';
-import { expect, test, type BrowserContext, type TestInfo } from '@playwright/test';
+import { expect, test, type BrowserContext } from '@playwright/test';
 import { writeChangedCopy } from './changed-page';
 import { legacyPage, scenePage } from './pages';
 import { comparePictures, describeDifference, type PictureDifference } from './picture-difference';
 import { describeMoment, referenceViews, type Moment, type ReferenceView } from './reference-views';
+import { savePictures } from './save-pictures';
 import { openScenePage, showMoment, takePicture } from './scene-page';
 
 interface MomentDifference {
@@ -36,18 +36,6 @@ async function drawAndCompare(
   expect(reference.problems, 'problems in the reference page').toEqual([]);
   expect(candidate.problems, 'problems in the page under test').toEqual([]);
   return differences;
-}
-
-// Reference, candidate and difference side by side, as a file in test-results/ to open after a
-// failure, whichever way the results were reported.
-async function savePictures(
-  testInfo: TestInfo,
-  name: string,
-  difference: PictureDifference,
-): Promise<void> {
-  const file = testInfo.outputPath(`${name.replace(/[^a-z0-9.]+/gi, '-')}.png`);
-  writeFileSync(file, difference.sideBySide);
-  await testInfo.attach(name, { path: file, contentType: 'image/png' });
 }
 
 for (const view of referenceViews) {

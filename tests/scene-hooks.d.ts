@@ -10,6 +10,8 @@ interface SceneDebugHooks {
   phase(dayPhase: number): void;
   /** A sun height in radians that overrides the time of day. */
   sun(elevation: number): void;
+  /** Puts the player somewhere, facing a direction. */
+  set(x: number, z: number, yaw: number, pitch: number): void;
   /** Ground height at a point. */
   hgt(x: number, z: number): number;
   /** Water height at a point and wave time, as the program computes it. */
@@ -30,6 +32,8 @@ interface Window {
   __lag: SceneDebugHooks;
   /** Camera placed by the tests: x, y, z, yaw, pitch. */
   __fly?: [number, number, number, number, number];
+  /** Set by `freeze`; cleared to let the wave clock and the weather run again. */
+  __freeze?: boolean;
   /** Wind strength and cloud cover while the clock is frozen. */
   __wind?: number;
   __weather?: number;
