@@ -1,11 +1,11 @@
-// declarations the terrain colouring needs; put in front of three.js's Lambert fragment shader by 30_terrain.js
+// declarations the terrain colouring needs; put in front of three.js's Lambert fragment shader by terrain.ts
 uniform float uTime,uLevel,uDay,uGritMean,uWind;uniform vec3 uCam,uSunDir;uniform vec3 uHor;uniform sampler2D uDet,uCloudShade,uReef;varying vec3 vWp;
 
-#include "terrain_fn"
+#include "footpaths"
 
-#include "shore"
+#include "island-shape/shore"
 
-#include "lagwave"
+#include "../shaders/shared/lagwave"
 
 // Bits of leaf litter and twig lying on sand: at most one short dark fleck in each square of p, at its own angle.
 float fleck(vec2 p){

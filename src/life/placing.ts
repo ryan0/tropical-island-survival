@@ -1,12 +1,7 @@
 import { within, type Random, type Range } from '../core/random';
+import type { GroundHeight, Point } from '../world/landmarks';
 
-export interface Point {
-  x: number;
-  z: number;
-}
-
-/** Height of the ground at a point; below zero it is under the sea. */
-export type GroundHeight = (x: number, z: number) => number;
+export type { GroundHeight, Point } from '../world/landmarks';
 
 export interface Area {
   x: Range;

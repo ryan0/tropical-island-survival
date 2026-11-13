@@ -1,5 +1,5 @@
 // The ocean-side shoreline and beach - the part of the land's shape that the WAVE MODEL depends on.
-// (Shared with JavaScript like everything in src/shared; see island.glsl for the subset allowed here.)
+// (Shared with JavaScript like everything in this folder; see island.glsl for the subset allowed here.)
 // This file is included by the water vertex shader: keep it small and plain (docs/DEVICE_NOTES.md).
 
 // distance from the centre of the atoll to its outer (ocean) still-water shoreline, in direction th (radians)

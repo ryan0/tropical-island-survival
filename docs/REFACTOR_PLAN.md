@@ -158,7 +158,16 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   still gathers the shared set, which goes to `src/core/` last. Weather and wind now step through their spells
   with one piece of code (it was on the list for step 6). No new test: the pictures, the scene-state test and
   the menu test cover it, and a one-off comparison with the clock running matched build 78 in every uniform.
-- [ ] world
+- [ ] world, in parts:
+  - [x] terrain: `src/world/` holds the landmarks (home, hut, pier, footpaths, and the searches for the
+    shorelines), the ground and its grit picture. The island's shape moved to `src/world/island-shape/` (still
+    the one definition, still turned into functions for the program by the build), and the terrain's shaders
+    moved beside the terrain with their numbers as defines. The lagoon shore-wave chunk the terrain shares with
+    the water is in `src/shaders/shared/`; the lifted water shaders get its one define written into the chunk.
+  - [ ] rocks
+  - [ ] reef
+  - [ ] plants (palms, grass, shrubs and ground cover, fallen leaves) and the instancing they share
+  - [ ] props (hut, pier, camp) and the fire
 - [ ] sea
 - [ ] player
 - [ ] core and `main.ts`
@@ -189,7 +198,8 @@ Kept for now so that nothing moves; removing one changes what is seen:
   said it is to go, later.
 - A full turn written as 6.28 where the wildlife picks a direction at random (`src/life/placing.ts`).
 
-Found on the way, and left as build 78 has them because putting them right changes what is seen:
+Found on the way, and left as build 78 has them because putting them right changes what is seen. Ryan has said
+both are to be corrected, later:
 
 - In `src/sky/cloud-field.glsl` the statement that makes the cloud shapes rise as they boil (`sp.z-=uEvo.z;`)
   sits behind a `//` comment on the same line, so the shader never runs it. The program's copy

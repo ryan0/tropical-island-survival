@@ -8,7 +8,7 @@ import {createSkyDome} from '../../sky/sky-dome.ts';
 import {createSkyLight} from '../../sky/sky-light.ts';
 import {createSunGlare} from '../../sky/sun-glare.ts';
 import {WATER_LEVEL} from './00_config.js';
-import {camera,scene} from './05_core.js';
+import {camera,scene,sharedUniforms} from './05_core.js';
 import {detailTex} from './22_detail.js';
 import {CLOUD_H,CLOUD_W,clouds} from './23_clouds.js';
 import {VH,VW} from './90_main.js';
@@ -21,7 +21,7 @@ var dayCycle=createDayCycle(),skyLight=createSkyLight();
      uDet the detail texture (22_detail.js), uCloudA/uCloudB the two sky pictures of the clouds being blended, uCloudMix how far from A to B, uCloudShift how far each has drifted, uCloudShade the map of their shadows, uSunThru how much sun reaches the camera through them (clouds.ts), uCloudSun/uCloudShd the colours of sunlit and shaded cloud, uReef how high the coral heads stand (47_reef.js), uWind the wind's strength 0..1 (clouds.ts), uCam the camera's position (for materials three.js does not give it to),
      uDbg debug switch (0 normal, 1 waves off, 2 no falling lip, 3 plain water colour).
    The sky's light and the clouds each own theirs (sky-light.ts, clouds.ts); the rest are made here. */
-var sharedUniforms=Object.assign({uTime:{value:0},uLevel:{value:0},uUnder:{value:0},uBandOn:{value:0},uDbg:{value:0},uFogC:{value:new THREE.Color()},
+Object.assign(sharedUniforms,{uTime:{value:0},uLevel:{value:0},uUnder:{value:0},uBandOn:{value:0},uDbg:{value:0},uFogC:{value:new THREE.Color()},
   uDet:{value:detailTex},uReef:{value:null},uCam:{value:new THREE.Vector3()},uObs:{value:(function(){
   var a=[];
   for(var i=0;i<16;i++)a.push(new THREE.Vector3(0,0,-1));

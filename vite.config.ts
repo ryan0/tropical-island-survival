@@ -30,7 +30,7 @@ export default defineConfig({
     // Build 78's shaders still lifted include chunks that cleaned shaders share with them.
     shaderChunks({
       chunks: ['src/lifted/glsl', 'src/shaders/shared'],
-      shared: 'src/lifted/shared',
+      shared: 'src/world/island-shape',
     }),
     viteSingleFile(),
   ],

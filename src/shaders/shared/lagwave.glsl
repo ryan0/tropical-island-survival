@@ -1,9 +1,9 @@
-// Small wind waves coming ashore on the lagoon's beaches. water.frag.glsl draws them on the water, terrain_color.glsl
+// Small wind waves coming ashore on the lagoon's beaches. water.frag.glsl draws them on the water, terrain-colour.glsl
 // draws what they do on the sand, and in a high wind lagband.vert.glsl gives them real height; all three must agree,
 // so all three use this. (Needs "noise" and uWind. Vertex-shader rules apply: docs/DEVICE_NOTES.md.)
 //   light air: none (the lagoon's edge only laps)   medium wind: small ones, flat, drawn by shading and foam alone
 //   high wind: 2.3 times the size, with real height, coming in sets, running further up the sand
-const vec2 WIND_DIR={{WINDDIR}};     // the way the wind blows (level, unit length); filled in by 30_terrain.js
+const vec2 WIND_DIR=LAGOON_WIND_DIRECTION;     // the way the wind blows (level, unit length): a define
 const float LW_T=2.1;                // seconds between waves
 // 0 up to a medium wind, 1 in a high one
 float lagHi(){return smoothstep(.7,1.,uWind);}

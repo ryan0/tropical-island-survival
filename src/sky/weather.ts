@@ -1,3 +1,4 @@
+import { cloudsConfig } from './clouds-config';
 import { skyConfig } from './sky-config';
 
 /** One of the two things the weather is made of: how cloudy it is, or how windy. */
@@ -62,6 +63,12 @@ function createSpells(config: SpellsConfig): RunningSpells {
       now += Math.max(-most, Math.min(most, wanted - now));
     },
   };
+}
+
+/** The way the wind blows, level and of unit length (x, z): the way the clouds drift. */
+export function windDirection(): [number, number] {
+  const [x, z] = cloudsConfig.drift;
+  return [x / Math.hypot(x, z), z / Math.hypot(x, z)];
 }
 
 export function createWeather(): Weather {

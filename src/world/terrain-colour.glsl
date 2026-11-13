@@ -186,7 +186,7 @@ if(dep>8.6){
 }
 // the clouds' shadows. The sun lamp is already dimmed by however much cloud stands between the sun and the camera
 // (32_lights.js); this adds the difference between here and there, so that a shadow's edge can be seen crossing the ground.
-diffuseColor.rgb*=mix(.45,1.,texture2D(uCloudShade,vWp.xz/{{SPAN_M}}+.5).r)/mix(.45,1.,texture2D(uCloudShade,uCam.xz/{{SPAN_M}}+.5).r);
+diffuseColor.rgb*=mix(.45,1.,texture2D(uCloudShade,vWp.xz/CLOUD_SHADE_SPAN_M+.5).r)/mix(.45,1.,texture2D(uCloudShade,uCam.xz/CLOUD_SHADE_SPAN_M+.5).r);
 diffuseColor.rgb*=1.+grit*(th<1.6?.55:1.1);   // fine and faint on the beach, coarser on soil and turf
 if(dep>0.){
   // reef flat: dark coral heads and sea-grass beds mottle the sand in the shallows (what makes a lagoon look like one from above)
@@ -210,7 +210,7 @@ if(dep>0.){
   // underwater look starts below it: dw is the depth of water that is always there.
   // Round the coral heads (47_reef.js; its map's green channel) the floor is not sand but old reef: rough pale rock,
   // crusted pink in places, strewn with coral rubble - solid at a head's foot, breaking up into the sand further out.
-  vec2 ruv=(tp-{{HOME}})/300.+.5;
+  vec2 ruv=(tp-TERRAIN_HOME)/300.+.5;
   float apron=texture2D(uReef,ruv).g*step(abs(ruv.x-.5),.49)*step(abs(ruv.y-.5),.49);
   if(apron>.01){
     float rk2=smoothstep(.30,.62,apron+(fbm(tp*.9+5.)-.5)*.8+(noise(tp*3.7)-.5)*.25);

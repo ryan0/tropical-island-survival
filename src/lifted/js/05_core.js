@@ -76,4 +76,8 @@ function glslFloat(v){
    (r radius, g ground height there, prev last water height). 66_spray.js reads the list. */
 var OBSTACLES=[];
 
-export {OBSTACLES,camera,canvas,glslFloat,hintEl,mix3,renderer,rnd,rndStream,scene,smoothstep};
+/* The uniforms every shader shares. Empty here: 34_sky.js fills it in. It is made this early so that the cleaned systems
+   built before the sky can be handed it; they read it when they first draw. */
+var sharedUniforms={};
+
+export {OBSTACLES,camera,canvas,glslFloat,hintEl,mix3,renderer,rnd,rndStream,scene,sharedUniforms,smoothstep};
