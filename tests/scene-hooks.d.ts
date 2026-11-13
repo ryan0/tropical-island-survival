@@ -1,6 +1,19 @@
 // What a page holding the scene must offer for the tests to drive it. The names are build 78's,
 // so the same tests can drive the legacy page and the new build; they stay until legacy/ is gone.
 
+/** As much of a three.js object as the tests read (scene-state.spec.ts). */
+interface SceneObject {
+  type: string;
+  visible: boolean;
+  matrixWorld: { elements: number[] };
+  /** Many copies of one shape: how many are drawn, where each is and its colour. */
+  count?: number;
+  instanceMatrix?: { array: Float32Array };
+  instanceColor?: { array: Float32Array } | null;
+  geometry?: { attributes: { position?: { array?: Iterable<number> } } };
+  material?: { type?: string; opacity?: number; color?: { getHex(): number } };
+}
+
 interface SceneDebugHooks {
   /** Ends the opening fly-in. */
   skip(): void;
@@ -21,7 +34,7 @@ interface SceneDebugHooks {
   /** The wave model as the shader has it, ready to compile on its own. */
   glslWaves(): string;
   cam: { fov: number; updateProjectionMatrix(): void };
-  scene: object;
+  scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {
     compile(scene: object, camera: object): void;
     info: { programs: object[] | null };
@@ -42,4 +55,6 @@ interface Window {
   __cloudW?: number;
   /** Added by the tests (scene-page.ts): the only thing that makes time pass in the page. */
   __runFrames(count: number, millisecondsEach: number): void;
+  /** Added by the tests (sound.spec.ts): the page's sound, to be rendered and not played. */
+  __sound?: OfflineAudioContext;
 }

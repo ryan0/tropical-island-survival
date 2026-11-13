@@ -16,7 +16,7 @@ var menu=createMenu(document.body,[
   }},
   {label:'sky',choices:[['auto',null],['clear',0],['few clouds',0.45],['cloudy',1]],choose:function(v){weather.fixed=v;}},
   {label:'wind',choices:[['auto',null],['none',0],['light',0.33],['moderate',0.66],['high',1]],choose:function(v){wind.fixed=v;}},
-  /* the sound button (70_audio.js owns it and writes "waves on" / "waves off" on it) */
+  /* the sound button (src/ui/sound-button.ts writes "waves on" / "waves off" on it) */
   {label:'sound',control:soundBtn}
 ]);
 

@@ -44,13 +44,13 @@ src/
   world/                 the island's shape (one definition), terrain, rocks, reef, plants
   sea/                   wave model, far sea, wave mesh, lagoon shore waves, whitecaps, spray, the view from under water
   sky/                   day cycle, sky dome, sun and moon, clouds, weather, wind
-  life/                  fish
+  life/                  gulls, fish, crabs, turtle, butterflies, fireflies, dolphins; shells and flowers round home
   player/                movement, swimming, camera, input, footprints
-  ui/                    menu, captions, joystick, debug panel
+  ui/                    menu, captions, joystick, sound button, debug panel
   audio/                 surf and crickets
   game/                  survival systems (empty until the refactor is done)
   shaders/shared/        chunks used by several features: noise, sea tint, readings of the detail texture
-tests/                   picture comparison, wave mirror, shader compile
+tests/                   picture comparison, scene state, controls, sound, wave mirror, shader compile
 tools/                   picture and measurement tools worth keeping
 docs/
 legacy/                  build 78; removed in step 8
@@ -140,8 +140,16 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   for their own branches: the time of day written on the button (sky), the sound button (audio), which named
   place the player is in, drag-to-look and the keyboard (player), the glare and underwater overlays (sky, sea),
   and the test hooks (core).
-- [ ] audio
-- [ ] life
+- [x] audio: `src/audio/` holds the surf and the crickets, and `src/ui/sound-button.ts` the button that switches
+  them. `tests/sound.spec.ts` has build 78 and the new build render their sound into memory and compares the
+  samples. The browser renders one sound a rounding step apart from itself, so the comparison allows that much.
+- [x] life: `src/life/` has a file for each animal (gulls, fish, crabs, turtle, butterflies, fireflies, dolphins)
+  and for the starfish, shells and pebbles on the beach and the flowers, which build 78 built along with them.
+  They all draw from one random stream, so `life.ts` builds them in build 78's order. `src/core/` begins here
+  with the two helpers they needed (`maths.ts`, `random.ts`). `tests/scene-state.spec.ts` compares where every
+  object in the scene is, and every copy of everything drawn in copies, on build 78 and on the new build: most
+  animals are not in the reference pictures at the moment those are taken. An error in the wildlife used to be
+  swallowed without a word each frame; now it is reported and the wildlife dropped, as for any other module.
 - [ ] sky
 - [ ] world
 - [ ] sea
@@ -167,6 +175,12 @@ Known today:
 - `landW` from the island's shape is typed out again inside the terrain shader.
 - The day-and-night light factor is written inline in many places.
 - A dozen one-off picture scripts in `legacy/tools` that differ only in their list of views.
+
+Kept only so that nothing moves. Removing one changes what is seen, so each is Ryan's to decide:
+
+- The turtle's old search for a patch of water (`src/life/turtle.ts`). Nothing uses what it finds, but it draws
+  from the wildlife's random stream, and every shell, flower, butterfly and firefly is placed after it.
+- A full turn written as 6.28 where the wildlife picks a direction at random (`src/life/placing.ts`).
 
 ### 7. One wave model
 

@@ -2,6 +2,7 @@
 import './00_config.js';   /* first, so that the files still run in build 78's order */
 import * as THREE from 'three';
 import {WORLD_SEED} from './00_config.js';
+import {smoothstep} from '../../core/maths.ts';   /* cleaned; passed on from here to the files still lifted */
 
 /* Page-level setup that everything else builds on: error display, the three.js renderer, scene and camera,
    plus a few small helpers. */
@@ -63,10 +64,6 @@ function rndStream(name){
   };
 }
 var rnd=rndStream('general');
-function smoothstep(a,b,x){
-  var t=Math.max(0,Math.min(1,(x-a)/(b-a)));
-  return t*t*(3-2*t);
-}
 /* blend two [r,g,b] arrays */
 function mix3(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
 /* a number written the way GLSL wants a float ("2." rather than "2") */

@@ -7,7 +7,7 @@ import {OBSTACLES,camera,renderer,rnd,scene} from './05_core.js';
 import {glsl} from './20_glsl.js';
 import {sharedUniforms} from './34_sky.js';
 import {WP_H,WP_bore,WP_imp,WP_lip,waveH} from './36_waves.js';
-import {surfGain} from './70_audio.js';
+import {audio} from './70_audio.js';
 import {VH} from './90_main.js';
 
 /* Spray: a pool of point sprites thrown up by breaking waves and by water hitting posts and rocks. */
@@ -96,7 +96,7 @@ function updateSpray(F){
       }
     }
     surfE+=(Math.min(1,sE/14)-surfE)*Math.min(1,dt*3);
-    if(surfGain)surfGain.gain.value=0.22+0.55*surfE;
+    audio.setSurfBreaking(surfE);
     for(var oi2=0;oi2<OBSTACLES.length;oi2++){
       var ob=OBSTACLES[oi2],oe=waveH(ob.x,ob.z,t),ov=(oe-ob.prev)/Math.max(dt,0.008);
       ob.prev=oe;

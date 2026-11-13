@@ -58,7 +58,7 @@ async function openTheDebugPanel(page: Page): Promise<void> {
   await page.locator('#tod').dispatchEvent('pointerup');
 }
 
-test('the corner button opens the menu', { tag: '@quick' }, async ({ context }, testInfo) => {
+test('the corner button opens the menu', async ({ context }, testInfo) => {
   await expectTheSameAfter(context, testInfo, async (page) => {
     await page.locator('#tod').click();
     await expect(page.locator('#menu')).toBeVisible();
