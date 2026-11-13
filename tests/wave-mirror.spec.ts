@@ -114,12 +114,16 @@ async function measureMirror(context: BrowserContext, file: string) {
   };
 }
 
-test('the wave model in the shader and its copy in the program agree', async ({ context }) => {
-  const { mean, ninetyNinthPercentile } = await measureMirror(context, scenePage);
+test(
+  'the wave model in the shader and its copy in the program agree',
+  { tag: '@quick' },
+  async ({ context }) => {
+    const { mean, ninetyNinthPercentile } = await measureMirror(context, scenePage);
 
-  expect(mean).toBeLessThan(MEAN_LIMIT);
-  expect(ninetyNinthPercentile).toBeLessThan(NINETY_NINTH_PERCENTILE_LIMIT);
-});
+    expect(mean).toBeLessThan(MEAN_LIMIT);
+    expect(ninetyNinthPercentile).toBeLessThan(NINETY_NINTH_PERCENTILE_LIMIT);
+  },
+);
 
 test('a wave shader that drifts from the program is reported', async ({ context }, testInfo) => {
   const driftedPage = testInfo.outputPath('build78-with-steeper-shoaling.html');

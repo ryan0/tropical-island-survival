@@ -57,7 +57,8 @@ New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright insta
 
 ```
 npm run dev        # dev server; add `-- --host` to open it from the phone on the home network
-npm run check      # types, lint, build, tests: what GitHub runs on every branch (three to four minutes)
+npm run check      # types, lint, build, tests: what GitHub runs on every branch (about two minutes; three and a half when build 78's pictures must be drawn)
+npm run check:quick   # the same with a handful of the tests, for use while working (half a minute)
 npm run pictures   # only the picture comparison with build 78; `-- -g lagoon` for the views so named
 npm run format     # let Prettier rewrite the files
 npm run site       # the whole Pages site into site/, as GitHub publishes it
@@ -65,7 +66,8 @@ npm run site       # the whole Pages site into site/, as GitHub publishes it
 
 The tests draw every view in `tests/reference-views.ts` from `legacy/build78.html` and from the page under test
 and fail on any pixel that differs; the pictures of a failure (reference, page under test, difference) are in
-`test-results/`. They also use the menu, joystick, captions and debug panel on both pages, compile every shader
+`test-results/`. Build 78's pictures are drawn once and kept in `node_modules/.cache/build78-pictures/`; they are
+drawn again by themselves when the tests, the browser or the packages change, or when that folder is deleted. They also use the menu, joystick, captions and debug panel on both pages, compile every shader
 and compare the wave model's two copies.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to

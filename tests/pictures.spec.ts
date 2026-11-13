@@ -1,46 +1,38 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
+import { picturesOfBuild78 } from './build78-pictures';
 import { writeChangedCopy } from './changed-page';
 import { legacyPage, scenePage } from './pages';
 import { comparePictures, describeDifference, type PictureDifference } from './picture-difference';
 import { describeMoment, referenceViews, type Moment, type ReferenceView } from './reference-views';
 import { savePictures } from './save-pictures';
-import { openScenePage, showMoment, takePicture } from './scene-page';
+import { drawView } from './scene-page';
 
 interface MomentDifference {
   moment: Moment;
   difference: PictureDifference;
 }
 
-// Nothing is stored: the reference is drawn afresh, in the same browser on the same machine as
-// the candidate, and both pages are taken through the same frames.
+// Build 78's pictures are drawn once and kept (build78-pictures.ts). The page under test is drawn
+// every time, by the same browser on the same machine and through the same frames.
 async function drawAndCompare(
   context: BrowserContext,
-  referenceFile: string,
   candidateFile: string,
   view: ReferenceView,
 ): Promise<MomentDifference[]> {
-  const reference = await openScenePage(context, referenceFile);
-  const candidate = await openScenePage(context, candidateFile);
-  const differences: MomentDifference[] = [];
+  const reference = await picturesOfBuild78(context, view);
+  const candidate = await drawView(context, candidateFile, view);
 
-  for (const moment of view.moments) {
-    await showMoment(reference.page, view, moment);
-    await showMoment(candidate.page, view, moment);
-    const difference = comparePictures(
-      await takePicture(reference.page, view),
-      await takePicture(candidate.page, view),
-    );
-    differences.push({ moment, difference });
-  }
-
-  expect(reference.problems, 'problems in the reference page').toEqual([]);
   expect(candidate.problems, 'problems in the page under test').toEqual([]);
-  return differences;
+  return view.moments.map((moment, index) => ({
+    moment,
+    difference: comparePictures(reference[index], candidate.pictures[index]),
+  }));
 }
 
 for (const view of referenceViews) {
-  test(`${view.name}: ${view.shows}`, async ({ context }, testInfo) => {
-    const differences = await drawAndCompare(context, legacyPage, scenePage, view);
+  const tag = view.inQuickCheck ? '@quick' : [];
+  test(`${view.name}: ${view.shows}`, { tag }, async ({ context }, testInfo) => {
+    const differences = await drawAndCompare(context, scenePage, view);
 
     for (const { moment, difference } of differences) {
       const when = describeMoment(moment);
@@ -59,7 +51,7 @@ test('the comparison catches a one-line change to a shader', async ({ context },
   const theWholeLagoon = referenceViews.find((view) => view.name === 'lagoon');
   if (theWholeLagoon === undefined) throw new Error('the lagoon view is gone');
 
-  const differences = await drawAndCompare(context, legacyPage, changedPage, theWholeLagoon);
+  const differences = await drawAndCompare(context, changedPage, theWholeLagoon);
   const first = differences.at(0);
   if (first === undefined) throw new Error('the lagoon view has no moments');
 

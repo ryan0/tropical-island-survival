@@ -22,6 +22,8 @@ export interface ReferenceView {
   /** Names the test and the pictures it saves. */
   name: string;
   shows: string;
+  /** Also drawn by `npm run check:quick`, which draws one view of each kind of scene. */
+  inQuickCheck?: boolean;
   /** x, y, z, yaw, pitch. The camera looks along (-sin yaw, -cos yaw). */
   pose: [number, number, number, number, number];
   /** The pose's y is the eye's height above the ground there, not above still sea level. */
@@ -87,6 +89,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'lagoon',
     shows: 'the whole lagoon, in a high wind, a light wind and a calm',
+    inQuickCheck: true,
     pose: [30, 26, 120, 0.5, -0.42],
     fieldOfView: 65,
     moments: [at(), at({ wind: 0.33 }), at({ wind: 0 })],
@@ -129,6 +132,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'ocean-shore',
     shows: 'a wave breaking on the ocean beach',
+    inQuickCheck: true,
     pose: [5, 1.7, 163.8, 3.1416, -0.22],
     heightIsAboveGround: true,
     fieldOfView: 66,
@@ -182,6 +186,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'home-clearing',
     shows: 'the home clearing',
+    inQuickCheck: true,
     pose: [-8, 5.2, 144.5, 0.7, -0.1],
     fieldOfView: 60,
     moments: [legacyToolsAt(0.72)],
@@ -196,6 +201,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'night',
     shows: 'the beach at night',
+    inQuickCheck: true,
     pose: [9, 2.6, 162, 0.67, -0.1],
     fieldOfView: 60,
     moments: [legacyToolsAt(-0.16), ...clearAndPartlyCloudy(MIDNIGHT)],
@@ -280,6 +286,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'dawn',
     shows: 'sunrise along the beach',
+    inQuickCheck: true,
     pose: [3, 2.3, 160, -1.716, 0.02],
     fieldOfView: 60,
     moments: clearAndPartlyCloudy(DAWN),
@@ -296,6 +303,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'under-water',
     shows: 'a coral head and the sea floor from under water',
+    inQuickCheck: true,
     pose: [-16, 1.2, 70, 0.905, -0.05],
     heightIsAboveGround: true,
     fieldOfView: 60,
@@ -314,6 +322,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'controls',
     shows: 'the joystick, the button and the hint over the scene',
+    inQuickCheck: true,
     pose: [3, 2.3, 160, 3.1416, -0.02],
     fieldOfView: 60,
     showsControls: true,

@@ -21,7 +21,7 @@ async function compileEveryShader(context: BrowserContext, file: string) {
   return { programs, problems: scene.problems };
 }
 
-test('every shader in the scene compiles', async ({ context }) => {
+test('every shader in the scene compiles', { tag: '@quick' }, async ({ context }) => {
   const { programs, problems } = await compileEveryShader(context, scenePage);
 
   expect(problems).toEqual([]);

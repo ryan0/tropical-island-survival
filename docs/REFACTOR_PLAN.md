@@ -82,7 +82,8 @@ lint tooling supports 7.
 ### 2. Picture comparison
 
 - One command renders the reference views (below) from `legacy/build78.html` and from the new build, in the same
-  renderer on the same machine, and reports where they differ. Nothing is stored: the legacy page is the reference.
+  renderer on the same machine, and reports where they differ. Nothing is stored in the repository: the legacy page
+  is the reference. Its pictures are kept on the machine between runs, to save drawing them again.
 - The new build keeps the debug hooks the views need (below), behind one debug module.
 - The wave model's mirror test and a compile of every shader join the checks.
 

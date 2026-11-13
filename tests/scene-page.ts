@@ -108,3 +108,24 @@ export async function takePicture(page: Page, view: ReferenceView): Promise<Buff
     style: view.showsControls ? undefined : `${CONTROLS} { display: none !important; }`,
   });
 }
+
+export interface DrawnView {
+  /** One picture for each of the view's moments, in order. */
+  pictures: Buffer[];
+  problems: string[];
+}
+
+export async function drawView(
+  context: BrowserContext,
+  file: string,
+  view: ReferenceView,
+): Promise<DrawnView> {
+  const { page, problems } = await openScenePage(context, file);
+  const pictures: Buffer[] = [];
+  for (const moment of view.moments) {
+    await showMoment(page, view, moment);
+    pictures.push(await takePicture(page, view));
+  }
+  await page.close();
+  return { pictures, problems };
+}
