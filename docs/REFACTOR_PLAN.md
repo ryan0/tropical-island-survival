@@ -173,7 +173,10 @@ weighed and set aside: turning every lifted file into a function first, and a sh
     the water, the coral material and its shader, and the reef's fish with the fish model the lagoon's schools
     share. The fish stay with the reef for now because they draw from its random stream. Three hooks that only
     build 78's tools used did not come across (the list of heads, the fish meshes, drawing every fish at once).
-  - [ ] plants (palms, grass, shrubs and ground cover, fallen leaves) and the instancing they share
+  - [x] plants: `src/world/plants/` holds the palms, the grass and sea grass, and the island's other plants with
+    the things lying under them, each with its models, pictures and config; the shape builder that makes a
+    plant's full and simpler models at once; and the patch that lights leaves from both sides. Build 78's
+    foliage tools file is gone from `src/lifted/`, and with it the plant-viewing tool's hooks.
   - [ ] props (hut, pier, camp) and the fire
 - [ ] sea
 - [ ] player
@@ -194,6 +197,8 @@ Known today:
   foam in the water shader, and the lagoon's swash foam in the terrain shader.
 - Two builders of mesh strips: the wave mesh and the lagoon shore band.
 - The cloud field exists in the shader and again in the program (to dim the sun when a cloud passes).
+- The grass copies three of the ground's patterns from `terrain-colour.glsl` into the program (the turf's colours,
+  the wobble of the turf's edge, the patches of bare soil): `src/world/plants/grass-placement.ts`.
 - `landW` from the island's shape is typed out again inside the terrain shader.
 - The day-and-night light factor is written inline in many places.
 - A dozen one-off picture scripts in `legacy/tools` that differ only in their list of views.

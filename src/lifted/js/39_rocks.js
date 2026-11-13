@@ -1,6 +1,6 @@
 /* A bridge. Build 78's 39_rocks.js is now src/world/rocks/; this builds the rocks at the same point in start-up and passes
    on what the lifted files expect: where the plants must not grow and the rocks in the surf. */
-import './39_foliage.js';   /* first, so that the files still run in build 78's order */
+import './38_water.js';   /* first, so that the files still run in build 78's order */
 import {hgt,islandR,landW,passGap} from 'virtual:shader-chunks';
 import {createRocks} from '../../world/rocks/rocks.ts';
 import {CAMP} from './00_config.js';
@@ -13,6 +13,4 @@ var rocks=createRocks({random:rndStream('rocks'),island:{groundHeight:hgt,radius
 /* rocks standing in the surf register as OBSTACLES (spray and foam round them: 66_spray.js) */
 rocks.inSurf.forEach(function(rock){OBSTACLES.push({x:rock.x,z:rock.z,r:rock.radius,g:rock.groundHeight,prev:0});});
 
-/* inRock(x,z,margin) tells the plants (40_palms, 44_grass, 45_plants) where not to grow */
-var inRock=rocks.isInRock;
-export {inRock,rocks};
+export {rocks};

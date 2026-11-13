@@ -8,7 +8,6 @@ import {BUILD} from './00_config.js';
 import {camera,renderer,scene} from './05_core.js';
 import {glsl} from './20_glsl.js';
 import {cloudShade,weather} from './23_clouds.js';
-import {PLANT_REG} from './24_instances.js';
 import {HOME_SHORE,HOME_Z,HUT_Z,PIER_X,PIER_Z0} from './30_terrain.js';
 import {sunLight} from './32_lights.js';
 import {dayCycle,sharedUniforms,todBtn} from './34_sky.js';
@@ -25,7 +24,7 @@ import {qStage} from './90_main.js';
    window.__fly=[x,y,z,yaw,pitch]  overrides the camera      window.__freeze=true  stops the wave clock
    window.__noq=1 (before load)    disables automatic quality */
 window.__lag={
-  scene:scene,cam:camera,bandInfo:bandInfo,bandPieces:bandPieces,renderer:renderer,plants:PLANT_REG,sunLight:sunLight,waveH:waveH,waveInfo:function(x,z,t){setWP_trains([]);waveH(x,z,t);var o=WP_trains;setWP_trains(null);return o;},wp:function(){return {lip:WP_lip,imp:WP_imp,bore:WP_bore,H:WP_H,Hr:WP_Hr};},islandR:islandR,hgt:hgt,HOME_Z:HOME_Z,HOME_SHORE:HOME_SHORE,HUT_Z:HUT_Z,
+  scene:scene,cam:camera,bandInfo:bandInfo,bandPieces:bandPieces,renderer:renderer,sunLight:sunLight,waveH:waveH,waveInfo:function(x,z,t){setWP_trains([]);waveH(x,z,t);var o=WP_trains;setWP_trains(null);return o;},wp:function(){return {lip:WP_lip,imp:WP_imp,bore:WP_bore,H:WP_H,Hr:WP_Hr};},islandR:islandR,hgt:hgt,HOME_Z:HOME_Z,HOME_SHORE:HOME_SHORE,HUT_Z:HUT_Z,
   glslWaves:function(){return glsl('waves');},
   set:function(x,z,y,p){player.x=x;player.z=z;setYaw(y);setPitch(p);},
   look:function(y,p){setYaw(y);setPitch(p);},
