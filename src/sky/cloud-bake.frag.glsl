@@ -1,9 +1,9 @@
-// One picture of all the clouds in the sky (see 23_clouds.js). Each dot is a direction: across = bearing, up = elevation
+// One picture of all the clouds in the sky (see clouds.ts). Each dot is a direction: across = bearing, up = elevation
 // (finer near the horizon). The shader walks out along that direction through the cloud field. Distances in km.
 uniform vec3 uLight;uniform vec2 uCRes;
 
-#include "noise"
-#include "cloudfield"
+#include "../shaders/shared/noise"
+#include "cloud-field"
 
 void main(){
   vec2 uv=gl_FragCoord.xy/uCRes;

@@ -1,12 +1,12 @@
 // The clouds' shadows on the sea and the island: a map, seen from above, of how much sunlight gets down through the
-// clouds (red: 1 = full sun). {{SPAN}} km a side, the island in the middle.
+// clouds (red: 1 = full sun). SHADE_SPAN km a side (a define), the island in the middle.
 uniform vec3 uLight;uniform vec2 uCRes;uniform float uStrength;
 
-#include "noise"
-#include "cloudfield"
+#include "../shaders/shared/noise"
+#include "cloud-field"
 
 void main(){
-  vec2 g=(gl_FragCoord.xy/uCRes-.5)*{{SPAN}};
+  vec2 g=(gl_FragCoord.xy/uCRes-.5)*SHADE_SPAN;
   // from the spot on the ground towards the sun, from the height of the cloud bases to 4.2 km, in 14 steps
   float ly=max(uLight.y,.06),ds=(4.2-HB)/ly/14.,tau=0.;
   vec3 o=vec3(g.x,0.,g.y)+uLight*(HB/ly);

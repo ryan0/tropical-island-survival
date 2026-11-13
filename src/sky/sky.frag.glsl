@@ -1,18 +1,20 @@
 // sky dome: gradient, sun, moon, stars, milky way, shooting stars, clouds
+// Needs the defines EARTH_CURVE and SLIDE_HEIGHT (km, as the cloud pictures are drawn with) and HALF_A_DOT (half a dot of a
+// cloud picture, across and up).
 uniform float uTime,uNight,uDay,uUnder;uniform vec3 uSunDir,uSunCol,uTop,uHor,uFogC;uniform sampler2D uCloudA,uCloudB;uniform vec4 uCloudShift;uniform float uCloudMix;uniform vec3 uCloudSun,uCloudShd;varying vec3 vDir;
 
-#include "noise"
+#include "../shaders/shared/noise"
 
 // what a sky picture shows in direction d, the picture having been made `shift` km of wind drift ago: find the spot at
 // the clouds' usual height that d looks at, step back upwind, and look up the direction of that spot
 vec4 cloudAt(sampler2D tex,vec3 d,vec2 shift){
-  float dy=max(d.y,0.),a=(1.-dy*dy)*{{I2R}};
-  vec3 p=d*(2.*{{REF}}/(dy+sqrt(dy*dy+4.*a*{{REF}})));
-  p.xz-=shift;p.y={{REF}}-dot(p.xz,p.xz)*{{I2R}};
+  float dy=max(d.y,0.),a=(1.-dy*dy)*EARTH_CURVE;
+  vec3 p=d*(2.*SLIDE_HEIGHT/(dy+sqrt(dy*dy+4.*a*SLIDE_HEIGHT)));
+  p.xz-=shift;p.y=SLIDE_HEIGHT-dot(p.xz,p.xz)*EARTH_CURVE;
   vec3 dd=normalize(p);
   // (read twice, half a dot apart each way, and averaged: that smooths away the grain the picture's stepping leaves)
   vec2 uv=vec2(atan(dd.z,dd.x)/6.28318+.5,-.5+sqrt(.25+2.*asin(clamp(dd.y,0.,1.))/1.5708));
-  return .5*(texture2D(tex,uv+{{HALF}})+texture2D(tex,uv-{{HALF}}));
+  return .5*(texture2D(tex,uv+HALF_A_DOT)+texture2D(tex,uv-HALF_A_DOT));
 }
 void main(){vec3 d=normalize(vDir);float sy=clamp(d.y,0.,1.);
   vec3 sky=mix(uHor,uTop*(1.-.22*sy),pow(sy,.5));float vis=1.-uNight;
@@ -50,7 +52,7 @@ void main(){vec3 d=normalize(vDir);float sy=clamp(d.y,0.,1.);
   vec3 md=normalize(vec3(-.57,.63,-.52));float ma=sqrt(max(0.,2.-2.*dot(d,md)));
   sky+=uNight*(vec3(.92,.95,1.)*smoothstep(.042,.034,ma)+vec3(.20,.26,.42)*exp(-ma*8.));
   }
-  // The clouds: looked up in the two sky pictures the sky is sliding between (23_clouds.js), each shifted to where
+  // The clouds: looked up in the two sky pictures the sky is sliding between (clouds.ts), each shifted to where
   // its clouds have drifted to by now.
   if(d.y>-.012){
     vec4 ck=mix(cloudAt(uCloudA,d,uCloudShift.xy),cloudAt(uCloudB,d,uCloudShift.zw),uCloudMix)*smoothstep(-.012,.004,d.y);

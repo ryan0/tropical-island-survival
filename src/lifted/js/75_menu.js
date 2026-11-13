@@ -2,8 +2,8 @@
    what each row does, in terms of the lifted files that still hold the day, the weather, the wind and the sound. */
 import './70_audio.js';   /* first, so that the files still run in build 78's order */
 import {createMenu} from '../../ui/menu.ts';
-import {weather,wind} from './23_clouds.js';
-import {setDayHold,setDayTarget} from './34_sky.js';
+import {weather} from './23_clouds.js';
+import {dayCycle} from './34_sky.js';
 import {soundBtn} from './70_audio.js';
 
 /* The menu under the corner button: choose the time of day, the sky and the wind (each can be left on "auto" to follow
@@ -11,11 +11,11 @@ import {soundBtn} from './70_audio.js';
 var menu=createMenu(document.body,[
   {label:'time',choices:[['auto',null],['dawn',0.19],['day',0.5],['golden',0.754],['sunset',0.825],['night',0]],choose:function(v){
     /* a chosen time is hurried to and then held; "auto" lets the day run on from wherever it is */
-    setDayHold(v!==null);
-    setDayTarget(v);
+    dayCycle.hold(v!==null);
+    dayCycle.hurryTo(v);
   }},
-  {label:'sky',choices:[['auto',null],['clear',0],['few clouds',0.45],['cloudy',1]],choose:function(v){weather.fixed=v;}},
-  {label:'wind',choices:[['auto',null],['none',0],['light',0.33],['moderate',0.66],['high',1]],choose:function(v){wind.fixed=v;}},
+  {label:'sky',choices:[['auto',null],['clear',0],['few clouds',0.45],['cloudy',1]],choose:function(v){weather.cloudCover.choose(v);}},
+  {label:'wind',choices:[['auto',null],['none',0],['light',0.33],['moderate',0.66],['high',1]],choose:function(v){weather.wind.choose(v);}},
   /* the sound button (src/ui/sound-button.ts writes "waves on" / "waves off" on it) */
   {label:'sound',control:soundBtn}
 ]);

@@ -17,8 +17,8 @@ const MATHS_FUNCTIONS = /\b(sin|cos|exp|sqrt|abs|min|max|pow|floor)\(/g;
 
 /** Folders of .glsl files, relative to the project. */
 export interface ShaderChunkFolders {
-  /** Chunks for shaders only. */
-  chunks: string;
+  /** Chunks for shaders only: the first folder, and any others whose chunks it still includes. */
+  chunks: string[];
   /** Chunks that are also turned into functions for the program. */
   shared: string;
 }
@@ -82,7 +82,10 @@ export function shaderChunks(folders: ShaderChunkFolders): Plugin {
       const table: Record<string, string> = {};
       const programCode: string[] = [];
       // The dev server reloads the page when a watched file changes; it wants the full path.
-      for (const file of glslFilesIn(path.resolve(projectRoot, folders.chunks))) {
+      const chunkFiles = folders.chunks.flatMap((folder) =>
+        glslFilesIn(path.resolve(projectRoot, folder)),
+      );
+      for (const file of chunkFiles) {
         this.addWatchFile(file);
         table[chunkName(file)] = withoutBlankLines(withoutComments(readFileSync(file, 'utf8')));
       }

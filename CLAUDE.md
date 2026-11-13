@@ -22,8 +22,13 @@ Ryan directs it and judges it on his phone; Claude writes it.
 - **Match the references.** Ryan sends photos and phone screenshots. The look rules and what each reference showed
   are in `docs/LOOK.md`. He often asks for several passes in a row at one thing.
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
-- **Ryan merges and deploys.** Edit freely and run safe commands. Leave commits to the main branch, merges and
-  anything destructive to him; put each shell command you ask him to run in its own code block.
+- **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
+  for him to review; commits, merges, pushes and anything destructive are his. Put each shell command you ask
+  him to run in its own code block.
+- **Tests must earn their time.** The project is young and how fast we can iterate matters more than coverage.
+  Add a test only where it catches what the existing ones cannot; do not add one for each piece of work.
+- **Delegate when it pays.** Hand a piece of work to a smaller model (Opus, Sonnet) when the saving in time or
+  usage is appreciable and there is no concern that quality would suffer. Otherwise do it yourself.
 - **Reports are short and lead with the result.** One preview picture per visible change. He wants to understand
   what happened at a high level, not read a log.
 - **Every build shows its number on screen**, so a screenshot proves which build is on the phone.

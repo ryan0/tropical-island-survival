@@ -150,7 +150,14 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   object in the scene is, and every copy of everything drawn in copies, on build 78 and on the new build: most
   animals are not in the reference pictures at the moment those are taken. An error in the wildlife used to be
   swallowed without a word each frame; now it is reported and the wildlife dropped, as for any other module.
-- [ ] sky
+- [x] sky: `src/sky/` holds the day cycle, the light of day (sun, sky and cloud colours), the sky dome, the
+  weather and the wind, the clouds (their two noise pictures, the sky pictures and the shadow map, and the
+  program's copy of the cloud field), the lights with the shadow box, and the sun's glare. The sky's five shaders
+  moved beside them and take their numbers as defines; `noise.glsl` is the first chunk in `src/shaders/shared/`,
+  which the shaders still lifted read too. The sky's light and the clouds each own their uniforms; the bridge
+  still gathers the shared set, which goes to `src/core/` last. Weather and wind now step through their spells
+  with one piece of code (it was on the list for step 6). No new test: the pictures, the scene-state test and
+  the menu test cover it, and a one-off comparison with the clock running matched build 78 in every uniform.
 - [ ] world
 - [ ] sea
 - [ ] player
@@ -170,17 +177,27 @@ Known today:
 - Foam is drawn in four places with four copies of "density to lace": wave foam, whitecap foam and lagoon shore
   foam in the water shader, and the lagoon's swash foam in the terrain shader.
 - Two builders of mesh strips: the wave mesh and the lagoon shore band.
-- Weather and wind step through their cycles with the same easing code, written twice.
 - The cloud field exists in the shader and again in the program (to dim the sun when a cloud passes).
 - `landW` from the island's shape is typed out again inside the terrain shader.
 - The day-and-night light factor is written inline in many places.
 - A dozen one-off picture scripts in `legacy/tools` that differ only in their list of views.
 
-Kept only so that nothing moves. Removing one changes what is seen, so each is Ryan's to decide:
+Kept for now so that nothing moves; removing one changes what is seen:
 
 - The turtle's old search for a patch of water (`src/life/turtle.ts`). Nothing uses what it finds, but it draws
-  from the wildlife's random stream, and every shell, flower, butterfly and firefly is placed after it.
+  from the wildlife's random stream, and every shell, flower, butterfly and firefly is placed after it. Ryan has
+  said it is to go, later.
 - A full turn written as 6.28 where the wildlife picks a direction at random (`src/life/placing.ts`).
+
+Found on the way, and left as build 78 has them because putting them right changes what is seen:
+
+- In `src/sky/cloud-field.glsl` the statement that makes the cloud shapes rise as they boil (`sp.z-=uEvo.z;`)
+  sits behind a `//` comment on the same line, so the shader never runs it. The program's copy
+  (`src/sky/cloud-field.ts`) does make them rise, so the two disagree slightly about where cloud is.
+- Numbers reach the shaders rounded to four decimal places (`src/shaders/defines.ts`), so the sky's shaders
+  curve the earth with 0.0004 where the program uses 1/2400 (0.000417).
+- The beach finds and the flowers live in `src/life/` only because they share the wildlife's random stream. Ryan
+  has said they should move elsewhere (the world), later; they will need a stream of their own, which moves them.
 
 ### 7. One wave model
 

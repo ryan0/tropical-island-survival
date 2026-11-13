@@ -27,7 +27,11 @@ export default defineConfig({
   plugins: [
     // Chunks include what they need, so two chunks may both include a third: it must appear once.
     glsl({ removeDuplicatedImports: true, warnDuplicatedImports: false }),
-    shaderChunks({ chunks: 'src/lifted/glsl', shared: 'src/lifted/shared' }),
+    // Build 78's shaders still lifted include chunks that cleaned shaders share with them.
+    shaderChunks({
+      chunks: ['src/lifted/glsl', 'src/shaders/shared'],
+      shared: 'src/lifted/shared',
+    }),
     viteSingleFile(),
   ],
 });

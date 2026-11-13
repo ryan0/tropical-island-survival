@@ -7,11 +7,11 @@ import {hgt,islandR} from 'virtual:shader-chunks';
 import {BUILD} from './00_config.js';
 import {camera,renderer,scene} from './05_core.js';
 import {glsl} from './20_glsl.js';
-import {cloudShade,cloudState,cloudSunThrough,weather} from './23_clouds.js';
+import {cloudShade,weather} from './23_clouds.js';
 import {PLANT_REG} from './24_instances.js';
 import {HOME_SHORE,HOME_Z,HUT_Z,PIER_X,PIER_Z0} from './30_terrain.js';
 import {sunLight} from './32_lights.js';
-import {cycleTimeOfDay,dayPhase,dayTarget,setDayPhase,setSunFixed,sharedUniforms,todBtn} from './34_sky.js';
+import {dayCycle,sharedUniforms,todBtn} from './34_sky.js';
 import {WP_H,WP_Hr,WP_bore,WP_imp,WP_lip,WP_trains,setWP_trains,waveH} from './36_waves.js';
 import {bandInfo,bandPieces,farSea,waveMat,waveMesh,waveMeshInfo} from './38_water.js';
 import {FIRE_X,FIRE_Z} from './48_fire.js';
@@ -30,11 +30,11 @@ window.__lag={
   set:function(x,z,y,p){player.x=x;player.z=z;setYaw(y);setPitch(p);},
   look:function(y,p){setYaw(y);setPitch(p);},
   dive:function(y){setSwimY(y);},
-  sun:function(e){setSunFixed(e);},
-  phase:function(p){setSunFixed(null);setDayPhase(p);},
-  dayState:function(){return {phase:dayPhase,weather:weather.now,target:dayTarget};},
-  nextTime:cycleTimeOfDay,
-  cloudState:cloudState,cloudShade:cloudShade,cloudSunThrough:cloudSunThrough,uniforms:sharedUniforms,
+  sun:function(e){dayCycle.fixSunHeight(e);},
+  phase:function(p){dayCycle.fixSunHeight(null);dayCycle.jumpTo(p);},
+  dayState:function(){return {phase:dayCycle.phase,weather:weather.cloudCover.now,target:dayCycle.hurryingTo};},
+  nextTime:dayCycle.hurryToNextNamedTime,
+  cloudShade:cloudShade,uniforms:sharedUniforms,
   skip:function(){intro.t=intro.dur;},
   freeze:function(T){window.__freeze=true;sharedUniforms.uTime.value=T;},
   PIER_X:PIER_X,PIER_Z0:PIER_Z0,FIRE_X:FIRE_X,FIRE_Z:FIRE_Z
