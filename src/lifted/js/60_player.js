@@ -1,6 +1,9 @@
-/* Lifted from legacy/src/js/60_player.js. The imports here and the exports at the end are new; the rest is build 78's. */
+/* Lifted from legacy/src/js/60_player.js. The imports here and the exports at the end are new, and the joystick and the
+   captions are now src/ui/joystick.ts and src/ui/captions.ts; the rest is build 78's. */
 import './54_modules.js';   /* first, so that the files still run in build 78's order */
 import * as THREE from 'three';
+import {createCaptions} from '../../ui/captions.ts';
+import {createJoystick} from '../../ui/joystick.ts';
 import {hgt,islandR,landW,sandbankX,sandbankZ} from 'virtual:shader-chunks';
 import {CAMP} from './00_config.js';
 import {camera,canvas,hintEl} from './05_core.js';
@@ -15,8 +18,8 @@ import {FIRE_X,FIRE_Z} from './48_fire.js';
 function ground(x,z){
   return hgt(x,z);
 }
-var player={x:3,z:shoreZ(3,1.0)-1.5,y:3},yaw=Math.PI-0.75,pitch=-0.02,stickX=0,stickY=0,keys={},moved=false,bob=0;
-var titleEl=document.getElementById('title'),capEl=document.getElementById('cap');
+var player={x:3,z:shoreZ(3,1.0)-1.5,y:3},yaw=Math.PI-0.75,pitch=-0.02,keys={},moved=false,bob=0;
+var titleEl=document.getElementById('title'),captions=createCaptions(document.getElementById('cap'));
 /* the opening fly-in: the camera travels from intro.A to wherever the player camera is */
 var intro={t:0,dur:9,on:true,speed:1,A:new THREE.Vector3(),F:new THREE.Vector3(),qa:new THREE.Quaternion(),qb:new THREE.Quaternion()};
 intro.A.set(player.x-150,205,player.z+225);
@@ -30,7 +33,7 @@ document.body.classList.add('intro');
 function skipIntro(){if(intro.on)intro.speed=5;}
 /* place names shown when the player walks into a spot (index = what zoneAt() returns) */
 var ZN=[['',''],['Campfire','warmer after dark'],['Shelter','a roof of fronds'],['The Lagoon','still water inside the ring'],['The Sandbank','you swam all this way'],['Open Water','the atoll looks small from here']];
-var swimY=0.5,swimHint=false,capZone=-1,capTimer=0;
+var swimY=0.5,swimHint=false,capZone=-1;
 function zoneAt(x,z,sw,g){
   if(CAMP&&Math.hypot(x-FIRE_X,z-FIRE_Z)<3.2)return 1;
   if(CAMP&&Math.hypot(x-HUT_X,z-HUT_Z)<6.5)return 2;
@@ -43,38 +46,13 @@ function zoneAt(x,z,sw,g){
   return -1;
 }
 /* ---------- input: on-screen stick, drag to look, keyboard ---------- */
-var joy=document.getElementById('joy'),knob=document.getElementById('knob'),jid=null;
-function jset(e){
-  var r=joy.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
-  var l=Math.hypot(dx,dy),mx=46;
-  if(l>mx){
-    dx*=mx/l;
-    dy*=mx/l;
-  }
-  stickX=dx/mx;
-  stickY=dy/mx;
-  knob.style.transform='translate('+dx+'px,'+dy+'px)';
-}
-joy.addEventListener('pointerdown',function(e){
+var stick=createJoystick(document.getElementById('joy'),document.getElementById('knob'),function(){
   skipIntro();
-  jid=e.pointerId;
-  try{joy.setPointerCapture(jid);}catch(_){}
-  jset(e);
   if(!moved){
     moved=true;
     hintEl.style.opacity=0;
   }
-  e.preventDefault();
 });
-joy.addEventListener('pointermove',function(e){if(e.pointerId===jid)jset(e);});
-function jend(e){
-  if(e.pointerId!==jid)return;
-  jid=null;
-  stickX=stickY=0;
-  knob.style.transform='';
-}
-joy.addEventListener('pointerup',jend);
-joy.addEventListener('pointercancel',jend);
 var looks={};
 canvas.addEventListener('pointerdown',function(e){
   skipIntro();
@@ -103,7 +81,7 @@ window.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=0;});
 function updatePlayer(F){
   var t=F.t,dt=F.dt;
   /* move */
-  var mf=-stickY,mr=stickX;
+  var mf=-stick.y,mr=stick.x;
   if(keys.w||keys.arrowup)mf=1;
   if(keys.s||keys.arrowdown)mf=-1;
   if(keys.a)mr=-1;
@@ -134,9 +112,7 @@ function updatePlayer(F){
     ty=swimY+(swimY>0.2?waveH(player.x,player.z,t):0)+Math.sin(t*1.6)*(swimY>0.3?0.04:0.02);
     if(!swimHint&&!intro.on){
       swimHint=true;
-      capEl.innerHTML='<b>Swimming</b><span>look down and push forward to dive</span>';
-      capEl.style.opacity=1;
-      capTimer=5;
+      captions.show('Swimming','look down and push forward to dive',5);
     }
   }
   player.y+=(ty-player.y)*Math.min(1,dt*7);
@@ -173,15 +149,10 @@ function updateCaptions(F){
   if(zn!==capZone){
     capZone=zn;
     if(zn>=0){
-      capEl.innerHTML='<b>'+ZN[zn][0]+'</b><span>'+ZN[zn][1]+'</span>';
-      capEl.style.opacity=1;
-      capTimer=4.5;
+      captions.show(ZN[zn][0],ZN[zn][1],4.5);
     }
   }
-  if(capTimer>0){
-    capTimer-=dt;
-    if(capTimer<=0)capEl.style.opacity=0;
-  }
+  captions.update(dt);
 }
 
 /* other files may not assign to a variable they import, so they call these */

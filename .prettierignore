@@ -4,10 +4,9 @@ legacy/
 # the notes are wrapped by hand
 *.md
 
-# build 78's program and page shell, brought across as they were; each part is formatted when
-# it is cleaned (docs/REFACTOR_PLAN.md, step 4)
+# build 78's program, brought across as it was; each part is formatted when it is cleaned
+# (docs/REFACTOR_PLAN.md, step 4)
 src/lifted/
-index.html
 
 dist/
 site/
