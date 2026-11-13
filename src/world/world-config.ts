@@ -11,6 +11,8 @@ export const worldConfig = {
     homeInland: 32,
     hutX: -18,
     hutInland: 30,
+    fireX: 5,
+    fireInland: 5,
     pierX: -12,
     /** The pier leaves the beach a step behind where the ground reaches this height. */
     pierBeachHeight: 0.9,

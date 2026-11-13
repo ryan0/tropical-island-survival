@@ -1,4 +1,4 @@
-// What the sea does to the colour of anything under it, as terrain_color.glsl does to the sand: paler and greyer, red
+// What the sea does to the colour of anything under it, as terrain-colour.glsl does to the sand: paler and greyer, red
 // lost with depth, the water's own blue-green glow, and the net of light the ripples throw (mostly on faces that look up).
 // c = colour, wp = world position, up = 0..1 how much the face looks up, k = how much of the water's greying and
 // loss of red to apply (1 for rock; less for living coral, whose colour is the point of it). Needs uLevel, uDay, uTime, uWind, uDet.

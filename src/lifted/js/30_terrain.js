@@ -28,4 +28,4 @@ GLSL_SRC.lagwave='#define LAGOON_WIND_DIRECTION '+glslVec2(wind[0],wind[1])+'\n'
 createTerrain({scene:scene,random:rndStream('terrain'),groundHeight:hgt,landmarks:landmarks,uniforms:sharedUniforms,
   windDirection:wind,cloudShadeSpan:CLOUD_SHADE_SPAN*1000});
 
-export {HOME_SHORE,HOME_X,HOME_Z,HUT_X,HUT_Z,PIER_LEN,PIER_X,PIER_Z0,nearHome,pathD,ringPoint,shoreZ};
+export {HOME_SHORE,HOME_X,HOME_Z,HUT_X,HUT_Z,PIER_LEN,PIER_X,PIER_Z0,landmarks,nearHome,pathD,ringPoint,shoreZ};

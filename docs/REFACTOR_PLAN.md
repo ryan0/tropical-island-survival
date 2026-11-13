@@ -164,7 +164,11 @@ weighed and set aside: turning every lifted file into a function first, and a sh
     the one definition, still turned into functions for the program by the build), and the terrain's shaders
     moved beside the terrain with their numbers as defines. The lagoon shore-wave chunk the terrain shares with
     the water is in `src/shaders/shared/`; the lifted water shaders get its one define written into the chunk.
-  - [ ] rocks
+  - [x] rocks: `src/world/rocks/` holds the five kinds' shapes, where they are placed, their material and its
+    shader. `src/world/instance-cells.ts` is the regrouping of instanced meshes into map squares that the rocks
+    and the plants share. The sea's tint chunk, which the reef also uses, is in `src/shaders/shared/`. Two
+    hooks that only build 78's plant-viewing tool used did not come across for cleaned systems: the list of
+    meshes by kind, and switching one mesh off.
   - [ ] reef
   - [ ] plants (palms, grass, shrubs and ground cover, fallen leaves) and the instancing they share
   - [ ] props (hut, pier, camp) and the fire

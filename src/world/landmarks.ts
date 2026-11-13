@@ -18,6 +18,8 @@ export interface Landmarks {
   /** Where the ocean beach in front of home is. */
   homeShoreZ: number;
   hut: Point;
+  /** The campfire. */
+  fire: Point;
   pier: {
     x: number;
     /** Where it leaves the beach. */
@@ -75,6 +77,10 @@ export function createLandmarks(groundHeight: GroundHeight, islandRadius: Island
     home,
     homeShoreZ,
     hut,
+    fire: {
+      x: config.fireX,
+      z: shoreZ(config.fireX, config.beachHeight) - config.fireInland,
+    },
     pier: {
       x: config.pierX,
       z0: shoreZ(config.pierX, config.pierBeachHeight) - config.pierBehindBeach,
