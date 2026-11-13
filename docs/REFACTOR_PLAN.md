@@ -169,7 +169,10 @@ weighed and set aside: turning every lifted file into a function first, and a sh
     and the plants share. The sea's tint chunk, which the reef also uses, is in `src/shaders/shared/`. Two
     hooks that only build 78's plant-viewing tool used did not come across for cleaned systems: the list of
     meshes by kind, and switching one mesh off.
-  - [ ] reef
+  - [x] reef: `src/world/reef/` holds the coral models, the layout of heads and corals, the map of the heads for
+    the water, the coral material and its shader, and the reef's fish with the fish model the lagoon's schools
+    share. The fish stay with the reef for now because they draw from its random stream. Three hooks that only
+    build 78's tools used did not come across (the list of heads, the fish meshes, drawing every fish at once).
   - [ ] plants (palms, grass, shrubs and ground cover, fallen leaves) and the instancing they share
   - [ ] props (hut, pier, camp) and the fire
 - [ ] sea

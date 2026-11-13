@@ -1,5 +1,5 @@
 /* A bridge. Build 78's 39_rocks.js is now src/world/rocks/; this builds the rocks at the same point in start-up and passes
-   on what the lifted files expect: where the plants must not grow, the rocks in the surf, and the rock material. */
+   on what the lifted files expect: where the plants must not grow and the rocks in the surf. */
 import './39_foliage.js';   /* first, so that the files still run in build 78's order */
 import {hgt,islandR,landW,passGap} from 'virtual:shader-chunks';
 import {createRocks} from '../../world/rocks/rocks.ts';
@@ -15,9 +15,4 @@ rocks.inSurf.forEach(function(rock){OBSTACLES.push({x:rock.x,z:rock.z,r:rock.rad
 
 /* inRock(x,z,margin) tells the plants (40_palms, 44_grass, 45_plants) where not to grow */
 var inRock=rocks.isInRock;
-/* reefRockMat(style): the rock material, for the coral heads' rock in 47_reef.js too */
-function reefRockMat(style){
-  return rocks.createMaterial({scale:style.SCALE,crack:style.CRACK,pit:style.PIT,bump:style.BUMP,bleach:style.BLEACH,barnacle:style.BARNACLE});
-}
-
-export {inRock,reefRockMat};
+export {inRock,rocks};
