@@ -8,7 +8,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
 
 - `legacy/` is build 78, the last build made before this repository existed. It is the reference: do not edit it.
 - `src/lifted/` is build 78's program inside the new build: the same code as modules, not yet cleaned. The code
-  standards apply to a file from the moment it is cleaned and leaves that folder (step 4 of the plan).
+  standards apply to a file from the moment it is cleaned and leaves that folder (step 4 of the plan). A lifted
+  file whose system has been cleaned is a bridge: a few lines that build the cleaned system and pass the old
+  names on, until `main.ts` takes over.
 - The project is being rebuilt around Vite and TypeScript **without changing anything that can be seen**.
   The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it before starting work.
 - New features (rain, night, things to gather, survival systems) wait until the refactor is done.
@@ -55,7 +57,7 @@ New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright insta
 
 ```
 npm run dev        # dev server; add `-- --host` to open it from the phone on the home network
-npm run check      # types, lint, build, tests: what GitHub runs on every branch (about three minutes)
+npm run check      # types, lint, build, tests: what GitHub runs on every branch (three to four minutes)
 npm run pictures   # only the picture comparison with build 78; `-- -g lagoon` for the views so named
 npm run format     # let Prettier rewrite the files
 npm run site       # the whole Pages site into site/, as GitHub publishes it
@@ -63,7 +65,8 @@ npm run site       # the whole Pages site into site/, as GitHub publishes it
 
 The tests draw every view in `tests/reference-views.ts` from `legacy/build78.html` and from the page under test
 and fail on any pixel that differs; the pictures of a failure (reference, page under test, difference) are in
-`test-results/`. They also compile every shader and compare the wave model's two copies.
+`test-results/`. They also use the menu, joystick, captions and debug panel on both pages, compile every shader
+and compare the wave model's two copies.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
 `preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`.

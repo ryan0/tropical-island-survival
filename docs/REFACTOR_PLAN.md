@@ -31,6 +31,7 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 | Publishing | GitHub Actions to GitHub Pages; each branch gets its own preview folder |
 | Where it runs | Claude Code cloud sessions against this repository, or Ryan's own sandboxed machine |
 | Who merges | Ryan |
+| How a system is cleaned | Its lifted file shrinks to a bridge that builds the cleaned system at the same point in start-up and passes the old names on; bridges go when `main.ts` takes over (step 4) |
 | Performance | A win found on the way goes in only if the pictures still match; otherwise note it for later |
 
 ## Target layout
@@ -126,6 +127,25 @@ For each: move it to its folder, turn it into a factory with injected dependenci
 and a type, collect its tuned numbers into a config, replace text substitution with defines or uniforms.
 
 *Done when (each):* pictures unchanged; no module-level mutable state left in that system.
+
+How: the cleaned system is TypeScript in its folder. Its old file in `src/lifted/js/` shrinks to a bridge: a
+few lines that build the system where build 78 built it, hand it what it needs from the files still lifted, and
+pass on the names those files expect. Start-up order and frame order therefore do not change. The last branch
+(core and `main.ts`) builds and wires every system in `main.ts` and deletes the bridges. Two other ways were
+weighed and set aside: turning every lifted file into a function first, and a shared registry.
+
+- [x] ui: `src/ui/` holds the menu, the corner button, the captions, the joystick and the debug panel.
+  `tests/controls.spec.ts` uses each of them on build 78 and on the new build and compares the result. Left
+  for their own branches: the time of day written on the button (sky), the sound button (audio), which named
+  place the player is in, drag-to-look and the keyboard (player), the glare and underwater overlays (sky, sea),
+  and the test hooks (core).
+- [ ] audio
+- [ ] life
+- [ ] sky
+- [ ] world
+- [ ] sea
+- [ ] player
+- [ ] core and `main.ts`
 
 ### 5. Readable shaders
 
