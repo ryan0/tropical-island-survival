@@ -1,15 +1,15 @@
-// Vertex shader of the lagoon's shore-wave band (38_water.js): in a high wind the small waves that come ashore on the
+// Vertex shader of the lagoon's shore-wave band (lagoon-shore-band.ts): in a high wind the small waves that come ashore on the
 // lagoon's beaches have real height. The band is a strip of water mesh along the lagoon's edge (and round the
 // sandbank); this lifts it. The colouring is water.frag.glsl, as for all water.
 // Same rules as water.vert.glsl (docs/DEVICE_NOTES.md): position is the only attribute, no out parameters, no
 // branching, guarded pow, and the hard limit at the end.
 uniform float uTime,uLevel,uWind;varying vec3 vW;varying vec3 vN;varying vec3 vWave;
 
-#include "noise"
+#include "../shaders/shared/noise"
 
-#include "island"
+#include "../world/island-shape/island"
 
-#include "lagwave"
+#include "../shaders/shared/lagwave"
 
 // height of the water above its still level at p
 float bandH(vec2 p){

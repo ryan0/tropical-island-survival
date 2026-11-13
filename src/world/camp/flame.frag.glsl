@@ -1,7 +1,7 @@
 // campfire flame: scrolling noise shaped into tongues
 uniform float uTime;varying vec2 vUv;
 
-#include "noise"
+#include "../../shaders/shared/noise"
 
 void main(){float y=vUv.y,x=(vUv.x-.5)*2.;
   float n=fbm(vec2(x*1.8,y*2.4-uTime*2.2));float n2=noise(vec2(x*4.+3.,y*5.-uTime*3.6));

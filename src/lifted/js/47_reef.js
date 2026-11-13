@@ -1,7 +1,7 @@
 /* A bridge. Build 78's 47_reef.js is now src/world/reef/; this builds the reef at the same point in start-up, gives the
    water's and the sand's shaders its map of the coral heads, and passes each frame on to its fish. */
 import './45_plants.js';   /* first, so that the files still run in build 78's order */
-import {hgt} from 'virtual:shader-chunks';
+import {hgt} from 'virtual:island-shape';
 import {createReef} from '../../world/reef/reef.ts';
 import {camera,rndStream,scene,sharedUniforms} from './05_core.js';
 import {instanceCells} from './24_instances.js';

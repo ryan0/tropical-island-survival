@@ -1,9 +1,9 @@
 /* Lifted from legacy/src/js/62_footprints.js. The imports here and the exports at the end are new; the rest is build 78's. */
 import './60_player.js';   /* first, so that the files still run in build 78's order */
 import * as THREE from 'three';
-import {hgt} from 'virtual:shader-chunks';
+import {hgt} from 'virtual:island-shape';
 import {scene} from './05_core.js';
-import {WP_Hr,WP_h,waveH} from './36_waves.js';
+import {waveH,waves} from './36_waves.js';
 import {intro,player} from './60_player.js';
 
 /* Footprints in dry sand (a ring buffer of instanced decals; the swash washes them away). */
@@ -58,7 +58,7 @@ function updateFootprints(F){
       fpMesh.instanceMatrix.needsUpdate=true;
     }
   }
-  for(var fi=0;fi<FPN;fi++)if(fpH[fi]<1.7&&(waveH(fpXZ[fi*2],fpXZ[fi*2+1],t),WP_Hr>WP_h+0.02)){
+  for(var fi=0;fi<FPN;fi++)if(fpH[fi]<1.7&&(waveH(fpXZ[fi*2],fpXZ[fi*2+1],t),waves.spot.runUp>waves.spot.groundHeight+0.02)){
     fpH[fi]=99;
     fpMesh.setMatrixAt(fi,fpZero);
     fpMesh.instanceMatrix.needsUpdate=true;

@@ -177,8 +177,16 @@ weighed and set aside: turning every lifted file into a function first, and a sh
     the things lying under them, each with its models, pictures and config; the shape builder that makes a
     plant's full and simpler models at once; and the patch that lights leaves from both sides. Build 78's
     foliage tools file is gone from `src/lifted/`, and with it the plant-viewing tool's hooks.
-  - [ ] props (hut, pier, camp) and the fire
-- [ ] sea
+  - [x] the camp and the fire: `src/world/camp/` holds the campfire and what the castaway has made. The camp is
+    switched off at present, as in build 78, so its code runs in no test; its port was checked against build
+    78's code outside the page. The detail texture every water and rock shader reads is
+    `src/shaders/detail-texture.ts`.
+- [x] sea: `src/sea/` holds the program's copy of the wave model, the water's three sheets (far sea, wave mesh,
+  lagoon shore band) and their materials, the view from under water and the spray, with the water's and the
+  spray's shaders beside them. The wave trains reach the shaders as defines: the shader keeps the lines of one
+  train as a macro, and the define calls it once for each train with the config's numbers. With this nothing
+  is left of build 78's shader chunk table or its text substitution: the build's plugin is now
+  `tools/island-shape-plugin.ts`, which only turns the island's shape into functions for the program.
 - [ ] player
 - [ ] core and `main.ts`
 

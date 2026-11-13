@@ -1,9 +1,9 @@
-// The wave model (vertex shader side). JavaScript copy: waveH() in src/js/36_waves.js - change both together.
+// The wave model (vertex shader side). The program's copy is wave-model.ts: change both together.
 // RULES (docs/DEVICE_NOTES.md): no out/inout parameters, no loops, no arrays, branch-free maths, guarded pow and divisions.
 //
 // The swell meets the atoll twice. It breaks on the outer edge of the reef flat (REEF metres off the beach), crosses
 // the flat as a line of white water that dies down, and what is left laps onto the beach as a small wave.
-#include "shore"
+#include "../world/island-shape/shore"
 
 /* size of one wave along its crest: big peaks, small shoulders (psi = where along the shore, c = the train's seed) */
 float wsize(float As,float psi,float c){
@@ -109,18 +109,23 @@ float runup(float w0,float As,float th,float m,float c){
   float Aw=mix(wsize(As,th-6.2832*k/m,c),.95*As,smoothstep(.75,1.,abs(fb-k-.5)*2.));q+=1.6*(Aw-As);
   return min(1.9*Aw*(1.+1.8*Aw),1.0)*smoothstep(0.,1.0,q)*(1.-smoothstep(1.2,3.8,q));}
 
+/* One wave train's part in the sea surface: its size here and now (sets, and crests of different heights), the wave
+   itself (kept in the variable NAME), and how far its swash runs up the beach. WAVE_TRAINS, a define written by
+   water-materials.ts from the sea's config, is one of these for each train; REEF_BREAK is a define too. */
+#define WAVE_TRAIN(NAME,AMPLITUDE,SET_PACE,VARIETY,VARIETY17,FREQUENCY,CRESTS,PHASE,CAN_PLUNGE,RUN_UP) A=AMPLITUDE*env*(.70+.30*sin(t*SET_PACE+th*2.+VARIETY))*(.88+.12*sin(th*13.+VARIETY17+t*.05)); vec4 NAME=trn(FREQUENCY*(t+tau)+CRESTS*th+PHASE,A,sr,5.*(ur*ur-1.),th,CRESTS,VARIETY,FREQUENCY,CAN_PLUNGE,R,site); Hr+=RUN_UP*runup(FREQUENCY*(t+3.184)+CRESTS*th+PHASE,A,th,CRESTS,VARIETY);
+
 /* the whole sea surface at p: (height above still water, push towards the shore, foam 0..1, metres offshore) */
 vec4 waveF(vec2 p,float t){
   float th=atan(p.y,p.x);float R=55.;
   float h=shoreH(p.x,p.y);
   float s=R*(sqrt(max(1.-h/5.,.04))-1.);
-  float sr=s-{{REEF}};float ur=1.+sr/R;
+  float sr=s-REEF_BREAK;float ur=1.+sr/R;
   float cs=sqrt(clamp(s,0.,40.)+1.5);
   float tau=2.6*cs+max(s-40.,0.)/4.95+min(s,0.)*1.06;
   vec4 site=vec4(1.3/cs,clamp(-h,.12,6.),smoothstep(-1.5,.3,s),smoothstep(-.4,.9,s));
   float env=(1.-smoothstep(62.,95.,s))*(.68+.32*smoothstep(-.4,.8,sin(th)))*openSea(th)*(abs(uDbg-1.)<.5?0.:1.);
   float Hr=0.;float A;
-{{TRAINS}}
+  WAVE_TRAINS
   float pr=a0.w*a1.w+a0.w*a2.w+a1.w*a2.w;
   float eta=a0.x+a1.x+a2.x+0.9*pr;
   /* foam: the three trains, extra where crests cross, and the patchy foam that never quite clears where the swell breaks.

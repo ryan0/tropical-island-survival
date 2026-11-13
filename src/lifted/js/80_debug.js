@@ -3,16 +3,15 @@
 import './75_menu.js';   /* first, so that the files still run in build 78's order */
 import {watchCornerButton} from '../../ui/corner-button.ts';
 import {createDebugPanel} from '../../ui/debug-panel.ts';
-import {hgt,islandR} from 'virtual:shader-chunks';
+import {hgt,islandR} from 'virtual:island-shape';
 import {BUILD} from './00_config.js';
 import {camera,renderer,scene} from './05_core.js';
-import {glsl} from './20_glsl.js';
 import {cloudShade,weather} from './23_clouds.js';
 import {HOME_SHORE,HOME_Z,HUT_Z,PIER_X,PIER_Z0} from './30_terrain.js';
 import {sunLight} from './32_lights.js';
 import {dayCycle,sharedUniforms,todBtn} from './34_sky.js';
-import {WP_H,WP_Hr,WP_bore,WP_imp,WP_lip,WP_trains,setWP_trains,waveH} from './36_waves.js';
-import {bandInfo,bandPieces,farSea,waveMat,waveMesh,waveMeshInfo} from './38_water.js';
+import {waveH} from './36_waves.js';
+import {bandInfo,bandPieces,farSea,waterMaterials,waveMat,waveMesh,waveMeshInfo} from './38_water.js';
 import {FIRE_X,FIRE_Z} from './48_fire.js';
 import {intro,player,setPitch,setSwimY,setYaw} from './60_player.js';
 import {menu} from './75_menu.js';
@@ -24,8 +23,8 @@ import {qStage} from './90_main.js';
    window.__fly=[x,y,z,yaw,pitch]  overrides the camera      window.__freeze=true  stops the wave clock
    window.__noq=1 (before load)    disables automatic quality */
 window.__lag={
-  scene:scene,cam:camera,bandInfo:bandInfo,bandPieces:bandPieces,renderer:renderer,sunLight:sunLight,waveH:waveH,waveInfo:function(x,z,t){setWP_trains([]);waveH(x,z,t);var o=WP_trains;setWP_trains(null);return o;},wp:function(){return {lip:WP_lip,imp:WP_imp,bore:WP_bore,H:WP_H,Hr:WP_Hr};},islandR:islandR,hgt:hgt,HOME_Z:HOME_Z,HOME_SHORE:HOME_SHORE,HUT_Z:HUT_Z,
-  glslWaves:function(){return glsl('waves');},
+  scene:scene,cam:camera,bandInfo:bandInfo,bandPieces:bandPieces,renderer:renderer,sunLight:sunLight,waveH:waveH,islandR:islandR,hgt:hgt,HOME_Z:HOME_Z,HOME_SHORE:HOME_SHORE,HUT_Z:HUT_Z,
+  glslWaves:waterMaterials.waveShaderSource,
   set:function(x,z,y,p){player.x=x;player.z=z;setYaw(y);setPitch(p);},
   look:function(y,p){setYaw(y);setPitch(p);},
   dive:function(y){setSwimY(y);},

@@ -1,27 +1,18 @@
-// Build 78 keeps its shaders as chunks of text that the program joins up, and writes numbers
-// into, as it starts (src/lifted/js/20_glsl.js). Its build script gathered the chunks into one
-// table, and turned the formulas that the program needs as well as the shaders - the island's
-// shape - into JavaScript functions of the same names. This plugin does both, exactly as that
-// script did, and offers the result as the module 'virtual:shader-chunks'.
+// The shape of the island is written once, in GLSL, for the shaders (src/world/island-shape).
+// The program needs the same formulas: where the ground is, how far out the shore lies. This
+// plugin turns them into JavaScript functions of the same names and offers them as the module
+// 'virtual:island-shape', so that shaders and program can never disagree about the ground.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Plugin } from 'vite';
 
-const MODULE_ID = 'virtual:shader-chunks';
+const MODULE_ID = 'virtual:island-shape';
 const RESOLVED_MODULE_ID = `\0${MODULE_ID}`;
 
-// The whole of GLSL that may be shared with the program: float functions of float arguments.
-const NOT_SHARED = /\b(vec[234]|mat[234]|int|bool|uniform|varying|out|inout)\b/;
+// The whole of GLSL that can be turned into JavaScript here: float functions of float arguments.
+const NOT_CONVERTED = /\b(vec[234]|mat[234]|int|bool|uniform|varying|out|inout)\b/;
 const MATHS_FUNCTIONS = /\b(sin|cos|exp|sqrt|abs|min|max|pow|floor)\(/g;
-
-/** Folders of .glsl files, relative to the project. */
-export interface ShaderChunkFolders {
-  /** Chunks for shaders only: the first folder, and any others whose chunks it still includes. */
-  chunks: string[];
-  /** Chunks that are also turned into functions for the program. */
-  shared: string;
-}
 
 function withoutComments(glsl: string): string {
   return glsl.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
@@ -34,7 +25,7 @@ function withoutBlankLines(text: string): string {
 
 function asJavaScript(glsl: string, file: string): string {
   const text = withoutComments(glsl).replace(/^[ \t]*#include[^\n]*/gm, '');
-  if (NOT_SHARED.test(text)) {
+  if (NOT_CONVERTED.test(text)) {
     throw new Error(`${file}: only float functions of float arguments can be shared`);
   }
   const functions = text
@@ -58,15 +49,12 @@ function glslFilesIn(folder: string): string[] {
     .map((name) => path.join(folder, name));
 }
 
-function chunkName(file: string): string {
-  return path.basename(file, '.glsl');
-}
-
-export function shaderChunks(folders: ShaderChunkFolders): Plugin {
+/** `folder` holds the .glsl files of the island's shape, relative to the project. */
+export function islandShape(folder: string): Plugin {
   let projectRoot = '';
 
   return {
-    name: 'shader-chunks',
+    name: 'island-shape',
 
     configResolved(config) {
       projectRoot = config.root;
@@ -79,30 +67,16 @@ export function shaderChunks(folders: ShaderChunkFolders): Plugin {
     load(id) {
       if (id !== RESOLVED_MODULE_ID) return null;
 
-      const table: Record<string, string> = {};
       const programCode: string[] = [];
       // The dev server reloads the page when a watched file changes; it wants the full path.
-      const chunkFiles = folders.chunks.flatMap((folder) =>
-        glslFilesIn(path.resolve(projectRoot, folder)),
-      );
-      for (const file of chunkFiles) {
+      for (const file of glslFilesIn(path.resolve(projectRoot, folder))) {
         this.addWatchFile(file);
-        table[chunkName(file)] = withoutBlankLines(withoutComments(readFileSync(file, 'utf8')));
-      }
-      for (const file of glslFilesIn(path.resolve(projectRoot, folders.shared))) {
-        this.addWatchFile(file);
-        const glsl = readFileSync(file, 'utf8');
-        table[chunkName(file)] = withoutBlankLines(withoutComments(glsl));
-        programCode.push(asJavaScript(glsl, file));
+        programCode.push(asJavaScript(readFileSync(file, 'utf8'), file));
       }
 
       const code = programCode.join('\n');
       const functionNames = [...code.matchAll(/^function (\w+)\(/gm)].map((match) => match[1]);
-      return [
-        `export var GLSL_SRC=${JSON.stringify(table)};`,
-        code,
-        `export {${functionNames.join(',')}};`,
-      ].join('\n');
+      return [code, `export {${functionNames.join(',')}};`].join('\n');
     },
   };
 }

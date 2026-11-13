@@ -1,7 +1,7 @@
 /* A bridge. Build 78's 39_rocks.js is now src/world/rocks/; this builds the rocks at the same point in start-up and passes
    on what the lifted files expect: where the plants must not grow and the rocks in the surf. */
 import './38_water.js';   /* first, so that the files still run in build 78's order */
-import {hgt,islandR,landW,passGap} from 'virtual:shader-chunks';
+import {hgt,islandR,landW,passGap} from 'virtual:island-shape';
 import {createRocks} from '../../world/rocks/rocks.ts';
 import {CAMP} from './00_config.js';
 import {OBSTACLES,rndStream,sharedUniforms} from './05_core.js';

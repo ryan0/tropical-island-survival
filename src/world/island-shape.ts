@@ -12,4 +12,8 @@ export interface IslandShape {
   landWidth(direction: number): number;
   /** How much of the pass through the reef lies in a direction: 0 where there is none. */
   passGap(direction: number): number;
+  /** How open a direction is to the swell: 1 on the open sea's side, less in the lee. */
+  openSea(direction: number): number;
+  /** The ground's height as the waves feel it: the island's shape without what stands in the lagoon. */
+  shoreHeight(x: number, z: number): number;
 }

@@ -1,8 +1,7 @@
 /* A bridge. Build 78's 30_terrain.js is now src/world/ (landmarks.ts, terrain.ts, ground-grit.ts); this finds the landmarks
    and builds the ground at the same point in start-up and passes on the names the lifted files expect. */
 import './24_instances.js';   /* first, so that the files still run in build 78's order */
-import {GLSL_SRC,hgt,islandR} from 'virtual:shader-chunks';
-import {glslVec2} from '../../shaders/defines.ts';
+import {hgt,islandR} from 'virtual:island-shape';
 import {windDirection} from '../../sky/weather.ts';
 import {createLandmarks} from '../../world/landmarks.ts';
 import {createTerrain} from '../../world/terrain.ts';
@@ -20,12 +19,7 @@ function ringPoint(rnd){
   return [point.x,point.z];
 }
 
-/* The wind's direction, for the lagoon's shore break. The chunk reads it from a define, which the cleaned terrain gives
-   its own shader; the water's shaders are still lifted, so for them the define is written at the head of the chunk. */
-var wind=windDirection();
-GLSL_SRC.lagwave='#define LAGOON_WIND_DIRECTION '+glslVec2(wind[0],wind[1])+'\n'+GLSL_SRC.lagwave;
-
 createTerrain({scene:scene,random:rndStream('terrain'),groundHeight:hgt,landmarks:landmarks,uniforms:sharedUniforms,
-  windDirection:wind,cloudShadeSpan:CLOUD_SHADE_SPAN*1000});
+  windDirection:windDirection(),cloudShadeSpan:CLOUD_SHADE_SPAN*1000});
 
 export {HOME_SHORE,HOME_X,HOME_Z,HUT_X,HUT_Z,PIER_LEN,PIER_X,PIER_Z0,landmarks,nearHome,pathD,ringPoint,shoreZ};

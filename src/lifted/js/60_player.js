@@ -4,7 +4,7 @@ import './54_modules.js';   /* first, so that the files still run in build 78's 
 import * as THREE from 'three';
 import {createCaptions} from '../../ui/captions.ts';
 import {createJoystick} from '../../ui/joystick.ts';
-import {hgt,islandR,landW,sandbankX,sandbankZ} from 'virtual:shader-chunks';
+import {hgt,islandR,landW,sandbankX,sandbankZ} from 'virtual:island-shape';
 import {CAMP} from './00_config.js';
 import {camera,canvas,hintEl} from './05_core.js';
 import {HUT_X,HUT_Z,shoreZ} from './30_terrain.js';

@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import glsl from 'vite-plugin-glsl';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import packageJson from './package.json' with { type: 'json' };
-import { shaderChunks } from './tools/shader-chunks-plugin.ts';
+import { islandShape } from './tools/island-shape-plugin.ts';
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: import.meta.dirname, encoding: 'utf8' }).trim();
@@ -27,11 +27,7 @@ export default defineConfig({
   plugins: [
     // Chunks include what they need, so two chunks may both include a third: it must appear once.
     glsl({ removeDuplicatedImports: true, warnDuplicatedImports: false }),
-    // Build 78's shaders still lifted include chunks that cleaned shaders share with them.
-    shaderChunks({
-      chunks: ['src/lifted/glsl', 'src/shaders/shared'],
-      shared: 'src/world/island-shape',
-    }),
+    islandShape('src/world/island-shape'),
     viteSingleFile(),
   ],
 });

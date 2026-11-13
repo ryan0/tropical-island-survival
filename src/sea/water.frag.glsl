@@ -3,11 +3,16 @@ uniform float uTime,uNight,uDay,uLevel,uUnder,uDbg;uniform vec3 uSunDir,uSunCol,
 uniform sampler2D uDet,uCloudA,uCloudB,uCloudShade,uReef;uniform float uCloudMix,uSunThru,uWind,uBand,uBandOn;uniform vec3 uCloudSun,uCloudShd;
 varying vec3 vW;varying vec3 vN;varying vec3 vWave;
 
-#include "noise"
+#include "../shaders/shared/noise"
 
-#include "island"
+#include "../world/island-shape/island"
 
-#include "lagwave"
+#include "../shaders/shared/lagwave"
+
+// The slope of one wave train's swell line, for the shading of the open sea. WATER_SWELL, a define written by
+// water-materials.ts from the sea's config, adds one of these for each train; LONG_SWELL_SLOPE, HOME_ISLET and
+// CLOUD_SHADE_SPAN_M are defines too.
+#define SWELL_LINE(SLOPE,SET_PACE,VARIETY,FREQUENCY,CRESTS,PHASE) SLOPE*(.70+.30*sin(t*SET_PACE+tha*2.+VARIETY))*cos(FREQUENCY*ts+CRESTS*tha+PHASE+wob)
 
 // White horses: one family of wind-driven crests, lam metres apart, travelling at c m/s along dir.
 //   pw     the place (wrp = metres by which the crests are bent here, so that they are not ruled lines)
@@ -51,7 +56,7 @@ void main(){vec2 p=vW.xz,dpx=dFdx(vW.xz),dpy=dFdy(vW.xz);   /* (dpx, dpy: the me
   vec3 toC=cameraPosition-vW;float dist=length(toC);vec3 V=toC/dist;
   float lagoon=0.;
   if(uFar>.5){float th0=atan(p.y,p.x),Rs=islandR(th0),rp=length(p);if(rp<Rs+93.&&rp>Rs-8.6)discard;lagoon=step(rp,Rs);
-    /* The lagoon's shore-wave band (38_water.js, uBand=1; lagband.vert.glsl lifts it): a strip of mesh from 2.5 m up
+    /* The lagoon's shore-wave band (lagoon-shore-band.ts, uBand=1; lagoon-shore-band.vert.glsl lifts it): a strip of mesh from 2.5 m up
        the lagoon's beaches (and the sandbank's) to 13 m out, drawn in a high wind within 150 m of the eye. Where it
        is drawn, the flat sheet leaves a gap for it; and the band draws nothing outside that. */
     float vb=max(rp-Rs+landW(th0),20.-length(p-vec2(sandbankX(),sandbankZ())));
@@ -63,7 +68,7 @@ void main(){vec2 p=vW.xz,dpx=dFdx(vW.xz),dpy=dFdy(vW.xz);   /* (dpx, dpy: the me
   float sandD=depth-eta;   /* (the depth of still water over the sand itself, coral heads apart) */
   /* over a coral head the water is only as deep as the head's top (a map from 47_reef.js) */
   /* (only inside the map's square: outside it the picture's edge dots would repeat out to the horizon) */
-  vec2 ruv=(p-{{HOME}})/300.+.5;float rtop=texture2D(uReef,ruv).r*step(abs(ruv.x-.5),.49)*step(abs(ruv.y-.5),.49);if(rtop>.02)depth=min(depth,max(vW.y-(rtop*8.-8.),.05));
+  vec2 ruv=(p-HOME_ISLET)/300.+.5;float rtop=texture2D(uReef,ruv).r*step(abs(ruv.x-.5),.49)*step(abs(ruv.y-.5),.49);if(rtop>.02)depth=min(depth,max(vW.y-(rtop*8.-8.),.05));
   float t=uTime;float vis=1.-uNight;
   float sg=vWave.y,wfv=vWave.x;
 /* ripples: the detail texture (src/js/22_detail.js) read four times, from 37 m across down to 1.3 m, each copy turned
@@ -108,7 +113,7 @@ void main(){vec2 p=vW.xz,dpx=dFdx(vW.xz),dpy=dFdy(vW.xz);   /* (dpx, dpy: the me
   float swB=0.;
   if(swW>.003){
     float ts=t+16.749+(sS-40.)/4.95,wob=(d1.b-.5)*1.6*smoothstep(95.,150.,sS);
-    float sl=({{SWELL}})*swW*(.8+.6*d1.b);   /* (uneven along each line: higher here, lower there) */
+    float sl=(WATER_SWELL+LONG_SWELL_SLOPE*smoothstep(95.,170.,sS)*(.55+.45*sin(t*.07+tha*3.))*cos(.70*ts+4.*tha+1.3+wob))*swW*(.8+.6*d1.b);   /* (uneven along each line: higher here, lower there) */
     s+=normalize(p)*sl*1.4;
     swB=clamp(sl*4.5,-1.,1.);   /* (+1 on a line's face, -1 on its back) */
   }
@@ -165,7 +170,7 @@ void main(){vec2 p=vW.xz,dpx=dFdx(vW.xz),dpy=dFdy(vW.xz);   /* (dpx, dpy: the me
   a=max(a,smoothstep(.03,.5,wfv)*.86*smoothstep(.06,.4,depth));
   /* the clouds' shadows: the water under a cloud is duller, and the sun does not glitter there (nor anywhere, while a
      cloud stands between the eye and a low sun) */
-  float cls=texture2D(uCloudShade,p/{{SPAN_M}}+.5).r;
+  float cls=texture2D(uCloudShade,p/CLOUD_SHADE_SPAN_M+.5).r;
   body*=mix(.62,1.,cls);spec*=cls*cls*mix(uSunThru,1.,smoothstep(.04,.16,uSunDir.y));
   /* (a swell line's face is darker, its back lighter, from whatever angle it is seen: the tilt alone only shows at a low angle) */
   vec3 col=(mix(body,skyc,fres)+spec)*(1.-.13*swB);

@@ -1,5 +1,5 @@
 // Small wind waves coming ashore on the lagoon's beaches. water.frag.glsl draws them on the water, terrain-colour.glsl
-// draws what they do on the sand, and in a high wind lagband.vert.glsl gives them real height; all three must agree,
+// draws what they do on the sand, and in a high wind lagoon-shore-band.vert.glsl gives them real height; all three must agree,
 // so all three use this. (Needs "noise" and uWind. Vertex-shader rules apply: docs/DEVICE_NOTES.md.)
 //   light air: none (the lagoon's edge only laps)   medium wind: small ones, flat, drawn by shading and foam alone
 //   high wind: 2.3 times the size, with real height, coming in sets, running further up the sand

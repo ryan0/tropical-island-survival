@@ -1,14 +1,20 @@
 /* Lifted from legacy/src/js/54_modules.js. The imports here and the exports at the end are new; the rest is build 78's. */
 import './52_life.js';   /* first, so that the files still run in build 78's order */
 import * as THREE from 'three';
-import {hgt,islandR} from 'virtual:shader-chunks';
+import {hgt,islandR} from 'virtual:island-shape';
 import {CAMP} from './00_config.js';
 import {camera,rndStream,scene} from './05_core.js';
 import {HOME_X,HOME_Z,HUT_X,HUT_Z,PIER_LEN,PIER_X,PIER_Z0,shoreZ} from './30_terrain.js';
 import {waveH} from './36_waves.js';
 import {FIRE_X,FIRE_Z} from './48_fire.js';
-import {buildProps} from './50_props.js';
+import {createCamp} from '../../world/camp/camp.ts';
+import {landmarks} from './30_terrain.js';
 import {buildLife} from './52_life.js';
+
+/* what the castaway has made (src/world/camp/camp.ts), as a module like the wildlife */
+function buildProps(THREE,scene,api){
+  createCamp({scene:scene,random:api.rnd,groundHeight:api.hgt,landmarks:landmarks});
+}
 
 /* Props and wildlife are self-contained "modules": a function build(THREE, scene, moduleApi) that adds its objects and
    returns {update(t, dt, moduleEnv)}. moduleApi is what they may ask the world (ground height, positions of landmarks);

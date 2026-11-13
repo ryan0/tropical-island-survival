@@ -1,6 +1,6 @@
 /* A bridge. Build 78's 52_life.js is now src/life/ (one file for each animal); this builds the wildlife where
    54_modules.js asks for it, from what the lifted files still hold, and passes each frame on. */
-import './50_props.js';   /* first, so that the files still run in build 78's order */
+import './48_fire.js';   /* first, so that the files still run in build 78's order */
 import {createLife} from '../../life/life.ts';
 import {createFishModel} from '../../world/reef/fish-model.ts';
 
