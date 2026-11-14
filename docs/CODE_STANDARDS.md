@@ -92,8 +92,14 @@ written from the config. Text substitution into shader source (`{{NAME}}`) is no
 
 ## Shaders
 
-- One statement per line. Name intermediate values instead of nesting.
-- A chunk states at its top what it needs from outside (uniforms, other chunks).
+- One statement per line, one declaration per line. Name intermediate values instead of nesting.
+- Laid out like the TypeScript: spaces round operators, two-space indent, a blank line between functions and
+  between the stages of a long one, a digit on both sides of a decimal point (`0.5`, `2.0`).
+- A chunk states at its top what it draws and what it needs from outside (uniforms, defines, other chunks).
+- A number a person might retune is a named `const` at the top of its chunk, or a define written from the
+  system's config. A number used once in a tuned formula may stay beside the comment that says what it does.
+- Making a shader readable never changes its maths: an expression is split into named values only where it
+  is already grouped that way, and a texture read stays on the side of a branch it was on.
 - A formula needed by both shader and program is written once and generated for the other side.
 
 ## Tooling

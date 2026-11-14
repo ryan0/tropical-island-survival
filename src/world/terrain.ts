@@ -125,7 +125,10 @@ function asVec2({ x, z }: Point): string {
 /** The same stretches of path are written into the shader, so that grass thins out along them there too. */
 function footpathStatements(landmarks: Landmarks): string {
   return landmarks.paths
-    .map(([from, to]) => `d=min(d,sdSeg(p,${asVec2(from)},${asVec2(to)}));`)
+    .map(
+      ([from, to]) =>
+        `nearest = min(nearest, distanceToSegment(p, ${asVec2(from)}, ${asVec2(to)}));`,
+    )
     .join('');
 }
 

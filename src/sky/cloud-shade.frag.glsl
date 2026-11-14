@@ -1,15 +1,39 @@
-// The clouds' shadows on the sea and the island: a map, seen from above, of how much sunlight gets down through the
-// clouds (red: 1 = full sun). SHADE_SPAN km a side (a define), the island in the middle.
-uniform vec3 uLight;uniform vec2 uCRes;uniform float uStrength;
+// The clouds' shadows on the sea and the island: a map, seen from above, of how much sunlight gets down through
+// the clouds (red: 1 = full sun). Distances in km.
+//
+// Needs
+//   uLight      the unit vector towards the sun
+//   uCRes       the size of the map, in dots
+//   uStrength   how much of the shadow to show (0: none)
+//   SHADE_SPAN  a define: how many km a side the map covers, the island in the middle
+// and the cloud field (cloud-field.glsl) with its own uniforms and defines.
+
+uniform vec3 uLight;
+uniform vec2 uCRes;
+uniform float uStrength;
 
 #include "../shaders/shared/noise"
 #include "cloud-field"
 
-void main(){
-  vec2 g=(gl_FragCoord.xy/uCRes-.5)*SHADE_SPAN;
-  // from the spot on the ground towards the sun, from the height of the cloud bases to 4.2 km, in 14 steps
-  float ly=max(uLight.y,.06),ds=(4.2-HB)/ly/14.,tau=0.;
-  vec3 o=vec3(g.x,0.,g.y)+uLight*(HB/ly);
-  for(int i=0;i<14;i++){vec3 p=o+uLight*(ds*(float(i)+.5));tau+=cloud(p,weather(p),0.).x*ds;}
-  gl_FragColor=vec4(mix(1.,exp(-tau*2.6),uStrength),0.,0.,1.);
+// The walk towards the sun climbs from the cloud bases to this height, in this many steps.
+const float WALK_TOP = 4.2;
+const int WALK_STEPS = 14;
+// How much a km of cloud dims the light.
+const float SHADOW_DENSITY = 2.6;
+
+void main() {
+  vec2 ground = (gl_FragCoord.xy / uCRes - 0.5) * SHADE_SPAN;
+
+  // From the spot on the ground towards the sun, from the height of the cloud bases to WALK_TOP.
+  float sunRise = max(uLight.y, 0.06);
+  float stepLength = (WALK_TOP - CLOUD_BASE) / sunRise / float(WALK_STEPS);
+  vec3 walkStart = vec3(ground.x, 0.0, ground.y) + uLight * (CLOUD_BASE / sunRise);
+  float cloudPassed = 0.0;
+  for (int i = 0; i < WALK_STEPS; i++) {
+    vec3 p = walkStart + uLight * (stepLength * (float(i) + 0.5));
+    cloudPassed += cloudAt(p, weatherAt(p), false).x * stepLength;
+  }
+
+  float sunThrough = exp(-cloudPassed * SHADOW_DENSITY);
+  gl_FragColor = vec4(mix(1.0, sunThrough, uStrength), 0.0, 0.0, 1.0);
 }

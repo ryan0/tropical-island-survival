@@ -205,6 +205,18 @@ intermediate values, named constants, comments that say why.
 
 *Done when (each):* pictures unchanged.
 
+In two batches, at Ryan's request for larger ones: everything but the water first, then the water and the wave
+shader on their own, since that is where phone-only bugs have appeared. Uniforms and varyings keep build 78's
+short names (`uDet`, `vWp`) through both, because every shader shares them; they are renamed together in a
+pass of their own at the end of the step.
+
+- [x] everything but the water: the terrain's three shaders, the sky dome and the three cloud shaders, the
+  rocks, the coral, the shared noise and sea-tint chunks, the flame and the spray. The coral's shader lost six
+  values it worked out and never used (a second copy of the net of light, with three texture reads).
+- [ ] the water: `water.frag.glsl`, `water.vert.glsl`, `waves.glsl`, the lagoon's shore band and its shared
+  chunk, and the island's shape.
+- [ ] rename the uniforms and varyings.
+
 ### 6. Merge duplicates
 
 Known today:
@@ -218,6 +230,12 @@ Known today:
 - `landW` from the island's shape is typed out again inside the terrain shader.
 - The day-and-night light factor is written inline in many places.
 - A dozen one-off picture scripts in `legacy/tools` that differ only in their list of views.
+- Numbers written out again in a shader that a config already holds: the layout of the cloud noise picture and
+  the weather map's span (`cloud-field.glsl`, `clouds-config.ts`), the span of the reef's map
+  (`terrain-colour.glsl`, `water.frag.glsl`, `reef-config.ts`). They should reach the shaders as defines.
+- The distance along a line of sight to a given height above the curved sea is worked out in `cloud-bake.frag.glsl`
+  and again in `sky.frag.glsl`.
+- `fbm` and `fbm5` in `noise.glsl` are the same function but for the number of layers.
 
 Kept for now so that nothing moves; removing one changes what is seen:
 
@@ -234,6 +252,14 @@ both are to be corrected, later:
   (`src/sky/cloud-field.ts`) does make them rise, so the two disagree slightly about where cloud is.
 - Numbers reach the shaders rounded to four decimal places (`src/shaders/defines.ts`), so the sky's shaders
   curve the earth with 0.0004 where the program uses 1/2400 (0.000417).
+
+Found while making the shaders readable, and not yet decided:
+
+- The sky's pink band at evening squares a number with `pow(x, 2.0)` where `x` is negative low in the sky. GLSL
+  leaves that undefined. It draws as intended on the test renderer and on Ryan's phone; another phone's GPU
+  might not. Writing it as `x * x` would be safe everywhere.
+- The coral reads the detail texture inside a branch, against the rule in `docs/DEVICE_NOTES.md`, as build 78
+  does. It has shown no fault on the phone.
 - The beach finds and the flowers live in `src/life/` only because they share the wildlife's random stream. Ryan
   has said they should move elsewhere (the world), later; they will need a stream of their own, which moves them.
 
