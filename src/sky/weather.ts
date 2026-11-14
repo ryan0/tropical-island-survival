@@ -6,7 +6,7 @@ export interface Spells {
   /** Its strength at the moment. */
   readonly now: number;
   /** Holds it at a strength, reached in a few seconds; null lets it follow its spells again. */
-  choose(strength: number | null): void;
+  choose: (strength: number | null) => void;
 }
 
 export interface Weather {

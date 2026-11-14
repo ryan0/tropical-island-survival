@@ -4,9 +4,9 @@ export type SoundState = 'on' | 'off' | 'unavailable';
 
 export interface Audio {
   /** Switches the sound on or off. The first call builds it: a browser allows that only in a tap. */
-  toggle(): SoundState;
+  toggle: () => SoundState;
   /** `breaking` is how much surf is breaking near the camera, from 0 to 1. */
-  setSurfBreaking(breaking: number): void;
+  setSurfBreaking: (breaking: number) => void;
   /** `night` is 0 by day and 1 at night. */
   update(night: number): void;
 }

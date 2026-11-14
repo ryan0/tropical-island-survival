@@ -12,9 +12,9 @@ export interface DayCycle {
   /** Stops the day where it is (or where it is hurrying to), or lets it run again. */
   hold(isHeld: boolean): void;
   /** For tests: puts the day at a time at once. */
-  jumpTo(phase: number): void;
+  jumpTo: (phase: number) => void;
   /** For tests: a sun height that overrides the time of day, or null to follow it again. */
-  fixSunHeight(height: number | null): void;
+  fixSunHeight: (height: number | null) => void;
   /**
    * `dt` is the frame's step, `realSeconds` the true time since the last frame: the day runs
    * by the real clock, so that a slow phone still gets a ten-minute day.

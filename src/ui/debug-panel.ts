@@ -4,7 +4,7 @@ export interface DebugSwitch {
 }
 
 export interface DebugPanel {
-  toggle(): void;
+  toggle: () => void;
 }
 
 function switchButton(debugSwitch: DebugSwitch): HTMLButtonElement {

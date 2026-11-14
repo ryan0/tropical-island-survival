@@ -7,10 +7,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
 ## Where things stand
 
 - `legacy/` is build 78, the last build made before this repository existed. It is the reference: do not edit it.
-- `src/lifted/` is build 78's program inside the new build: the same code as modules, not yet cleaned. The code
-  standards apply to a file from the moment it is cleaned and leaves that folder (step 4 of the plan). A lifted
-  file whose system has been cleaned is a bridge: a few lines that build the cleaned system and pass the old
-  names on, until `main.ts` takes over.
+- `src/` is the new build, all of it TypeScript under the code standards, one folder for each subject. `main.ts`
+  builds every system and runs the frame loop. It builds them in build 78's order, which matters: three.js numbers
+  objects as they are made, and each random stream is moved on by whatever drew from it before.
 - The project is being rebuilt around Vite and TypeScript **without changing anything that can be seen**.
   The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it before starting work.
 - New features (rain, night, things to gather, survival systems) wait until the refactor is done.

@@ -1,3 +1,14 @@
+import {
+  hgt,
+  islandR,
+  landW,
+  openSea,
+  passGap,
+  sandbankX,
+  sandbankZ,
+  shoreH,
+} from 'virtual:island-shape';
+
 /**
  * The shape of the island as the program sees it. It is written once, in island-shape/*.glsl,
  * for the shaders; the build turns the same formulas into these functions.
@@ -5,15 +16,29 @@
  */
 export interface IslandShape {
   /** Height of the ground at a point; below zero it is under the sea. */
-  groundHeight(x: number, z: number): number;
+  groundHeight: (x: number, z: number) => number;
   /** Distance from the centre to the outer shoreline. */
-  radius(direction: number): number;
+  radius: (direction: number) => number;
   /** How wide the ring of land is. */
-  landWidth(direction: number): number;
+  landWidth: (direction: number) => number;
   /** How much of the pass through the reef lies in a direction: 0 where there is none. */
-  passGap(direction: number): number;
+  passGap: (direction: number) => number;
   /** How open a direction is to the swell: 1 on the open sea's side, less in the lee. */
-  openSea(direction: number): number;
+  openSea: (direction: number) => number;
   /** The ground's height as the waves feel it: the island's shape without what stands in the lagoon. */
-  shoreHeight(x: number, z: number): number;
+  shoreHeight: (x: number, z: number) => number;
+  /** The middle of the sandbank in the lagoon. */
+  sandbank: { x: number; z: number };
+}
+
+export function createIslandShape(): IslandShape {
+  return {
+    groundHeight: hgt,
+    radius: islandR,
+    landWidth: landW,
+    passGap,
+    openSea,
+    shoreHeight: shoreH,
+    sandbank: { x: sandbankX(), z: sandbankZ() },
+  };
 }

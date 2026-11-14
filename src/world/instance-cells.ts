@@ -34,13 +34,11 @@ export interface SplitOptions {
   simpler?: SimplerShape | null;
 }
 
-export type DetailOverride = 'follow distance' | 'always full' | 'always simpler';
-
 export interface InstanceCells {
   /** Adds the mesh's instances to the scene, square by square. Returns the meshes it made. */
   split(mesh: InstancedMesh, options: SplitOptions): InstancedMesh[];
   /** Picks the full shape, the simpler shape or nothing for every square, by its distance. */
-  update(cameraPosition: Vector3, detail: DetailOverride): void;
+  update(cameraPosition: Vector3): void;
 }
 
 interface Cell {
@@ -176,7 +174,7 @@ export function createInstanceCells(scene: Scene): InstanceCells {
       return made;
     },
 
-    update(cameraPosition, detail) {
+    update(cameraPosition) {
       for (const cell of cells) {
         const distance =
           Math.hypot(
@@ -185,9 +183,7 @@ export function createInstanceCells(scene: Scene): InstanceCells {
             cameraPosition.z - cell.middle.z,
           ) - cell.radius;
         const isShown = cell.shownWithin === 0 || distance < cell.shownWithin;
-        let isNear = distance < cell.simplerBeyond;
-        if (detail !== 'follow distance') isNear = detail === 'always full';
-        if (cell.simpler === null) isNear = true;
+        const isNear = cell.simpler === null || distance < cell.simplerBeyond;
         cell.full.visible = isShown && isNear;
         if (cell.simpler !== null) cell.simpler.visible = isShown && !isNear;
       }

@@ -25,9 +25,9 @@ export interface WaterMaterialsDependencies {
 }
 
 export interface WaterMaterials {
-  create(sheet: WaterSheet): ShaderMaterial;
+  create: (sheet: WaterSheet) => ShaderMaterial;
   /** The wave model as the shader has it, ready to compile on its own: the tests compare it with the program's copy. */
-  waveShaderSource(): string;
+  waveShaderSource: () => string;
 }
 
 // The speed the swell's lines travel at out at sea, in metres a second, as the shaders have it.

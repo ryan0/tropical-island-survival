@@ -2,6 +2,14 @@
 // blue from 0 to 1. The home islet is the wide southern one; +z is south, out to the ocean.
 
 export const worldConfig = {
+  /** Decides where rocks, plants and animals end up: the same seed is the same island. */
+  seed: 1,
+  /**
+   * The castaway's camp (lean-to, driftwood seats, firewood, the campfire and its ring of stones)
+   * is built but left out of the scene for now: the player is to make or mend such things.
+   */
+  hasCamp: false as boolean,
+
   // Everything placed by hand sits on the home islet and is measured from its ocean beach.
   landmarks: {
     homeX: 0,

@@ -187,8 +187,16 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   train as a macro, and the define calls it once for each train with the config's numbers. With this nothing
   is left of build 78's shader chunk table or its text substitution: the build's plugin is now
   `tools/island-shape-plugin.ts`, which only turns the island's shape into functions for the program.
-- [ ] player
-- [ ] core and `main.ts`
+- [x] player: `src/player/` holds walking, swimming and diving with the camera, the opening fly-in, drag to look
+  and the keyboard, the named places and the footprints.
+- [x] core and `main.ts`: `src/core/` holds the stage (renderer, scene, camera), the random streams, the shared
+  uniforms, the view's size, the automatic quality steps, the test hooks and the debug panel's contents.
+  `src/main.ts` builds every system in build 78's order and runs the frame loop. `src/lifted/` and its bridges
+  are gone. `src/core/test-hooks.ts` is now the only file that touches the names on `window` the tests drive
+  the page by, and offers only what `tests/scene-hooks.d.ts` declares. An error in the wildlife is no longer
+  caught and the wildlife dropped: like an error anywhere else it stops the frame and shows on the screen.
+
+Step 4 is done: everything that runs is cleaned code.
 
 ### 5. Readable shaders
 

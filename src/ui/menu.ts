@@ -14,7 +14,7 @@ export interface ControlRow {
 export type MenuRow = ChoiceRow | ControlRow;
 
 export interface Menu {
-  toggle(): void;
+  toggle: () => void;
 }
 
 function choiceButtons(row: ChoiceRow): HTMLButtonElement[] {

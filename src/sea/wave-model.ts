@@ -43,7 +43,7 @@ export interface WaveModel {
    * `spot` too. With `withoutBreaking` no wave stands up to plunge, as in the shader with its lip
    * switched off, which is how the tests compare the two.
    */
-  heightAt(x: number, z: number, time: number, withoutBreaking?: boolean): number;
+  heightAt: (x: number, z: number, time: number, withoutBreaking?: boolean) => number;
   /** Renewed by every call of heightAt. */
   readonly spot: WaveSpot;
 }
