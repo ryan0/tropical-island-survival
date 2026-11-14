@@ -20,16 +20,16 @@ export interface LightOfDay {
 /** The uniforms the sky owns. Every shader that wants the light of the moment shares them. */
 export interface SkyLightUniforms {
   /** The unit vector towards the sun. */
-  uSunDir: { value: Vector3 };
-  uSunCol: { value: Color };
+  uSunDirection: { value: Vector3 };
+  uSunColour: { value: Color };
   /** The sky's colour overhead and at the horizon. */
-  uTop: { value: Color };
-  uHor: { value: Color };
+  uSkyOverhead: { value: Color };
+  uSkyHorizon: { value: Color };
   uNight: { value: number };
-  uDay: { value: number };
+  uDaylight: { value: number };
   /** The colours of cloud in the sun and in shade. */
-  uCloudSun: { value: Color };
-  uCloudShd: { value: Color };
+  uCloudInSun: { value: Color };
+  uCloudInShade: { value: Color };
 }
 
 export interface SkyLight {
@@ -72,14 +72,14 @@ function nameOf(sunHeight: number, isMorning: boolean): TimeOfDay {
 /** Turns the sun's height into the light of the moment: where the sun stands and every colour. */
 export function createSkyLight(): SkyLight {
   const uniforms: SkyLightUniforms = {
-    uSunDir: { value: new Vector3(0, 1, 0) },
-    uSunCol: { value: new Color() },
-    uTop: { value: new Color() },
-    uHor: { value: new Color() },
+    uSunDirection: { value: new Vector3(0, 1, 0) },
+    uSunColour: { value: new Color() },
+    uSkyOverhead: { value: new Color() },
+    uSkyHorizon: { value: new Color() },
     uNight: { value: 0 },
-    uDay: { value: 1 },
-    uCloudSun: { value: new Color() },
-    uCloudShd: { value: new Color() },
+    uDaylight: { value: 1 },
+    uCloudInSun: { value: new Color() },
+    uCloudInShade: { value: new Color() },
   };
   const light: LightOfDay = {
     daylight: 1,
@@ -101,7 +101,7 @@ export function createSkyLight(): SkyLight {
 
       const { overhead, horizon, sun, cloudInShade } = colours;
       setBlendOfThree(
-        uniforms.uTop.value,
+        uniforms.uSkyOverhead.value,
         overhead.lowSun,
         overhead.day,
         Math.pow(daylight, colours.overheadEagerness),
@@ -109,7 +109,7 @@ export function createSkyLight(): SkyLight {
         night,
       );
       setBlendOfThree(
-        uniforms.uHor.value,
+        uniforms.uSkyHorizon.value,
         horizon.lowSun,
         horizon.day,
         daylight,
@@ -120,13 +120,13 @@ export function createSkyLight(): SkyLight {
       light.sunColour[0] = blend(sun.low[0], sun.high[0], sunHigh);
       light.sunColour[1] = blend(sun.low[1], sun.high[1], sunHigh);
       light.sunColour[2] = blend(sun.low[2], sun.high[2], sunHigh);
-      uniforms.uSunCol.value.setRGB(light.sunColour[0], light.sunColour[1], light.sunColour[2]);
+      uniforms.uSunColour.value.setRGB(light.sunColour[0], light.sunColour[1], light.sunColour[2]);
 
       // The sun comes up on one side of its noon bearing and goes down on the other.
       const elevation = -lightConfig.drawnLower + sunHeight;
       const swing = isMorning ? lightConfig.bearingSwing : -lightConfig.bearingSwing;
       const bearing = lightConfig.noonBearing + swing * (1 - daylight);
-      uniforms.uSunDir.value
+      uniforms.uSunDirection.value
         .set(
           Math.sin(bearing) * Math.cos(elevation),
           Math.sin(elevation),
@@ -144,13 +144,13 @@ export function createSkyLight(): SkyLight {
         whiteDay,
         smoothstep(0.45, 1, daylight),
       );
-      uniforms.uCloudSun.value.setRGB(
+      uniforms.uCloudInSun.value.setRGB(
         cloudInSun.r * sunShows + moonlit[0] * night,
         cloudInSun.g * sunShows + moonlit[1] * night,
         cloudInSun.b * sunShows + moonlit[2] * night,
       );
       setBlendOfThree(
-        uniforms.uCloudShd.value,
+        uniforms.uCloudInShade.value,
         cloudInShade.lowSun,
         cloudInShade.day,
         daylight,
@@ -158,7 +158,7 @@ export function createSkyLight(): SkyLight {
         night,
       );
       uniforms.uNight.value = night;
-      uniforms.uDay.value = daylight;
+      uniforms.uDaylight.value = daylight;
 
       light.daylight = daylight;
       light.night = night;

@@ -18,15 +18,15 @@ import { worldConfig } from './world-config';
 /** The shared uniforms the ground's colouring reads. */
 const SHARED_UNIFORMS = [
   'uTime',
-  'uLevel',
-  'uDay',
-  'uHor',
-  'uDet',
-  'uCloudShade',
-  'uReef',
+  'uSeaLevel',
+  'uDaylight',
+  'uSkyHorizon',
+  'uDetail',
+  'uCloudShadeMap',
+  'uReefMap',
   'uWind',
-  'uCam',
-  'uSunDir',
+  'uCameraPosition',
+  'uSunDirection',
 ] as const;
 
 export interface TerrainDependencies {
@@ -147,12 +147,12 @@ export function createTerrain(dependencies: TerrainDependencies): void {
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
   material.onBeforeCompile = (shader) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
-    shader.uniforms.uGritMean = { value: grit.mean };
+    shader.uniforms.uGritAverage = { value: grit.mean };
     shader.vertexShader =
-      'varying vec3 vWp;\n' +
+      'varying vec3 vGroundPosition;\n' +
       shader.vertexShader.replace(
         '#include <project_vertex>',
-        '#include <project_vertex>\n vWp=(modelMatrix*vec4(transformed,1.)).xyz;',
+        '#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;',
       );
     shader.fragmentShader =
       declarations +

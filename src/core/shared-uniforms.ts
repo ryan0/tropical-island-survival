@@ -12,22 +12,22 @@ export type SharedUniforms = Record<string, IUniform> &
     /** Seconds on the clock the waves run by. */
     uTime: { value: number };
     /** Height of the still sea surface. */
-    uLevel: { value: number };
+    uSeaLevel: { value: number };
     /** 1 when the camera is under water, and the water's own colour there. */
-    uUnder: { value: number };
-    uFogC: { value: Color };
+    uUnderWater: { value: number };
+    uUnderWaterColour: { value: Color };
     /** 1 while the lagoon's shore-wave band is shown. */
-    uBandOn: { value: number };
+    uShoreBandShown: { value: number };
     /** A debug switch: 0 normal, 1 waves off, 2 no falling lip, 3 plain water colour. */
-    uDbg: { value: number };
+    uDebugMode: { value: number };
     /** The detail texture. */
-    uDet: { value: Texture };
+    uDetail: { value: Texture };
     /** The map of how high the coral heads stand, once the reef is built. */
-    uReef: { value: Texture | null };
+    uReefMap: { value: Texture | null };
     /** The camera's position, for materials three.js does not give it to. */
-    uCam: { value: Vector3 };
+    uCameraPosition: { value: Vector3 };
     /** The 16 biggest things standing in the surf: x, z, radius. The water draws foam round them. */
-    uObs: { value: Vector3[] };
+    uSurfObstacles: { value: Vector3[] };
   };
 
 const OBSTACLES_SENT_TO_THE_WATER = 16;
@@ -43,15 +43,15 @@ export function createSharedUniforms(
   );
   return {
     uTime: { value: 0 },
-    uLevel: { value: 0 },
-    uUnder: { value: 0 },
-    uBandOn: { value: 0 },
-    uDbg: { value: 0 },
-    uFogC: { value: new Color() },
-    uDet: { value: detailTexture },
-    uReef: { value: null },
-    uCam: { value: new Vector3() },
-    uObs: { value: noObstacles },
+    uSeaLevel: { value: 0 },
+    uUnderWater: { value: 0 },
+    uShoreBandShown: { value: 0 },
+    uDebugMode: { value: 0 },
+    uUnderWaterColour: { value: new Color() },
+    uDetail: { value: detailTexture },
+    uReefMap: { value: null },
+    uCameraPosition: { value: new Vector3() },
+    uSurfObstacles: { value: noObstacles },
     ...skyLight,
     ...clouds,
   };

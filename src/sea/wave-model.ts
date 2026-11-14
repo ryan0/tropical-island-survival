@@ -8,9 +8,10 @@
 // the wave runs in as a bore about 0.55 of the depth high. This copy leaves out the hollow face
 // and the falling lip of a breaking wave: it only lifts the crest.
 //
-// The sums are the shader's, in its names, so that the two can be read side by side. Keep their
-// order and grouping as well: floating point is not associative, and all that follows the water
-// must move exactly as it did in build 78.
+// The sums are the shader's, function for function, so that the two can be read side by side;
+// the short names here are build 78's, and `waveOfTrain` in waves.glsl says which of its names
+// is which. Keep their order and grouping as well: floating point is not associative, and all
+// that follows the water must move exactly as it did in build 78.
 //
 // Distances are metres, times seconds, angles radians.
 

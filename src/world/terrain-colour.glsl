@@ -5,7 +5,7 @@
 // replaces diffuseColor.rgb outright, so three.js's lighting and shadows still apply to it.
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
-// Needs from terrain-declarations.glsl: the uniforms and the varying vWp; fleck, pebble and dimples; and from the
+// Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; fleck, pebble and dimples; and from the
 //   chunks it includes: footpathDistance (footpaths.glsl); hash, noise and fbm (noise.glsl); islandR and openSea
 //   (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T (lagwave.glsl).
 // Needs the defines TERRAIN_HOME and CLOUD_SHADE_SPAN_M, written by terrain.ts.
@@ -54,13 +54,13 @@ const vec3 PINK_CRUST = vec3(0.76, 0.58, 0.60);
 
 // ---- Where this point is ----
 
-float height = vWp.y;
-vec2 xz = vWp.xz;
-float waterDepth = max(uLevel - height, 0.0);
+float height = vGroundPosition.y;
+vec2 xz = vGroundPosition.xz;
+float waterDepth = max(uSeaLevel - height, 0.0);
 
-// (uCam, not three.js's cameraPosition: three.js does not fill that in for this kind of material, and for a long time
+// (uCameraPosition, not three.js's cameraPosition: three.js does not fill that in for this kind of material, and for a long time
 // every close-up detail below was faded out as if the camera stood in the middle of the lagoon)
-vec3 toCamera = uCam - vWp;
+vec3 toCamera = uCameraPosition - vGroundPosition;
 float cameraDistance = length(toCamera);
 float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail shows: 1 at the camera, gone by 90 m
 
@@ -72,7 +72,7 @@ float landWidth = 26.0 + 44.0 * pow(0.5 + 0.5 * sin(directionFromCentre), 1.6)
   + 4.0 * sin(5.0 * directionFromCentre + 1.0);
 float lagoonSide = 1.0 - smoothstep(-0.7, -0.4, metresOffshore / landWidth);
 
-vec2 towardsSun = normalize(uSunDir.xz + 1e-4);
+vec2 towardsSun = normalize(uSunDirection.xz + 1e-4);
 
 // ---- The net of light, and the grit ----
 
@@ -80,20 +80,20 @@ vec2 towardsSun = normalize(uSunDir.xz + 1e-4);
 // small waves. It is also the lace of the foam on the lagoon's sand. (Read here, before any branch:
 // docs/DEVICE_NOTES.md.)
 vec2 lightNetUv = xz * 0.34 + vec2(uTime * 0.010, uTime * 0.006);
-vec2 lightNetWobble = (texture2D(uDet, lightNetUv * 0.31 + vec2(uTime * 0.017, -uTime * 0.013)).rg - 0.5) * 0.16;
+vec2 lightNetWobble = (texture2D(uDetail, lightNetUv * 0.31 + vec2(uTime * 0.017, -uTime * 0.013)).rg - 0.5) * 0.16;
 
 // Grit: the ground's speckle picture (the material's own map, which three.js has already read into texelColor).
 // Everything below replaces the colour outright, so the speckle is put back at the end; it fades out with distance.
 // It is read twice: grain close up (a dot is 1.4 cm), and the same picture four times larger for mottling further
 // off.
-float fineGrit = (texelColor.g - uGritMean) * exp(-cameraDistance * 0.02);
-float coarseGrit = (texture2D(map, vUv * 0.23 + 0.37).g - uGritMean) * 0.10 * exp(-cameraDistance * 0.006);
+float fineGrit = (texelColor.g - uGritAverage) * exp(-cameraDistance * 0.02);
+float coarseGrit = (texture2D(map, vUv * 0.23 + 0.37).g - uGritAverage) * 0.10 * exp(-cameraDistance * 0.006);
 float grit = (fineGrit + coarseGrit) * (1.0 - 0.75 * smoothstep(0.0, 0.5, waterDepth));
 
 // the net itself, read twice - the second time turned and finer - so that no repeat shows
 vec2 turnedLightNetUv = vec2(lightNetUv.x * 0.6 + lightNetUv.y * 0.8, -lightNetUv.x * 0.8 + lightNetUv.y * 0.6);
-float lightNet = texture2D(uDet, lightNetUv + lightNetWobble).a;
-float turnedLightNet = texture2D(uDet, turnedLightNetUv * 1.63 - lightNetWobble * 1.4).a;
+float lightNet = texture2D(uDetail, lightNetUv + lightNetWobble).a;
+float turnedLightNet = texture2D(uDetail, turnedLightNetUv * 1.63 - lightNetWobble * 1.4).a;
 
 if (waterDepth > PLAIN_FLOOR_DEPTH) {
   diffuseColor.rgb = PLAIN_FLOOR_SAND;
@@ -101,7 +101,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   // ---- Dry sand ----
 
   float broadPatches = fbm(xz * 0.11);
-  vec2 sunAlongGround = towardsSun * (1.0 - 0.45 * uSunDir.y);
+  vec2 sunAlongGround = towardsSun * (1.0 - 0.45 * uSunDirection.y);
   // The beach is in zones by height above the sea, each boundary wandering so that none is a contour line.
   float zoneWander = noise(xz * 0.23 + 7.0) - 0.5;
   float looseSand = smoothstep(0.30, 0.62, height + zoneWander * 0.2) * (1.0 - smoothstep(1.75, 2.1, height));
@@ -113,7 +113,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   // Loose dry sand is never flat. Close up it is dimpled - footprints and hollows, in three overlapping layers;
   // further off it rolls in low hummocks (the detail texture's small-wave field read large). Both are shaded against
   // the sun: lit on one side, darker and a little bluer on the other. Some stretches are trodden, some nearly smooth.
-  vec2 hummockSlope = texture2D(uDet, xz * 0.06).rg;
+  vec2 hummockSlope = texture2D(uDetail, xz * 0.06).rg;
   float trodden = 0.35 + 0.65 * smoothstep(0.3, 0.6, noise(xz * 0.09 + 50.0));
   float relief = 0.0;
   if (looseSand > 0.001) {   // (the dry beach only: skipped for the sea floor and the land)
@@ -226,7 +226,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
   // soaked sand is glossy: at a low angle it mirrors the sky a little
   float grazing = 1.0 - clamp(normalize(toCamera).y, 0.0, 1.0);
-  sand = mix(sand, uHor * 0.80, soaked * smoothstep(-0.02, 0.06, height) * grazing * grazing * grazing * 0.38);
+  sand = mix(sand, uSkyHorizon * 0.80, soaked * smoothstep(-0.02, 0.06, height) * grazing * grazing * grazing * 0.38);
 
   if (lagoonSide > 0.01) {
     // Under the film the sand shows clear but a touch cooler, and glassier; at the film's leading edge a thin broken
@@ -236,14 +236,14 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
     float belowLap = 1.0 - smoothstep(lapHeight - 0.004, lapHeight + 0.004, height);
     float film = belowLap * smoothstep(-0.32, -0.2, height) * lagoonSide;
     sand = mix(sand, sand * vec3(0.90, 0.94, 0.95), film * 0.8);
-    sand = mix(sand, uHor * 0.85, film * grazing * grazing * 0.36);
+    sand = mix(sand, uSkyHorizon * 0.85, film * grazing * grazing * 0.36);
     float lace = max(lightNet, turnedLightNet);
     float rimWidth = mix(0.009, 0.02, sheetRunningUp);
     float onRim = exp(-pow((height - lapHeight) / rimWidth, 2.0));
     float brokenThread = smoothstep(0.42, 0.66, noise(vec2(xz.x + xz.y, xz.x - xz.y) * 1.7 + uTime * 0.15));
     float foamingEdge = 0.45 + 0.55 * smoothstep(0.2, 0.6, lace);
     float rim = onRim * mix(brokenThread, foamingEdge, sheetRunningUp) * lagoonSide;
-    sand = mix(sand, vec3(0.96, 0.97, 0.97), rim * mix(0.26, 0.9, sheetRunningUp) * (0.35 + 0.65 * uDay));
+    sand = mix(sand, vec3(0.96, 0.97, 0.97), rim * mix(0.26, 0.9, sheetRunningUp) * (0.35 + 0.65 * uDaylight));
     // (the foam of a broken wave: on the sheet running up the sand, and in the last hand's depth of water, which is
     // drawn here and not by water.frag.glsl: only this shader knows just where the ground meets the water. White
     // where fresh, then lace.)
@@ -252,10 +252,10 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       float foamDepth = 1.0 - smoothstep(0.10, 0.2, -height);
       float foam = smoothstep(0.9 - waveFoam, 1.1 - waveFoam, lacePattern) * film * foamDepth;
       sand = mix(sand, vec3(0.90, 0.95, 0.95), film * waveFoam * 0.3);   // (the sheet itself is milky with bubbles)
-      sand = mix(sand, vec3(0.97, 0.98, 0.98), foam * 0.9 * (0.35 + 0.65 * uDay));
+      sand = mix(sand, vec3(0.97, 0.98, 0.98), foam * 0.9 * (0.35 + 0.65 * uDaylight));
     }
   }
-  sand *= 1.0 + 0.3 * waveLight * uDay;   // (the light the lagoon's shore waves throw on the sand under them)
+  sand *= 1.0 + 0.3 * waveLight * uDaylight;   // (the light the lagoon's shore waves throw on the sand under them)
 
   // ---- Shells, coral chips and pebbles ----
 
@@ -386,8 +386,8 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
 // The sun lamp is already dimmed by however much cloud stands between the sun and the camera (lights.ts); this adds
 // the difference between here and there, so that a shadow's edge can be seen crossing the ground.
-float lightHere = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShade, xz / CLOUD_SHADE_SPAN_M + 0.5).r);
-float lightAtCamera = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShade, uCam.xz / CLOUD_SHADE_SPAN_M + 0.5).r);
+float lightHere = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShadeMap, xz / CLOUD_SHADE_SPAN_M + 0.5).r);
+float lightAtCamera = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShadeMap, uCameraPosition.xz / CLOUD_SHADE_SPAN_M + 0.5).r);
 diffuseColor.rgb *= lightHere / lightAtCamera;
 // fine and faint on the beach, coarser on soil and turf
 diffuseColor.rgb *= 1.0 + grit * (height < 1.6 ? 0.55 : 1.1);
@@ -421,7 +421,7 @@ if (waterDepth > 0.0) {
   // crusted pink in places, strewn with coral rubble - solid at a head's foot, breaking up into the sand further out.
   // (none beyond the edge of the map)
   vec2 reefUv = (xz - TERRAIN_HOME) / REEF_MAP_SPAN + 0.5;
-  float apron = texture2D(uReef, reefUv).g * step(abs(reefUv.x - 0.5), 0.49) * step(abs(reefUv.y - 0.5), 0.49);
+  float apron = texture2D(uReefMap, reefUv).g * step(abs(reefUv.x - 0.5), 0.49) * step(abs(reefUv.y - 0.5), 0.49);
   if (apron > 0.01) {
     float apronEdge = apron + (fbm(xz * 0.9 + 5.0) - 0.5) * 0.8 + (noise(xz * 3.7) - 0.5) * 0.25;
     float oldReef = smoothstep(0.30, 0.62, apronEdge);
@@ -447,7 +447,7 @@ if (waterDepth > 0.0) {
   float dimming = mix(1.0, 0.87, smoothstep(0.0, 0.7, standingDepth));
   vec3 throughWater = exp(-standingDepth * vec3(0.36, 0.085, 0.045));
   diffuseColor.rgb *= dimming * throughWater;
-  diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDay;
+  diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDaylight;
 
   // The net of light that ripples throw on the sea floor: the detail texture's lines, read twice and made to wander.
   // Ankle-deep water is too thin to bend the light into a net, so it fades in between 10 and 80 cm; and where the
@@ -466,7 +466,7 @@ if (waterDepth > 0.0) {
   float surfZone = surfBand * openSea(directionFromCentre);
   float notInSurf = 1.0 - 0.7 * surfZone;
   // strongest in the middle of the lagoon, gentler towards the outer reef
-  float nearCentre = exp(-length(vWp) * 0.012);
-  float netLight = netPattern * fadeIn * lagoonShallows * rippled * fadeWithDepth * notInSurf * uDay * nearCentre;
+  float nearCentre = exp(-length(vGroundPosition) * 0.012);
+  float netLight = netPattern * fadeIn * lagoonShallows * rippled * fadeWithDepth * notInSurf * uDaylight * nearCentre;
   diffuseColor.rgb *= 1.0 + netLight;
 }

@@ -3,7 +3,14 @@ import colourShader from './coral-colour.glsl';
 import declarations from './coral-declarations.glsl';
 
 /** The shared uniforms the coral colouring reads. */
-const SHARED_UNIFORMS = ['uDet', 'uTime', 'uDay', 'uLevel', 'uCam', 'uWind'] as const;
+const SHARED_UNIFORMS = [
+  'uDetail',
+  'uTime',
+  'uDaylight',
+  'uSeaLevel',
+  'uCameraPosition',
+  'uWind',
+] as const;
 
 // Where the coral's surface is in the world: the mottling and the sea's tint go by that.
 const WORLD_POSITION = [
@@ -12,7 +19,7 @@ const WORLD_POSITION = [
   '#ifdef USE_INSTANCING',
   ' rwp=instanceMatrix*rwp;',
   '#endif',
-  ' vRp=(modelMatrix*rwp).xyz;',
+  ' vSurfacePosition=(modelMatrix*rwp).xyz;',
 ].join('\n');
 
 /**
@@ -25,7 +32,7 @@ export function createCoralMaterial(uniforms: Record<string, IUniform>): MeshLam
   material.onBeforeCompile = (shader) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.vertexShader =
-      'varying vec3 vRp;\n' +
+      'varying vec3 vSurfacePosition;\n' +
       shader.vertexShader.replace('#include <project_vertex>', WORLD_POSITION);
     shader.fragmentShader =
       declarations +

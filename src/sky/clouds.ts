@@ -77,15 +77,15 @@ export interface CloudsFrame {
 /** The uniforms the clouds own. Every shader that shows the sky or its shadows shares them. */
 export interface CloudUniforms {
   /** The two sky pictures being blended, and how far from A to B. */
-  uCloudA: { value: Texture | null };
-  uCloudB: { value: Texture | null };
-  uCloudMix: { value: number };
+  uSkyPictureFrom: { value: Texture | null };
+  uSkyPictureTo: { value: Texture | null };
+  uSkyPictureBlend: { value: number };
   /** How far the clouds of each have drifted since it was drawn, in km: A's x and z, then B's. */
-  uCloudShift: { value: Vector4 };
+  uSkyPictureDrift: { value: Vector4 };
   /** The map of the clouds' shadows. */
-  uCloudShade: { value: Texture | null };
+  uCloudShadeMap: { value: Texture | null };
   /** How much of the sun reaches the camera through the clouds. */
-  uSunThru: { value: number };
+  uSunThroughCloud: { value: number };
   /** The wind's strength. */
   uWind: { value: number };
 }
@@ -116,13 +116,13 @@ function boilSpeed(wind: number): number {
 
 function createFieldUniforms(noise: CloudPicture, weatherMap: CloudPicture, size: Vector2) {
   return {
-    uWeather: { value: 1 },
-    uN3: { value: noise.texture },
-    uWx: { value: weatherMap.texture },
-    uLight: { value: new Vector3(0, 1, 0) },
-    uCT: { value: new Vector4() },
-    uEvo: { value: new Vector4() },
-    uCRes: { value: size },
+    uCloudCover: { value: 1 },
+    uShapeNoise: { value: noise.texture },
+    uWeatherMap: { value: weatherMap.texture },
+    uLightDirection: { value: new Vector3(0, 1, 0) },
+    uFieldPlace: { value: new Vector4() },
+    uBoil: { value: new Vector4() },
+    uPictureSize: { value: size },
   };
 }
 
@@ -186,7 +186,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
       weatherMap,
       new Vector2(config.shadeMapSize, config.shadeMapSize),
     ),
-    uStrength: { value: 1 },
+    uShadowStrength: { value: 1 },
   };
   const shadeScene = new Scene();
   const shadeQuad = new Mesh(
@@ -206,12 +206,12 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   const moonDirection = new Vector3(...config.moonDirection).normalize();
   const field = createCloudField(noise.pixels, weatherMap.pixels);
   const uniforms: CloudUniforms = {
-    uCloudA: { value: null },
-    uCloudB: { value: null },
-    uCloudMix: { value: 0 },
-    uCloudShift: { value: new Vector4() },
-    uCloudShade: { value: null },
-    uSunThru: { value: 1 },
+    uSkyPictureFrom: { value: null },
+    uSkyPictureTo: { value: null },
+    uSkyPictureBlend: { value: 0 },
+    uSkyPictureDrift: { value: new Vector4() },
+    uCloudShadeMap: { value: null },
+    uSunThroughCloud: { value: 1 },
     uWind: { value: skyConfig.wind.usualBreeze },
   };
 
@@ -240,8 +240,8 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
 
   /** Sets a shader's uniforms to where the cloud field is with the clocks at `drift` and `boil`. */
   function showMoment(fieldUniforms: typeof bakeUniforms, drift: number, boil: number): void {
-    fieldUniforms.uWeather.value = weather.cloudCover.now;
-    fieldUniforms.uCT.value.set(
+    fieldUniforms.uCloudCover.value = weather.cloudCover.now;
+    fieldUniforms.uFieldPlace.value.set(
       config.startsAt[0] + config.drift[0] * drift,
       config.startsAt[1] + config.drift[1] * drift,
       0,
@@ -249,7 +249,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
     );
     // The shapes slide a little against the weather map, rise slowly, and their fine lumps
     // rise faster: clouds that boil.
-    fieldUniforms.uEvo.value.set(
+    fieldUniforms.uBoil.value.set(
       0.0018 * boil,
       -0.0011 * boil,
       (boil * 0.0012) % 1,
@@ -263,8 +263,8 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
     const drift = now.drift + secondsAhead * driftSpeed(wind);
     showMoment(bakeUniforms, drift, now.boil + secondsAhead * boilSpeed(wind));
     // A different grain in each picture, so that it averages away.
-    bakeUniforms.uCT.value.w = (picturesBegun++ * 7.31) % 64;
-    bakeUniforms.uLight.value.copy(frame.night > 0.5 ? moonDirection : frame.sunDirection);
+    bakeUniforms.uFieldPlace.value.w = (picturesBegun++ * 7.31) % 64;
+    bakeUniforms.uLightDirection.value.copy(frame.night > 0.5 ? moonDirection : frame.sunDirection);
     drawnFor[beingDrawn] = drift;
     stripsDrawn = 0;
   }
@@ -356,8 +356,8 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   function drawShadeMap(frame: CloudsFrame): void {
     const drawsItAll = frame.isClockStopped || (shadeStrip === 0 && !hasShade);
     showMoment(shadeUniforms, now.drift, now.boil);
-    shadeUniforms.uLight.value.copy(frame.sunDirection);
-    shadeUniforms.uStrength.value = smoothstep(0.04, 0.16, frame.sunDirection.y);
+    shadeUniforms.uLightDirection.value.copy(frame.sunDirection);
+    shadeUniforms.uShadowStrength.value = smoothstep(0.04, 0.16, frame.sunDirection.y);
     const strips = drawsItAll ? config.shadeMapStrips : 1;
     for (let i = 0; i < strips; i++) {
       shadeMap.scissor.set(shadeStrip * shadeStripWidth, 0, shadeStripWidth, config.shadeMapSize);
@@ -402,15 +402,15 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
         ? through
         : sunThrough + (through - sunThrough) * Math.min(1, frame.dt * 3);
 
-      uniforms.uSunThru.value = sunThrough;
-      uniforms.uCloudShade.value = shadeMap.texture;
-      uniforms.uCloudA.value = skyPictures[shownFrom].texture;
-      uniforms.uCloudB.value = skyPictures[shownTo].texture;
-      uniforms.uCloudMix.value = slid;
+      uniforms.uSunThroughCloud.value = sunThrough;
+      uniforms.uCloudShadeMap.value = shadeMap.texture;
+      uniforms.uSkyPictureFrom.value = skyPictures[shownFrom].texture;
+      uniforms.uSkyPictureTo.value = skyPictures[shownTo].texture;
+      uniforms.uSkyPictureBlend.value = slid;
       uniforms.uWind.value = weather.wind.now;
       const sinceFrom = now.drift - drawnFor[shownFrom];
       const sinceTo = now.drift - drawnFor[shownTo];
-      uniforms.uCloudShift.value.set(
+      uniforms.uSkyPictureDrift.value.set(
         config.drift[0] * sinceFrom,
         config.drift[1] * sinceFrom,
         config.drift[0] * sinceTo,

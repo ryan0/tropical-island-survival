@@ -169,7 +169,7 @@ const reef = createReef({
   uniforms,
   instanceCells,
 });
-uniforms.uReef.value = reef.map;
+uniforms.uReefMap.value = reef.map;
 const fire = createFire({
   scene,
   uniforms,
@@ -231,8 +231,8 @@ const underWater = createUnderWater({
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);
-rocksInSurf.slice(0, uniforms.uObs.value.length).forEach((rock, index) => {
-  uniforms.uObs.value[index].set(rock.x, rock.z, rock.radius);
+rocksInSurf.slice(0, uniforms.uSurfObstacles.value.length).forEach((rock, index) => {
+  uniforms.uSurfObstacles.value[index].set(rock.x, rock.z, rock.radius);
 });
 const spray = createSpray({
   scene,
@@ -297,7 +297,7 @@ testHooks.install({
 // ---- the frame loop ----
 // What each system is told every frame. The objects are made once and refilled: a frame must
 // allocate nothing.
-const sunDirection = uniforms.uSunDir.value;
+const sunDirection = uniforms.uSunDirection.value;
 const light = skyLight.light;
 const playerFrame: PlayerFrame = { time: 0, dt: 0, cameraOverride: undefined };
 const cloudsFrame: CloudsFrame = {
@@ -375,9 +375,9 @@ function frame(now: number): void {
   skyLight.update(dayCycle.sunHeight(), dayCycle.isMorning());
   timeButton.textContent = light.timeOfDay;
   if (!isClockStopped) uniforms.uTime.value = time;
-  uniforms.uLevel.value = seaConfig.level;
-  uniforms.uCam.value.copy(camera.position);
-  fog.color.copy(uniforms.uHor.value);
+  uniforms.uSeaLevel.value = seaConfig.level;
+  uniforms.uCameraPosition.value.copy(camera.position);
+  fog.color.copy(uniforms.uSkyHorizon.value);
   skyDome.update(camera.position);
 
   if (isClockStopped) weather.set(testHooks.cloudCover(), testHooks.wind());
@@ -427,7 +427,7 @@ function frame(now: number): void {
   waterFrame.wind = uniforms.uWind.value;
   waterFrame.isCameraUnderWater = underWater.isCameraUnder;
   water.update(waterFrame);
-  uniforms.uBandOn.value = water.isBandShown ? 1 : 0;
+  uniforms.uShoreBandShown.value = water.isBandShown ? 1 : 0;
 
   reef.update(uniforms.uTime.value, camera.position);
   instanceCells.update(camera.position);

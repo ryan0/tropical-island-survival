@@ -10,12 +10,12 @@
 //   alpha   how much the clouds hide of what is behind them
 //
 // Needs
-//   uLight  the unit vector towards the sun (towards the moon at night)
-//   uCRes   the size of the picture, in dots
+//   uLightDirection  the unit vector towards the sun (towards the moon at night)
+//   uPictureSize   the size of the picture, in dots
 // the cloud field (cloud-field.glsl) with its own uniforms and defines, and hash from the noise chunk.
 
-uniform vec3 uLight;
-uniform vec2 uCRes;
+uniform vec3 uLightDirection;
+uniform vec2 uPictureSize;
 
 #include "../shaders/shared/noise"
 #include "cloud-field"
@@ -58,7 +58,7 @@ float cloudTowardsSun(vec3 p, float firstStep) {
   float stepLength = firstStep;
   float cloudPassed = 0.0;
   for (int i = 0; i < STEPS_TO_SUN; i++) {
-    onTheWay += uLight * stepLength;
+    onTheWay += uLightDirection * stepLength;
     cloudPassed += cloudAt(onTheWay, weatherAt(onTheWay), false).x * stepLength;
     stepLength *= STEP_TO_SUN_GROWTH;
   }
@@ -67,7 +67,7 @@ float cloudTowardsSun(vec3 p, float firstStep) {
 
 void main() {
   // The direction this dot shows.
-  vec2 uv = gl_FragCoord.xy / uCRes;
+  vec2 uv = gl_FragCoord.xy / uPictureSize;
   float bearing = (uv.x - 0.5) * 6.28318;
   float elevation = 1.5708 * (0.5 * uv.y + 0.5 * uv.y * uv.y);
   vec3 direction = vec3(cos(bearing) * cos(elevation), sin(elevation), sin(bearing) * cos(elevation));
@@ -81,12 +81,12 @@ void main() {
   // finer); where the weather map says cloud may be, each is walked in PARTS_OF_A_STEP. The walk starts at a
   // different point of the first step on every dot so that the steps do not show as bands.
   float stepGrowth = pow(leavesAt / entersAt, 1.0 / float(STEPS_OUT));
-  float partsOffset = hash(gl_FragCoord.xy + uCT.w);
-  float startsPartway = hash(gl_FragCoord.yx * 1.3 + uCT.w);
+  float partsOffset = hash(gl_FragCoord.xy + uFieldPlace.w);
+  float startsPartway = hash(gl_FragCoord.yx * 1.3 + uFieldPlace.w);
   float stepStart = entersAt * pow(stepGrowth, startsPartway - 1.0);
 
   // Cloud scatters light mostly onward: brighter looking towards the sun through thin cloud.
-  float forwardScatter = 1.0 + 1.3 * pow(max(dot(direction, uLight), 0.0), 5.0);
+  float forwardScatter = 1.0 + 1.3 * pow(max(dot(direction, uLightDirection), 0.0), 5.0);
 
   // The walk out.
   vec3 gathered = vec3(0.0);
@@ -103,7 +103,7 @@ void main() {
         vec2 cloudHere = cloudAt(p, weatherAt(p), true);
         if (cloudHere.x > 0.003) {
           // (the steps towards the sun are of a length that varies from dot to dot, or they show as rings)
-          float stepsVary = 0.55 + 0.9 * hash(gl_FragCoord.xy * 1.7 + float(j) * 13.1 + uCT.w);
+          float stepsVary = 0.55 + 0.9 * hash(gl_FragCoord.xy * 1.7 + float(j) * 13.1 + uFieldPlace.w);
           float depthTowardsSun = cloudTowardsSun(p, FIRST_STEP_TO_SUN * stepsVary) * SUNLIGHT_OPACITY;
           float straightBeam = exp(-depthTowardsSun);
           // (light that has bounced about inside the cloud gets much deeper than a straight beam)
@@ -126,14 +126,14 @@ void main() {
   // Cirrus, CIRRUS_HEIGHT up: one thin sheet of streaks (drifting faster, as high cloud does).
   if (showsThrough > NEARLY_HIDDEN) {
     float toCirrus = distanceUpTo(CIRRUS_HEIGHT, direction.y, curve);
-    vec2 cirrusPoint = (direction * toCirrus).xz - uCT.xy * CIRRUS_DRIFT;
+    vec2 cirrusPoint = (direction * toCirrus).xz - uFieldPlace.xy * CIRRUS_DRIFT;
     // (the weather map's alpha read at two sizes: broad streaks and fine ones)
-    float broadStreaks = texture2D(uWx, cirrusPoint / 110.0).a;
-    float fineStreaks = texture2D(uWx, cirrusPoint / 31.0 + 0.37).a;
+    float broadStreaks = texture2D(uWeatherMap, cirrusPoint / 110.0).a;
+    float fineStreaks = texture2D(uWeatherMap, cirrusPoint / 31.0 + 0.37).a;
     float streaks = broadStreaks * 0.62 + fineStreaks * 0.38;
     float haze = 1.0 - exp(-toCirrus / HAZE_DEPTH);
     float clearOfHaze = 1.0 - haze;
-    float opacity = smoothstep(0.55, 0.85, streaks) * 0.42 * smoothstep(0.05, 0.6, uWeather);
+    float opacity = smoothstep(0.55, 0.85, streaks) * 0.42 * smoothstep(0.05, 0.6, uCloudCover);
     vec3 lightParts = vec3(clearOfHaze * forwardScatter * 0.8 / BRIGHTEST_SUNLIT, clearOfHaze, haze);
     gathered += showsThrough * opacity * lightParts;
     showsThrough *= 1.0 - opacity;

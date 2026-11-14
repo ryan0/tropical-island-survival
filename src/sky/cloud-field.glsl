@@ -7,17 +7,17 @@
 // Gives the includer CLOUD_BASE, weatherAt and cloudAt.
 
 // The shape noise: a cube of noise that fills space, stored as slices (see readShapeNoise).
-uniform sampler2D uN3;
+uniform sampler2D uShapeNoise;
 // The weather map: red where cumulus grow, green where towers grow, blue how tall they grow, alpha the cirrus.
-uniform sampler2D uWx;
+uniform sampler2D uWeatherMap;
 // x, y: where the island is on the weather map (the whole field drifts with the wind). w: a different grain for
 // each sky picture (cloud-bake only).
-uniform vec4 uCT;
+uniform vec4 uFieldPlace;
 // The boil. x, y: how far the shapes have slid against the weather map; z: how far they have risen (not used:
 // see cloudAt); w: how far the fine lumps have risen.
-uniform vec4 uEvo;
+uniform vec4 uBoil;
 // How cloudy it is: 0 clear .. 1 the full field.
-uniform float uWeather;
+uniform float uCloudCover;
 
 // The clouds' flat bases.
 const float CLOUD_BASE = 0.8;
@@ -52,8 +52,8 @@ vec4 readShapeNoise(vec3 p) {
   float nextSlice = mod(slice + 1.0, NOISE_SIZE);
   // (one dot in, past the border)
   vec2 inSlice = 1.0 + p.xy * NOISE_SIZE;
-  vec4 inThisSlice = texture2D(uN3, inNoisePicture(slice, inSlice));
-  vec4 inNextSlice = texture2D(uN3, inNoisePicture(nextSlice, inSlice));
+  vec4 inThisSlice = texture2D(uShapeNoise, inNoisePicture(slice, inSlice));
+  vec4 inNextSlice = texture2D(uShapeNoise, inNoisePicture(nextSlice, inSlice));
   return mix(inThisSlice, inNextSlice, depth - slice);
 }
 
@@ -65,7 +65,7 @@ float closenessToLane(vec2 xz, float far, vec2 lane) {
 // The weather over the spot under p: x = how much cloud grows there (0..1), y = how high its tops reach.
 vec2 weatherAt(vec3 p) {
   // (the whole field drifts with the wind)
-  vec4 weatherMap = texture2D(uWx, (p.xz - uCT.xy) / WEATHER_MAP_SPAN);
+  vec4 weatherMap = texture2D(uWeatherMap, (p.xz - uFieldPlace.xy) / WEATHER_MAP_SPAN);
   float far = length(p.xz);
 
   // The lane the sun sets down: cloud that drifts into it thins away, so the sunset is never walled off.
@@ -74,15 +74,15 @@ vec2 weatherAt(vec3 p) {
   float lane = nearLane * smoothstep(4.0, 9.0, far);
 
   // As it clears, only the strongest parts of the map still grow cloud, then none.
-  float towersFrom = mix(0.95, 0.60, uWeather);
-  float towersFull = mix(1.06, 0.74, uWeather);
+  float towersFrom = mix(0.95, 0.60, uCloudCover);
+  float towersFull = mix(1.06, 0.74, uCloudCover);
   float towers = smoothstep(towersFrom, towersFull, weatherMap.g) * (1.0 - lane);
 
   // Fair-weather cumulus thin out with distance (or the horizon would be one bank of cloud); the towers do not.
-  float cumulusFrom = mix(0.78, 0.36, uWeather);
-  float cumulusFull = mix(1.0, 0.82, uWeather);
+  float cumulusFrom = mix(0.78, 0.36, uCloudCover);
+  float cumulusFull = mix(1.0, 0.82, uCloudCover);
   float cumulusOnMap = smoothstep(cumulusFrom, cumulusFull, weatherMap.r);
-  float cumulusAtAll = smoothstep(0.0, 0.12, uWeather);
+  float cumulusAtAll = smoothstep(0.0, 0.12, uCloudCover);
   float thinnedWithDistance = 1.0 - 0.8 * smoothstep(20.0, 50.0, far);
   float thinnedInLane = 1.0 - 0.75 * lane;
   float cumulus = cumulusOnMap * cumulusAtAll * 0.52 * thinnedWithDistance * thinnedInLane;
@@ -115,9 +115,9 @@ vec2 cloudAt(vec3 p, vec2 weather, bool withFineLumps) {
   float fullness = cloudiness * flatBase * thinnedToTop;
 
   // The shapes are stretched upward: columns that the flat base cuts across.
-  vec2 inField = p.xz - uCT.xy;
-  vec3 shapePoint = vec3(inField + uEvo.xy, heightAboveSea * SHAPE_STRETCH) / SHAPE_REPEAT;
-  // Build 78 has `sp.z-=uEvo.z;` here, to make the shapes rise as they boil, but it sits inside the comment at
+  vec2 inField = p.xz - uFieldPlace.xy;
+  vec3 shapePoint = vec3(inField + uBoil.xy, heightAboveSea * SHAPE_STRETCH) / SHAPE_REPEAT;
+  // Build 78 has `sp.z-=uBoil.z;` here, to make the shapes rise as they boil, but it sits inside the comment at
   // the end of the line before it and so never runs (cloud-field.ts does make them rise). It is left out so that
   // the picture stays build 78's; docs/REFACTOR_PLAN.md lists it to be corrected.
   float shape = readShapeNoise(shapePoint).r;
@@ -127,7 +127,7 @@ vec2 cloudAt(vec3 p, vec2 weather, bool withFineLumps) {
   if (withFineLumps) {
     // Nibble the edges: round lumps left standing higher up (cauliflower), wisps left low down.
     vec3 lumpPoint = vec3(shapePoint.xy, heightAboveSea / SHAPE_REPEAT) * LUMPS_FINER;
-    lumpPoint.z -= uEvo.w;
+    lumpPoint.z -= uBoil.w;
     float bigLumps = readShapeNoise(lumpPoint).g;
     float smallLumps = readShapeNoise(lumpPoint * 3.7).g;
     float lumps = bigLumps * 0.72 + smallLumps * 0.28;

@@ -48,7 +48,7 @@ function waveTrainsDefine(): string {
         train.canPlunge,
         train.runUp,
       ];
-      return `WAVE_TRAIN(a${index},${numbers.map(glslFloat).join(',')})`;
+      return `WAVE_TRAIN(train${index},${numbers.map(glslFloat).join(',')})`;
     })
     .join(' ');
 }
@@ -90,10 +90,10 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
       const isWaveMesh = sheet === 'wave mesh';
       const isBand = sheet === 'lagoon shore band';
       return new ShaderMaterial({
-        // uFar: 1 leaves the sheet flat (the vertex shader moves only the wave mesh). uBand: 1 for the band.
+        // uIsFlatSheet: 1 leaves the sheet flat (the vertex shader moves only the wave mesh). uIsShoreBand: 1 for the band.
         uniforms: {
-          uFar: { value: isWaveMesh ? 0 : 1 },
-          uBand: { value: isBand ? 1 : 0 },
+          uIsFlatSheet: { value: isWaveMesh ? 0 : 1 },
+          uIsShoreBand: { value: isBand ? 1 : 0 },
           ...uniforms,
         },
         defines,

@@ -4,7 +4,7 @@
 // dark wet band at the waterline, and the water's own tint below it.
 // rock-material.ts puts this inside three.js's Lambert fragment shader in place of <color_fragment>, wrapped in
 // braces; three.js lights the diffuseColor it leaves. Needs vColor from three.js, and from rock-declarations.glsl
-// uDet, uLevel, vRp, vRn, seaTint and the ROCK_ defines.
+// uDetail, uSeaLevel, vSurfacePosition, vSurfaceNormal, seaTint and the ROCK_ defines.
 
 // The fine size of the detail texture: this much smaller than the coarse one, and shifted, so that the two sizes'
 // patterns do not line up.
@@ -15,20 +15,20 @@ const vec3 BARNACLE_COLOUR = vec3(0.80, 0.78, 0.72);
 // What wet rock keeps of each colour.
 const vec3 WET_ROCK = vec3(0.62, 0.66, 0.58);
 
-vec3 rockPoint = vRp;
-vec3 rockNormal = normalize(vRn);
+vec3 rockPoint = vSurfacePosition;
+vec3 rockNormal = normalize(vSurfaceNormal);
 // the squares of a unit normal's parts add up to 1: they weigh the three sides' reads
 vec3 sideWeights = rockNormal * rockNormal;
 
 // The detail texture from three sides, at two sizes (blue: blotches; alpha: a net of lines; red: grain)
-vec4 coarseAlongX = texture2D(uDet, rockPoint.zy * ROCK_SCALE);
-vec4 coarseAlongY = texture2D(uDet, rockPoint.xz * ROCK_SCALE);
-vec4 coarseAlongZ = texture2D(uDet, rockPoint.xy * ROCK_SCALE);
+vec4 coarseAlongX = texture2D(uDetail, rockPoint.zy * ROCK_SCALE);
+vec4 coarseAlongY = texture2D(uDetail, rockPoint.xz * ROCK_SCALE);
+vec4 coarseAlongZ = texture2D(uDetail, rockPoint.xy * ROCK_SCALE);
 vec4 coarse = coarseAlongX * sideWeights.x + coarseAlongY * sideWeights.y + coarseAlongZ * sideWeights.z;
 
-vec4 fineAlongX = texture2D(uDet, rockPoint.zy * FINE_SCALE + FINE_SHIFT);
-vec4 fineAlongY = texture2D(uDet, rockPoint.xz * FINE_SCALE + FINE_SHIFT);
-vec4 fineAlongZ = texture2D(uDet, rockPoint.xy * FINE_SCALE + FINE_SHIFT);
+vec4 fineAlongX = texture2D(uDetail, rockPoint.zy * FINE_SCALE + FINE_SHIFT);
+vec4 fineAlongY = texture2D(uDetail, rockPoint.xz * FINE_SCALE + FINE_SHIFT);
+vec4 fineAlongZ = texture2D(uDetail, rockPoint.xy * FINE_SCALE + FINE_SHIFT);
 vec4 fine = fineAlongX * sideWeights.x + fineAlongY * sideWeights.y + fineAlongZ * sideWeights.z;
 
 // Mottling and grain
@@ -47,7 +47,7 @@ float pitHollows = smoothstep(0.34, 0.16, fine.b);
 rockColour *= 1.0 - ROCK_PIT * pitHollows * (0.4 + 0.6 * coarse.b);
 
 // Bleached by the sun: tops, clear of the sea, in patches
-float heightAboveSea = rockPoint.y - uLevel;
+float heightAboveSea = rockPoint.y - uSeaLevel;
 vec3 bleached = BLEACHED_COLOUR * (0.75 + 0.5 * fine.b);
 float onTop = smoothstep(0.2, 0.85, rockNormal.y);
 float clearOfTheSea = smoothstep(0.25, 1.1, heightAboveSea);

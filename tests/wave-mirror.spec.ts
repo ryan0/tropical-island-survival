@@ -29,8 +29,11 @@ function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, 
   // Each pixel along the row is one point on the line; its colour is the wave height there,
   // from -4 m to 4 m, spread over the three channels to keep the precision.
   const pointsSource = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0., 1.); }';
+  // (The wave model reads a debug switch that whoever includes it declares: build 78 calls it
+  // uDbg, the new build uDebugMode. Each page's shader uses one of the two.)
   const heightsSource = `precision highp float;
     uniform float uDbg;
+    uniform float uDebugMode;
     ${hooks.glslWaves()}
     uniform vec2 uDir;
     uniform float uT, uR0, uDr;
@@ -84,6 +87,7 @@ function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, 
     gl.uniform1f(uniform('uDr'), metresBetweenSamples);
     // The program's copy does not model the falling lip, so the shader's is switched off too.
     gl.uniform1f(uniform('uDbg'), breakingLipOff);
+    gl.uniform1f(uniform('uDebugMode'), breakingLipOff);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.readPixels(0, 0, samples, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
 

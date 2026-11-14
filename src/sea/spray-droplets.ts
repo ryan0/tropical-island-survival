@@ -53,7 +53,7 @@ export function createSprayDroplets(scene: Scene): SprayDroplets {
   shape.setAttribute('aSize', sizeAttribute);
   const alphaAttribute = new BufferAttribute(alphas, 1);
   shape.setAttribute('aAlpha', alphaAttribute);
-  const uniforms = { uPx: { value: 600 }, uCol: { value: new Color(1, 1, 1) } };
+  const uniforms = { uPixelsPerMetre: { value: 600 }, uSprayColour: { value: new Color(1, 1, 1) } };
   const points = new Points(
     shape,
     new ShaderMaterial({
@@ -120,10 +120,10 @@ export function createSprayDroplets(scene: Scene): SprayDroplets {
     },
 
     show(focalLength, daylight, night) {
-      uniforms.uPx.value = focalLength;
+      uniforms.uPixelsPerMetre.value = focalLength;
       // White by day, warmer with the sun low, and dim at night.
       const dimmed = 1 - 0.75 * night;
-      uniforms.uCol.value.setRGB(
+      uniforms.uSprayColour.value.setRGB(
         dimmed,
         (0.8 + 0.2 * daylight) * dimmed,
         (0.75 + 0.25 * daylight) * dimmed,

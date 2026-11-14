@@ -50,7 +50,7 @@ const SHAPE_STRETCH = 0.7;
 const EDGE_SHARPNESS = 2.5;
 
 // The shapes slide a little against the weather map and rise slowly, so that the clouds boil: for
-// each second of the boil clock. The shaders are given the same (uEvo).
+// each second of the boil clock. The shaders are given the same (uBoil).
 const SHAPE_SLIDE_X = 0.0018;
 const SHAPE_SLIDE_Z = -0.0011;
 const SHAPE_RISE = 0.0012;

@@ -5,7 +5,7 @@ import declarations from './rock-declarations.glsl';
 import type { RockSurface } from './rocks-config';
 
 /** The shared uniforms the rock colouring reads. */
-const SHARED_UNIFORMS = ['uLevel', 'uTime', 'uWind', 'uDay', 'uDet'] as const;
+const SHARED_UNIFORMS = ['uSeaLevel', 'uTime', 'uWind', 'uDaylight', 'uDetail'] as const;
 
 // Where the rock's surface is and which way it faces, in the world: the pattern is laid on from
 // three sides by those, so that it never stretches.
@@ -15,7 +15,7 @@ const WORLD_POSITION_AND_FACING = [
   '#ifdef USE_INSTANCING',
   ' rwp=instanceMatrix*rwp;rwn=mat3(instanceMatrix)*rwn;',
   '#endif',
-  ' vRp=(modelMatrix*rwp).xyz;vRn=normalize(mat3(modelMatrix)*rwn);',
+  ' vSurfacePosition=(modelMatrix*rwp).xyz;vSurfaceNormal=normalize(mat3(modelMatrix)*rwn);',
 ].join('\n');
 
 /**
@@ -40,7 +40,7 @@ export function createRockMaterial(
   material.onBeforeCompile = (shader) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.vertexShader =
-      'varying vec3 vRp;varying vec3 vRn;\n' +
+      'varying vec3 vSurfacePosition;varying vec3 vSurfaceNormal;\n' +
       shader.vertexShader.replace('#include <project_vertex>', WORLD_POSITION_AND_FACING);
     shader.fragmentShader =
       declarations +

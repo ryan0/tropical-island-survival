@@ -4,18 +4,18 @@
 // LAGOON_WIND_DIRECTION (lagwave.glsl), which terrain.ts writes.
 
 uniform float uTime;       // seconds on the clock the waves run by
-uniform float uLevel;      // the height of the still sea surface
-uniform float uDay;        // daylight, 0 at night to 1 by day
-uniform float uGritMean;   // the grit picture's average brightness (ground-grit.ts)
+uniform float uSeaLevel;      // the height of the still sea surface
+uniform float uDaylight;        // daylight, 0 at night to 1 by day
+uniform float uGritAverage;   // the grit picture's average brightness (ground-grit.ts)
 uniform float uWind;       // the wind's strength, 0 (none) to 1 (high)
-uniform vec3 uCam;         // the camera's position
-uniform vec3 uSunDir;      // the unit vector towards the sun
-uniform vec3 uHor;         // the sky's colour at the horizon
-uniform sampler2D uDet;          // the detail texture (detail-texture.ts)
-uniform sampler2D uCloudShade;   // the map of the clouds' shadows
-uniform sampler2D uReef;         // the map of the coral heads (reef-map.ts)
+uniform vec3 uCameraPosition;         // the camera's position
+uniform vec3 uSunDirection;      // the unit vector towards the sun
+uniform vec3 uSkyHorizon;         // the sky's colour at the horizon
+uniform sampler2D uDetail;          // the detail texture (detail-texture.ts)
+uniform sampler2D uCloudShadeMap;   // the map of the clouds' shadows
+uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
 
-varying vec3 vWp;   // this point's position in the world
+varying vec3 vGroundPosition;   // this point's position in the world
 
 #include "../shaders/shared/noise"
 

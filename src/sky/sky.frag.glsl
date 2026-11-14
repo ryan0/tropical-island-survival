@@ -5,34 +5,34 @@
 //   EARTH_CURVE    1/(2R) for the small earth the clouds sit on
 //   SLIDE_HEIGHT   the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
 //   HALF_A_DOT     half a dot of a sky picture, across and up
-// the varying vDir from sky.vert.glsl, and hash and fbm5 from the noise chunk.
+// the varying vViewDirection from sky.vert.glsl, and hash and fbm5 from the noise chunk.
 
 // Seconds on the clock.
 uniform float uTime;
 // 0 by day .. 1 at night.
 uniform float uNight;
 // Daylight: 0 with the sun at the horizon .. 1 in full day.
-uniform float uDay;
+uniform float uDaylight;
 // 1 when the camera is under water, and the water's own colour there.
-uniform float uUnder;
-uniform vec3 uFogC;
+uniform float uUnderWater;
+uniform vec3 uUnderWaterColour;
 // The unit vector towards the sun, and the sun's colour.
-uniform vec3 uSunDir;
-uniform vec3 uSunCol;
+uniform vec3 uSunDirection;
+uniform vec3 uSunColour;
 // The sky's colour overhead and at the horizon.
-uniform vec3 uTop;
-uniform vec3 uHor;
+uniform vec3 uSkyOverhead;
+uniform vec3 uSkyHorizon;
 // The two sky pictures being blended, and how far from A to B.
-uniform sampler2D uCloudA;
-uniform sampler2D uCloudB;
-uniform float uCloudMix;
+uniform sampler2D uSkyPictureFrom;
+uniform sampler2D uSkyPictureTo;
+uniform float uSkyPictureBlend;
 // How far the clouds of each picture have drifted since it was drawn, in km: A's x and z, then B's.
-uniform vec4 uCloudShift;
+uniform vec4 uSkyPictureDrift;
 // The colours of cloud in the sun and in shade.
-uniform vec3 uCloudSun;
-uniform vec3 uCloudShd;
+uniform vec3 uCloudInSun;
+uniform vec3 uCloudInShade;
 // From the camera, which is the dome's middle, towards this dot.
-varying vec3 vDir;
+varying vec3 vViewDirection;
 
 #include "../shaders/shared/noise"
 
@@ -77,24 +77,24 @@ vec4 lookUpSkyPicture(sampler2D picture, vec3 d, vec2 shift) {
 }
 
 void main() {
-  vec3 direction = normalize(vDir);
+  vec3 direction = normalize(vViewDirection);
   float aboveHorizon = clamp(direction.y, 0.0, 1.0);
 
   // The gradient from the horizon to overhead.
-  vec3 sky = mix(uHor, uTop * (1.0 - 0.22 * aboveHorizon), pow(aboveHorizon, 0.5));
+  vec3 sky = mix(uSkyHorizon, uSkyOverhead * (1.0 - 0.22 * aboveHorizon), pow(aboveHorizon, 0.5));
   float sunShows = 1.0 - uNight;
 
   // Which way round the horizon this is, relative to the sun.
   vec2 bearing = normalize(direction.xz + 1e-5);
-  float towardsSun = dot(bearing, normalize(uSunDir.xz + 1e-5));
+  float towardsSun = dot(bearing, normalize(uSunDirection.xz + 1e-5));
 
   // By day the air near the horizon is paler and warmer towards the sun.
-  sky += DAY_HAZE_WARMTH * uDay * smoothstep(-0.2, 1.0, towardsSun) * exp(-aboveHorizon * 5.0);
+  sky += DAY_HAZE_WARMTH * uDaylight * smoothstep(-0.2, 1.0, towardsSun) * exp(-aboveHorizon * 5.0);
 
-  float evening = smoothstep(0.40, 1.0, 1.0 - uDay) * sunShows;
+  float evening = smoothstep(0.40, 1.0, 1.0 - uDaylight) * sunShows;
 
   // Golden hour, before evening: the whole sky warms, most of all low down and towards the sun.
-  float goldenHour = smoothstep(0.15, 0.5, 1.0 - uDay) * (1.0 - evening) * sunShows;
+  float goldenHour = smoothstep(0.15, 0.5, 1.0 - uDaylight) * (1.0 - evening) * sunShows;
   float warmth = goldenHour * (0.25 + 0.35 * smoothstep(-0.4, 1.0, towardsSun)) * exp(-aboveHorizon * 3.2);
   sky = mix(sky, GOLDEN_HOUR_COLOUR, warmth);
 
@@ -108,10 +108,10 @@ void main() {
 
   // The sun: its glow and its disc. (fromSun is the straight line to the sun across a ball of radius 1: near
   // enough the angle to it.)
-  float fromSun = sqrt(max(0.0, 2.0 - 2.0 * dot(direction, uSunDir)));
+  float fromSun = sqrt(max(0.0, 2.0 - 2.0 * dot(direction, uSunDirection)));
   float sunGlow = 0.28 * exp(-fromSun * 3.5) + 0.5 * exp(-fromSun * 16.0);
-  sky += uSunCol * sunGlow * sunShows;
-  sky = mix(sky, uSunCol * 1.5 + 0.3, smoothstep(0.034, 0.026, fromSun));
+  sky += uSunColour * sunGlow * sunShows;
+  sky = mix(sky, uSunColour * 1.5 + 0.3, smoothstep(0.034, 0.026, fromSun));
 
   // The night sky: stars, the milky way, shooting stars and the moon.
   if (uNight > 0.004) {
@@ -172,23 +172,23 @@ void main() {
   // The clouds: looked up in the two sky pictures the sky is sliding between (clouds.ts), each shifted to where
   // its clouds have drifted to by now.
   if (direction.y > -0.012) {
-    vec4 fromPictureA = lookUpSkyPicture(uCloudA, direction, uCloudShift.xy);
-    vec4 fromPictureB = lookUpSkyPicture(uCloudB, direction, uCloudShift.zw);
-    vec4 clouds = mix(fromPictureA, fromPictureB, uCloudMix) * smoothstep(-0.012, 0.004, direction.y);
+    vec4 fromPictureA = lookUpSkyPicture(uSkyPictureFrom, direction, uSkyPictureDrift.xy);
+    vec4 fromPictureB = lookUpSkyPicture(uSkyPictureTo, direction, uSkyPictureDrift.zw);
+    vec4 clouds = mix(fromPictureA, fromPictureB, uSkyPictureBlend) * smoothstep(-0.012, 0.004, direction.y);
     // The low sun's light is redder and weaker on a cloud's lower parts than on its top.
-    float fullSunlight = clamp(uDay * 2.2 + smoothstep(0.04, 0.26, asin(aboveHorizon)), 0.0, 1.0);
-    vec3 cloudInSun = uCloudSun * mix(LOW_SUN_ON_CLOUD, vec3(1.0), fullSunlight);
+    float fullSunlight = clamp(uDaylight * 2.2 + smoothstep(0.04, 0.26, asin(aboveHorizon)), 0.0, 1.0);
+    vec3 cloudInSun = uCloudInSun * mix(LOW_SUN_ON_CLOUD, vec3(1.0), fullSunlight);
     // (the sky shows where the clouds do not hide it, and through cloud lost in haze, which takes its colour)
     float skyShows = 1.0 - clouds.a + clouds.b;
     // (red was divided by 2.3 to fit in the picture)
-    vec3 sunlitCloud = cloudInSun * clouds.r * mix(2.4, 1.85, uDay);
-    vec3 shadedCloud = uCloudShd * clouds.g * 0.82;
+    vec3 sunlitCloud = cloudInSun * clouds.r * mix(2.4, 1.85, uDaylight);
+    vec3 shadedCloud = uCloudInShade * clouds.g * 0.82;
     sky = sky * skyShows + sunlitCloud + shadedCloud;
   }
 
   // Haze low down, then the water's colour when under it.
-  sky = mix(sky, uHor, smoothstep(0.07, 0.0, direction.y) * 0.55);
-  sky = mix(sky, uFogC, uUnder);
+  sky = mix(sky, uSkyHorizon, smoothstep(0.07, 0.0, direction.y) * 0.55);
+  sky = mix(sky, uUnderWaterColour, uUnderWater);
   // (a dot's worth of noise: it breaks up the bands a smooth gradient shows in 8-bit colour)
   sky += (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0);
   gl_FragColor = vec4(sky, 1.0);

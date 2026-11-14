@@ -10,7 +10,8 @@ import type { Plugin } from 'vite';
 const MODULE_ID = 'virtual:island-shape';
 const RESOLVED_MODULE_ID = `\0${MODULE_ID}`;
 
-// The whole of GLSL that can be turned into JavaScript here: float functions of float arguments.
+// The whole of GLSL that can be turned into JavaScript here: float functions of float arguments,
+// and float constants.
 const NOT_CONVERTED = /\b(vec[234]|mat[234]|int|bool|uniform|varying|out|inout)\b/;
 const MATHS_FUNCTIONS = /\b(sin|cos|exp|sqrt|abs|min|max|pow|floor)\(/g;
 
@@ -26,7 +27,7 @@ function withoutBlankLines(text: string): string {
 function asJavaScript(glsl: string, file: string): string {
   const text = withoutComments(glsl).replace(/^[ \t]*#include[^\n]*/gm, '');
   if (NOT_CONVERTED.test(text)) {
-    throw new Error(`${file}: only float functions of float arguments can be shared`);
+    throw new Error(`${file}: only float functions and float constants can be shared`);
   }
   const functions = text
     .replace(/\bfloat\s+(\w+)\s*\(([^)]*)\)\s*\{/g, (_, name: string, parameters: string) => {
@@ -36,6 +37,7 @@ function asJavaScript(glsl: string, file: string): string {
         .map((parameter) => parameter.trim().split(/\s+/).at(-1));
       return `function ${name}(${names.join(',')}){`;
     })
+    .replace(/\bconst\s+float\s+/g, 'const ')
     .replace(/\bfloat\s+/g, 'var ')
     .replace(/\batan\(/g, 'Math.atan2(')
     .replace(MATHS_FUNCTIONS, 'Math.$1(');

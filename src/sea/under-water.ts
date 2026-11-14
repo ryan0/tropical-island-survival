@@ -21,7 +21,7 @@ export interface UnderWaterDependencies {
   /** The blue overlay with its rays of light, laid over the picture while the camera is under. */
   overlay: HTMLElement;
   /** Two of the uniforms every shader shares: 1 when the camera is under water, and the water's own colour. */
-  uniforms: { uUnder: { value: number }; uFogC: { value: Color } };
+  uniforms: { uUnderWater: { value: number }; uUnderWaterColour: { value: Color } };
 }
 
 export interface UnderWater {
@@ -109,10 +109,10 @@ export function createUnderWater(dependencies: UnderWaterDependencies): UnderWat
         surfaceHeight - waves.spot.groundHeight > SHALLOWEST;
       const light = (1 - 0.8 * night) * (0.55 + 0.45 * daylight);
 
-      uniforms.uUnder.value = isCameraUnder ? 1 : 0;
-      uniforms.uFogC.value.setRGB(0.04 * light, 0.38 * light, 0.5 * light);
+      uniforms.uUnderWater.value = isCameraUnder ? 1 : 0;
+      uniforms.uUnderWaterColour.value.setRGB(0.04 * light, 0.38 * light, 0.5 * light);
       const [near, far] = isCameraUnder ? seaConfig.fogUnderWater : seaConfig.fogInAir;
-      if (isCameraUnder) fog.color.copy(uniforms.uFogC.value);
+      if (isCameraUnder) fog.color.copy(uniforms.uUnderWaterColour.value);
       fog.near = near;
       fog.far = far;
       overlay.style.opacity = isCameraUnder ? '1' : '0';

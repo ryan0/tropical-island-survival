@@ -26,7 +26,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   (+-12 m sideways, -2.5..4 m vertically) is left at rest. It is written so that not-a-number and infinity fail it too.
   Normal waves stay inside about half of that box.
 - The per-train code is generated *unrolled* (three copies of the same lines) - no loops, no uniform arrays.
-- Prefer plain arithmetic to clever control flow (the lip profile `lipC` is branch-free on purpose).
+- Prefer plain arithmetic to clever control flow (the breaking front's profile, `breakingFront` in `waves.glsl`, is branch-free on purpose).
 - If a calculation can divide by zero or take `pow` of something negative, guard it (`max(x, 1e-4)`).
 
 ## Working without the device
@@ -35,7 +35,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - The build number (bottom centre) tells you whether a screenshot is from the current build.
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string and has switches for
   wireframe, hiding the wave mesh, hiding the far sea and freezing the waves.
-- `uDbg` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
+- `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
   3 = plain water colour. Handy for narrowing down a bug from screenshots.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
 - The phone in question takes 1080x2424 screenshots (shared scaled to 864x1939); its GPU model is not known.
@@ -43,7 +43,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 ## Things three.js (r128) does that are easy to trip over
 
 - `cameraPosition` is only filled in for ShaderMaterial, Phong, Toon and Standard materials. In a patched LAMBERT
-  material it stays at the origin and nothing warns you. Use the shared uniform `uCam`.
+  material it stays at the origin and nothing warns you. Use the shared uniform `uCameraPosition`.
 - A texture read inside an `if` may be taken at the wrong level of detail on some GPUs. Read the texture before the
   branch (the terrain shader does this for the detail texture) or use a texture without mipmaps.
 - An instanced mesh is never culled unless `frustumCulled` is set, and opaque things are drawn in order of material

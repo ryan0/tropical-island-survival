@@ -51,7 +51,7 @@ export function debugSwitches(
   testHooks: TestHooks,
 ): DebugSwitch[] {
   const waterDebug = (mode: number) => (on: boolean) => {
-    uniforms.uDbg.value = on ? mode : 0;
+    uniforms.uDebugMode.value = on ? mode : 0;
   };
   return [
     {

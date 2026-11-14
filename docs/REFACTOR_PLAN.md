@@ -213,9 +213,14 @@ pass of their own at the end of the step.
 - [x] everything but the water: the terrain's three shaders, the sky dome and the three cloud shaders, the
   rocks, the coral, the shared noise and sea-tint chunks, the flame and the spray. The coral's shader lost six
   values it worked out and never used (a second copy of the net of light, with three texture reads).
-- [ ] the water: `water.frag.glsl`, `water.vert.glsl`, `waves.glsl`, the lagoon's shore band and its shared
-  chunk, and the island's shape.
-- [ ] rename the uniforms and varyings.
+- [x] the water: `water.frag.glsl` (259 dense lines, now 704), `water.vert.glsl`, `waves.glsl`, the lagoon's
+  shore band and its shared chunk, and the island's shape, whose tuned numbers are now named constants (the
+  build's converter learned to carry `const float` across to the program). `waves.glsl` uses the names of
+  `wave-model.ts` where that has them and lists, at `waveOfTrain`, which is which.
+- [x] the uniforms and varyings renamed in one pass through every shader and the program: `uDet` is
+  `uDetail`, `uHor` is `uSkyHorizon`, `vWp` is `vGroundPosition`, and so on.
+
+Step 5 is done.
 
 ### 6. Merge duplicates
 
@@ -260,6 +265,9 @@ Found while making the shaders readable, and not yet decided:
   might not. Writing it as `x * x` would be safe everywhere.
 - The coral reads the detail texture inside a branch, against the rule in `docs/DEVICE_NOTES.md`, as build 78
   does. It has shown no fault on the phone.
+- The water mirrors the clouds without sliding the sky pictures by how far the clouds have drifted since each was
+  drawn, as the sky itself does (`uSkyPictureDrift`). Reflected clouds may sit a little out of step with the
+  clouds above. Build 78 does the same.
 - The beach finds and the flowers live in `src/life/` only because they share the wildlife's random stream. Ryan
   has said they should move elsewhere (the world), later; they will need a stream of their own, which moves them.
 
