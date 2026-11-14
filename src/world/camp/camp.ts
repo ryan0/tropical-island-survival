@@ -1,8 +1,9 @@
 import { DoubleSide, IcosahedronGeometry, Mesh, MeshLambertMaterial, type Scene } from 'three';
+import type { Rgb, Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
 import { campConfig } from './camp-config';
-import { createCampModel, shade, type CampModel, type Rgb, type Triple } from './camp-model';
+import { createCampModel, shade, type CampModel } from './camp-model';
 
 // What a castaway has made, and nothing else: a lean-to of driftwood poles roofed with palm
 // fronds, a bed of dry fronds under it, a fishing spear, a few coconuts, firewood by the fire,

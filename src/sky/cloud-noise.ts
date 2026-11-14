@@ -1,5 +1,5 @@
 import { DataTexture, LinearFilter, RGBAFormat } from 'three';
-import { smoothstep } from '../core/maths';
+import { mixAsShadersDo, smoothstep } from '../core/maths';
 import type { Random } from '../core/random';
 import { cloudsConfig } from './clouds-config';
 
@@ -20,9 +20,12 @@ export interface CloudPicture {
 
 const SIZE = cloudsConfig.noiseSize;
 const SLICES_ACROSS = cloudsConfig.noiseSlicesAcross;
-const BORDERED_SLICE = SIZE + 2;
-const PICTURE_SIZE = BORDERED_SLICE * SLICES_ACROSS;
 const SEED = 91173;
+
+/** A slice of the cube with its one-dot border: a tile this many dots square. */
+export const NOISE_TILE = SIZE + 2;
+/** The tiles lie side by side in one square picture, this many dots a side. */
+export const NOISE_PICTURE_WIDTH = NOISE_TILE * SLICES_ACROSS;
 
 /**
  * Each cloud picture has a random stream of its own, so that the clouds are the same each run.
@@ -34,10 +37,6 @@ export function createCloudRandom(seed: number): Random {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
     return state / 4296967296;
   };
-}
-
-function mix(a: number, b: number, t: number): number {
-  return a * (1 - t) + b * t;
 }
 
 function inCells(dot: number, cells: number): number {
@@ -108,17 +107,17 @@ function softNoise(random: Random, cells: number): Float32Array {
     const tx = smoothstep(0, 1, x - x0);
     const ty = smoothstep(0, 1, y - y0);
     const tz = smoothstep(0, 1, z - z0);
-    const near = mix(
-      mix(corner(x0, y0, z0), corner(x1, y0, z0), tx),
-      mix(corner(x0, y1, z0), corner(x1, y1, z0), tx),
+    const near = mixAsShadersDo(
+      mixAsShadersDo(corner(x0, y0, z0), corner(x1, y0, z0), tx),
+      mixAsShadersDo(corner(x0, y1, z0), corner(x1, y1, z0), tx),
       ty,
     );
-    const far = mix(
-      mix(corner(x0, y0, z1), corner(x1, y0, z1), tx),
-      mix(corner(x0, y1, z1), corner(x1, y1, z1), tx),
+    const far = mixAsShadersDo(
+      mixAsShadersDo(corner(x0, y0, z1), corner(x1, y0, z1), tx),
+      mixAsShadersDo(corner(x0, y1, z1), corner(x1, y1, z1), tx),
       ty,
     );
-    return mix(near, far, tz);
+    return mixAsShadersDo(near, far, tz);
   });
 }
 
@@ -145,15 +144,15 @@ export function createCloudNoise(): CloudPicture {
     255 * Math.min(1, (middlingLumps[dot] * 0.62 + smallLumps[dot] * 0.38) * 1.25);
 
   const wrap = (dot: number) => (dot + SIZE) % SIZE;
-  const pixels = new Uint8Array(PICTURE_SIZE * PICTURE_SIZE * 4);
+  const pixels = new Uint8Array(NOISE_PICTURE_WIDTH * NOISE_PICTURE_WIDTH * 4);
   for (let z = 0; z < SIZE; z++) {
-    const sliceLeft = (z % SLICES_ACROSS) * BORDERED_SLICE;
-    const sliceTop = Math.floor(z / SLICES_ACROSS) * BORDERED_SLICE;
+    const sliceLeft = (z % SLICES_ACROSS) * NOISE_TILE;
+    const sliceTop = Math.floor(z / SLICES_ACROSS) * NOISE_TILE;
     // -1 and SIZE are the border.
     for (let y = -1; y <= SIZE; y++) {
       for (let x = -1; x <= SIZE; x++) {
         const dot = (z * SIZE + wrap(y)) * SIZE + wrap(x);
-        const pixel = ((sliceTop + 1 + y) * PICTURE_SIZE + sliceLeft + 1 + x) * 4;
+        const pixel = ((sliceTop + 1 + y) * NOISE_PICTURE_WIDTH + sliceLeft + 1 + x) * 4;
         pixels[pixel] = Math.round(shapeAt(dot));
         pixels[pixel + 1] = Math.round(finerLumpsAt(dot));
         pixels[pixel + 3] = 255;
@@ -161,7 +160,7 @@ export function createCloudNoise(): CloudPicture {
     }
   }
 
-  const texture = new DataTexture(pixels, PICTURE_SIZE, PICTURE_SIZE, RGBAFormat);
+  const texture = new DataTexture(pixels, NOISE_PICTURE_WIDTH, NOISE_PICTURE_WIDTH, RGBAFormat);
   texture.magFilter = LinearFilter;
   texture.minFilter = LinearFilter;
   texture.needsUpdate = true;

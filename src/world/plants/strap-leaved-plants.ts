@@ -1,6 +1,6 @@
+import type { Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { createPlantShape, type PlantModel } from './plant-shape';
-import type { Triple } from './plant-triangles';
 
 // The plants whose leaves are long blades, drawn in their colours alone.
 

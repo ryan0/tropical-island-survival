@@ -6,12 +6,12 @@ import {
   Quaternion,
   Vector3,
 } from 'three';
+import { FULL_TURN, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 
 // The reef's models are made of simple shapes, each corner moved and painted with a colour, then
 // joined into one model.
 
-export type Triple = readonly [number, number, number];
 /** A brightness, the same in red, green and blue, or a colour. */
 export type Paint = number | Triple;
 /** Where a corner of a shape goes, given where it is. */
@@ -86,7 +86,7 @@ interface Wave {
 }
 
 function randomSine(random: Random): Sine {
-  const phase = random() * 6.283;
+  const phase = random() * FULL_TURN;
   const frequency = 2 + random() * 5;
   return { phase, frequency };
 }

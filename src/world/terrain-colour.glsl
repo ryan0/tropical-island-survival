@@ -6,9 +6,13 @@
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; fleck, pebble and dimples; and from the
-//   chunks it includes: footpathDistance (footpaths.glsl); hash, noise and fbm (noise.glsl); islandR and openSea
-//   (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T (lagwave.glsl).
-// Needs the defines TERRAIN_HOME and CLOUD_SHADE_SPAN_M, written by terrain.ts.
+//   chunks it includes: footpathDistance (footpaths.glsl); hash, noise and fbm (noise.glsl); islandR, openSea and
+//   landW (island-shape/shore.glsl and island.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
+//   (lagwave.glsl); turfLushness, turfDryness, soilPatches and layerEdgeWander (ground-patterns/turf.glsl), which the
+//   grass follows.
+// Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
+//   reef's map covers), CLOUD_SHADE_SPAN_M, and THIN_TURF, LUSH_TURF and DRY_TURF (the turf's colours, which the grass
+//   shares: ground-patterns.ts), written by terrain.ts.
 
 // ---- Numbers to retune ----
 // (heights are metres above still sea level, depths metres of water, distances metres from the camera)
@@ -29,17 +33,11 @@ const float LAGOON_RUN_UP = 0.42;
 // The share of the light left where the clouds let no sunlight through.
 const float CLOUD_SHADOW_LIGHT = 0.45;
 
-// The side of the square round home that the reef's map covers (mapSpan in reef-config.ts: keep the two the same).
-const float REEF_MAP_SPAN = 300.0;
-
 // The colours of the ground.
 // (The sand is kept well under 1: in full sun the lighting multiplies it by about 1.3, and sand that clips to pure
 // white shows no relief.)
 const vec3 WARM_SAND = vec3(0.725, 0.715, 0.69);
 const vec3 GREY_SAND = vec3(0.71, 0.71, 0.70);
-const vec3 THIN_TURF = vec3(0.56, 0.62, 0.26);
-const vec3 LUSH_TURF = vec3(0.36, 0.52, 0.19);
-const vec3 DRY_TURF = vec3(0.72, 0.66, 0.40);
 const vec3 VINE_GREEN = vec3(0.17, 0.36, 0.12);
 const vec3 BARE_SOIL = vec3(0.80, 0.73, 0.56);
 const vec3 SOIL_BROWN = vec3(0.50, 0.38, 0.25);
@@ -67,9 +65,7 @@ float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail show
 // Which side of the land this is: lagoonSide is 1 on the lagoon's side (still water, no surf), 0 on the ocean's.
 float directionFromCentre = atan(xz.y, xz.x);
 float metresOffshore = length(xz) - islandR(directionFromCentre);   // outside the ocean beach line (negative inland)
-// (this is landW() of island.glsl, which this shader does not have: keep the two the same)
-float landWidth = 26.0 + 44.0 * pow(0.5 + 0.5 * sin(directionFromCentre), 1.6)
-  + 4.0 * sin(5.0 * directionFromCentre + 1.0);
+float landWidth = landW(directionFromCentre);
 float lagoonSide = 1.0 - smoothstep(-0.7, -0.4, metresOffshore / landWidth);
 
 vec2 towardsSun = normalize(uSunDirection.xz + 1e-4);
@@ -292,10 +288,8 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   if (height > -0.1) {
     // ---- Dry land, and the beach above the waterline ----
 
-    float lushWaveX = sin(xz.x * 0.07 + 1.9 * sin(xz.y * 0.05 + 0.4));
-    float lushWaveZ = sin(xz.y * 0.09 + 1.3 * sin(xz.x * 0.06));
-    float lushness = 0.5 + 0.5 * lushWaveX * lushWaveZ;
-    float dryness = 0.5 + 0.5 * sin(xz.x * 0.13 + 2.1) * sin(xz.y * 0.11 + 0.7);
+    float lushness = turfLushness(xz.x, xz.y);
+    float dryness = turfDryness(xz.x, xz.y);
     // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
     vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
     turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
@@ -321,7 +315,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
     float hasSpeck = step(0.975, hash(floor(xz * 18.0) + 9.0));
     float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
     soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
-    float dirtWaves = sin(xz.x * 0.23 + 1.1 * sin(xz.y * 0.17)) * sin(xz.y * 0.21 + 1.4 * sin(xz.x * 0.19) + 2.0);
+    float dirtWaves = soilPatches(xz.x, xz.y);
     float dirt = smoothstep(0.66, 0.80, dirtWaves + (fbm(xz * 0.6) - 0.5) * 0.5 + (noise(xz * 3.1) - 0.5) * 0.12);
     // under the trees the ground is not lawn: fallen fronds and leaf litter, brown and olive, darker than the grass
     float leafLitter = smoothstep(0.35, 0.7, fbm(xz * 0.35 + 70.0));
@@ -337,7 +331,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
     // ---- Towards the vegetation, in layers ----
 
-    float edgeWander = 0.45 * sin(xz.x * 0.31 + xz.y * 0.17) + 0.3 * sin(xz.y * 0.43 - xz.x * 0.23 + 1.0);
+    float edgeWander = layerEdgeWander(xz.x, xz.y);
     float layerHeight = height + edgeWander + (fbm(xz * 1.7) - 0.5) * 0.5;
     // 1. the back of the beach: sand a shade greyer and warmer (old leaf mould), strewn with bits of leaf and twig
     float backOfBeach = smoothstep(1.15, 1.65, layerHeight);

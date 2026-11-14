@@ -1,5 +1,5 @@
 import { Color, Euler, Matrix4, Quaternion, Vector3 } from 'three';
-import { smoothstep } from '../../core/maths';
+import { FULL_TURN, smoothstep, type Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { IslandShape } from '../island-shape';
 import type { Landmarks } from '../landmarks';
@@ -43,7 +43,6 @@ export interface RockPlacement {
   inSurf: RockInSurf[];
 }
 
-export type Rgb = readonly [number, number, number];
 /** The least, and how much more may be added to it at random. */
 type Spread = readonly [least: number, more: number];
 export type Shore = 'ocean' | 'lagoon';
@@ -102,9 +101,6 @@ export interface RockPlacer {
   /** Everything put down so far. */
   placement(): RockPlacement;
 }
-
-// Rounded, not 2π: where every rock falls depends on the exact number.
-const FULL_TURN = 6.283;
 
 /**
  * How far a rock leans about each level axis, from one side to the other: slabs and karst lie

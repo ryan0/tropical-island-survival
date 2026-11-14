@@ -8,9 +8,11 @@ import {
   type Scene,
 } from 'three';
 import type { Random } from '../core/random';
-import { glslFloat, glslVec2 } from '../shaders/defines';
+import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
 import { createGroundGrit } from './ground-grit';
+import { turfColours } from './ground-patterns';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
+import { reefConfig } from './reef/reef-config';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { worldConfig } from './world-config';
@@ -141,8 +143,12 @@ export function createTerrain(dependencies: TerrainDependencies): void {
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
     TERRAIN_HOME: glslVec2(landmarks.home.x, landmarks.home.z),
+    REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
+    THIN_TURF: glslVec3(...turfColours.thin),
+    LUSH_TURF: glslVec3(...turfColours.lush),
+    DRY_TURF: glslVec3(...turfColours.dry),
   };
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
   material.onBeforeCompile = (shader) => {

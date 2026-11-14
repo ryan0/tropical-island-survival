@@ -1,13 +1,7 @@
 import { SphereGeometry, type BufferGeometry } from 'three';
+import { FULL_TURN, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
-import {
-  addStick,
-  joined,
-  lumpyField,
-  shapedAndPainted,
-  type Painter,
-  type Triple,
-} from './painted-shapes';
+import { addStick, joined, lumpyField, shapedAndPainted, type Painter } from './painted-shapes';
 
 const STUBS_ON_A_BUSH = 62;
 
@@ -98,7 +92,7 @@ export function staghornCoral(random: Random): BufferGeometry {
     const directionLength = Math.hypot(dx, dy, dz);
     const forkCount = forksLeft > 1 ? 3 : 2;
     for (let i = 0; i < forkCount; i++) {
-      const angle = (i * 6.283) / forkCount + random() * 1.3;
+      const angle = (i * FULL_TURN) / forkCount + random() * 1.3;
       const spread = 0.5 + random() * 0.35;
       const forkLength = length * (0.62 + 0.2 * random());
       addBranch(

@@ -9,6 +9,8 @@ import {
   type Fog,
   type Scene,
 } from 'three';
+import { createCanvas } from '../core/canvas';
+import { FULL_TURN } from '../core/maths';
 import { seaConfig } from './sea-config';
 import type { WaveModel } from './wave-model';
 
@@ -38,14 +40,10 @@ const SHALLOWEST = 0.12;
 
 /** A bubble: a faint disc with a bright rim. */
 function bubblePicture(): HTMLCanvasElement {
-  const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 32;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error('the browser gave no canvas to draw the bubbles on');
+  const { canvas, context } = createCanvas(32, 32, 'the bubbles');
 
   context.beginPath();
-  context.arc(16, 16, 11, 0, 6.283);
+  context.arc(16, 16, 11, 0, FULL_TURN);
   context.fillStyle = 'rgba(255,255,255,.22)';
   context.fill();
   context.strokeStyle = 'rgba(255,255,255,.95)';

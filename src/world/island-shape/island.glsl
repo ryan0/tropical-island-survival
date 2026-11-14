@@ -1,6 +1,6 @@
 // The shape of the land. THIS FILE (with shore.glsl) IS THE ONLY DEFINITION.
 // The build embeds it as the shader chunk "island" and also turns it into JavaScript functions of the same names
-// (tools/island-shape-plugin.ts), so that the program and the shaders can never disagree about where the ground is.
+// (tools/glsl-for-program-plugin.ts), so that the program and the shaders can never disagree about where the ground is.
 //
 // Keep to the subset the converter understands: float functions of float arguments, float locals, `const float`
 // numbers, + - * / and sin cos exp sqrt abs min max pow floor atan(y, x). It knows no smoothstep or clamp, so those
@@ -27,9 +27,11 @@ const float REEF_FLAT_WIDTH = 46.0;
 const float DROP_OFF_DEPTH = 9.0;
 const float DROP_OFF_WIDTH = 18.0;
 const float SEA_FLOOR_DEPTH = 9.5;
-// The sandbank in the lagoon rises SANDBANK_HEIGHT above still water and is 20 m in radius at the waterline.
+// The sandbank in the lagoon rises SANDBANK_HEIGHT above still water and is SANDBANK_RADIUS across at the waterline, from its
+// middle.
 const float SANDBANK_HEIGHT = 2.2;
-const float SANDBANK_RADIUS_SQUARED = 400.0;
+const float SANDBANK_RADIUS = 20.0;
+const float SANDBANK_RADIUS_SQUARED = SANDBANK_RADIUS * SANDBANK_RADIUS;
 
 // The width of the band of land (or, across the pass, of sandbar) in a direction, measured in from the ocean
 // shoreline. A crescent: thickest in the south ("home"), tapering along both horns and across the pass, where the

@@ -1,14 +1,13 @@
-// The shape of the island is written once, in GLSL, for the shaders (src/world/island-shape).
-// The program needs the same formulas: where the ground is, how far out the shore lies. This
-// plugin turns them into JavaScript functions of the same names and offers them as the module
-// 'virtual:island-shape', so that shaders and program can never disagree about the ground.
+// A formula that both the shaders and the program need is written once, in GLSL, for the shaders:
+// the shape of the island (src/world/island-shape), and the patterns of the turf that the grass
+// follows (src/world/ground-patterns). This plugin turns the .glsl files of such a folder into
+// JavaScript functions of the same names and offers them to the program as a module
+// ('virtual:island-shape', 'virtual:ground-patterns'), so that shaders and program can never
+// disagree.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { Plugin } from 'vite';
-
-const MODULE_ID = 'virtual:island-shape';
-const RESOLVED_MODULE_ID = `\0${MODULE_ID}`;
 
 // The whole of GLSL that can be turned into JavaScript here: float functions of float arguments,
 // and float constants.
@@ -51,23 +50,24 @@ function glslFilesIn(folder: string): string[] {
     .map((name) => path.join(folder, name));
 }
 
-/** `folder` holds the .glsl files of the island's shape, relative to the project. */
-export function islandShape(folder: string): Plugin {
+/** Offers the .glsl files in `folder`, relative to the project, to the program as `moduleId`. */
+export function glslForProgram(moduleId: string, folder: string): Plugin {
+  const resolvedModuleId = `\0${moduleId}`;
   let projectRoot = '';
 
   return {
-    name: 'island-shape',
+    name: `glsl-for-program:${moduleId}`,
 
     configResolved(config) {
       projectRoot = config.root;
     },
 
     resolveId(id) {
-      return id === MODULE_ID ? RESOLVED_MODULE_ID : null;
+      return id === moduleId ? resolvedModuleId : null;
     },
 
     load(id) {
-      if (id !== RESOLVED_MODULE_ID) return null;
+      if (id !== resolvedModuleId) return null;
 
       const programCode: string[] = [];
       // The dev server reloads the page when a watched file changes; it wants the full path.

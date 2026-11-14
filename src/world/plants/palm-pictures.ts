@@ -1,4 +1,5 @@
 import { CanvasTexture } from 'three';
+import { createCanvas } from '../../core/canvas';
 import type { Random } from '../../core/random';
 
 // The palms' two pictures, painted on canvases from the palms' stream of random numbers.
@@ -11,15 +12,6 @@ const LEAFLETS_EACH_SIDE = 78;
 const BARK_WIDTH = 256;
 const BARK_HEIGHT = 32;
 const BARK_STREAKS = 60;
-
-function createCanvas(width: number, height: number, what: string) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error(`the browser gave no canvas to paint ${what} on`);
-  return { canvas, context };
-}
 
 function rgb(red: number, green: number, blue: number): string {
   return `rgb(${Math.floor(red)},${Math.floor(green)},${Math.floor(blue)})`;

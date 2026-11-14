@@ -7,6 +7,7 @@ import {
   PointsMaterial,
   type Scene,
 } from 'three';
+import { createCanvas } from '../core/canvas';
 import { within, type Random, type Range } from '../core/random';
 import { lifeConfig } from './life-config';
 import {
@@ -37,11 +38,7 @@ const config = lifeConfig.fireflies;
 function glowPicture(): HTMLCanvasElement {
   const SIZE = 64;
   const MIDDLE = SIZE / 2;
-  const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error('the browser gave no canvas to draw the fireflies on');
+  const { canvas, context } = createCanvas(SIZE, SIZE, 'the fireflies');
 
   const glow = context.createRadialGradient(MIDDLE, MIDDLE, 0, MIDDLE, MIDDLE, MIDDLE);
   glow.addColorStop(0, 'rgba(255,255,210,1)');

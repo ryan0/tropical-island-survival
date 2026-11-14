@@ -1,5 +1,5 @@
 import { BufferAttribute, IcosahedronGeometry, type BufferGeometry } from 'three';
-import { clamp, smoothstep } from '../../core/maths';
+import { clamp, FULL_TURN, smoothstep } from '../../core/maths';
 import {
   latticeRandom,
   layeredNoise,
@@ -125,7 +125,7 @@ function slab(d: Readonly<Vector>, seed: number, point: ShapePoint): void {
   let y = d.y * 0.22;
   // Straight broken edges: the outline is cut back to a few random lines.
   for (let i = 0; i < 6; i++) {
-    const edgeAngle = latticeRandom(i, 9, 1, seed) * 6.283;
+    const edgeAngle = latticeRandom(i, 9, 1, seed) * FULL_TURN;
     const edgeDistance = 0.55 + 0.35 * latticeRandom(i, 9, 2, seed);
     const beyond = (d.x * Math.cos(edgeAngle) + d.z * Math.sin(edgeAngle)) * reach - edgeDistance;
     if (beyond > 0) reach -= beyond * 0.9;

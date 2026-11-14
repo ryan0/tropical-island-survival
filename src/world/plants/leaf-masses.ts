@@ -1,6 +1,7 @@
+import { FULL_TURN, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { AtlasRegion } from './leaf-atlas';
-import type { BothLevels, Corner, Triangles, Triple } from './plant-triangles';
+import type { BothLevels, Corner, Triangles } from './plant-triangles';
 
 /**
  * A mass of foliage: sprigs of leaves set all over a ball, each a small card turned outwards and
@@ -66,7 +67,7 @@ function placeSprig(random: Random, mass: LeafMass, i: number): Sprig {
   const by = nz * tx - nx * tz;
   const bz = nx * ty - ny * tx;
 
-  const turn = random() * 6.283;
+  const turn = random() * FULL_TURN;
   const cr = Math.cos(turn);
   const sr = Math.sin(turn);
   const size = sprigSize * (0.8 + 0.45 * random());

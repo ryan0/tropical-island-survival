@@ -18,7 +18,7 @@ import { smoothstep } from '../core/maths';
 import { glslFloat, glslVec2 } from '../shaders/defines';
 import bakeShader from './cloud-bake.frag.glsl';
 import { createCloudField, type CloudMoment } from './cloud-field';
-import type { CloudPicture } from './cloud-noise';
+import { NOISE_PICTURE_WIDTH, NOISE_TILE, type CloudPicture } from './cloud-noise';
 import shadeShader from './cloud-shade.frag.glsl';
 import { cloudsConfig } from './clouds-config';
 import { skyConfig } from './sky-config';
@@ -93,6 +93,8 @@ export interface CloudUniforms {
 export interface Clouds {
   uniforms: CloudUniforms;
   shadeMap: WebGLRenderTarget;
+  /** How tall a sky picture is, in dots: an eighth of its width. */
+  pictureHeight: number;
   /** How much of the sun reaches the camera through the clouds, 0 to 1, as of the last update. */
   readonly sunThrough: number;
   update(frame: CloudsFrame): void;
@@ -131,6 +133,15 @@ function fieldDefines(): Record<string, string> {
     EARTH_CURVE: glslFloat(config.earthCurve),
     SUNSET_LANE: glslVec2(Math.sin(config.sunsetBearing), Math.cos(config.sunsetBearing)),
     SUNRISE_LANE: glslVec2(Math.sin(config.sunriseBearing), Math.cos(config.sunriseBearing)),
+    CLOUD_BASE: glslFloat(config.cloudBase),
+    SHAPE_REPEAT: glslFloat(config.shapeRepeat),
+    SHAPE_STRETCH: glslFloat(config.shapeStretch),
+    EDGE_SHARPNESS: glslFloat(config.edgeSharpness),
+    WEATHER_MAP_SPAN: glslFloat(config.weatherMapSpan),
+    NOISE_SIZE: glslFloat(config.noiseSize),
+    NOISE_SLICES_ACROSS: glslFloat(config.noiseSlicesAcross),
+    NOISE_TILE: glslFloat(NOISE_TILE),
+    NOISE_PICTURE_WIDTH: glslFloat(NOISE_PICTURE_WIDTH),
   };
 }
 
@@ -153,7 +164,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   const stripWidth = pictureWidth / config.pictureStrips;
   const shadeStripWidth = config.shadeMapSize / config.shadeMapStrips;
 
-  const skyPictures = [0, 1, 2].map(() => {
+  const skyPictures = Array.from({ length: PICTURES }, () => {
     const picture = createPicture(pictureWidth, pictureHeight);
     picture.texture.wrapS = RepeatWrapping;
     return picture;
@@ -193,7 +204,11 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
     bakeQuad.geometry,
     new ShaderMaterial({
       uniforms: shadeUniforms,
-      defines: { ...fieldDefines(), SHADE_SPAN: glslFloat(config.shadeMapSpan) },
+      defines: {
+        ...fieldDefines(),
+        SHADE_SPAN: glslFloat(config.shadeMapSpan),
+        SHADOW_DENSITY: glslFloat(config.shadowDensity),
+      },
       depthTest: false,
       depthWrite: false,
       vertexShader: wholePictureShader,
@@ -223,7 +238,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   let shownFrom = 0;
   let shownTo = 1;
   let beingDrawn = 2;
-  const drawnFor = [0, 0, 0];
+  const drawnFor = skyPictures.map(() => 0);
   let stripsDrawn = 0;
   let shadeStrip = 0;
   let hasShade = false;
@@ -247,13 +262,11 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
       0,
       0,
     );
-    // The shapes slide a little against the weather map, rise slowly, and their fine lumps
-    // rise faster: clouds that boil.
     fieldUniforms.uBoil.value.set(
-      0.0018 * boil,
-      -0.0011 * boil,
-      (boil * 0.0012) % 1,
-      (boil * 0.0063) % 1,
+      config.shapeSlide[0] * boil,
+      config.shapeSlide[1] * boil,
+      (boil * config.shapeRise) % 1,
+      (boil * config.lumpsRise) % 1,
     );
   }
 
@@ -372,6 +385,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   return {
     uniforms,
     shadeMap,
+    pictureHeight,
     get sunThrough() {
       return sunThrough;
     },

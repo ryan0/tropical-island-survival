@@ -1,3 +1,4 @@
+import type { Rgb } from '../../core/maths';
 import type { RockSurface } from '../rocks/rocks-config';
 
 // Sizes are metres; a model is about a metre across at size 1. Colours are red, green, blue
@@ -22,8 +23,6 @@ export const CORAL_KINDS = [
 ] as const;
 
 export type CoralKind = (typeof CORAL_KINDS)[number];
-
-type Rgb = readonly [number, number, number];
 
 export interface CoralKindConfig {
   /** How many different models there are of it; each one placed is one of them at random. */

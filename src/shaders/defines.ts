@@ -12,3 +12,7 @@ export function glslFloat(value: number): string {
 export function glslVec2(x: number, y: number): string {
   return `vec2(${glslFloat(x)},${glslFloat(y)})`;
 }
+
+export function glslVec3(x: number, y: number, z: number): string {
+  return `vec3(${glslFloat(x)},${glslFloat(y)},${glslFloat(z)})`;
+}

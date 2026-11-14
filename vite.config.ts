@@ -3,7 +3,7 @@ import { defineConfig } from 'vite';
 import glsl from 'vite-plugin-glsl';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import packageJson from './package.json' with { type: 'json' };
-import { islandShape } from './tools/island-shape-plugin.ts';
+import { glslForProgram } from './tools/glsl-for-program-plugin.ts';
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: import.meta.dirname, encoding: 'utf8' }).trim();
@@ -27,7 +27,9 @@ export default defineConfig({
   plugins: [
     // Chunks include what they need, so two chunks may both include a third: it must appear once.
     glsl({ removeDuplicatedImports: true, warnDuplicatedImports: false }),
-    islandShape('src/world/island-shape'),
+    // Formulas written once, in GLSL, for the shaders, and given to the program as JavaScript.
+    glslForProgram('virtual:island-shape', 'src/world/island-shape'),
+    glslForProgram('virtual:ground-patterns', 'src/world/ground-patterns'),
     viteSingleFile(),
   ],
 });

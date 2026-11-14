@@ -21,7 +21,9 @@ varying vec3 vGroundPosition;   // this point's position in the world
 
 #include "footpaths"
 
-#include "island-shape/shore"
+#include "island-shape/island"
+
+#include "ground-patterns/turf"
 
 #include "../shaders/shared/lagwave"
 

@@ -1,5 +1,14 @@
+import { FULL_TURN, mix, type Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
+import {
+  layerEdgeWander,
+  soilPatches,
+  turfColours,
+  turfDryness,
+  turfLushness,
+} from '../ground-patterns';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import { grassConfig, type RandomAmount, type TuftKind } from './grass-config';
 
 // Where the grass grows. On land it is scattered over the whole ring, thickest round home, and
@@ -8,8 +17,6 @@ import { grassConfig, type RandomAmount, type TuftKind } from './grass-config';
 // in beds on the lagoon floor.
 // Everything takes its numbers from the grass's one stream in a fixed order, so changing what one
 // tuft draws, or whether it draws at all, moves every tuft after it.
-
-type Rgb = readonly [number, number, number];
 
 interface GroundSpot {
   x: number;
@@ -35,7 +42,7 @@ export interface GrassPlacementDependencies {
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   sandbank: Point;
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
 }
 
 interface TuftPlacer {
@@ -45,50 +52,22 @@ interface TuftPlacer {
   tufts: Record<TuftKind, Tuft[]>;
 }
 
-// Rounded, not 2π: where every tuft falls depends on the exact number.
-export const FULL_TURN = 6.283;
-
 const { turf, seedHeads, dune, land } = grassConfig;
 
 export function drawAmount(random: Random, { least, spread }: RandomAmount): number {
   return least + random() * spread;
 }
 
-// The ground's own patterns, as terrain-colour.glsl draws them: the grass follows them.
-
-/** Added to the ground's height where the turf begins, so that its edge wanders. */
-function turfEdgeWobble(x: number, z: number): number {
-  return 0.45 * Math.sin(x * 0.31 + z * 0.17) + 0.3 * Math.sin(z * 0.43 - x * 0.23 + 1);
-}
-
-/** High where the ground's sandy soil shows through the turf. */
-function bareSoil(x: number, z: number): number {
-  return (
-    Math.sin(x * 0.23 + 1.1 * Math.sin(z * 0.17)) *
-    Math.sin(z * 0.21 + 1.4 * Math.sin(x * 0.19) + 2)
-  );
-}
-
-// Thin turf is yellow-green, lush turf greener, and dried-out turf straw.
-const THIN_TURF: Rgb = [0.56, 0.62, 0.26];
-const LUSH_TURF: Rgb = [0.36, 0.52, 0.19];
-const DRIED_TURF: Rgb = [0.72, 0.66, 0.4];
-
-function mix(from: number, to: number, share: number): number {
-  return from + (to - from) * share;
-}
-
-/** The colour of the ground's turf at a point, and how lush it is there, from 0 to 1. */
+/**
+ * The colour of the ground's turf at a point, and how lush it is there, from 0 to 1: its colours
+ * mixed as terrain-colour.glsl mixes them.
+ */
 function turfAt(x: number, z: number): { lushness: number; colour: Rgb } {
-  const lushness =
-    0.5 +
-    0.5 *
-      Math.sin(x * 0.07 + 1.9 * Math.sin(z * 0.05 + 0.4)) *
-      Math.sin(z * 0.09 + 1.3 * Math.sin(x * 0.06));
-  const dryness = 0.5 + 0.5 * Math.sin(x * 0.13 + 2.1) * Math.sin(z * 0.11 + 0.7);
+  const lushness = turfLushness(x, z);
+  const dryness = turfDryness(x, z);
   const driedOut = dryness * dryness * 0.7;
-  const channel = (i: 0 | 1 | 2) =>
-    mix(mix(THIN_TURF[i], LUSH_TURF[i], lushness), DRIED_TURF[i], driedOut);
+  const { thin, lush, dry } = turfColours;
+  const channel = (i: 0 | 1 | 2) => mix(mix(thin[i], lush[i], lushness), dry[i], driedOut);
   return { lushness, colour: [channel(0), channel(1), channel(2)] };
 }
 
@@ -129,7 +108,7 @@ function offerTurf(placer: TuftPlacer, spot: GroundSpot): void {
   const { random, landmarks } = placer;
   const { x, z } = spot;
   if (landmarks.pathDistance(x, z) < land.clearOfPaths) return;
-  const soil = bareSoil(x, z);
+  const soil = soilPatches(x, z);
   if (soil > land.bareSoil) return;
   if (soil > land.soilEdge && random() < land.leftOutAtSoilEdge) return;
 
@@ -167,7 +146,7 @@ function offer(placer: TuftPlacer, x: number, z: number): void {
   if (Math.hypot(x - hut.x, z - hut.z) < land.clearOfHut) return;
 
   const spot = { x, z, ground };
-  const edge = ground + turfEdgeWobble(x, z);
+  const edge = ground + layerEdgeWander(x, z);
   if (edge < land.turfEdge) offerDuneGrass(placer, spot, edge);
   else offerTurf(placer, spot);
 }

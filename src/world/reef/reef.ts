@@ -9,9 +9,11 @@ import {
   type MeshLambertMaterial,
   type Scene,
 } from 'three';
+import { FULL_TURN } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import type { RockSurface } from '../rocks/rocks-config';
 import { createCoralShapes } from './coral-shapes';
 import { CORAL_KINDS, reefConfig } from './reef-config';
@@ -33,7 +35,7 @@ export interface ReefDependencies {
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   /** Whether a point is inside a rock or within `margin` of one. */
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
   /** The rocks' material with another surface: the heads are rock. */
   createRockMaterial: (surface: RockSurface) => MeshLambertMaterial;
   /** The uniforms every shader shares. */
@@ -90,7 +92,7 @@ export function createReef(dependencies: ReefDependencies): Reef {
         // It leans outward with the slope of the head it grows on, then turns about its own stem.
         leanAxis.set(Math.sin(coral.bearing), 0, -Math.cos(coral.bearing));
         lean.setFromAxisAngle(leanAxis, -coral.tilt);
-        turn.setFromAxisAngle(up, isHead ? coral.bearing : random() * 6.283);
+        turn.setFromAxisAngle(up, isHead ? coral.bearing : random() * FULL_TURN);
         lean.multiply(turn);
         const stretch = isHead ? 1 : 0.85 + random() * 0.3;
         scale.set(coral.size, coral.size * coral.squash * stretch, coral.size);

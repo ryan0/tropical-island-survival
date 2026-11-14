@@ -102,7 +102,7 @@ const skyDome = createSkyDome({
   scene,
   uniforms,
   cloudPictureWidth,
-  cloudPictureHeight: cloudPictureWidth / 8,
+  cloudPictureHeight: clouds.pictureHeight,
 });
 const sunGlare = createSunGlare(pageElement('glare'), camera);
 

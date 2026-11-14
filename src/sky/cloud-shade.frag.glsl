@@ -2,11 +2,12 @@
 // the clouds (red: 1 = full sun). Distances in km.
 //
 // Needs
-//   uLightDirection      the unit vector towards the sun
-//   uPictureSize       the size of the map, in dots
+//   uLightDirection   the unit vector towards the sun
+//   uPictureSize      the size of the map, in dots
 //   uShadowStrength   how much of the shadow to show (0: none)
-//   SHADE_SPAN  a define: how many km a side the map covers, the island in the middle
-// and the cloud field (cloud-field.glsl) with its own uniforms and defines.
+//   SHADE_SPAN        a define: how many km a side the map covers, the island in the middle
+//   SHADOW_DENSITY    a define: how much a km of cloud dims the light
+// and the cloud field (cloud-field.glsl) with its own uniforms and defines, among them CLOUD_BASE.
 
 uniform vec3 uLightDirection;
 uniform vec2 uPictureSize;
@@ -18,8 +19,6 @@ uniform float uShadowStrength;
 // The walk towards the sun climbs from the cloud bases to this height, in this many steps.
 const float WALK_TOP = 4.2;
 const int WALK_STEPS = 14;
-// How much a km of cloud dims the light.
-const float SHADOW_DENSITY = 2.6;
 
 void main() {
   vec2 ground = (gl_FragCoord.xy / uPictureSize - 0.5) * SHADE_SPAN;

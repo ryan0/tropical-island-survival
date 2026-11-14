@@ -1,4 +1,5 @@
 import { CanvasTexture, RepeatWrapping } from 'three';
+import { createCanvas } from '../core/canvas';
 import type { Random } from '../core/random';
 import { worldConfig } from './world-config';
 
@@ -45,11 +46,7 @@ function createClumps(random: Random, cells: number): (u: number, v: number) => 
  * the ground and the picture repeats every 3.5 m; all of it wraps at the edges.
  */
 export function createGroundGrit(random: Random): GroundGrit {
-  const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error('the browser gave no canvas to draw the ground grit on');
+  const { canvas, context } = createCanvas(SIZE, SIZE, 'the ground grit');
 
   const picture = context.createImageData(SIZE, SIZE);
   const dots = SIZE * SIZE;

@@ -186,7 +186,8 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   spray's shaders beside them. The wave trains reach the shaders as defines: the shader keeps the lines of one
   train as a macro, and the define calls it once for each train with the config's numbers. With this nothing
   is left of build 78's shader chunk table or its text substitution: the build's plugin is now
-  `tools/island-shape-plugin.ts`, which only turns the island's shape into functions for the program.
+  a small one that only turns the island's shape into functions for the program (it has since become
+  `tools/glsl-for-program-plugin.ts`: step 6).
 - [x] player: `src/player/` holds walking, swimming and diving with the camera, the opening fly-in, drag to look
   and the keyboard, the named places and the footprints.
 - [x] core and `main.ts`: `src/core/` holds the stage (renderer, scene, camera), the random streams, the shared
@@ -224,23 +225,41 @@ Step 5 is done.
 
 ### 6. Merge duplicates
 
-Known today:
+Done. Merged, each to one home, with every picture and every object unchanged:
 
-- Foam is drawn in four places with four copies of "density to lace": wave foam, whitecap foam and lagoon shore
-  foam in the water shader, and the lagoon's swash foam in the terrain shader.
-- Two builders of mesh strips: the wave mesh and the lagoon shore band.
-- The cloud field exists in the shader and again in the program (to dim the sun when a cloud passes).
-- The grass copies three of the ground's patterns from `terrain-colour.glsl` into the program (the turf's colours,
-  the wobble of the turf's edge, the patches of bare soil): `src/world/plants/grass-placement.ts`.
-- `landW` from the island's shape is typed out again inside the terrain shader.
-- The day-and-night light factor is written inline in many places.
-- A dozen one-off picture scripts in `legacy/tools` that differ only in their list of views.
-- Numbers written out again in a shader that a config already holds: the layout of the cloud noise picture and
-  the weather map's span (`cloud-field.glsl`, `clouds-config.ts`), the span of the reef's map
-  (`terrain-colour.glsl`, `water.frag.glsl`, `reef-config.ts`). They should reach the shaders as defines.
-- The distance along a line of sight to a given height above the curved sea is worked out in `cloud-bake.frag.glsl`
-  and again in `sky.frag.glsl`.
-- `fbm` and `fbm5` in `noise.glsl` are the same function but for the number of layers.
+- **Mesh strips.** The wave mesh's pieces and the lagoon shore band's strips are built by one builder
+  (`src/sea/water-strip.ts`).
+- **Numbers a config holds, written out again in a shader.** They now reach the shaders as defines written from
+  the configs: the cloud noise picture's layout, the weather map's span, the cloud base, the shadow density, the
+  boil rates and the moon's direction (sky and water); the reef map's span (terrain and water); the usual wind
+  and the lagoon band's extent (water). The sandbank's radius and the sea floor's depth come from the island's
+  shape, which the water's shader already includes.
+- **`landW`.** The terrain's shader includes the island's shape and calls it.
+- **The line-of-sight distance** to a height above the curved sea is one chunk (`src/sky/distance-up-to.glsl`)
+  for the cloud bake and the sky.
+- **Foam's density to lace.** The wave foam and the white horses in the water's shader share two functions.
+- **The turf's patterns.** How lush and how dry the turf is, the soil patches and the wander of the turf's edge
+  are written once, in `src/world/ground-patterns/turf.glsl`, for the terrain's shader, and the build turns them
+  into functions for the grass, as it does the island's shape (`tools/glsl-for-program-plugin.ts`, which now
+  serves both). The turf's colours are in `src/world/ground-patterns.ts` and reach the shader as defines.
+- **In the program:** one helper that sets up a canvas to draw on (`src/core/canvas.ts`), used by six picture
+  makers; `mix`, `wrap`, a full turn as build 78 wrote it, and the types for a colour, a triple and "is this
+  inside a rock", each defined once where they had been defined up to nine times.
+
+Looked at and left, because they are not the same idea or cannot be merged without changing a number:
+
+- The cloud field in the shader and in the program. They disagree on purpose until the statement that never
+  runs is corrected (below); making one from the other belongs with that.
+- The terrain's swash foam. Its step to lace is built differently from the water's (a straight fall, a fixed
+  width), and cannot be made to match bit for bit.
+- The grass's turf edge and bare soil. The program uses simpler stand-ins for the shader's versions on purpose.
+- `fbm` and `fbm5` in `noise.glsl`: one function would need a switch for the number of layers.
+- The four helpers that join shapes into a model (`life`, `reef`, `palms`, `plants`): each carries different
+  attributes and they are different ideas.
+- The far sea's hole and the band's reach in the water's shader: margins just inside the mesh's own extent, not
+  the mesh's numbers.
+- The light of day and night: no two places work it out with the same numbers.
+- Build 78's one-off picture scripts in `legacy/tools`: they go with `legacy/` in step 8.
 
 Kept for now so that nothing moves; removing one changes what is seen:
 

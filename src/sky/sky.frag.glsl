@@ -2,10 +2,12 @@
 // up in two sky pictures (clouds.ts, cloud-bake.frag.glsl).
 //
 // Needs the defines
-//   EARTH_CURVE    1/(2R) for the small earth the clouds sit on
-//   SLIDE_HEIGHT   the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
-//   HALF_A_DOT     half a dot of a sky picture, across and up
-// the varying vViewDirection from sky.vert.glsl, and hash and fbm5 from the noise chunk.
+//   EARTH_CURVE      1/(2R) for the small earth the clouds sit on
+//   SLIDE_HEIGHT     the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
+//   HALF_A_DOT       half a dot of a sky picture, across and up
+//   MOON_DIRECTION   towards the moon (normalised where it is used)
+// the varying vViewDirection from sky.vert.glsl, hash and fbm5 from the noise chunk, and distanceUpTo
+// (distance-up-to.glsl).
 
 // Seconds on the clock.
 uniform float uTime;
@@ -35,6 +37,7 @@ uniform vec3 uCloudInShade;
 varying vec3 vViewDirection;
 
 #include "../shaders/shared/noise"
+#include "distance-up-to"
 
 // The colours of the sky's parts.
 const vec3 DAY_HAZE_WARMTH = vec3(0.10, 0.08, 0.05);
@@ -48,18 +51,20 @@ const vec3 MOON_COLOUR = vec3(0.92, 0.95, 1.0);
 const vec3 MOON_GLOW_COLOUR = vec3(0.20, 0.26, 0.42);
 // The low sun's light on a cloud's lower parts, as a share of its light on the top.
 const vec3 LOW_SUN_ON_CLOUD = vec3(0.95, 0.66, 0.58);
-// Towards the moon (clouds-config.ts has the same direction, for the moonlight on the clouds: change both
-// together), and square to the plane of the milky way. Both are normalised where they are used.
-const vec3 MOON_DIRECTION = vec3(-0.57, 0.63, -0.52);
+// Square to the plane of the milky way (normalised where it is used).
 const vec3 MILKY_WAY_POLE = vec3(0.35, 0.5, -0.79);
+
+// Near enough the angle between two unit directions: the straight line between them across a ball of radius 1.
+float angleBetween(vec3 a, vec3 b) {
+  return sqrt(max(0.0, 2.0 - 2.0 * dot(a, b)));
+}
 
 // What a sky picture shows in direction d, the picture having been made `shift` km of wind drift ago: find the
 // spot at the clouds' usual height that d looks at, step back upwind, and look up the direction of that spot.
 vec4 lookUpSkyPicture(sampler2D picture, vec3 d, vec2 shift) {
   float rise = max(d.y, 0.0);
   float curve = (1.0 - rise * rise) * EARTH_CURVE;
-  // (the root of s * rise + s * s * curve = SLIDE_HEIGHT, as distanceUpTo in cloud-bake.frag.glsl)
-  float toSlideHeight = 2.0 * SLIDE_HEIGHT / (rise + sqrt(rise * rise + 4.0 * curve * SLIDE_HEIGHT));
+  float toSlideHeight = distanceUpTo(SLIDE_HEIGHT, rise, curve);
   vec3 spot = d * toSlideHeight;
   spot.xz -= shift;
   spot.y = SLIDE_HEIGHT - dot(spot.xz, spot.xz) * EARTH_CURVE;
@@ -106,9 +111,8 @@ void main() {
   float pinkBand = exp(-pow((aboveHorizon - 0.16) / 0.12, 2.0));
   sky = mix(sky, EVENING_PINK_COLOUR, evening * pinkBand * 0.28);
 
-  // The sun: its glow and its disc. (fromSun is the straight line to the sun across a ball of radius 1: near
-  // enough the angle to it.)
-  float fromSun = sqrt(max(0.0, 2.0 - 2.0 * dot(direction, uSunDirection)));
+  // The sun: its glow and its disc.
+  float fromSun = angleBetween(direction, uSunDirection);
   float sunGlow = 0.28 * exp(-fromSun * 3.5) + 0.5 * exp(-fromSun * 16.0);
   sky += uSunColour * sunGlow * sunShows;
   sky = mix(sky, uSunColour * 1.5 + 0.3, smoothstep(0.034, 0.026, fromSun));
@@ -163,7 +167,7 @@ void main() {
 
     // The moon: its disc and its glow.
     vec3 towardsMoon = normalize(MOON_DIRECTION);
-    float fromMoon = sqrt(max(0.0, 2.0 - 2.0 * dot(direction, towardsMoon)));
+    float fromMoon = angleBetween(direction, towardsMoon);
     vec3 moonDisc = MOON_COLOUR * smoothstep(0.042, 0.034, fromMoon);
     vec3 moonGlow = MOON_GLOW_COLOUR * exp(-fromMoon * 8.0);
     sky += uNight * (moonDisc + moonGlow);

@@ -1,3 +1,5 @@
+import { FULL_TURN, mix } from '../../core/maths';
+
 // Smooth random values in space, for the rocks' shapes. They depend only on a seed, never on the
 // island's layout, so a rock keeps its shape whatever else changes.
 
@@ -16,10 +18,6 @@ export function latticeRandom(i: number, j: number, k: number, seed: number): nu
     Math.imul(seed, 974634721);
   n = Math.imul(n ^ (n >>> 13), 1103515245);
   return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
-}
-
-function mix(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 function easeInOut(t: number): number {
@@ -83,7 +81,7 @@ export function ridgeNoise(x: number, y: number, z: number, seed: number): numbe
 /** A direction (of length 1) that depends only on the seed and `index`. */
 export function randomDirection(seed: number, index: number): Vector {
   const y = latticeRandom(index, 1, 2, seed) * 2 - 1;
-  const around = latticeRandom(index, 3, 4, seed) * 6.283;
+  const around = latticeRandom(index, 3, 4, seed) * FULL_TURN;
   const across = Math.sqrt(1 - y * y);
   return { x: across * Math.cos(around), y, z: across * Math.sin(around) };
 }

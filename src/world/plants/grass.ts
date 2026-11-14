@@ -9,12 +9,14 @@ import {
   type IUniform,
   type MeshLambertMaterial,
 } from 'three';
+import { FULL_TURN } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import { grassConfig, TUFT_KINDS, type TuftKind } from './grass-config';
 import { drawDuneGrass, drawSeaGrass, drawSeedHeadGrass, drawTurf } from './grass-pictures';
-import { drawAmount, FULL_TURN, placeSeaGrass, placeTufts, type Tuft } from './grass-placement';
+import { drawAmount, placeSeaGrass, placeTufts, type Tuft } from './grass-placement';
 import { createCrossedCards, createSwayingMaterial } from './grass-shapes';
 
 // Grass: short turf, taller grass with seed heads and dune grass on land, and beds of sea grass
@@ -31,7 +33,7 @@ export interface GrassDependencies {
   /** The middle of the sandbank in the lagoon, which has grass of its own. */
   sandbank: Point;
   /** Whether a point is inside a rock or within `margin` of one: no grass grows there. */
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
   /** The uniforms every shader shares; the grass reads uTime and uWind when it is first drawn. */
   uniforms: Record<string, IUniform>;
   instanceCells: InstanceCells;

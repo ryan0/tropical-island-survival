@@ -1,4 +1,4 @@
-// The functions the build makes from src/world/island-shape/*.glsl (tools/island-shape-plugin.ts),
+// The functions the build makes from src/world/island-shape/*.glsl (tools/glsl-for-program-plugin.ts),
 // under the names they have in the shaders. `th` is the direction from the atoll's centre.
 declare module 'virtual:island-shape' {
   export function hgt(x: number, z: number): number;

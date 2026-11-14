@@ -1,4 +1,5 @@
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { GroundHeight, IslandRadius } from '../world/landmarks';
 
 // The tests drive the page through a few names on `window`. They are build 78's names, so
 // that the same tests can drive build 78 and this build alike; tests/scene-hooks.d.ts says what
@@ -39,8 +40,8 @@ export interface HookedSystems {
   scene: Scene;
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
-  groundHeight: (x: number, z: number) => number;
-  islandRadius: (direction: number) => number;
+  groundHeight: GroundHeight;
+  islandRadius: IslandRadius;
   waveHeight: (x: number, z: number, time: number, withoutBreaking: boolean) => number;
   waveShaderSource: () => string;
   /** Sets the clock the waves run by. */

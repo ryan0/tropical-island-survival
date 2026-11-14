@@ -1,5 +1,5 @@
 import { Color, Vector3 } from 'three';
-import { smoothstep } from '../core/maths';
+import { mix, smoothstep, type Rgb } from '../core/maths';
 import { skyConfig } from './sky-config';
 
 export type TimeOfDay = 'night' | 'dawn' | 'sunset' | 'morning' | 'golden' | 'day';
@@ -38,13 +38,7 @@ export interface SkyLight {
   update(sunHeight: number, isMorning: boolean): void;
 }
 
-type Rgb = readonly [number, number, number];
-
 const { day, light: lightConfig, colours } = skyConfig;
-
-function blend(from: number, to: number, share: number): number {
-  return from + (to - from) * share;
-}
 
 /** `from` blended towards `to`, and the result towards `last`, written into `colour`. */
 function setBlendOfThree(
@@ -56,9 +50,9 @@ function setBlendOfThree(
   lastShare: number,
 ): void {
   colour.setRGB(
-    blend(blend(from[0], to[0], share), last[0], lastShare),
-    blend(blend(from[1], to[1], share), last[1], lastShare),
-    blend(blend(from[2], to[2], share), last[2], lastShare),
+    mix(mix(from[0], to[0], share), last[0], lastShare),
+    mix(mix(from[1], to[1], share), last[1], lastShare),
+    mix(mix(from[2], to[2], share), last[2], lastShare),
   );
 }
 
@@ -117,9 +111,9 @@ export function createSkyLight(): SkyLight {
         night,
       );
       const sunHigh = Math.pow(daylight, colours.sunGoldenness);
-      light.sunColour[0] = blend(sun.low[0], sun.high[0], sunHigh);
-      light.sunColour[1] = blend(sun.low[1], sun.high[1], sunHigh);
-      light.sunColour[2] = blend(sun.low[2], sun.high[2], sunHigh);
+      light.sunColour[0] = mix(sun.low[0], sun.high[0], sunHigh);
+      light.sunColour[1] = mix(sun.low[1], sun.high[1], sunHigh);
+      light.sunColour[2] = mix(sun.low[2], sun.high[2], sunHigh);
       uniforms.uSunColour.value.setRGB(light.sunColour[0], light.sunColour[1], light.sunColour[2]);
 
       // The sun comes up on one side of its noon bearing and goes down on the other.

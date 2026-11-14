@@ -1,6 +1,6 @@
+import type { Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { createPlantShape, type PlantModel } from './plant-shape';
-import type { Triple } from './plant-triangles';
 
 // The plants made of masses of leaves over dark cores, on stems. Each is one mesh: its leaves,
 // dark cores and stems all take their pictures from the leaf atlas.

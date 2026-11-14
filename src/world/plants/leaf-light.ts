@@ -1,6 +1,5 @@
 import type { MeshLambertMaterial } from 'three';
-
-type Rgb = readonly [number, number, number];
+import type { Rgb } from '../../core/maths';
 
 /**
  * How leaves take the light. three.js lights the back of a two-sided surface as if it faced the

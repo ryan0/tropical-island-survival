@@ -1,11 +1,6 @@
+import type { Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
-import {
-  addLeafStrip,
-  type BothLevels,
-  type LeafRow,
-  type Triangles,
-  type Triple,
-} from './plant-triangles';
+import { addLeafStrip, type BothLevels, type LeafRow, type Triangles } from './plant-triangles';
 
 /**
  * A crown of sword-shaped leaves, each one a real strip of surface: it springs from the middle,

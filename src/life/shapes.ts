@@ -1,9 +1,8 @@
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
+import type { Triple } from '../core/maths';
 
 // The animals are put together from a few simple shapes, each moved into place and then joined
 // into one model.
-
-export type Triple = readonly [number, number, number];
 
 const UNMOVED: Triple = [0, 0, 0];
 const FULL_SIZE: Triple = [1, 1, 1];

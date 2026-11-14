@@ -8,7 +8,7 @@ import {
   Vector3,
   type Scene,
 } from 'three';
-import { smoothstep } from '../../core/maths';
+import { FULL_TURN, smoothstep, type Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { createFishModel } from './fish-model';
 import { reefConfig } from './reef-config';
@@ -34,8 +34,6 @@ interface OneFish {
   phase: number;
   length: number;
 }
-
-type Rgb = readonly [number, number, number];
 
 const BIG_ENOUGH_FOR_FISH = 1.7;
 // A fish is drawn pointing at where it will be this much later.
@@ -77,13 +75,13 @@ export function createReefFish(
     for (let i = 0; i < blues + yellows; i++) {
       const isBlue = i < blues;
       // Round the outside of the head, clear of the coral on top.
-      const startsAt = random() * 6.283;
+      const startsAt = random() * FULL_TURN;
       const circle = (isBlue ? 1.08 + random() * 0.45 : 1.15 + random() * 0.3) * head.radius;
       const height =
         head.floor + head.height * (isBlue ? 0.55 + random() * 0.6 : 0.3 + random() * 0.5);
       const pace =
         ((0.16 + random() * 0.2) * (random() < 0.5 ? 1 : -1)) / Math.max(1, head.radius * 0.3);
-      const phase = random() * 6.283;
+      const phase = random() * FULL_TURN;
       const length = isBlue ? 0.08 + random() * 0.04 : 0.13 + random() * 0.04;
       fish.push({ isBlue, head, startsAt, circle, height, pace, phase, length });
       if (isBlue) blueCount++;

@@ -1,10 +1,10 @@
+import { createCanvas, type Canvas } from '../../core/canvas';
+import { FULL_TURN, type Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
 
 // The pictures on the tufts' cards. Each is drawn in units, 128 to a side, at twice as many
 // pixels to keep the detail; blades grow up from the bottom edge. Colours here are red, green,
 // blue from 0 to 255.
-
-type Rgb = readonly [number, number, number];
 
 interface Blade {
   /** Where its foot is along the bottom edge. */
@@ -28,17 +28,11 @@ const UNITS = 128;
 const PIXELS = 256;
 const BOTTOM = UNITS;
 const MIDDLE = UNITS / 2;
-// Rounded, not 2π: every pixel of the picture depends on the exact number.
-const FULL_TURN = 6.283;
 
-function startPicture(): { canvas: HTMLCanvasElement; context: CanvasRenderingContext2D } {
-  const canvas = document.createElement('canvas');
-  canvas.width = PIXELS;
-  canvas.height = PIXELS;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error('the browser gave no canvas to draw the grass on');
-  context.scale(PIXELS / UNITS, PIXELS / UNITS);
-  return { canvas, context };
+function startPicture(): Canvas {
+  const picture = createCanvas(PIXELS, PIXELS, 'the grass');
+  picture.context.scale(PIXELS / UNITS, PIXELS / UNITS);
+  return picture;
 }
 
 /** A colour as the canvas takes it; a channel above 255 is held at 255. */

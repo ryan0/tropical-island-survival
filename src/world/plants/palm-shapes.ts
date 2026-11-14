@@ -6,9 +6,8 @@ import {
   TubeGeometry,
   Vector3,
 } from 'three';
+import type { Rgb } from '../../core/maths';
 import { palmsConfig, type TrunkConfig, type TrunkDetail } from './palms-config';
-
-type Rgb = readonly [number, number, number];
 
 export interface ColouredShape {
   shape: BufferGeometry;

@@ -25,9 +25,12 @@ export interface RocksDependencies {
   instanceCells: InstanceCells;
 }
 
+/** Whether a point is inside a rock or within `margin` of one. */
+export type IsInRock = (x: number, z: number, margin: number) => boolean;
+
 export interface Rocks {
   /** Whether a point is inside a rock bigger than a cobble, or within `margin` of one: plants keep out. */
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
   /** Rocks standing in the surf, which throw spray and gather foam. */
   inSurf: RockPlacement['inSurf'];
   /** The rocks' material with another surface: the coral heads' rock is drawn with it. */

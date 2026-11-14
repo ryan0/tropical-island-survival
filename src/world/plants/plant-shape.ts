@@ -1,15 +1,10 @@
 import type { BufferGeometry } from 'three';
+import { FULL_TURN, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { addBladeCrown, type BladeCrown } from './blade-crowns';
 import type { AtlasRegion } from './leaf-atlas';
 import { addLeafMass, type LeafMass } from './leaf-masses';
-import {
-  addBallTriangles,
-  createTriangles,
-  type BothLevels,
-  type Corner,
-  type Triple,
-} from './plant-triangles';
+import { addBallTriangles, createTriangles, type BothLevels, type Corner } from './plant-triangles';
 
 // A plant shape collects the triangles of one kind of plant, part by part (a dark core, a mass of
 // leaves, a stem, a crown of blades), and writes each part twice: in full, and thinned out for
@@ -63,7 +58,7 @@ function addDarkCore(
   const corners: Corner[] = [];
   for (let ring = 0; ring <= rings; ring++) {
     for (let segment = 0; segment <= segments; segment++) {
-      const th = (segment / segments) * 6.283;
+      const th = (segment / segments) * FULL_TURN;
       const ph = (ring / rings) * Math.PI;
       const nx = Math.sin(ph) * Math.cos(th);
       const ny = Math.cos(ph);

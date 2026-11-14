@@ -1,3 +1,5 @@
+import type { Rgb } from '../../core/maths';
+
 // The coconut palms. Sizes and distances are metres; a height is the ground's, above still sea
 // level. A palm's size is a multiple of its shape as given here. Colours are red, green, blue,
 // multiplying the pictures'; angles are radians.
@@ -6,8 +8,6 @@
 export const TRUNK_KINDS = ['ordinary', 'tall', 'leaning', 'young'] as const;
 
 export type TrunkKind = (typeof TRUNK_KINDS)[number];
-
-type Rgb = readonly [number, number, number];
 
 /** A point in a trunk's own upright plane: x outwards, y up from where it meets the ground. */
 type PlanePoint = readonly [x: number, y: number];

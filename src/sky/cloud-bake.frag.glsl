@@ -10,15 +10,17 @@
 //   alpha   how much the clouds hide of what is behind them
 //
 // Needs
-//   uLightDirection  the unit vector towards the sun (towards the moon at night)
-//   uPictureSize   the size of the picture, in dots
-// the cloud field (cloud-field.glsl) with its own uniforms and defines, and hash from the noise chunk.
+//   uLightDirection   the unit vector towards the sun (towards the moon at night)
+//   uPictureSize      the size of the picture, in dots
+// the cloud field (cloud-field.glsl) with its own uniforms and defines (among them EARTH_CURVE and CLOUD_BASE),
+// hash from the noise chunk, and distanceUpTo (distance-up-to.glsl).
 
 uniform vec3 uLightDirection;
 uniform vec2 uPictureSize;
 
 #include "../shaders/shared/noise"
 #include "cloud-field"
+#include "distance-up-to"
 
 // The highest any cloud's top reaches; the walk gives up this far out.
 const float CLOUD_LAYER_TOP = 7.2;
@@ -44,13 +46,6 @@ const float CIRRUS_DRIFT = 7.5;
 // The brightest that sunlit cloud gets (1 + 1.3, where the forward scatter is strongest): red is divided by it
 // to fit in the picture.
 const float BRIGHTEST_SUNLIT = 2.3;
-
-// How far a line rising at `rise` (the sine of its elevation) goes to reach `height` above the sea, which curves
-// away below it: the root of s * rise + s * s * curve = height, in the form that still holds when `curve` is 0
-// (the line straight up).
-float distanceUpTo(float height, float rise, float curve) {
-  return 2.0 * height / (rise + sqrt(rise * rise + 4.0 * curve * height));
-}
 
 // How much cloud lies between p and the sun: STEPS_TO_SUN steps towards it, each longer than the last.
 float cloudTowardsSun(vec3 p, float firstStep) {

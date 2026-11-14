@@ -10,11 +10,20 @@
 //
 // Needs
 //   the uniforms and varyings below, and three.js's cameraPosition (given to every ShaderMaterial);
-//   the defines WATER_SWELL, LONG_SWELL_SLOPE, HOME_ISLET and CLOUD_SHADE_SPAN_M, written by water-materials.ts,
-//     and LAGOON_WIND_DIRECTION, which lagwave.glsl uses;
-//   from the chunks it includes: hash, noise and fbm (noise.glsl); islandR, openSea, landW, hgt, sandbankX and
-//     sandbankZ (island-shape/island.glsl and shore.glsl); WIND_DIR, LW_T, lagExposure, lagWave and lagFoam
-//     (lagwave.glsl).
+//   these defines, which water-materials.ts writes from the configs:
+//     WATER_SWELL, LONG_SWELL_SLOPE   the swell's trains (sea-config.ts)
+//     HOME_ISLET, REEF_MAP_SPAN       the middle, and the side, of the square round home that the reef's map covers
+//     CLOUD_SHADE_SPAN_M              the side of the square that the map of the clouds' shadows covers
+//     USUAL_WIND                      the island's usual breeze (sky-config.ts): the ripples are as strong as they
+//                                     were tuned at this wind
+//     MOON_DIRECTION                  towards the moon, where the sky draws it (clouds-config.ts); normalised where
+//                                     it is used
+//     BAND_UP_BEACH                   how far up the beach the lagoon's shore band reaches (water-config.ts)
+//     BAND_SHOWN_WITHIN               the band is drawn within this distance of the eye (water-config.ts)
+//     LAGOON_WIND_DIRECTION           which lagwave.glsl uses;
+//   from the chunks it includes: hash, noise and fbm (noise.glsl); islandR, openSea, landW, hgt, sandbankX,
+//     sandbankZ and SEA_FLOOR_DEPTH (island-shape/island.glsl and shore.glsl); WIND_DIR, LW_T, lagExposure, lagWave
+//     and lagFoam (lagwave.glsl).
 
 // Seconds on the clock.
 uniform float uTime;
@@ -75,8 +84,6 @@ varying vec3 vWaveState;
 
 // ---- Numbers to retune ----
 
-// The island's usual breeze (a medium wind): the ripples are as strong as they were tuned at this wind.
-const float USUAL_WIND = 0.66;
 // White horses begin at this wind.
 const float WHITECAPS_FROM_WIND = 0.74;
 
@@ -84,17 +91,10 @@ const float WHITECAPS_FROM_WIND = 0.74;
 // inside the mesh's own edges (waterConfig.waveMesh.rows: change them together).
 const float FAR_SEA_HOLE_UP_BEACH = 8.6;
 const float FAR_SEA_HOLE_OFFSHORE = 93.0;
-// The lagoon's shore band reaches from this far up the beach to this far out into the lagoon, and is drawn within
-// this distance of the eye (waterConfig.lagoonShoreBand: change them together).
-const float BAND_UP_BEACH = 2.5;
+// The lagoon's shore band reaches this far out into the lagoon, a little short of its mesh's last row
+// (waterConfig.lagoonShoreBand.rows: change them together).
 const float BAND_OUT_INTO_LAGOON = 13.0;
-const float BAND_SHOWN_WITHIN = 150.0;
-// The sandbank in the lagoon is a round island this big (island.glsl).
-const float SANDBANK_RADIUS = 20.0;
-// Under the far sea the floor lies this deep (the lowest hgt goes, in island.glsl).
-const float FAR_SEA_DEPTH = 9.5;
-// The side of the square round home that the reef's map covers (mapSpan in reef-config.ts: keep the two the same).
-const float REEF_MAP_SPAN = 300.0;
+// (The sandbank in the lagoon is a round island SANDBANK_RADIUS across from its middle: island.glsl.)
 
 // The two families of white horses' crests: how far apart they are, and how fast they run (metres a second).
 const float CRESTS_A_SPACING = 14.0;
@@ -130,9 +130,6 @@ const vec3 THIN_FOAM = vec3(0.66, 0.90, 0.92);
 const vec3 SHADED_FOAM = vec3(0.60, 0.72, 0.84);
 // The moon's light mirrored in the water.
 const vec3 MOONLIGHT = vec3(0.55, 0.62, 0.80);
-// Towards the moon (sky.frag.glsl draws it there, and clouds-config.ts lights the clouds from there: change all
-// three together). Normalised where it is used.
-const vec3 MOON_DIRECTION = vec3(-0.57, 0.63, -0.52);
 // From under water: the surface away from the sky, and the bright window of sky overhead; and the light with the sun
 // at the horizon.
 const vec3 UNDERSIDE_DARK = vec3(0.02, 0.28, 0.40);
@@ -251,6 +248,20 @@ vec2 whiteHorses(vec2 xz, float bend, float ragged, float bandDepth, vec2 direct
   return foam;
 }
 
+// Where on a lace pattern (0..1) foam of this density (0..1) starts to show: above the top of the pattern (nowhere)
+// with no foam, below its bottom (everywhere) with thick foam.
+float laceThreshold(float density) {
+  return mix(1.0, -0.12, density * density * (3.0 - 2.0 * density));
+}
+
+// Foam of this density drawn over a lace pattern: the more foam, the more of the pattern it covers, from lace where
+// it is thin to a white sheet with holes where it is thick. Its edges are softer further from the eye.
+float foamAsLace(float density, float lacePattern, float cameraDistance) {
+  float threshold = laceThreshold(density);
+  float laceFullFrom = threshold + 0.14 + 0.5 * smoothstep(15.0, 90.0, cameraDistance);
+  return smoothstep(threshold, laceFullFrom, lacePattern) * (0.62 + 0.38 * density);
+}
+
 // Foam round the things standing in the surf: 1 at a rock's edge, fading out over half a metre and more (more round
 // a bigger rock).
 float foamRoundObstacles(vec2 xz) {
@@ -302,8 +313,9 @@ void main() {
     if (distanceFromCentre < holeOutside && distanceFromCentre > holeInside) discard;
     inLagoon = step(distanceFromCentre, oceanShoreRadius);
     // The lagoon's shore-wave band (lagoon-shore-band.ts, uIsShoreBand = 1; lagoon-shore-band.vert.glsl lifts it): a strip
-    // of mesh from 2.5 m up the lagoon's beaches (and the sandbank's) to 13 m out, drawn in a high wind within 150 m
-    // of the eye. Where it is drawn, the flat sheet leaves a gap for it; and the band draws nothing outside that.
+    // of mesh from BAND_UP_BEACH up the lagoon's beaches (and the sandbank's) to BAND_OUT_INTO_LAGOON out, drawn in a
+    // high wind within BAND_SHOWN_WITHIN of the eye. Where it is drawn, the flat sheet leaves a gap for it; and the band
+    // draws nothing outside that.
     // (landward: metres on the land side of the water's edge, of the lagoon's own shore or of the sandbank's,
     // whichever is nearer)
     float landwardOfLagoonShore = distanceFromCentre - oceanShoreRadius + landW(directionFromCentre);
@@ -316,7 +328,8 @@ void main() {
 
   // ---- How deep the water is ----
 
-  float waterDepth = vWaterPosition.y + FAR_SEA_DEPTH;
+  // (under the far sea the floor lies as deep as the ground ever goes)
+  float waterDepth = vWaterPosition.y + SEA_FLOOR_DEPTH;
   if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - hgt(xz.x, xz.y);
   // how far the lagoon's shore-wave band stands above still water here
   float bandLift = (vWaterPosition.y - uSeaLevel) * uIsShoreBand;
@@ -629,11 +642,8 @@ void main() {
     // the sheet of water sliding up and down the sand carries a white edge and a little lace, not a grey veil
     float offTheSheet = max(smoothstep(0.03, 0.15, waterDepth), smoothstep(0.4, 0.8, waveFoam));
     foamAmount *= mix(0.3, 1.0, offTheSheet);
-    // (the more foam, the more of the lace pattern it covers)
-    float laceThreshold = mix(1.0, -0.12, foamAmount * foamAmount * (3.0 - 2.0 * foamAmount));
-    whiteLaceThreshold = max(laceThreshold, -0.05);
-    float laceFullFrom = laceThreshold + 0.14 + 0.5 * smoothstep(15.0, 90.0, cameraDistance);
-    foam = smoothstep(laceThreshold, laceFullFrom, lace) * (0.62 + 0.38 * foamAmount);
+    whiteLaceThreshold = max(laceThreshold(foamAmount), -0.05);
+    foam = foamAsLace(foamAmount, lace, cameraDistance);
     // from far off the lace is too fine to see: thin foam then reads as a pale veil, patchier where it is thinner
     float veil = clamp(foamAmount * (0.30 + 1.1 * lace), 0.0, 1.0);
     foam = mix(foam, veil, smoothstep(12.0, 55.0, cameraDistance) * offTheSheet);
@@ -652,9 +662,7 @@ void main() {
   if (windFoam + whiteCrests > 0.003) {
     float windLace = mix(lace, windStreaks.a * 0.65 + windStreaks.b * 0.35, 0.45);
     colour = mix(colour, UNDER_WHITECAP * (0.45 + 0.55 * uDaylight) * (1.0 - 0.8 * uNight), 0.3 * windFoam);
-    float laceThreshold = mix(1.0, -0.12, windFoam * windFoam * (3.0 - 2.0 * windFoam));
-    float laceFullFrom = laceThreshold + 0.14 + 0.5 * smoothstep(15.0, 90.0, cameraDistance);
-    float whitecapFoam = smoothstep(laceThreshold, laceFullFrom, windLace) * (0.62 + 0.38 * windFoam);
+    float whitecapFoam = foamAsLace(windFoam, windLace, cameraDistance);
     float veil = clamp(smoothstep(0.2, 0.85, windFoam) * (0.45 + 1.1 * windLace), 0.0, 1.0);
     whitecapFoam = mix(whitecapFoam, veil, smoothstep(12.0, 55.0, cameraDistance)) * (1.0 - 0.3 * inLagoon);
     whitecapFoam = max(whitecapFoam, whiteCrests * (0.82 + 0.18 * smoothstep(0.3, 0.6, lace)));

@@ -1,9 +1,9 @@
+import type { Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { IslandShape } from '../island-shape';
 import type { Landmarks, Point } from '../landmarks';
 import {
   createRockPlacer,
-  type Rgb,
   type RockGroup,
   type RockPlacement,
   type RockPlacer,

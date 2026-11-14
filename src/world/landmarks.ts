@@ -1,4 +1,4 @@
-import { smoothstep } from '../core/maths';
+import { FULL_TURN_TO_EIGHT_FIGURES, smoothstep } from '../core/maths';
 import type { Random } from '../core/random';
 import { worldConfig } from './world-config';
 
@@ -116,7 +116,7 @@ export function createLandmarks(groundHeight: GroundHeight, islandRadius: Island
     },
 
     ringPoint(random) {
-      const direction = random() * 6.2831853;
+      const direction = random() * FULL_TURN_TO_EIGHT_FIGURES;
       const outer = islandRadius(direction) + 4;
       const inner = outer - 82;
       const distance = Math.sqrt(inner * inner + random() * (outer * outer - inner * inner));

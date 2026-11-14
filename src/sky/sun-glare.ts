@@ -31,7 +31,8 @@ export function createSunGlare(element: HTMLElement, camera: Camera): SunGlare {
   return {
     update(frame) {
       const { sunDirection, sunElevation } = frame;
-      const sunShows = (1 - frame.night) * (config.leftByCloud + 0.85 * frame.sunThrough);
+      const sunShows =
+        (1 - frame.night) * (config.leftByCloud + (1 - config.leftByCloud) * frame.sunThrough);
       sunOnScreen.copy(sunDirection).multiplyScalar(1000).add(camera.position).project(camera);
       camera.getWorldDirection(facing);
       const towardsSun = facing.dot(sunDirection);

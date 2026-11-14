@@ -1,15 +1,8 @@
 import { CylinderGeometry, SphereGeometry, type BufferGeometry } from 'three';
-import { smoothstep } from '../../core/maths';
+import { smoothstep, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { bushyCoral, simpleBushyCoral, staghornCoral } from './branching-coral-shapes';
-import {
-  addStick,
-  joined,
-  lumpyField,
-  shapedAndPainted,
-  type LumpyField,
-  type Triple,
-} from './painted-shapes';
+import { addStick, joined, lumpyField, shapedAndPainted, type LumpyField } from './painted-shapes';
 import { reefConfig, type CoralKind } from './reef-config';
 
 // Each model is about a metre across at size 1.

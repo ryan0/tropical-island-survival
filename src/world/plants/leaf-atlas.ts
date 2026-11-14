@@ -1,3 +1,5 @@
+import { createCanvas } from '../../core/canvas';
+import { FULL_TURN, type Rgb } from '../../core/maths';
 import type { Random } from '../../core/random';
 
 // The leafy plants share one picture, the leaf atlas, so that their leaves, bark and dark insides
@@ -25,8 +27,6 @@ export interface LeafPictures {
   bark: HTMLCanvasElement;
 }
 
-type Rgb = readonly [red: number, green: number, blue: number];
-
 interface Sprig {
   x: number;
   y: number;
@@ -46,20 +46,6 @@ const SPRIG_RINGS = [
   { leaves: 7, reach: 0.72, green: 116 },
   { leaves: 5, reach: 0.42, green: 150 },
 ] as const;
-
-interface Canvas {
-  canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
-}
-
-function createCanvas(width: number, height: number): Canvas {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d');
-  if (context === null) throw new Error('the browser gave no canvas to draw the leaves on');
-  return { canvas, context };
-}
 
 /**
  * A paddle-shaped leaf along x from its stalk at the origin, `width` either side of its middle:
@@ -114,9 +100,9 @@ function drawLeaf(
 function drawSprig(context: CanvasRenderingContext2D, random: Random, sprig: Sprig): void {
   for (const [ring, { leaves, reach, green }] of SPRIG_RINGS.entries()) {
     const ringReach = SPRIG_RADIUS * reach;
-    const firstAngle = random() * 6.283;
+    const firstAngle = random() * FULL_TURN;
     for (let q = 0; q < leaves; q++) {
-      const angle = firstAngle + (q * 6.283) / leaves + (random() - 0.5) * 0.35;
+      const angle = firstAngle + (q * FULL_TURN) / leaves + (random() - 0.5) * 0.35;
       const g = green * (0.9 + random() * 0.2);
       const length = ringReach * (0.85 + random() * 0.2);
       context.save();
@@ -134,7 +120,7 @@ function drawSprig(context: CanvasRenderingContext2D, random: Random, sprig: Spr
 
 /** The dark inside of a bush: speckled dark green. */
 function drawDarkCore(random: Random): HTMLCanvasElement {
-  const { canvas, context } = createCanvas(64, 64);
+  const { canvas, context } = createCanvas(64, 64, 'the dark inside of a bush');
   for (let x = 0; x < 64; x++) {
     for (let y = 0; y < 64; y++) {
       const dark = 34 + Math.floor(random() * 26);
@@ -147,7 +133,7 @@ function drawDarkCore(random: Random): HTMLCanvasElement {
 
 /** Bark: bands across the stem. */
 function drawBark(random: Random): HTMLCanvasElement {
-  const { canvas, context } = createCanvas(64, 64);
+  const { canvas, context } = createCanvas(64, 64, 'bark');
   for (let y = 0; y < 64; y++) {
     const light = 120 + Math.floor(random() * 45);
     context.fillStyle = `rgb(${light},${Math.floor(light * 0.86)},${Math.floor(light * 0.7)})`;
@@ -157,7 +143,7 @@ function drawBark(random: Random): HTMLCanvasElement {
 }
 
 export function drawLeafPictures(random: Random): LeafPictures {
-  const { canvas: leafAtlas, context: atlas } = createCanvas(1024, 512);
+  const { canvas: leafAtlas, context: atlas } = createCanvas(1024, 512, 'the leaves');
   for (const sprig of SPRIGS) drawSprig(atlas, random, sprig);
   const darkCore = drawDarkCore(random);
   // Stretched without smoothing, the speckles and bands keep their sharp edges.

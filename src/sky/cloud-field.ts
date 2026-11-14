@@ -3,7 +3,8 @@
 // camera, which dims the sun's lamp and its glare. The two must change together.
 // Distances are kilometres.
 
-import { smoothstep } from '../core/maths';
+import { smoothstep, wrap } from '../core/maths';
+import { NOISE_PICTURE_WIDTH, NOISE_TILE } from './cloud-noise';
 import { cloudsConfig } from './clouds-config';
 
 /** Where the cloud field has got to at one moment. */
@@ -36,27 +37,23 @@ interface Lane {
   z: number;
 }
 
-const { startsAt, earthCurve, noiseSize, noiseSlicesAcross, weatherMapSize, weatherMapSpan } =
-  cloudsConfig;
+const {
+  startsAt,
+  earthCurve,
+  cloudBase,
+  shapeRepeat,
+  shapeStretch,
+  shapeSlide,
+  shapeRise,
+  edgeSharpness,
+  shadowDensity,
+  noiseSize,
+  noiseSlicesAcross,
+  weatherMapSize,
+  weatherMapSpan,
+} = cloudsConfig;
 const tradeWind = cloudsConfig.drift;
 
-// cloud-field.glsl has the same numbers.
-/** The clouds' flat bases, km up (the shader's HB). */
-const CLOUD_BASE = 0.8;
-/** The shape noise repeats every this many km across; a km upward counts as this much of one. */
-const SHAPE_REPEAT = 6;
-const SHAPE_STRETCH = 0.7;
-/** How sharply a cloud's edge goes from clear air to full cloud. */
-const EDGE_SHARPNESS = 2.5;
-
-// The shapes slide a little against the weather map and rise slowly, so that the clouds boil: for
-// each second of the boil clock. The shaders are given the same (uBoil).
-const SHAPE_SLIDE_X = 0.0018;
-const SHAPE_SLIDE_Z = -0.0011;
-const SHAPE_RISE = 0.0012;
-
-/** How much a km of cloud dims the light, as in cloud-shade.frag.glsl. */
-const SHADOW_DENSITY = 2.6;
 /** The walk towards the sun climbs to this height or gives up this far out, in this many steps. */
 const WALK_TOP = 5;
 const WALK_LONGEST = 70;
@@ -68,21 +65,12 @@ function laneAlong(bearing: number): Lane {
 const SUNSET_LANE = laneAlong(cloudsConfig.sunsetBearing);
 const SUNRISE_LANE = laneAlong(cloudsConfig.sunriseBearing);
 
-// Each slice of the noise cube is a tile with a one-dot border copied from its far side, so that
-// reading across a slice's edge is seamless. The tiles lie side by side in one square picture.
-const NOISE_TILE = noiseSize + 2;
-const NOISE_PICTURE_WIDTH = NOISE_TILE * noiseSlicesAcross;
-
 const WEATHER_CHANNEL = { cumulus: 0, towers: 1, height: 2 } as const;
 
 function mustBeSquarePicture(pixels: Uint8Array, side: number, name: string): void {
   if (pixels.length !== side * side * 4) {
     throw new Error(`the ${name} is not the ${side} dots square that the cloud field reads`);
   }
-}
-
-function wrap(i: number, n: number): number {
-  return ((i % n) + n) % n;
 }
 
 /** Four neighbouring dots blended: `fx` of the way along each row, `fy` from row to row. */
@@ -209,7 +197,7 @@ export function createCloudField(noisePixels: Uint8Array, weatherPixels: Uint8Ar
 
     weatherHere.cloud = Math.max(cumulus, tower * 0.95);
     weatherHere.tops =
-      CLOUD_BASE + (0.6 + 1.5 * heightMap) * (1 - towerShare) + (3.4 + 3 * heightMap) * towerShare;
+      cloudBase + (0.6 + 1.5 * heightMap) * (1 - towerShare) + (3.4 + 3 * heightMap) * towerShare;
   }
 
   // How much cloud there is at (x, y, z), 0..1.
@@ -217,7 +205,7 @@ export function createCloudField(noisePixels: Uint8Array, weatherPixels: Uint8Ar
     const heightAboveSea = y + (x * x + z * z) * earthCurve;
     findWeather(x, z, moment);
     const { cloud, tops } = weatherHere;
-    const up = (heightAboveSea - CLOUD_BASE) / (tops - CLOUD_BASE);
+    const up = (heightAboveSea - cloudBase) / (tops - cloudBase);
     if (up <= 0 || up >= 1 || cloud < 0.01) return 0;
 
     // A flat base, fullest a fifth of the way up, thinning to the top so that only the strongest
@@ -226,12 +214,12 @@ export function createCloudField(noisePixels: Uint8Array, weatherPixels: Uint8Ar
     const fullness = cloud * smoothstep(0, 0.07, up) * (1 - 0.9 * smoothstep(thinningFrom, 1, up));
     // The shapes are stretched upward: columns that the flat base cuts across.
     const shape = readShapeNoise(
-      (fieldX(x, moment) + SHAPE_SLIDE_X * moment.boil) / SHAPE_REPEAT,
-      (fieldZ(z, moment) + SHAPE_SLIDE_Z * moment.boil) / SHAPE_REPEAT,
-      (heightAboveSea * SHAPE_STRETCH) / SHAPE_REPEAT - ((moment.boil * SHAPE_RISE) % 1),
+      (fieldX(x, moment) + shapeSlide[0] * moment.boil) / shapeRepeat,
+      (fieldZ(z, moment) + shapeSlide[1] * moment.boil) / shapeRepeat,
+      (heightAboveSea * shapeStretch) / shapeRepeat - ((moment.boil * shapeRise) % 1),
     );
     const aboveThreshold = (shape - (1 - fullness)) / Math.max(fullness, 0.05);
-    return Math.max(0, Math.min(1, aboveThreshold * EDGE_SHARPNESS));
+    return Math.max(0, Math.min(1, aboveThreshold * edgeSharpness));
   }
 
   return {
@@ -240,7 +228,7 @@ export function createCloudField(noisePixels: Uint8Array, weatherPixels: Uint8Ar
     sunThrough(x, z, sun, moment) {
       if (sun.y < -0.05) return 1;
       const curve = (1 - sun.y * sun.y) * earthCurve;
-      const start = distanceUpTo(CLOUD_BASE, sun.y, curve);
+      const start = distanceUpTo(cloudBase, sun.y, curve);
       const end = Math.min(distanceUpTo(WALK_TOP, sun.y, curve), WALK_LONGEST);
       const stepGrowth = Math.pow(end / start, 1 / WALK_STEPS);
       let distance = start;
@@ -252,7 +240,7 @@ export function createCloudField(noisePixels: Uint8Array, weatherPixels: Uint8Ar
           cloudAt(x + sun.x * middle, sun.y * middle, z + sun.z * middle, moment) * step;
         distance *= stepGrowth;
       }
-      return Math.exp(-cloudPassed * SHADOW_DENSITY);
+      return Math.exp(-cloudPassed * shadowDensity);
     },
   };
 }

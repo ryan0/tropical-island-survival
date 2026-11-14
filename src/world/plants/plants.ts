@@ -13,9 +13,11 @@ import {
   type Material,
   type Texture,
 } from 'three';
-import type { Random } from '../../core/random';
+import { FULL_TURN } from '../../core/maths';
+import type { Random, Range } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import { lightLeavesFromBothSides } from './leaf-light';
 import { createPlantModels, type PlantModel } from './plant-models';
 import { plantsConfig, type PlantKindConfig } from './plants-config';
@@ -26,7 +28,7 @@ export interface PlantsDependencies {
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   /** Whether a point is inside a rock or within `margin` of one. */
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
   /** The picture of one palm frond, for the fronds lying on the ground. */
   palmFrondPicture: Texture;
   instanceCells: InstanceCells;
@@ -90,7 +92,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
 
   /** Most kinds thin out away from home, to four tenths; a few thin to nothing much at all. */
   const fewerFarFromHome = (x: number, z: number) => 0.4 + 0.6 * landmarks.nearHome(x, z);
-  const isOffGround = (height: number, [lowest, highest]: readonly [number, number]) =>
+  const isOffGround = (height: number, [lowest, highest]: Range) =>
     height < lowest || height > highest;
 
   // The order is the order they are planted in, which the stream of random numbers depends on.
@@ -281,7 +283,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
       const size = sizeAt(x, z, height);
       if (size === 0) continue;
 
-      tilt.set((random() - 0.5) * 0.12, random() * 6.283, (random() - 0.5) * 0.12);
+      tilt.set((random() - 0.5) * 0.12, random() * FULL_TURN, (random() - 0.5) * 0.12);
       turn.setFromEuler(tilt);
       scale.set(
         size * (0.85 + random() * 0.3),

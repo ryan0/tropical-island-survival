@@ -1,13 +1,10 @@
 import { BufferGeometry, Float32BufferAttribute } from 'three';
+import type { Rgb, Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { GroundHeight } from '../landmarks';
 
 // Everything in the camp is one model, made a triangle at a time with a colour painted on each
-// corner.
-
-export type Triple = readonly [number, number, number];
-/** Red, green and blue, from 0 to 1. */
-export type Rgb = readonly [number, number, number];
+// corner. Colours are red, green and blue from 0 to 1.
 
 export interface Pole {
   startRadius: number;

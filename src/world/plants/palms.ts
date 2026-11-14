@@ -13,9 +13,11 @@ import {
   type CanvasTexture,
   type IUniform,
 } from 'three';
+import { FULL_TURN } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import { lightLeavesFromBothSides } from './leaf-light';
 import { paintBarkPicture, paintFrondPicture } from './palm-pictures';
 import { createFrondShape, createTrunkShape } from './palm-shapes';
@@ -42,7 +44,7 @@ export interface PalmsDependencies {
   /** The middle of the sandbank in the lagoon, where three palms stand. */
   sandbank: Point;
   /** Whether a point is inside a rock or within `margin` of one. */
-  isInRock: (x: number, z: number, margin: number) => boolean;
+  isInRock: IsInRock;
   /** The uniforms every shader shares; the fronds read uTime and uWind when they are first drawn. */
   uniforms: Record<string, IUniform>;
   instanceCells: InstanceCells;
@@ -81,9 +83,6 @@ interface Trunk {
   /** Where each palm of this kind stands, how it is turned and how big it is. */
   palms: Matrix4[];
 }
-
-// Rounded, not 2π: where every palm and frond turns depends on the exact number.
-const FULL_TURN = 6.283;
 
 // They sway as they did in the usual breeze (0.66 × 1.5 is about 1), and not at all in a calm.
 const FROND_SWAY = [

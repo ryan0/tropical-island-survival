@@ -1,10 +1,10 @@
 import { BufferGeometry, Float32BufferAttribute } from 'three';
+import type { Triple } from '../../core/maths';
 import { ATLAS_REGIONS, type AtlasRegion } from './leaf-atlas';
 
 // The plants are made of loose triangles, every corner with its own texture coordinates, normal
 // and colour.
 
-export type Triple = readonly [number, number, number];
 /** How bright a corner is: one number for red, green and blue alike, or a colour. */
 export type Shade = number | Triple;
 

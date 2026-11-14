@@ -8,7 +8,7 @@ import {
   type Scene,
 } from 'three';
 import { smoothstep } from '../core/maths';
-import { within, type Random } from '../core/random';
+import { within, type Random, type Range } from '../core/random';
 import { addInstances, coloursAreSet, createInstancePlacer } from './instances';
 import { lifeConfig } from './life-config';
 import {
@@ -96,7 +96,7 @@ function paint(x: number, y: number, part: number): number {
   );
 }
 
-function isBetween(height: number, [lowest, highest]: readonly [number, number]): boolean {
+function isBetween(height: number, [lowest, highest]: Range): boolean {
   return height > lowest && height < highest;
 }
 

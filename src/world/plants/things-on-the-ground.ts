@@ -1,4 +1,5 @@
 import type { BufferGeometry } from 'three';
+import { FULL_TURN, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { PlantModel } from './plant-shape';
 import {
@@ -8,7 +9,6 @@ import {
   type Corner,
   type LeafRow,
   type Triangles,
-  type Triple,
 } from './plant-triangles';
 
 // Things lying on the ground under the trees, and things washed up on the beach.
@@ -100,9 +100,9 @@ export function vineMat(random: Random): PlantModel {
     addRunner(full, random, runner, addLeaf);
   }
   for (let flower = 0; flower < 3; flower++) {
-    const angle = random() * 6.283;
+    const angle = random() * FULL_TURN;
     const distance = 0.4 + random() * 1.2;
-    const turn = random() * 6.283;
+    const turn = random() * FULL_TURN;
     addLeaf({
       at: [Math.cos(angle) * distance, 0.13, Math.sin(angle) * distance],
       radius: 0.06,
@@ -146,7 +146,7 @@ function addRunner(
       const side = (random() - 0.5) * 0.42;
       const y = 0.05 + 0.07 * random();
       const radius = 0.085 + 0.04 * random();
-      const turn = random() * 6.283;
+      const turn = random() * FULL_TURN;
       const tiltX = (random() - 0.5) * 0.7;
       const tiltZ = (random() - 0.5) * 0.7;
       addLeaf({
@@ -182,7 +182,7 @@ export function stump(): BufferGeometry {
   const rings = STUMP_RINGS.map(({ height, radius, roots }, j) => {
     const ring: Corner[] = [];
     for (let a = 0; a <= SIDES; a++) {
-      const th = (a / SIDES) * 6.283;
+      const th = (a / SIDES) * FULL_TURN;
       const lump = 1 + 0.1 * Math.sin(th * 3 + j) + roots * Math.sin(th * 5);
       const jagged = j === TOP ? 0.1 * Math.sin(th * 2 + 1) + 0.07 * Math.sin(th * 5) : 0;
       // Dark at the foot, streaked above.
@@ -229,7 +229,7 @@ function washedUpLump(knobs: number, squash: number): BufferGeometry {
   const corners: Corner[] = [];
   for (let ring = 0; ring <= RINGS; ring++) {
     for (let segment = 0; segment <= SEGMENTS; segment++) {
-      const th = (segment / SEGMENTS) * 6.283;
+      const th = (segment / SEGMENTS) * FULL_TURN;
       const ph = (ring / RINGS) * Math.PI;
       const nx = Math.sin(ph) * Math.cos(th);
       const ny = Math.cos(ph);

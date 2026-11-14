@@ -1,10 +1,19 @@
 // The cloud field: how much cloud there is at any point of the air (see clouds.ts). Distances in km.
 // cloud-field.ts is the program's copy of these sums: change both together.
 //
-// Needs the defines
+// Needs the defines, written from clouds-config.ts by clouds.ts
 //   EARTH_CURVE                 1/(2R) for the small earth the clouds sit on
 //   SUNSET_LANE, SUNRISE_LANE   the bearings (x, z) along which cloud is kept thin
-// Gives the includer CLOUD_BASE, weatherAt and cloudAt.
+//   CLOUD_BASE                  the height of the clouds' flat bases (cloud-bake and cloud-shade use it too)
+//   WEATHER_MAP_SPAN            the km a side the weather map covers, then repeats
+//   SHAPE_REPEAT                the shape noise repeats every this many km across
+//   SHAPE_STRETCH               a km upward counts as this much of one across
+//   EDGE_SHARPNESS              how sharply a cloud's edge goes from clear air to full cloud
+//   NOISE_SIZE                  the shape noise is a cube this many dots a side, stored as its slices
+//   NOISE_SLICES_ACROSS         laid out this many across and down one picture,
+//   NOISE_TILE                  each this many dots square (with its border copied from the far side),
+//   NOISE_PICTURE_WIDTH         in a picture this many dots wide
+// Gives the includer weatherAt and cloudAt.
 
 // The shape noise: a cube of noise that fills space, stored as slices (see readShapeNoise).
 uniform sampler2D uShapeNoise;
@@ -19,24 +28,8 @@ uniform vec4 uBoil;
 // How cloudy it is: 0 clear .. 1 the full field.
 uniform float uCloudCover;
 
-// The clouds' flat bases.
-const float CLOUD_BASE = 0.8;
-// The weather map covers this many km a side, then repeats.
-const float WEATHER_MAP_SPAN = 64.0;
-// The shape noise repeats every this many km across; a km upward counts as SHAPE_STRETCH of one.
-const float SHAPE_REPEAT = 6.0;
-const float SHAPE_STRETCH = 0.7;
 // The fine lumps that nibble a cloud's edges are this many times smaller than its shapes.
 const float LUMPS_FINER = 2.1;
-// How sharply a cloud's edge goes from clear air to full cloud.
-const float EDGE_SHARPNESS = 2.5;
-
-// How the shape noise is stored: 64 slices laid out 8 x 8 in one picture, each 66 dots square with its border
-// copied from the far side.
-const float NOISE_SIZE = 64.0;
-const float NOISE_SLICES_ACROSS = 8.0;
-const float NOISE_TILE = 66.0;
-const float NOISE_PICTURE_WIDTH = 528.0;
 
 // Where a point of a slice lies in the noise picture.
 vec2 inNoisePicture(float slice, vec2 inSlice) {

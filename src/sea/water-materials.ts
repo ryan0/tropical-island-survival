@@ -1,7 +1,11 @@
 import { DoubleSide, ShaderMaterial, type IUniform } from 'three';
-import { glslFloat, glslVec2 } from '../shaders/defines';
+import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
+import { cloudsConfig } from '../sky/clouds-config';
+import { skyConfig } from '../sky/sky-config';
+import { reefConfig } from '../world/reef/reef-config';
 import bandVertexShader from './lagoon-shore-band.vert.glsl';
 import { seaConfig } from './sea-config';
+import { waterConfig } from './water-config';
 import fragmentShader from './water.frag.glsl';
 import vertexShader from './water.vert.glsl';
 import wavesShader from './waves.glsl';
@@ -76,12 +80,18 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     WAVE_TRAINS: waveTrainsDefine(),
     REEF_BREAK: glslFloat(seaConfig.reefBreak),
   };
+  const band = waterConfig.lagoonShoreBand;
   const defines = {
     ...waveDefines,
     WATER_SWELL: swellDefine(),
     LONG_SWELL_SLOPE: glslFloat((seaConfig.longSwell * 0.7) / SWELL_SPEED),
     HOME_ISLET: glslVec2(home.x, home.z),
+    REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
+    USUAL_WIND: glslFloat(skyConfig.wind.usualBreeze),
+    MOON_DIRECTION: glslVec3(...cloudsConfig.moonDirection),
+    BAND_UP_BEACH: glslFloat(band.rows.first),
+    BAND_SHOWN_WITHIN: glslFloat(band.shownWithin),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
   };
 

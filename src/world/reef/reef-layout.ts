@@ -1,5 +1,7 @@
+import { FULL_TURN } from '../../core/maths';
 import { within, type Random, type Range } from '../../core/random';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
+import type { IsInRock } from '../rocks/rocks';
 import { reefConfig, type CoralKind } from './reef-config';
 
 // Where the reef's corals go. Coral heads - mounds of old reef rock, "bommies" - stand in patches
@@ -39,9 +41,6 @@ export interface ReefLayout {
   corals: Record<CoralKind, PlacedCoral[][]>;
 }
 
-/** Whether a point is inside a rock or within `margin` of one. */
-export type IsInRock = (x: number, z: number, margin: number) => boolean;
-
 export interface ReefLayoutDependencies {
   /** The reef's stream of random numbers. */
   random: Random;
@@ -61,9 +60,6 @@ interface CoralPlacer {
 }
 
 type TopCoralKind = 'bush' | 'table' | 'brain' | 'knob' | 'stag';
-
-// Rounded, not 2π: where every coral falls depends on the exact number.
-const FULL_TURN = 6.283;
 
 /** A head's rock is sunk this share of its height into the floor, so that it grows out of it. */
 const SUNK_SHARE = 0.12;

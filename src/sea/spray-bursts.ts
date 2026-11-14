@@ -1,3 +1,4 @@
+import { FULL_TURN } from '../core/maths';
 import type { Random } from '../core/random';
 import type { SurfObstacle } from './spray';
 import { sprayConfig } from './spray-config';
@@ -27,8 +28,6 @@ export interface SprayBursts {
 }
 
 const config = sprayConfig;
-// Rounded, not 2π: where every droplet flies depends on the exact number.
-const FULL_TURN = 6.283;
 
 export function createSprayBursts(random: Random, droplets: SprayDroplets): SprayBursts {
   return {
