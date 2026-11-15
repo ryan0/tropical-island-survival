@@ -112,7 +112,7 @@ const sunGlare = createSunGlare(pageElement('glare'), camera);
 const seaFloor = createSeaFloorPictures(island.groundHeight);
 uniforms.uSeaFloor.value = seaFloor.floor;
 uniforms.uBreakTimes.value = seaFloor.breaks;
-const waves = createWaveModel(island);
+const waves = createWaveModel(island, seaFloor);
 const waterMaterials = createWaterMaterials({
   uniforms,
   home: landmarks.home,

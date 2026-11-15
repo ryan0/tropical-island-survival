@@ -39,6 +39,12 @@ interface SceneDebugHooks {
   islandRadius(th: number): number;
   /** The wave model as the shader has it, ready to compile on its own. */
   waveShaderSource(): string;
+  /** The sea floor's pictures, which the wave model reads: each `size` dots square, four half floats a dot. */
+  seaFloor: {
+    size: number;
+    floor: { image: { data: Uint16Array } };
+    breaks: { image: { data: Uint16Array } };
+  };
   camera: { fov: number; updateProjectionMatrix(): void };
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {

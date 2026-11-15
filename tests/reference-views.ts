@@ -46,6 +46,9 @@ function sunFixedAt(elevation: number, waveTime = 20): Moment {
   return at({ waveTime, wind: 0.66, sun: { elevation } });
 }
 
+// A moment at which a wave of a set has stood up on the south-east reef and is about to throw its lip.
+const A_SET_WAVE_BREAKS = 49.6;
+
 const DAWN = { dayPhase: 0.19 };
 const GOLDEN_HOUR = { dayPhase: 0.754 };
 const SUNSET = { dayPhase: 0.825 };
@@ -55,7 +58,7 @@ const wavesOnTheLagoonBeach = [20, 20.7, 21.4].flatMap((waveTime) => [
   at({ waveTime, wind: 0.66 }),
   at({ waveTime, wind: 1 }),
 ]);
-const aWaveBreakingOnTheOceanBeach = [34.7, 35.0, 35.3, 35.9].map((waveTime) =>
+const aWaveBreakingOnTheOceanBeach = [28.3, 28.6, 28.9, 29.5].map((waveTime) =>
   at({ waveTime, wind: 0.66 }),
 );
 const clearAndPartlyCloudy = (sun: Sun): Moment[] => [
@@ -213,28 +216,28 @@ export const referenceViews: ReferenceView[] = [
     shows: 'a breaking wave from beside it',
     pose: [30, 1.3, 199, 4.86, -0.03],
     fieldOfView: 32,
-    moments: [sunFixedAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },
   {
     name: 'photo-surf',
     shows: 'the reef flat through the water',
     pose: [40, 2.0, 166, 3.45, -0.05],
     fieldOfView: 40,
-    moments: [sunFixedAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },
   {
     name: 'photo-drone',
     shows: 'the reef and beach from a drone',
     pose: [120, 30, 150, 2.2, -0.5],
     fieldOfView: 55,
-    moments: [sunFixedAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },
   {
     name: 'photo-shore',
     shows: 'the wet sand at the water’s edge',
     pose: [9, 1.6, 169.2, 1.9, -0.22],
     fieldOfView: 62,
-    moments: [sunFixedAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },
 
   // Build 78's views for comparing two builds (its tools/abviews.json), less the two that

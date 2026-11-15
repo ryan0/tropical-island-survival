@@ -36,40 +36,47 @@ export interface WaterMaterials {
   waveShaderSource: () => string;
 }
 
-// The speed the swell's lines travel at out at sea, in metres a second, as the shaders have it.
-const SWELL_SPEED = 4.95;
+// The speed the open sea's shaded swell lines travel at, in metres a second, as water.frag.glsl has it.
+const OPEN_SEA_LINES_SPEED = 4.95;
+// The channel of the floor picture that holds each swell's delay.
+const DELAY_CHANNELS = ['x', 'y'];
 
-/** One WAVE_TRAIN(...) of waves.glsl for each train, with the config's numbers. */
-function waveTrainsDefine(): string {
-  return seaConfig.waveTrains
-    .map((train, index) => {
-      const numbers = [
-        train.amplitude,
-        train.setPace,
-        train.variety,
-        train.variety * 1.7,
-        train.frequency,
-        train.crests,
-        train.phase,
-        train.canPlunge,
-        train.runUp,
-      ];
-      return `WAVE_TRAIN(train${index},${numbers.map(glslFloat).join(',')})`;
+/** One SWELL(...) of waves.glsl for each swell, with the config's numbers. */
+function swellsDefine(): string {
+  return seaConfig.swells
+    .map((swell, index) => {
+      const numbers = [swell.period, swell.size, swell.variety, swell.canPlunge, swell.runUp];
+      const towards = glslVec2(...swell.towards);
+      return `SWELL(swell${index},${DELAY_CHANNELS[index]},${towards},${numbers.map(glslFloat).join(',')})`;
     })
     .join(' ');
 }
 
-/** One SWELL_LINE(...) of water.frag.glsl for each train, added together. */
-function swellDefine(): string {
-  return seaConfig.waveTrains
-    .map((train) => {
+/**
+ * One MODELLED_SWELL_LINE(...) of water.frag.glsl for each swell, added together: the swell as
+ * the far sea shades it, out past the wave mesh. Its slope is the swell's steepness in deep water.
+ */
+function modelledSwellDefine(openSeaSpeed: number): string {
+  return seaConfig.swells
+    .map((swell, index) => {
+      const slope = (1.25 * swell.size * ((Math.PI * 2) / swell.period)) / openSeaSpeed;
+      const numbers = [slope, swell.period, swell.variety].map(glslFloat).join(',');
+      return `MODELLED_SWELL_LINE(${glslVec2(...swell.towards)},${DELAY_CHANNELS[index]},${numbers})`;
+    })
+    .join('+');
+}
+
+/** One SWELL_LINE(...) of water.frag.glsl for each family of the open sea's lines, added together. */
+function openSeaLinesDefine(): string {
+  return seaConfig.openSeaLines
+    .map((lines) => {
       const numbers = [
-        (1.25 * train.amplitude * train.frequency) / SWELL_SPEED,
-        train.setPace,
-        train.variety,
-        train.frequency,
-        train.crests,
-        train.phase,
+        (1.25 * lines.amplitude * lines.frequency) / OPEN_SEA_LINES_SPEED,
+        lines.setPace,
+        lines.variety,
+        lines.frequency,
+        lines.crests,
+        lines.phase,
       ];
       return `SWELL_LINE(${numbers.map(glslFloat).join(',')})`;
     })
@@ -79,14 +86,16 @@ function swellDefine(): string {
 export function createWaterMaterials(dependencies: WaterMaterialsDependencies): WaterMaterials {
   const { uniforms, home, windDirection } = dependencies;
   const waveDefines = {
-    WAVE_TRAINS: waveTrainsDefine(),
-    REEF_BREAK: glslFloat(seaConfig.reefBreak),
+    SWELLS: swellsDefine(),
+    SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
+    OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
   };
   const band = waterConfig.lagoonShoreBand;
   const defines = {
     ...waveDefines,
-    WATER_SWELL: swellDefine(),
-    LONG_SWELL_SLOPE: glslFloat((seaConfig.longSwell * 0.7) / SWELL_SPEED),
+    MODELLED_SWELL: modelledSwellDefine(dependencies.openSeaSpeed),
+    WATER_SWELL: openSeaLinesDefine(),
+    LONG_SWELL_SLOPE: glslFloat((seaConfig.longSwell * 0.7) / OPEN_SEA_LINES_SPEED),
     HOME_ISLET: glslVec2(home.x, home.z),
     REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
@@ -95,8 +104,6 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     BAND_UP_BEACH: glslFloat(band.rows.first),
     BAND_SHOWN_WITHIN: glslFloat(band.shownWithin),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
-    SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
-    OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
     SWELL_0_TOWARDS: glslVec2(...seaConfig.swells[0].towards),
     SWELL_1_TOWARDS: glslVec2(...seaConfig.swells[1].towards),
     SWELL_0_PERIOD: glslFloat(seaConfig.swells[0].period),

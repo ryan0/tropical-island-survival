@@ -1,22 +1,18 @@
 // Distances are metres, times seconds, angles radians.
 
-/** One train of the swell, wrapped round the island. */
-export interface WaveTrain {
+/** One family of swell lines shaded on the open sea, as rings round the island. */
+export interface OpenSeaLines {
   /** Radians a second: the period is a full turn divided by this. */
   frequency: number;
   /** How many crests fit round the island; the sign is the way the pattern turns. */
   crests: number;
   phase: number;
-  /** In deep water. The south side gets all of it, the sheltered north side about two thirds. */
+  /** How strongly the lines show. */
   amplitude: number;
-  /** How quickly the train swells and fades, which is what makes sets. */
+  /** How quickly the family swells and fades. */
   setPace: number;
-  /** An offset that makes the waves differ in size from crest to crest and along a crest. */
+  /** An offset that makes the lines differ from family to family. */
   variety: number;
-  /** How far its swash runs up the beach, relative to the others. */
-  runUp: number;
-  /** 1: it may plunge with a falling lip when steep enough. 0: it always spills. */
-  canPlunge: 0 | 1;
 }
 
 /** One swell arriving from the open sea. */
@@ -25,6 +21,18 @@ export interface Swell {
   period: number;
   /** The way it travels, as (x, z) of length 1: (0, -1) is northwards, from the south. */
   towards: readonly [number, number];
+  /**
+   * Its full size in deep water. A middling wave is about as high as this, a wave of the biggest
+   * set half as high again: 0.9 is a one-metre swell. The south side gets all of it, the sheltered
+   * north side about two thirds.
+   */
+  size: number;
+  /** An offset that gives the swell its own sets, and its waves their own peaks along the crest. */
+  variety: number;
+  /** How far its swash runs up the beach, relative to the other's. */
+  runUp: number;
+  /** 1: its waves throw a lip where the floor rises abruptly. 0: they always crumble. */
+  canPlunge: 0 | 1;
 }
 
 export const seaConfig = {
@@ -32,12 +40,14 @@ export const seaConfig = {
   level: 0,
 
   /**
-   * The swells. Two from nearly the same quarter whose periods differ a little: they beat, so a
-   * set of bigger waves comes round every 45 s (1 / (1/9 - 1/11.25)), with a wave about every 10 s.
+   * The swells the wave model draws. The main one from the south: a wave every ten seconds, in
+   * sets of four or five (wave-timing/timing.glsl). A smaller, quicker one across it from the
+   * south-south-west, which never throws a lip: it gives the beach a second rhythm, and peaks
+   * where the two cross.
    */
   swells: [
-    { period: 9, towards: [0, -1] },
-    { period: 11.25, towards: [0.309, -0.951] },
+    { period: 10, towards: [0, -1], size: 0.9, variety: 0.0, runUp: 0.2, canPlunge: 1 },
+    { period: 7.4, towards: [0.309, -0.951], size: 0.22, variety: 2.1, runUp: 0.1, canPlunge: 0 },
   ] satisfies Swell[],
 
   /**
@@ -54,54 +64,24 @@ export const seaConfig = {
      * some metres, not each spur and groove of the reef's edge, which would break it raggedly.
      */
     smoothedOver: 3,
-    /**
-     * A wave breaks where the water is about as shallow as the wave is high. The picture keeps, for
-     * four depths, how long ago the swell first crossed water that shallow: small waves break at
-     * the first depths, set waves at the last.
-     */
-    breakDepths: [0.7, 1.2, 1.7, 2.4],
     /** Times before and after a crossing are kept up to this many seconds. */
     longestKept: 30,
   },
 
-  /** The swell: three trains. The wave shader and the program's copy of it both read this. */
-  waveTrains: [
-    {
-      frequency: 1.21,
-      crests: 5,
-      phase: 0.0,
-      amplitude: 0.46,
-      setPace: 0.09,
-      variety: 0.0,
-      runUp: 0.14,
-      canPlunge: 1,
-    },
-    {
-      frequency: 1.61,
-      crests: -7,
-      phase: 2.1,
-      amplitude: 0.13,
-      setPace: 0.117,
-      variety: 2.1,
-      runUp: 0.1,
-      canPlunge: 0,
-    },
-    {
-      frequency: 0.885,
-      crests: 3,
-      phase: 4.2,
-      amplitude: 0.3,
-      setPace: 0.144,
-      variety: 4.2,
-      runUp: 0.12,
-      canPlunge: 1,
-    },
-  ] satisfies WaveTrain[],
+  /**
+   * Shorter swell lines far out, beyond the wave mesh: shaded, not modelled (water.frag.glsl). They
+   * give the open sea its variety of period and height.
+   */
+  openSeaLines: [
+    { frequency: 1.21, crests: 5, phase: 0.0, amplitude: 0.46, setPace: 0.09, variety: 0.0 },
+    { frequency: 1.61, crests: -7, phase: 2.1, amplitude: 0.13, setPace: 0.117, variety: 2.1 },
+    { frequency: 0.885, crests: 3, phase: 4.2, amplitude: 0.3, setPace: 0.144, variety: 4.2 },
+  ] satisfies OpenSeaLines[],
 
   /**
-   * The swell breaks on the outer edge of the reef flat, which is about 46 m wide. The wave model
-   * treats a line this far off the beach as the place where the water runs out, so small waves
-   * break about 3 m outside it and the biggest about 8 m outside, right on top of the drop-off.
+   * About where the reef's outer edge lies, in metres off the beach: the swell breaks a little
+   * outside it. The wave mesh is finest round it, and the spray looks for breaking waves there.
+   * (Where a wave really breaks is the sea floor's to say: sea-floor-pictures.ts.)
    */
   reefBreak: 40,
 

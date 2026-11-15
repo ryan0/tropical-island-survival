@@ -35,12 +35,16 @@ the git tag `build-78`.
 
 ## The sea
 
-9. **The swell is a model, not a simulation** [waves.glsl, 36_waves.js]. Three wave trains come from the south,
-   shoal, break on the reef edge with a falling lip, cross the reef flat as white water, stand up again at the
-   beach and break on the sand. The notes for builds 28, 29 and 78 describe it.
-10. **The wave model exists twice**, in the shader that moves the mesh and in JavaScript for everything else
-    (swimming height, spray, footprints). A test compares them on the GPU. They stay two until the breaking
-    wave is rebuilt, which is to end with one model (`docs/ROADMAP.md`).
+9. **The swell is a model, not a simulation**, driven by the sea floor. Two swells come from the south. Where
+   and when each wave breaks is read from pictures of the real sea floor's depth and of the swell's arrival times
+   (`sea-floor-pictures.ts`), so the waves follow whatever the ground becomes. Each wave has its own size; it
+   breaks where it is 0.78 of the depth high, with a falling lip where the floor rises abruptly and a crumbling
+   crest where it rises gently; its breaking runs on seconds (the lip falls as gravity has it); then it crosses
+   the reef flat as white water and breaks again on the sand. `ROADMAP.md` has the design; the notes for builds
+   28, 29 and 78 describe the model it replaced.
+10. **The wave model exists twice**, in the shader that moves the mesh and in the program for everything else
+    (swimming height, spray, footprints). Both read the same pictures, and the sizes and timing are written once
+    for both (`wave-timing/timing.glsl`); the shapes are written in each, and a test compares them on the GPU.
 11. **Water is three meshes sharing one shader.** A flat far sea with holes cut in the shader; a ring of wave mesh
     round the atoll in 16 sectors with three levels of detail; a strip along the lagoon shore that is lifted only
     in a high wind [38_water.js].

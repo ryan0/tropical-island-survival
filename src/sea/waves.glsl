@@ -1,51 +1,46 @@
 // The wave model: the height of the sea's surface at any point and moment, how far its water is pushed towards the
 // shore, and the foam on it. water.vert.glsl moves the wave mesh by it.
 //
-// wave-model.ts is the program's copy, function for function (its heightAt is waveF here, addTrain is waveOfTrain;
-// sizeAlongCrest, sizeOfWave and runUpOf have the same names in both). The two must change together: a test
-// (tests/wave-mirror.spec.ts) draws this one's wave heights and compares them with the program's.
+// The waves have no sea floor of their own. They read the real one from two pictures (sea-floor-pictures.ts): how
+// long each swell takes to arrive at a spot, and how long ago it first crossed water of four depths on its way
+// there. A crest lies wherever a swell's arrival time and the clock agree, so crests slow over the reef and bend
+// round shallows. Each wave has its own size (sets, and peaks along its crest). It grows as the water shallows and
+// breaks where it is 0.78 of the depth high, so a big wave breaks further out than a small one, and the break runs
+// along a crest wherever the floor is uneven. Its breaking then runs on seconds: it steepens and stands up, its lip
+// falls for as long as gravity takes, lands, and the wave runs in as white water. A wave that meets a sudden
+// shallow throws a lip; one that shoals gently crumbles.
 //
-// The swell meets the atoll twice. It breaks on the outer edge of the reef flat (REEF_BREAK metres off the beach),
-// crosses the flat as a line of white water that dies down, and what is left laps onto the beach as a small wave.
-// Each wave shoals by Green's law (its height grows as the depth to the power -1/4) and starts to break where it is
-// 0.78 of the depth high. Its breaking stage then runs from 0 to 1 while the crest throws a lip that falls ahead of
-// it, from 1 to 1.6 while that collapses, and afterwards the wave runs in as a bore.
+// The beach is still a formula (shore.glsl): the swash and its run-up, and the fade up the sand.
+//
+// wave-model.ts is the program's copy of waveF, for all that must know where the water is. What the two must agree
+// on about sizes and timing is written once, in wave-timing/timing.glsl, which both use; the shapes here are written
+// again there, and a test (tests/wave-mirror.spec.ts) draws this one's wave heights and compares them with the
+// program's.
 //
 // Needs from outside:
-//   uDebugMode          a uniform, declared by the includer: 1 switches the waves off, 2 the falling lip
-//   WAVE_TRAINS   a define: one WAVE_TRAIN(...) for each train, with its numbers (water-materials.ts)
-//   REEF_BREAK    a define: how many metres off the beach the swell breaks on the reef
-//   shoreH and openSea, from island-shape/shore.glsl (included here)
+//   uDebugMode    a uniform, declared by the includer: 1 switches the waves off, 2 the falling lip
+//   SEA_PICTURE_SPAN, OPEN_SEA_SPEED   defines: the pictures' span in metres, and a swell's speed in the open sea
+//   SWELLS        a define: one SWELL(...) for each swell, with its numbers (water-materials.ts)
+//   shoreH, islandR and openSea, from island-shape/shore.glsl (included here)
 // Gives the includer waveF.
 //
 // RULES (docs/DEVICE_NOTES.md): no out or inout parameters, no loops, no arrays, branch-free maths, guarded pow and
-// divisions. The trains are written out one after another by WAVE_TRAINS, never looped over.
+// divisions. The swells are written out one after another by SWELLS, never looped over.
 #include "../world/island-shape/shore"
+#include "wave-timing/timing"
+#include "../shaders/shared/turns"
+
+// The sea floor as the waves know it (sea-floor-pictures.ts). uSeaFloor: (the main swell's delay, the second
+// swell's, the depth, unused). uBreakTimes: the seconds since the main swell crossed each of timing.glsl's four
+// depths.
+uniform sampler2D uSeaFloor;
+uniform sampler2D uBreakTimes;
 
 // shore.glsl's beach: s metres off it the sea is BEACH_CURVE_DEPTH * ((1 + s / BEACH_CURVE_LENGTH)^2 - 1) deep. The
-// model reads the curve backwards, from the depth to how far off the beach the swell feels itself, and lays it at the
-// reef break for the depth the swell feels on its way in. (Both numbers are shore.glsl's: keep them the same.)
+// model reads the curve backwards, from the depth to how far off the beach a point is. (Both numbers are
+// shore.glsl's: keep them the same.)
 const float BEACH_CURVE_LENGTH = 55.0;
 const float BEACH_CURVE_DEPTH = 5.0;
-// The speed the swell's lines travel at out at sea, in metres a second (water-materials.ts has it too).
-const float SWELL_SPEED = 4.95;
-
-// The size of one wave along its crest: big peaks, small shoulders. alongShore is where along the shore (an angle),
-// variety the train's own number, which gives each train its own pattern.
-float sizeAlongCrest(float trainSize, float alongShore, float variety) {
-  float peakWave = 0.5 + 0.5 * sin(alongShore * 18.0 + 2.5 * sin(alongShore * 6.0 + variety) + variety);
-  float peaks = pow(max(peakWave, 1e-4), 2.2);
-  float slowSwing = 0.5 + 0.5 * sin(alongShore * 9.0 + variety * 5.0);
-  return trainSize * (0.62 + 0.55 * peaks + 0.25 * slowSwing);
-}
-
-// Every wave has its own size. Half way between two crests the sizes meet, so that the surface has no step there.
-// turns counts the train's crests gone by, whole and part.
-float sizeOfWave(float trainSize, float th, float turns, float crests, float variety) {
-  float crestsGoneBy = floor(turns);
-  float ownSize = sizeAlongCrest(trainSize, th - 6.2832 * crestsGoneBy / crests, variety);
-  return mix(ownSize, 0.95 * trainSize, smoothstep(0.75, 1.0, abs(turns - crestsGoneBy - 0.5) * 2.0));
-}
 
 // The breaking wave's front: where a point of it ends up (x ahead of the crest, y up; both in wave heights).
 // From the foot of the face (fromCrest -1.2) up a hollow face to the lip, then out along the lip's underside to its
@@ -57,12 +52,12 @@ float sizeOfWave(float trainSize, float th, float turns, float crests, float var
 vec2 breakingFront(float fromCrest, float lipFall, float hollowness) {
   // Where the lip's tip is: thrown out ahead, and falling.
   float tipAhead = 0.10 * smoothstep(0.0, 0.2, lipFall) + (0.48 + 0.40 * hollowness) * lipFall;
-  float tipHeight = 1.0 - 0.90 * lipFall * lipFall;
+  float tipHeight = 1.0 - LIP_DROPS * lipFall * lipFall;
   // (the lip starts as nothing and thickens as it is thrown)
   float lipThickness = 0.15 + 0.85 * smoothstep(0.0, 0.25, lipFall);
 
   // The face, from its foot (fromCrest -1.2) up to where the lip leaves it (-0.7).
-  float upTheFace = clamp((fromCrest + 1.2) / 0.5, 0.0, 1.0) * 1.5708;
+  float upTheFace = clamp((fromCrest + 1.2) / 0.5, 0.0, 1.0) * QUARTER_TURN;
   float faceAhead = 0.62 + 0.33 * hollowness - (0.63 + 0.33 * hollowness) * sin(upTheFace);
   vec2 face = vec2(faceAhead, 0.75 - 0.75 * cos(upTheFace));
 
@@ -79,28 +74,25 @@ vec2 breakingFront(float fromCrest, float lipFall, float hollowness) {
   return mix(lip, face, step(fromCrest, -0.7));
 }
 
-// One swell train at one spot. Returns (height, push towards the shore, foam 0..1, crest height).
-//   trainPhase     the train's phase here
-//   trainSize      the train's size here
-//   offReefBreak   metres outside the line where the swell breaks on the reef (negative: on the reef flat)
-//   feltDepth      the depth the swell feels on its way in (m, kept within 0.12 to 6)
-//   crests, variety, frequency, canPlunge   the train's own numbers (see WAVE_TRAIN)
-//   site           what the swell meets here, the same for every train (see waveF)
-// (wave-model.ts's addTrain keeps the short names these had in build 78: waveSize Aw, phase w, feltDepth dd,
-// shoaling sh, offshoreHeight H0, breakingDepth db, breakerHeight Hb, breakPoint sb, hollowness ho, breakingSpan wd,
-// stage q, steepening sig, fromCrest xi, waveNumber k, crestStage qc, broken post, shoreBreak sho, heightLimit lim,
-// boreHeight Hp, height H, swellShape Cpk, boreFront fw, boreShape Cb, shape C, surfSimilarity xib, plunging plg,
-// standingUp M, lipFall be, lipLanding cr, fromLanding xc, aheadOfFace xs; the train's usual wave adds S to them.)
+// One swell at one spot. Returns (height, push towards the shore, foam 0..1, crest height).
+//   trainPhase     the swell's phase here: a quarter turn where its crest is
+//   turns          its crests gone by here, whole and part
+//   fullSize       its size here, before sets
+//   frequency, variety, canPlunge   the swell's own numbers (see SWELL); frequency in radians a second
+//   th             the direction from the atoll's centre
+//   depth          the sea floor's depth here
+//   sinceCrossings the breaks picture here
+//   site           what every swell meets here (see waveF)
 vec4 waveOfTrain(
   float trainPhase,
-  float trainSize,
-  float offReefBreak,
-  float feltDepth,
-  float th,
-  float crests,
-  float variety,
+  float turns,
+  float fullSize,
   float frequency,
+  float variety,
   float canPlunge,
+  float th,
+  float depth,
+  vec4 sinceCrossings,
   vec4 site
 ) {
   float slowness = site.x;
@@ -108,43 +100,49 @@ vec4 waveOfTrain(
   float gate = site.z;
   float foamAtWaterline = site.w;
 
-  // This wave's own size; a bigger wave runs a little ahead of the rest in the shallows.
-  float waveSize = sizeOfWave(trainSize, th, (trainPhase + 1.5708) / 6.2832, crests, variety);
-  float phase = trainPhase + 1.6 * (waveSize - trainSize) * (1.0 - smoothstep(0.0, 45.0, offReefBreak));
+  // This wave's own size, and the usual size of the swell's waves about now, which sets how far the water draws
+  // down between crests. A bigger wave runs a little ahead of the rest in the shallows.
+  float waveSize = sizeOfWave(fullSize, th, turns, variety);
+  float usualSize = usualSizeOfWave(fullSize, turns, variety);
+  float inShallows = 1.0 - smoothstep(3.0, 9.0, depth);
+  float phase = trainPhase + RUNS_AHEAD * frequency * (waveSize - usualSize) * inShallows;
 
-  // Shoaling, and where it breaks: for this wave, and for the train's usual wave, which sets how far the water draws
-  // down between crests. 2.0064 is 6^(1/4) / 0.78: breakingDepth is the depth where a wave grown by Green's law
-  // (from its height in 6 m of water) reaches 0.78 of it, and breakPoint is how far outside the reef break that is.
+  // Shoaling, and the depth it breaks in: for this wave, and for the swell's usual wave.
+  float feltDepth = clamp(depth, 0.12, 6.0);
   float shoaling = pow(6.0 / feltDepth, 0.25);
-  float offshoreHeight = min(1.65 * waveSize, 1.0);
-  float usualOffshoreHeight = min(1.65 * trainSize, 1.0);
-  float breakingDepth = pow(max(offshoreHeight, 1e-4) * 2.0064, 0.8);
-  float usualBreakingDepth = pow(max(usualOffshoreHeight, 1e-4) * 2.0064, 0.8);
+  float offshoreHeight = offshoreHeightOf(waveSize);
+  float usualOffshoreHeight = offshoreHeightOf(usualSize);
+  float breakingDepth = breakingDepthOf(offshoreHeight);
+  float usualBreakingDepth = breakingDepthOf(usualOffshoreHeight);
   float breakerHeight = 0.78 * breakingDepth;
   float usualBreakerHeight = 0.78 * usualBreakingDepth;
-  float breakPoint = BEACH_CURVE_LENGTH * (sqrt(1.0 + breakingDepth / BEACH_CURVE_DEPTH) - 1.0);
-  float usualBreakPoint = BEACH_CURVE_LENGTH * (sqrt(1.0 + usualBreakingDepth / BEACH_CURVE_DEPTH) - 1.0);
-  // (big waves are hollow and take longer over breaking)
+  // (big waves are hollow)
   float hollowness = smoothstep(0.55, 1.05, breakerHeight);
-  float breakingSpan = max(min((1.3 + 2.6 * breakerHeight) * (1.0 + 0.45 * hollowness), 0.85 * breakPoint), 0.3);
-  float usualBreakingSpan = max(min(1.3 + 2.6 * usualBreakerHeight, 0.85 * usualBreakPoint), 0.3);
 
-  // The breaking stage here (breakingSpan is the metres one stage takes), and how near breaking the swell is:
-  // 0 far outside the break, 1 at it.
-  float stage = (breakPoint - offReefBreak) / breakingSpan;
-  float usualStage = (usualBreakPoint - offReefBreak) / usualBreakingSpan;
-  float steepening = smoothstep(-1.8, 0.0, stage);
-  // the phase ahead of the crest (negative) or behind it, from -pi to pi
-  float fromCrest = mod(phase - 1.5708 + 0.45 * steepening + 3.1416, 6.2832) - 3.1416;
+  // The breaking stage here: from the seconds since this wave broke on its way to this spot (negative: still to
+  // go), which the picture's four depths give.
+  float lipFallTime = lipFallSeconds(breakerHeight);
+  float sinceBroke =
+    sinceCrossing(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
+  float usualSinceBroke =
+    sinceCrossing(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, usualBreakingDepth);
+  float stage = stageOf(sinceBroke, lipFallTime);
+  float usualStage = stageOf(usualSinceBroke, lipFallSeconds(usualBreakerHeight));
+  float steepening = steepeningAt(stage);
+
+  // Where this point is on the wave: phaseFromCrest in the swell's own radians, ahead of the crest (negative) or
+  // behind it; fromCrest in the front's radians, which go by metres (timing.glsl).
   float waveNumber = frequency * slowness;
-  // crestStage: how far along its breaking THIS WAVE is - the stage measured where its crest is, not at this point.
-  // Every point of the wave's front then agrees on the stage, so the face and the lip hold their shape as the wave
-  // travels. (The stage changes by more than 1 across the few metres of water that are drawn up into a breaking
-  // wave's front.)
-  float crestStage =
-    stage + clamp(fromCrest, -1.6, 1.4) * (1.0 - smoothstep(2.2, 3.0, abs(fromCrest))) / (waveNumber * breakingSpan);
+  float phaseFromCrest = mod(phase - QUARTER_TURN + leanOf(waveNumber) * steepening + HALF_TURN, FULL_TURN) - HALF_TURN;
+  float fromCrest = frontFromCrest(phaseFromCrest, waveNumber);
+  // crestStage: how far along its breaking THIS WAVE is - the stage where its crest is, not at this point. Every
+  // point of the wave's front then agrees on the stage, so the face and the lip hold their shape as the wave
+  // travels.
+  float crestStage = stageOf(sinceBroke + secondsFromCrest(fromCrest, slowness), lipFallTime);
   float broken = smoothstep(0.95, 1.6, crestStage);
   float usualBroken = smoothstep(0.95, 1.6, usualStage);
+  // (the metres one stage takes once the wave has broken)
+  float breakingSpan = SECONDS_A_STAGE_AFTER / slowness;
 
   // After breaking: white water that loses height as it crosses the flat, down to a small wave that reaches the beach.
   // The shore break: where the sand rises to the beach, what is left of the wave stands up again - up to three times
@@ -152,12 +150,15 @@ vec4 waveOfTrain(
   // it breaks on the sand. shoreBreak is how far that has gone: 0 out on the flat, 1 in the last metre or two.
   float shoreBreak = 1.0 - smoothstep(0.35, 1.3, depthAtBeach);
   float heightLimit = 0.66 * depthAtBeach + 0.04;
-  float boreOnFlat = 0.05 + 0.12 * breakerHeight + 0.55 * (feltDepth - 0.12)
+  // (white water keeps more of its height where the floor falls away again behind the break)
+  float deeperThanItBroke = max(feltDepth - 0.6 * breakingDepth, 0.0);
+  float boreOnFlat = 0.05 + 0.12 * breakerHeight + 0.55 * deeperThanItBroke
     + 0.66 * breakerHeight * (1.0 - smoothstep(1.5, 6.0, crestStage));
   float boreHeight = min(min(breakerHeight, boreOnFlat * (1.0 + 2.2 * shoreBreak)), heightLimit);
   // (The usual wave sets how far the water draws down between crests, so it grows much less in the shore break, or
   // the sea would stand a hand lower all along the beach.)
-  float usualBoreOnFlat = 0.05 + 0.12 * usualBreakerHeight + 0.55 * (feltDepth - 0.12)
+  float usualDeeperThanItBroke = max(feltDepth - 0.6 * usualBreakingDepth, 0.0);
+  float usualBoreOnFlat = 0.05 + 0.12 * usualBreakerHeight + 0.55 * usualDeeperThanItBroke
     + 0.5 * usualBreakerHeight * (1.0 - smoothstep(1.5, 6.0, usualStage));
   float usualBoreHeight = min(min(usualBreakerHeight, usualBoreOnFlat * (1.0 + 0.8 * shoreBreak)), heightLimit);
   float shoaledHeight = min(offshoreHeight * shoaling, breakerHeight * 1.05);
@@ -165,17 +166,18 @@ vec4 waveOfTrain(
   float height = mix(shoaledHeight, boreHeight, broken) * gate;
   float usualHeight = mix(usualShoaledHeight, usualBoreHeight, usualBroken) * gate;
 
-  // In shallow water a swell stops being a sine: the crest narrows and peaks, the trough goes long and flat.
-  float crestNarrowing = 1.0 + (max(0.55 / waveNumber, 1.0) - 1.0) * smoothstep(-5.0, -1.2, stage);
-  float shapePhase = clamp(fromCrest * crestNarrowing, -3.1416, 3.1416) + 1.5708 - 0.45 * steepening;
+  // Out at sea a swell is a long round back. In shallow water it stops being a sine: the crest narrows to a peak a
+  // few metres wide, and the trough goes long and flat.
+  float crestNarrowing = 1.0 + (max(0.55 / waveNumber, 1.0) - 1.0) * narrowingAt(stage);
+  float shapePhase = clamp(phaseFromCrest * crestNarrowing, -HALF_TURN, HALF_TURN) + QUARTER_TURN - 0.45 * steepening;
   float sine = 0.5 + 0.5 * sin(shapePhase + 0.45 * steepening * sin(shapePhase));
   float swellShape = pow(max(sine, 1e-4), 2.4 + 3.6 * steepening);
   // The white water's front is about 1.4 m deep; at the beach, where the wave stands up again, half a metre.
-  float boreFront = min(0.75, 1.4 * waveNumber) * (1.0 - 0.6 * shoreBreak);
+  float boreFront = min(0.75, 1.4 * FRONT_WAVE_NUMBER) * (1.0 - 0.6 * shoreBreak);
   // White water: a steep front and a back that falls away over a few metres (2.5 m to lose two thirds; at the beach
   // half that: there it is a wave again, with a crest, not a low hump).
   float steepFront = smoothstep(-0.2 - boreFront, -0.2, fromCrest);
-  float fallingBack = exp(-max(fromCrest, 0.0) * max(0.6, 0.4 / waveNumber) * (1.0 + 0.9 * shoreBreak));
+  float fallingBack = exp(-max(fromCrest, 0.0) * max(0.6, 0.4 / FRONT_WAVE_NUMBER) * (1.0 + 0.9 * shoreBreak));
   float boreShape = steepFront * fallingBack * (1.0 - smoothstep(1.2, 2.2, fromCrest));
   // (white water is lumpy: its height varies along the front and keeps changing)
   boreShape *= 1.0 + 0.30 * sin(th * 190.0 + fromCrest * 3.0 + variety) * sin(th * 67.0 - trainPhase * 0.5);
@@ -183,16 +185,15 @@ vec4 waveOfTrain(
   float crestHeight = 0.62 * height * shape;
   float profileHeight = crestHeight - 0.22 * usualHeight;
 
-  // Steep waves plunge, the rest spill. (surfSimilarity is the Iribarren number of a reef face that slopes 0.18:
-  // 1.25 times the period is the square root of the wave's length in deep water.)
-  float period = 6.2832 / frequency;
-  float surfSimilarity = 0.18 * period * 1.25 / sqrt(max(breakerHeight, 0.02));
-  float plunging = (1.0 - smoothstep(1.9, 3.2, surfSimilarity)) * canPlunge;
-  // The wave stands up into a steep hollow face a little before its lip starts to fall (lipFall).
-  float standingUp = smoothstep(-0.6, -0.1, crestStage) * (1.0 - smoothstep(1.0, 1.8, crestStage)) * plunging;
+  // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
+  float shoalsIn =
+    shoalingSeconds(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
+  float plunging = plungingFor(shoalsIn) * canPlunge;
+  // The wave stands up into a steep hollow face before its lip starts to fall (lipFall).
+  float standingUp = standingUpAt(crestStage) * plunging;
   // (uDebugMode 2: no falling lip)
   standingUp *= abs(uDebugMode - 2.0) < 0.5 ? 0.0 : 1.0;
-  float frontHeight = 1.15 * height;
+  float frontHeight = FRONT_STANDS * height;
   float lipFall = clamp(crestStage, 0.0, 1.0);
 
   // The breaking front: each point of it is moved from where the swell has it to where breakingFront puts it.
@@ -203,11 +204,15 @@ vec4 waveOfTrain(
   vec2 frontPoint = breakingFront(fromCrest, lipFall, hollowness);
   float intoFace = smoothstep(-1.5, -1.2, fromCrest);
   // (the back of the wave: about 3.6 m long)
-  float onBack = (1.0 - smoothstep(0.0, 1.0, (fromCrest - 0.1) / min(1.1, 3.6 * waveNumber))) * step(0.1, fromCrest);
+  float onBack =
+    (1.0 - smoothstep(0.0, 1.0, (fromCrest - 0.1) / min(1.1, 3.6 * FRONT_WAVE_NUMBER))) * step(0.1, fromCrest);
   float frontBase = -0.22 * usualHeight - 0.10 * height;
-  float pushInFront = (frontHeight * frontPoint.x + fromCrest / waveNumber) * intoFace * inFront;
-  float pushOnBack = (-0.05 * frontHeight + 0.1 / waveNumber) * onBack;
-  float frontPush = (pushInFront + pushOnBack) * standingUp;
+  float pushInFront = (frontHeight * frontPoint.x + fromCrest / FRONT_WAVE_NUMBER) * intoFace * inFront;
+  float pushOnBack = (-0.05 * frontHeight + 0.1 / FRONT_WAVE_NUMBER) * onBack;
+  // (The water is drawn in to the face early in the standing up, and lifted all through it: the front steepens
+  // first and then grows. Drawn in only as it is lifted, the face would arrive as a ledge sliding in ahead of the
+  // crest.)
+  float frontPush = (pushInFront + pushOnBack) * smoothstep(0.0, 0.35, standingUp);
   float liftInFront = (frontBase + frontHeight * frontPoint.y - profileHeight) * intoFace * inFront;
   float liftOnBack = (frontBase + frontHeight - profileHeight) * onBack;
   float frontLift = (liftInFront + liftOnBack) * standingUp;
@@ -231,13 +236,15 @@ vec4 waveOfTrain(
   float fadingOverFlat = exp(-max(stage - 1.6, 0.0) * breakingSpan * 0.13);
   float foamLeft = min(fadingOverFlat + 1.0 - smoothstep(0.3, 0.85, depthAtBeach), 1.0);
   float behindBoreFront = smoothstep(-0.2 - 1.25 * boreFront, -0.2 - 0.4 * boreFront, fromCrest);
-  float boreFoamFade = max(mix(1.6, 1.1, bigness), 0.28 / waveNumber);
+  float boreFoamFade = max(mix(1.6, 1.1, bigness), 0.28 / FRONT_WAVE_NUMBER);
   float freshFoam = broken * behindBoreFront * exp(-max(fromCrest, 0.0) * boreFoamFade)
     * (1.0 - smoothstep(1.3, 2.2, fromCrest)) * foamLeft * foamAtWaterline;
   // And long after the white water has gone by, thin foam is still lying there in streaks, until the next wave.
   float lyingFoam = broken * behindBoreFront * 0.30 * bigness * exp(-max(fromCrest, 0.0) * 0.30)
     * (1.0 - smoothstep(2.3, 3.0, fromCrest)) * min(foamLeft * 1.6, 1.0) * foamAtWaterline;
-  float boreFoam = freshFoam + lyingFoam;
+  // (Foam lies only where the wave went by already broken: without this the whole band would whiten at once behind
+  // a wave at the moment it broke, out to where it was still green.)
+  float boreFoam = (freshFoam + lyingFoam) * smoothstep(0.0, 0.6, sinceBroke);
   float whitecap = smoothstep(0.93, 1.0, swellShape) * steepening * 0.4 * (1.0 - broken) * (1.0 - standingUp);
   float landingFoam = lipLanding * exp(-fromLanding * fromLanding / 0.9) * 1.2;
   float foam = (lipFoam + boreFoam * (0.6 + 0.4 * bigness) + whitecap + landingFoam) * smoothstep(0.03, 0.10, waveSize);
@@ -252,61 +259,32 @@ vec4 waveOfTrain(
   return vec4(surface, push, foam, crestHeight);
 }
 
-// How far up the beach the water is running (metres above sea level): one pulse for each wave, timed to its arrival.
-// trainPhase is the train's phase at the waterline.
-float runUpOf(float trainPhase, float trainSize, float th, float crests, float variety) {
-  float turns = (trainPhase - 1.5708) / 6.2832;
-  float sinceCrest = (turns - floor(turns)) * 6.2832;
-  float waveSize = sizeOfWave(trainSize, th, turns, crests, variety);
-  // (a bigger wave runs a little ahead, as in waveOfTrain)
-  sinceCrest += 1.6 * (waveSize - trainSize);
-  float reach = min(1.9 * waveSize * (1.0 + 1.8 * waveSize), 1.0);
-  return reach * smoothstep(0.0, 1.0, sinceCrest) * (1.0 - smoothstep(1.2, 3.8, sinceCrest));
-}
-
-// A train's size here and now: it swells and fades in sets, and varies along the shore. swellStrength is how much of
-// the swell reaches here.
-float sizeOfTrain(
-  float amplitude,
-  float setPace,
-  float variety,
-  float alongShoreVariety,
-  float swellStrength,
-  float th,
-  float t
-) {
-  float sets = 0.70 + 0.30 * sin(t * setPace + th * 2.0 + variety);
-  float alongShore = 0.88 + 0.12 * sin(th * 13.0 + alongShoreVariety + t * 0.05);
-  return amplitude * swellStrength * sets * alongShore;
-}
-
-// One wave train's part in the sea surface: its size here and now, the wave itself (kept in the variable NAME), and
-// how far its swash runs up the beach. WAVE_TRAINS, a define written by water-materials.ts from the sea's config, is
-// one of these for each train (VARIETY17 is VARIETY * 1.7). The run-up is the wave as it arrives at the waterline:
-// 3.184 is timeToBeach there. It is made of waveF's local names, so it belongs inside waveF and nowhere else.
-#define WAVE_TRAIN(NAME, AMPLITUDE, SET_PACE, VARIETY, VARIETY17, FREQUENCY, CRESTS, PHASE, CAN_PLUNGE, RUN_UP) trainSize = sizeOfTrain(AMPLITUDE, SET_PACE, VARIETY, VARIETY17, swellStrength, th, t); vec4 NAME = waveOfTrain(FREQUENCY * (t + timeToBeach) + CRESTS * th + PHASE, trainSize, offReefBreak, feltDepth, th, CRESTS, VARIETY, FREQUENCY, CAN_PLUNGE, site); runUp += RUN_UP * runUpOf(FREQUENCY * (t + 3.184) + CRESTS * th + PHASE, trainSize, th, CRESTS, VARIETY);
+// One swell's part in the sea surface: its size here, the wave itself (kept in the variable NAME), and how far its
+// swash runs up the beach. SWELLS, a define written by water-materials.ts from the sea's config, is one of these for
+// each swell. DELAY is the channel of the floor picture that holds the swell's delay (x or y); TOWARDS the way it
+// travels. A crest is where the clock and the swell's arrival agree: there `turns` is a whole number and a half.
+// The run-up goes by the swell's arrival at the waterline. It is made of waveF's local names, so it belongs inside
+// waveF and nowhere else.
+#define SWELL(NAME, DELAY, TOWARDS, PERIOD, SIZE, VARIETY, CAN_PLUNGE, RUN_UP) fullSize = SIZE * swellStrength * alongShoreSwing(th, t, VARIETY); turns = (t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5; vec4 NAME = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / PERIOD, VARIETY, CAN_PLUNGE, th, depth, sinceCrossings, site); runUp += RUN_UP * runUpOf(fullSize, th, (t - dot(waterline, TOWARDS) / OPEN_SEA_SPEED - seaFloorAtWaterline.DELAY) / PERIOD, PERIOD, VARIETY);
 
 // The whole sea surface at p (x, z) at time t: (height above still water, push towards the shore, foam 0..1, metres
 // off the beach).
 vec4 waveF(vec2 p, float t) {
-  // Where p lies on the beach as the waves feel it (shore.glsl), and so how far off the beach it is.
+  // Where p lies on the beach as the swash feels it (shore.glsl), and so how far off the beach it is.
   float th = atan(p.y, p.x);
   float ground = shoreH(p.x, p.y);
   float offBeach = BEACH_CURVE_LENGTH * (sqrt(max(1.0 - ground / BEACH_CURVE_DEPTH, 0.04)) - 1.0);
-  float offReefBreak = offBeach - REEF_BREAK;
-  // The depth the swell feels on its way in: the beach curve laid at the reef break (kept within 0.12 to 6 m).
-  float ur = 1.0 + offReefBreak / BEACH_CURVE_LENGTH;
-  float feltDepth = clamp(BEACH_CURVE_DEPTH * (ur * ur - 1.0), 0.12, 6.0);
 
-  // The swell slows as the water shallows: within 40 m of the beach it travels at celerity / 1.3 metres a second,
-  // further out at SWELL_SPEED, and up the sand at about a metre a second. timeToBeach is the seconds it still needs
-  // to reach the beach (counted from 3.184 at the waterline).
-  float celerity = sqrt(clamp(offBeach, 0.0, 40.0) + 1.5);
-  float timeToBeach = 2.6 * celerity + max(offBeach - 40.0, 0.0) / SWELL_SPEED + min(offBeach, 0.0) * 1.06;
+  // The sea floor here, and at the waterline in this direction, which the swash goes by.
+  vec4 seaFloor = texture2D(uSeaFloor, p / SEA_PICTURE_SPAN + 0.5);
+  vec4 sinceCrossings = texture2D(uBreakTimes, p / SEA_PICTURE_SPAN + 0.5);
+  vec2 waterline = vec2(cos(th), sin(th)) * islandR(th);
+  vec4 seaFloorAtWaterline = texture2D(uSeaFloor, waterline / SEA_PICTURE_SPAN + 0.5);
+  float depth = seaFloor.z;
 
-  // What the swell meets here, the same for every train: its slowness (seconds a metre), the depth on the beach here,
-  // a gate that is 1 in the water and fades to nothing up the beach, and the foam's fade at the waterline.
-  float slowness = 1.3 / celerity;
+  // What every swell meets here: its slowness (seconds a metre), the depth on the beach here, a gate that is 1 in
+  // the water and fades to nothing up the beach, and the foam's fade at the waterline.
+  float slowness = 1.0 / swellSpeed(depth);
   float depthAtBeach = clamp(-ground, 0.12, 6.0);
   float gate = smoothstep(-1.5, 0.3, offBeach);
   float foamAtWaterline = smoothstep(-0.4, 0.9, offBeach);
@@ -319,33 +297,34 @@ vec4 waveF(vec2 p, float t) {
   float switchedOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
   float swellStrength = towardsMeshEdge * southern * openSea(th) * switchedOn;
 
-  // The trains: WAVE_TRAINS sets train0, train1 and train2, and adds up their run-up.
+  // The swells: SWELLS sets swell0 and swell1, and adds up their run-up.
   float runUp = 0.0;
-  float trainSize;
-  WAVE_TRAINS
+  float fullSize;
+  float turns;
+  SWELLS
 
   // Where crests cross, they stand up higher.
-  float crossings = train0.w * train1.w + train0.w * train2.w + train1.w * train2.w;
-  float height = train0.x + train1.x + train2.x + 0.9 * crossings;
+  float crossings = swell0.w * swell1.w;
+  float height = swell0.x + swell1.x + 0.9 * crossings;
 
-  // Foam: the three trains', extra where crests cross, and the patchy foam that never quite clears where the swell
-  // breaks. Where one train is standing up to break, the foam the others left there is stretched thin over its face.
-  float foamKept0 = 1.0 - 0.88 * smoothstep(0.05, 0.30, abs(train0.y));
-  float foamKept1 = 1.0 - 0.88 * smoothstep(0.05, 0.30, abs(train1.y));
-  float foamKept2 = 1.0 - 0.88 * smoothstep(0.05, 0.30, abs(train2.y));
-  float trainsFoam = train0.z * foamKept1 * foamKept2 + train1.z * foamKept0 * foamKept2
-    + train2.z * foamKept0 * foamKept1;
-  float crossingFoam = 2.5 * crossings * (1.0 - smoothstep(2.0, 12.0, offReefBreak));
-  float patchyFoam = 0.15 * swellStrength * smoothstep(-16.0, -3.0, offReefBreak)
-    * (1.0 - smoothstep(4.0, 9.0, offReefBreak));
-  float foam = trainsFoam + (crossingFoam + patchyFoam) * foamKept0 * foamKept1 * foamKept2;
+  // Foam: the two swells', extra where crests cross in the shallows, and the patchy foam that never quite clears
+  // where the swell breaks. Where one swell is standing up to break, the foam the other left there is stretched thin
+  // over its face.
+  float foamKept0 = 1.0 - 0.88 * smoothstep(0.05, 0.30, abs(swell0.y));
+  float foamKept1 = 1.0 - 0.88 * smoothstep(0.05, 0.30, abs(swell1.y));
+  float swellsFoam = swell0.z * foamKept1 + swell1.z * foamKept0;
+  float crossingFoam = 2.5 * crossings * (1.0 - smoothstep(2.5, 6.0, depth));
+  // (where a middling wave breaks: from a little before it crosses water 1.7 m deep to a few seconds after)
+  float whereWavesBreak = smoothstep(-2.0, -0.5, sinceCrossings.z) * (1.0 - smoothstep(1.0, 4.0, sinceCrossings.z));
+  float patchyFoam = 0.15 * swellStrength * whereWavesBreak;
+  float foam = swellsFoam + (crossingFoam + patchyFoam) * foamKept0 * foamKept1;
 
   // The swash lifts the water near the beach, and leaves a sheet of water on the sand where it has run up - but not
   // where a wave is pushing the water about.
   runUp *= 0.8;
   height += 0.2 * runUp * (1.0 - smoothstep(0.0, 7.0, offBeach));
   float film = clamp((runUp - ground) * 0.3, -0.2, 0.10);
-  float push = train0.y + train1.y + train2.y;
+  float push = swell0.y + swell1.y;
   float pushed = smoothstep(0.02, 0.14, abs(push));
   float lift = max(ground + film - height, 0.0) * step(-0.5, ground) * (1.0 - pushed);
   // (The sheet carries no foam of its own: it used to, and it showed as a band of lace sitting on the beach above

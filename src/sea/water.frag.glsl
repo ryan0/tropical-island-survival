@@ -84,6 +84,7 @@ varying vec3 vWaveState;
 #include "../world/island-shape/island"
 
 #include "../shaders/shared/lagwave"
+#include "wave-timing/timing"
 
 // ---- Numbers to retune ----
 
@@ -154,6 +155,18 @@ float swellLine(float slope, float setPace, float variety, float frequency, floa
 }
 
 #define SWELL_LINE(SLOPE, SET_PACE, VARIETY, FREQUENCY, CRESTS, PHASE) swellLine(SLOPE, SET_PACE, VARIETY, FREQUENCY, CRESTS, PHASE, swellTime, directionFromCentre, swellWobble)
+
+// One of the swells the wave model draws (waves.glsl), as the far sea shades it out past the wave mesh: its tilt of
+// the surface here, + on a line's face and - on its back. It goes by the wave model's clock, so its lines run on
+// into the mesh's waves: `arrival` is when the swell reaches this spot, and a crest is where `turns` is a whole
+// number and a half. MODELLED_SWELL, a define written by water-materials.ts, adds up one MODELLED_SWELL_LINE(...)
+// for each swell, as a tilt against the way it travels.
+float modelledSwellLine(float arrival, float slope, float period, float variety, float swellWobble) {
+  float turns = (uTime - arrival) / period + 0.5;
+  return slope * setShare(turns, variety) * cos(6.2832 * (turns - 0.25) + swellWobble);
+}
+
+#define MODELLED_SWELL_LINE(TOWARDS, DELAY, SLOPE, PERIOD, VARIETY) (-TOWARDS * modelledSwellLine(dot(xz, TOWARDS) / OPEN_SEA_SPEED + seaFloorHere.DELAY, SLOPE, PERIOD, VARIETY, swellWobble))
 
 // White horses: one family of wind-driven crests, `spacing` metres apart, travelling at `speed` m/s along
 // `direction`.
@@ -418,12 +431,12 @@ void main() {
 
   // ---- Swell lines ----
 
-  // Out beyond the reef the sea rolls in as long low lines: the same three trains that break on the reef
-  // (waves.glsl), before they have grown. Out there they are not modelled, only shaded - each line tilts the surface
-  // a little towards the island on its face and away on its back, which is what makes swell show as dark and light
-  // bands. The shading takes over where the modelled waves fade out (62-95 m offshore) and fades away far out.
-  // The phases are waves.glsl's (crest where the phase is pi/2), wobbled a little far out so that the lines are not
-  // perfect rings.
+  // Out beyond the reef the sea rolls in as long low lines. Out there they are not modelled, only shaded - each line
+  // tilts the surface a little towards the island on its face and away on its back, which is what makes swell show
+  // as dark and light bands. The shading takes over where the modelled waves fade out (62-95 m offshore) and fades
+  // away far out. First the swells that break on the reef (waves.glsl), before they have grown, by the wave model's
+  // own clock; then, further out, shorter lines of the open sea's own, as rings round the island. All are wobbled a
+  // little far out so that the lines are not ruled.
   float swellMetresOffshore = mix(metresOffBeach, distanceFromCentre - oceanShoreRadius, uIsFlatSheet);
   float pastModelledWaves = smoothstep(62.0, 95.0, swellMetresOffshore);
   float notFarOut = 1.0 - smoothstep(240.0, 560.0, swellMetresOffshore);
@@ -435,19 +448,23 @@ void main() {
   // +1 on a line's face, -1 on its back
   float swellLineSide = 0.0;
   if (swellLines > 0.003) {
-    // (waves.glsl's clock, t + tau, as it runs beyond the reef break 40 m out: tau is 16.749 s there, and more the
-    // further out, the swell coming in at 4.95 m/s)
-    float swellTime = uTime + 16.749 + (swellMetresOffshore - 40.0) / 4.95;
     float swellWobble = (ripplesLarge.b - 0.5) * 1.6 * smoothstep(95.0, 150.0, swellMetresOffshore);
-    float trainSlopes = WATER_SWELL;
+    // (the picture has no mipmaps, so it may be read inside this branch)
+    vec4 seaFloorHere = texture2D(uSeaFloor, xz / SEA_PICTURE_SPAN + 0.5);
+    vec2 modelledTilt = MODELLED_SWELL;
+    // (the open sea's lines keep a clock of their own: the further out, the earlier, coming in at 4.95 m/s)
+    float swellTime = uTime + 16.749 + (swellMetresOffshore - 40.0) / 4.95;
+    float beyondTheMesh = smoothstep(95.0, 170.0, swellMetresOffshore);
+    float trainSlopes = (WATER_SWELL) * beyondTheMesh;
     float longSwellGrows = smoothstep(95.0, 170.0, swellMetresOffshore);
     float longSwellHeight = 0.55 + 0.45 * sin(uTime * 0.07 + directionFromCentre * 3.0);
     float longSwellSlope = LONG_SWELL_SLOPE * longSwellGrows * longSwellHeight
       * cos(0.70 * swellTime + 4.0 * directionFromCentre + 1.3 + swellWobble);
     // (uneven along each line: higher here, lower there)
-    float swellSlope = (trainSlopes + longSwellSlope) * swellLines * (0.8 + 0.6 * ripplesLarge.b);
-    surfaceSlope += normalize(xz) * swellSlope * 1.4;
-    swellLineSide = clamp(swellSlope * 4.5, -1.0, 1.0);
+    float unevenAlongLine = swellLines * (0.8 + 0.6 * ripplesLarge.b);
+    vec2 swellTilt = (normalize(xz) * (trainSlopes + longSwellSlope) + modelledTilt) * unevenAlongLine;
+    surfaceSlope += swellTilt * 1.4;
+    swellLineSide = clamp(dot(swellTilt, normalize(xz)) * 4.5, -1.0, 1.0);
   }
 
   // ---- What the surface mirrors ----

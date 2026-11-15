@@ -121,23 +121,36 @@ of a second on the desktop; the debug panel says how long on the phone).
 - *A debug view* (`sea floor pictures` in the debug panel, best seen flying): depth as colour, each swell's crests
   as travelling lines, red where a middling wave has just broken.
 
-**To build (second half): the wave model on these clocks**, drawn with today's mesh and shapes.
+**Built (second half): the wave model on these clocks**, drawn with today's mesh and shapes
+(`src/sea/waves.glsl`, `wave-timing/timing.glsl`, `wave-model.ts`).
 
-1. *Where the crests are.* A wave's phase at a spot is the clock less the swell's arrival there. Two swells, of 9
-   and 11.25 s, so a set comes round every 45 s. The variety from crest to crest and along a crest stays.
+1. *Where the crests are.* A wave's phase at a spot is the clock less the swell's arrival there. The main swell
+   brings a wave every 10 s, in sets of four or five: each wave has its share of the set by its number, and its own
+   peaks along its crest. A second, smaller swell crosses it every 7.4 s and never throws a lip.
 2. *When each wave breaks.* A wave's height gives the depth it breaks in (it grows as the water shallows and
-   breaks at about 0.78 of the depth). The four kept depths, read between, give its own seconds since breaking.
-   Bigger waves so break further out, and the break runs along a crest wherever the floor is uneven.
-3. *The break runs on seconds, not metres.* Steepening from about 3 s before; standing up over the last 2 s; the
-   lip in the air for as long as gravity takes over its height (about half a second); then the landing and the
-   white water.
-4. *The kind of break.* Plunging where the floor rises abruptly to the break, crumbling where it rises gently:
-   told from how few seconds lie between the crossings of the deeper depths.
+   breaks at 0.78 of the depth). The four kept depths, read between, give its own seconds since breaking. Bigger
+   waves so break further out; small ones cross the flat unbroken and break at the beach; and the break runs
+   along a crest wherever the floor or the wave's size is uneven.
+3. *The break runs on seconds, not metres* (`stageOf`). Steepening over the last 3 s; standing up over the last 2;
+   the lip in the air for as long as gravity takes over its height (0.5 to 0.6 s); then the landing and the white
+   water, a stage every 1.2 s. The face, the lip and the white water are sized in metres, whatever the swell's
+   length.
+4. *The kind of break.* A wave that takes under about 1.5 s over its last 0.6 m of shoaling throws a lip; one
+   that takes over 4 s crumbles.
 5. *Left as formulas for now:* the swash and its run-up on the beach, the fade up the sand and at the wave mesh's
    edge, how much swell reaches the lee.
-6. *One model.* The program reads the same pictures and the same timing formulas. The mirror test stays; it
-   moves to WebGL 2 and is given the pictures.
-7. *The far sea's shaded swell lines* take the same clock, so they still join the mesh's waves.
+6. *One model.* The program reads the same pictures, and the sizes and timing are written once for both
+   (`timing.glsl`). The shapes are still written in each; the mirror test (now on WebGL 2, given the pictures)
+   finds them 0.06 mm apart on average.
+7. *The far sea's shaded swell lines:* the two swells by the same clock, so they run on into the mesh's waves, and
+   the shorter lines the open sea had before, further out, for its variety.
+
+Sizes: the swell is one metre (`seaConfig.swells`). A middling wave breaks about 1.2 m high at the reef's edge, a
+wave of the biggest set about 1.7 m, with a face up to 2 m; a small one reaches the beach unbroken.
+
+*Known, and left for the passes that follow:* the lip is still a thin hook, and nothing is thrown up where it
+lands (pass 2 and 3); as a wave stands up, its face is put together from the water ahead of it, which shows as a
+small shelf at its foot for a moment; the white water at the beach is broad when both swells arrive together.
 
 ## Later
 

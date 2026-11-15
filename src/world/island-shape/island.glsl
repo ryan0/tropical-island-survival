@@ -3,8 +3,8 @@
 // (tools/glsl-for-program-plugin.ts), so that the program and the shaders can never disagree about where the ground is.
 //
 // Keep to the subset the converter understands: float functions of float arguments, float locals, `const float`
-// numbers, + - * / and sin cos exp sqrt abs min max pow floor atan(y, x). It knows no smoothstep or clamp, so those
-// are written out. Names must be legal in JavaScript and in every GLSL version ("flat", "sample", "input", "output"
+// numbers, + - * / and sin cos exp sqrt abs min max pow floor atan(y, x) clamp mix step smoothstep mod. (The last
+// five it learnt after this file was written, which is why smoothstep and clamp are written out here.) Names must be legal in JavaScript and in every GLSL version ("flat", "sample", "input", "output"
 // and "smooth" are reserved words).
 //
 // The atoll, from the outside in:   deep sea | drop-off | reef flat | ocean beach | land | lagoon beach | lagoon

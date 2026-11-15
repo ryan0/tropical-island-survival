@@ -14,6 +14,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   the aim is to simplify and improve on it.** A refactor leaves every picture as it was; an improvement changes
   pictures on purpose and is shown before and after. Take care not to lose what has been gained, and do not let
   that care hold back what comes next.
+- The waves are being rebuilt in passes (`docs/ROADMAP.md`). They read the sea floor from two pictures made at
+  start-up (`src/sea/sea-floor-pictures.ts`), not from a formula of their own, and their sizes and timing are
+  written once for shader and program (`src/sea/wave-timing/timing.glsl`).
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
   `docs/ROADMAP.md`. Read it before starting work.
 - Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder

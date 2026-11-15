@@ -6,7 +6,13 @@ import {
   LinearFilter,
   RGBAFormat,
 } from 'three';
-import { swellSpeed } from 'virtual:wave-timing';
+import {
+  breakDepth0,
+  breakDepth1,
+  breakDepth2,
+  breakDepth3,
+  swellSpeed,
+} from 'virtual:wave-timing';
 import type { GroundHeight } from '../world/landmarks';
 import { seaConfig } from './sea-config';
 
@@ -25,7 +31,10 @@ import { seaConfig } from './sea-config';
 //
 // The shaders read the pictures as textures; the program reads the same numbers.
 
-const { span, size, smoothedOver, breakDepths, longestKept } = seaConfig.floorPicture;
+const { span, size, smoothedOver, longestKept } = seaConfig.floorPicture;
+// A wave breaks where the water is about as shallow as the wave is high: small waves at the first
+// of these depths, set waves at the last (wave-timing/timing.glsl, which reads between them).
+const breakDepths = [breakDepth0(), breakDepth1(), breakDepth2(), breakDepth3()];
 const CHANNELS = 4;
 const METRES_A_DOT = span / size;
 /** An arrival time for a dot no swell has reached yet. */

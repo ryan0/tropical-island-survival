@@ -37,7 +37,7 @@ float islandR(float direction) {
 // A bias above 0 makes the land give way a little earlier: shoreH uses it to round off the horn tips.
 float passGapAt(float direction, float bias) {
   float northness = 0.5 - 0.5 * sin(direction);
-  // A smoothstep, written out because the converter knows neither smoothstep nor clamp.
+  // A smoothstep, written out: when this was written the converter knew neither smoothstep nor clamp.
   float t = min(max((northness + bias - PASS_EDGE) / PASS_EDGE_WIDTH, 0.0), 1.0);
   return t * t * (3.0 - 2.0 * t);
 }

@@ -13,6 +13,14 @@ import type { Plugin } from 'vite';
 // and float constants.
 const NOT_CONVERTED = /\b(vec[234]|mat[234]|int|bool|uniform|varying|out|inout)\b/;
 const MATHS_FUNCTIONS = /\b(sin|cos|exp|sqrt|abs|min|max|pow|floor)\(/g;
+// GLSL's own functions that JavaScript's Math has not, as GLSL defines them.
+const GLSL_FUNCTIONS = `
+function clamp(x,least,most){return Math.min(Math.max(x,least),most);}
+function mix(from,to,share){return from*(1-share)+to*share;}
+function step(edge,x){return x<edge?0:1;}
+function smoothstep(from,to,x){var t=clamp((x-from)/(to-from),0,1);return t*t*(3-2*t);}
+function mod(x,y){return x-y*Math.floor(x/y);}
+`;
 
 function withoutComments(glsl: string): string {
   return glsl.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
@@ -78,7 +86,7 @@ export function glslForProgram(moduleId: string, folder: string): Plugin {
 
       const code = programCode.join('\n');
       const functionNames = [...code.matchAll(/^function (\w+)\(/gm)].map((match) => match[1]);
-      return [code, `export {${functionNames.join(',')}};`].join('\n');
+      return [GLSL_FUNCTIONS, code, `export {${functionNames.join(',')}};`].join('\n');
     },
   };
 }
