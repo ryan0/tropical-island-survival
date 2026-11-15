@@ -90,6 +90,21 @@ export function createSprayBursts(random: Random, droplets: SprayDroplets): Spra
         2.0,
         0.08,
       );
+      // A big wave's lip lands hard: white is thrown up higher than the wave stood.
+      if (breakerHeight > config.landingLip.highCloudAbove) {
+        droplets.launch(
+          x + (random() - 0.5) * 1.5,
+          surface + 0.4,
+          z + (random() - 0.5) * 1.5,
+          inwardX * (0.8 + random() * 1.2),
+          (1.4 + random() * 1.2) * lift * config.landingLip.highCloudLift,
+          inwardZ * (0.8 + random() * 1.2),
+          1.4 + random() * 0.8,
+          1.2 + random() * 1.0,
+          2.8,
+          config.landingLip.highCloudBrightness,
+        );
+      }
     },
 
     // Droplets off the top of a lip as it falls fly back, out to sea.

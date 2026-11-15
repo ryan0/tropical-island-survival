@@ -52,6 +52,16 @@ function swellsDefine(): string {
     .join(' ');
 }
 
+/** One SWELL_FOAM(...) of waves.glsl for each swell, added together. */
+function swellsFoamDefine(): string {
+  return seaConfig.swells
+    .map((swell, index) => {
+      const numbers = [swell.period, swell.size, swell.variety].map(glslFloat).join(',');
+      return `SWELL_FOAM(${DELAY_CHANNELS[index]},${glslVec2(...swell.towards)},${numbers})`;
+    })
+    .join('+');
+}
+
 /**
  * One MODELLED_SWELL_LINE(...) of water.frag.glsl for each swell, added together: the swell as
  * the far sea shades it, out past the wave mesh. Its slope is the swell's steepness in deep water.
@@ -87,6 +97,7 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
   const { uniforms, home, windDirection } = dependencies;
   const waveDefines = {
     SWELLS: swellsDefine(),
+    SWELLS_FOAM: swellsFoamDefine(),
     SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
     OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
   };

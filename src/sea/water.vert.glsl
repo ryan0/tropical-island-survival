@@ -1,7 +1,7 @@
 // The water's vertex shader: it moves the wave mesh (uIsFlatSheet 0) by the wave model and passes the far sea (uIsFlatSheet 1)
 // through untouched. The colouring is water.frag.glsl's, as for all water.
 //
-// Needs the wave model's defines (WAVE_TRAINS and REEF_BREAK: see waves.glsl), which water-materials.ts writes.
+// Needs the wave model's defines (see waves.glsl), which water-materials.ts writes.
 //
 // Read docs/DEVICE_NOTES.md first: the wave mesh carries position and nothing else, no function here has out or
 // inout parameters, and nothing branches once the position is put together. The block at the end is the hard limit
@@ -55,7 +55,8 @@ void main() {
     wp.xyz = isWithinLimit > 0.5 ? rest + limited : rest;
     vWaterNormal = isWithinLimit > 0.5 ? normalize(cross(movedAlongZ - moved, movedAlongX - moved)) : vec3(0.0, 1.0, 0.0);
     // (a vertex left at rest is drawn as plain water, out past the surf)
-    vWaveState = isWithinLimit > 0.5 ? vec3(wave.z, wave.w, wave.x) : vec3(0.0, 60.0, 0.0);
+    float foam = min(wave.z + foamLeftBehind(p, uTime), 1.0);
+    vWaveState = isWithinLimit > 0.5 ? vec3(foam, wave.w, wave.x) : vec3(0.0, 60.0, 0.0);
   }
   vWaterPosition = wp.xyz;
   gl_Position = projectionMatrix * viewMatrix * wp;

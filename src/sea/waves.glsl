@@ -20,9 +20,10 @@
 // Needs from outside:
 //   uDebugMode    a uniform, declared by the includer: 1 switches the waves off, 2 the falling lip
 //   SEA_PICTURE_SPAN, OPEN_SEA_SPEED   defines: the pictures' span in metres, and a swell's speed in the open sea
-//   SWELLS        a define: one SWELL(...) for each swell, with its numbers (water-materials.ts)
+//   SWELLS, SWELLS_FOAM   defines: one SWELL(...) for each swell, with its numbers, and one SWELL_FOAM(...) for
+//                 each, added together (water-materials.ts)
 //   shoreH, islandR and openSea, from island-shape/shore.glsl (included here)
-// Gives the includer waveF.
+// Gives the includer waveF, and foamLeftBehind.
 //
 // RULES (docs/DEVICE_NOTES.md): no out or inout parameters, no loops, no arrays, branch-free maths, guarded pow and
 // divisions. The swells are written out one after another by SWELLS, never looped over.
@@ -239,12 +240,10 @@ vec4 waveOfTrain(
   float boreFoamFade = max(mix(1.6, 1.1, bigness), 0.28 / FRONT_WAVE_NUMBER);
   float freshFoam = broken * behindBoreFront * exp(-max(fromCrest, 0.0) * boreFoamFade)
     * (1.0 - smoothstep(1.3, 2.2, fromCrest)) * foamLeft * foamAtWaterline;
-  // And long after the white water has gone by, thin foam is still lying there in streaks, until the next wave.
-  float lyingFoam = broken * behindBoreFront * 0.30 * bigness * exp(-max(fromCrest, 0.0) * 0.30)
-    * (1.0 - smoothstep(2.3, 3.0, fromCrest)) * min(foamLeft * 1.6, 1.0) * foamAtWaterline;
   // (Foam lies only where the wave went by already broken: without this the whole band would whiten at once behind
-  // a wave at the moment it broke, out to where it was still green.)
-  float boreFoam = (freshFoam + lyingFoam) * smoothstep(0.0, 0.6, sinceBroke);
+  // a wave at the moment it broke, out to where it was still green. What it leaves lying behind it for the seconds
+  // that follow is foamLeftBehind's.)
+  float boreFoam = freshFoam * smoothstep(0.0, 0.6, sinceBroke);
   float whitecap = smoothstep(0.93, 1.0, swellShape) * steepening * 0.4 * (1.0 - broken) * (1.0 - standingUp);
   float landingFoam = lipLanding * exp(-fromLanding * fromLanding / 0.9) * 1.2;
   float foam = (lipFoam + boreFoam * (0.6 + 0.4 * bigness) + whitecap + landingFoam) * smoothstep(0.03, 0.10, waveSize);
@@ -257,6 +256,53 @@ vec4 waveOfTrain(
   float surface = profileHeight + frontLift + suck + mound;
   float push = swellPush + frontPush + shoreBreakLean;
   return vec4(surface, push, foam, crestHeight);
+}
+
+// The foam one wave left lying here when it went by `secondsSince` ago: none if it went by unbroken, more behind a
+// big wave, less the further it had run since it broke, and thinning as it ages - a big wave's lasts longer.
+//   wavesGoneBy   the wave's number in its swell
+//   fullSize, variety, th, sinceCrossings   as for waveOfTrain
+const float FOAM_LEFT = 0.5;
+const float SMALL_WAVES_FOAM_LASTS = 3.0;
+const float BIG_WAVES_FOAM_LASTS = 8.0;
+float foamLeftByWave(float wavesGoneBy, float secondsSince, float fullSize, float variety, float th, vec4 sinceCrossings) {
+  float waveSize = sizeAlongCrest(fullSize * setShare(wavesGoneBy, variety), th + PEAKS_SHIFT * wavesGoneBy, variety);
+  float breakingDepth = breakingDepthOf(offshoreHeightOf(waveSize));
+  float breakerHeight = 0.78 * breakingDepth;
+  // (its stage as its crest went by here)
+  float sinceBroke =
+    sinceCrossing(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
+  float stageThen = stageOf(sinceBroke, lipFallSeconds(breakerHeight));
+  float wasBroken = smoothstep(0.95, 1.6, stageThen);
+  float runOut = exp(-max(stageThen - 1.6, 0.0) * 0.12);
+  float bigness = smoothstep(0.5, 1.5, breakerHeight);
+  float lasts = mix(SMALL_WAVES_FOAM_LASTS, BIG_WAVES_FOAM_LASTS, bigness);
+  // (it settles out of the white water over the first second, and is gone before a third wave has passed)
+  float aged = smoothstep(0.0, 0.8, secondsSince) * exp(-max(secondsSince, 0.0) / lasts)
+    * (1.0 - smoothstep(18.0, 24.0, secondsSince));
+  return FOAM_LEFT * (0.4 + 0.6 * bigness) * wasBroken * runOut * aged * smoothstep(0.03, 0.10, waveSize);
+}
+
+// The foam a swell's last three waves left lying here. `turns` counts its crests gone by here, as in SWELL.
+float foamLeftBySwell(float turns, float period, float fullSize, float variety, float th, vec4 sinceCrossings) {
+  float wavesGoneBy = floor(turns);
+  float sinceCrest = (turns - wavesGoneBy - 0.5) * period;
+  return foamLeftByWave(wavesGoneBy, sinceCrest, fullSize, variety, th, sinceCrossings)
+    + foamLeftByWave(wavesGoneBy - 1.0, sinceCrest + period, fullSize, variety, th, sinceCrossings)
+    + foamLeftByWave(wavesGoneBy - 2.0, sinceCrest + 2.0 * period, fullSize, variety, th, sinceCrossings);
+}
+
+// One swell's foam left lying, for foamLeftBehind: SWELLS_FOAM, a define written by water-materials.ts, adds up
+// one of these for each swell. It is made of foamLeftBehind's local names.
+#define SWELL_FOAM(DELAY, TOWARDS, PERIOD, SIZE, VARIETY) foamLeftBySwell((t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5, PERIOD, SIZE * swellStrength * alongShoreSwing(th, t, VARIETY), VARIETY, th, sinceCrossings)
+
+// How much of the swell reaches a spot: it dies away 62 to 95 m off the beach, where the wave mesh ends; it is
+// strongest on the south side, which it comes from; none of it enters the channel; and uDebugMode 1 switches it off.
+float swellReaching(float th, float offBeach) {
+  float towardsMeshEdge = 1.0 - smoothstep(62.0, 95.0, offBeach);
+  float southern = 0.68 + 0.32 * smoothstep(-0.4, 0.8, sin(th));
+  float switchedOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
+  return towardsMeshEdge * southern * openSea(th) * switchedOn;
 }
 
 // One swell's part in the sea surface: its size here, the wave itself (kept in the variable NAME), and how far its
@@ -290,12 +336,7 @@ vec4 waveF(vec2 p, float t) {
   float foamAtWaterline = smoothstep(-0.4, 0.9, offBeach);
   vec4 site = vec4(slowness, depthAtBeach, gate, foamAtWaterline);
 
-  // How much of the swell reaches here: it dies away 62 to 95 m off the beach, where the wave mesh ends; it is
-  // strongest on the south side, which it comes from; none of it enters the channel; and uDebugMode 1 switches it off.
-  float towardsMeshEdge = 1.0 - smoothstep(62.0, 95.0, offBeach);
-  float southern = 0.68 + 0.32 * smoothstep(-0.4, 0.8, sin(th));
-  float switchedOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
-  float swellStrength = towardsMeshEdge * southern * openSea(th) * switchedOn;
+  float swellStrength = swellReaching(th, offBeach);
 
   // The swells: SWELLS sets swell0 and swell1, and adds up their run-up.
   float runUp = 0.0;
@@ -331,4 +372,18 @@ vec4 waveF(vec2 p, float t) {
   // the waves.)
   height += lift;
   return vec4(height, push, min(foam, 1.0), offBeach);
+}
+
+// The foam that waves gone by have left lying on the water at p (x, z) at time t, 0..1: what stays behind the white
+// water for the seconds after a wave has broken, thinning to lace. It is worked out for one point only, where waveF
+// is asked for three to find the surface's slope, which is why it is not waveF's.
+float foamLeftBehind(vec2 p, float t) {
+  float th = atan(p.y, p.x);
+  float ground = shoreH(p.x, p.y);
+  float offBeach = BEACH_CURVE_LENGTH * (sqrt(max(1.0 - ground / BEACH_CURVE_DEPTH, 0.04)) - 1.0);
+  vec4 seaFloor = texture2D(uSeaFloor, p / SEA_PICTURE_SPAN + 0.5);
+  vec4 sinceCrossings = texture2D(uBreakTimes, p / SEA_PICTURE_SPAN + 0.5);
+  float swellStrength = swellReaching(th, offBeach);
+  float foamAtWaterline = smoothstep(-0.4, 0.9, offBeach);
+  return min(SWELLS_FOAM, 1.0) * foamAtWaterline;
 }

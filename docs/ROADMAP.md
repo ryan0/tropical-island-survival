@@ -152,6 +152,31 @@ wave of the biggest set about 1.7 m, with a face up to 2 m; a small one reaches 
 lands (pass 2 and 3); as a wave stands up, its face is put together from the water ahead of it, which shows as a
 small shelf at its foot for a moment; the white water at the beach is broad when both swells arrive together.
 
+### The white water, first part (15 November 2026)
+
+Brought forward from pass 3, because it reads the pictures and so survives the wider reef.
+
+- *Foam left behind* (`foamLeftBehind` in `waves.glsl`). The clocks say when each swell's last three waves went
+  by a spot and whether each had broken there, so their foam can lie on for some seconds and thin to lace: about
+  8 s to fall to a third behind a big wave, 3 s behind a small one.
+- *The landing.* A wave over 0.9 m also throws a brighter cloud well above itself where its lip lands
+  (`spray-bursts.ts`). A simple version: the full one belongs with the new lip.
+
+### Ryan's notes after pass 1 (15 November 2026)
+
+"This is working very well and a big improvement." For later:
+
+- There is some weirdness with the waves at the horns of the crescent. (Not yet found in stills: to be shown by a
+  screenshot with the eye's position from the debug panel.)
+- Varied swell directions and sizes, several swells from different headings, as part of the weather. The footing
+  allows it: a swell's direction is a number, and its arrival picture is made again when it turns.
+- The waves do not meet the reef's coral heads naturally: they read the ground only, not what stands on it. He
+  means to improve and rearrange the reef; the heads can then be stamped into the depth picture.
+- More foam left behind larger white heads and crashing waves: the white water's first part, above.
+
+The order agreed: the white water's first part; then the wider reef, designed with Ryan from a proposal (a map
+and a cross-section with sizes); then the breaker's own mesh.
+
 ## Later
 
 - More passes on the reef.

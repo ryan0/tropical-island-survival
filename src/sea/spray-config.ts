@@ -33,6 +33,13 @@ export const sprayConfig = {
     dropletsPerMetre: 9,
     /** The chance of a puff of mist with them. */
     puffChance: 0.5,
+    /**
+     * A wave higher than this also throws a brighter cloud well above itself where its lip lands:
+     * this many times as fast upwards as the others, and this bright.
+     */
+    highCloudAbove: 0.9,
+    highCloudLift: 1.7,
+    highCloudBrightness: 0.2,
   },
 
   fallingLip: {
