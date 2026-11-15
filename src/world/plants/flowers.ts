@@ -7,25 +7,30 @@ import {
   Quaternion,
   type Scene,
 } from 'three';
-import { within, type Random, type Range } from '../core/random';
-import { addInstances, coloursAreSet, createInstancePlacer, whiteMaterial } from './instances';
-import { lifeConfig } from './life-config';
-import { ANY_DIRECTION, findPlace, squareAround, type GroundHeight, type Point } from './placing';
-import { placed, star } from './shapes';
+import { within, type Random, type Range } from '../../core/random';
+import { addInstances, coloursAreSet, createInstancePlacer, whiteMaterial } from '../instances';
+import type { GroundHeight, Landmarks } from '../landmarks';
+import { ANY_DIRECTION, findPlace, squareAround } from '../placing';
+import type { IsInRock } from '../rocks/rocks';
+import { placed, star } from '../simple-shapes';
+import { flowersConfig as config } from './flowers-config';
 
 export interface FlowersDependencies {
   scene: Scene;
+  /** The flowers' own stream. */
   random: Random;
   groundHeight: GroundHeight;
-  /** The middle of the home islet. */
-  home: Point;
+  /** Whether a point is inside a rock or within `margin` of one. */
+  isInRock: IsInRock;
+  landmarks: Landmarks;
 }
 
-const config = lifeConfig.flowers;
 const TILT: Range = [-0.3, 0.3];
 
 /** Small flowers on the high ground round home: a stem and a bloom each. They never move. */
-export function createFlowers({ scene, random, groundHeight, home }: FlowersDependencies): void {
+export function createFlowers(dependencies: FlowersDependencies): void {
+  const { scene, random, groundHeight, isInRock, landmarks } = dependencies;
+  const { home } = landmarks;
   const stemShape = placed(new CylinderGeometry(0.004, 0.006, config.stemHeight, 3), [
     0,
     config.stemHeight / 2,
@@ -49,7 +54,8 @@ export function createFlowers({ scene, random, groundHeight, home }: FlowersDepe
   const turn = new Quaternion();
   const colour = new Color();
 
-  // As many as find a place: a try that lands off the high ground is one flower fewer.
+  // As many as find a place: one whose every try lands off the high ground, by a rock or on a
+  // path is left out.
   let grown = 0;
   for (let i = 0; i < config.count; i++) {
     const place = findPlace(
@@ -59,7 +65,9 @@ export function createFlowers({ scene, random, groundHeight, home }: FlowersDepe
       config.triesEach,
       (height, x, z) =>
         height > config.lowestGround &&
-        (x - home.x) * (x - home.x) + (z - home.z) * (z - home.z) < reachSquared,
+        (x - home.x) * (x - home.x) + (z - home.z) * (z - home.z) < reachSquared &&
+        !isInRock(x, z, config.clearOfRocks) &&
+        landmarks.pathDistance(x, z) > config.clearOfPaths,
     );
     if (place === null) continue;
 

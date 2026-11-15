@@ -31,15 +31,16 @@ import { watchCornerButton } from './ui/corner-button';
 import { createDebugPanel } from './ui/debug-panel';
 import { createSceneMenu } from './ui/scene-menu';
 import { watchSoundButton } from './ui/sound-button';
+import { createBeachFinds } from './world/beach/beach-finds';
 import { createCamp } from './world/camp/camp';
 import { createFire } from './world/camp/fire';
 import { createInstanceCells } from './world/instance-cells';
 import { createIslandShape } from './world/island-shape';
 import { createLandmarks } from './world/landmarks';
+import { createFlowers } from './world/plants/flowers';
 import { createGrass } from './world/plants/grass';
 import { createPalms } from './world/plants/palms';
 import { createPlants } from './world/plants/plants';
-import { createFishModel } from './world/reef/fish-model';
 import { createReef } from './world/reef/reef';
 import { createRocks } from './world/rocks/rocks';
 import { createTerrain } from './world/terrain';
@@ -47,10 +48,9 @@ import { worldConfig } from './world/world-config';
 
 // Builds every system, wires them together and runs the frame loop.
 //
-// The order things are built in matters twice over. three.js numbers its objects as they are
-// made and draws by those numbers where nothing else decides, and several systems lay things
-// out from random streams that the systems before them have moved on. So this is build 78's
-// order; moving a line can move a rock.
+// three.js numbers its objects as they are made and draws by those numbers where nothing else
+// decides, so moving a line here can change which of two things is drawn first. It cannot move
+// anything: each kind of thing that is placed draws from a random stream of its own, by name.
 
 function pageElement(id: string): HTMLElement {
   const element = document.getElementById(id);
@@ -159,9 +159,22 @@ createPlants({
   instanceCells,
   maxAnisotropy,
 });
-const reef = createReef({
+createFlowers({
   scene,
-  random: randomStream('reef'),
+  random: randomStream('flowers'),
+  groundHeight: island.groundHeight,
+  isInRock: rocks.isInRock,
+  landmarks,
+});
+createBeachFinds({
+  scene,
+  randomStream,
+  groundHeight: island.groundHeight,
+  isInRock: rocks.isInRock,
+  home: landmarks.home,
+});
+const reef = createReef({
+  randomStream,
   groundHeight: island.groundHeight,
   landmarks,
   isInRock: rocks.isInRock,
@@ -170,31 +183,27 @@ const reef = createReef({
   instanceCells,
 });
 uniforms.uReefMap.value = reef.map;
-const fire = createFire({
-  scene,
-  uniforms,
-  groundHeight: island.groundHeight,
-  place: landmarks.fire,
-  hasCamp,
-});
+// The camp and its fire are a starting point for what the player will build; for now there is neither.
+const fire = hasCamp
+  ? createFire({ scene, uniforms, groundHeight: island.groundHeight, place: landmarks.fire })
+  : null;
 if (hasCamp) {
   createCamp({
     scene,
-    random: randomStream('buildProps'),
+    random: randomStream('camp'),
     groundHeight: island.groundHeight,
     landmarks,
   });
 }
 const life = createLife({
   scene,
-  // (the stream's name is build 78's name for the function that built the wildlife)
-  random: randomStream('buildLife'),
+  randomStream,
   groundHeight: island.groundHeight,
   islandRadius: island.radius,
   home: landmarks.home,
   hut: landmarks.hut,
   pier: landmarks.pier,
-  fishModel: createFishModel,
+  coralHeads: reef.heads,
 });
 
 // ---- the player, and the sea round the player ----
@@ -237,8 +246,7 @@ rocksInSurf.slice(0, uniforms.uSurfObstacles.value.length).forEach((rock, index)
 const spray = createSpray({
   scene,
   camera,
-  // (the one stream that is drawn from while the scene runs)
-  random: randomStream('general'),
+  random: randomStream('spray'),
   waves,
   islandRadius: island.radius,
   obstacles: rocksInSurf,
@@ -319,6 +327,7 @@ const lightsFrame: LightsFrame = {
 };
 const lifeFrame: LifeFrame = {
   time: 0,
+  waveTime: 0,
   dt: 0,
   daylight: 1,
   night: 0,
@@ -396,10 +405,11 @@ function frame(now: number): void {
   lightsFrame.sunThrough = clouds.sunThrough;
   lights.update(lightsFrame);
 
-  fire.update(time, light.daylight);
+  fire?.update(time, light.daylight);
   audio.update(light.night);
 
   lifeFrame.time = time;
+  lifeFrame.waveTime = uniforms.uTime.value;
   lifeFrame.dt = dt;
   lifeFrame.daylight = light.daylight;
   lifeFrame.night = light.night;
@@ -429,7 +439,6 @@ function frame(now: number): void {
   water.update(waterFrame);
   uniforms.uShoreBandShown.value = water.isBandShown ? 1 : 0;
 
-  reef.update(uniforms.uTime.value, camera.position);
   instanceCells.update(camera.position);
 
   renderer.render(scene, camera);

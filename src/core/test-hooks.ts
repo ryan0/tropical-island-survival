@@ -1,9 +1,10 @@
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { GroundHeight, IslandRadius } from '../world/landmarks';
 
-// The tests drive the page through a few names on `window`. They are build 78's names, so
-// that the same tests can drive build 78 and this build alike; tests/scene-hooks.d.ts says what
-// each is for. This is the only file that reads or writes them.
+// The tests drive the page through a few names on `window`; tests/scene-hooks.d.ts says what
+// each is for. The same tests drive the last merged build, to compare the two, so a name changed
+// here leaves one comparison without pictures from before. This is the only file that reads or
+// writes them.
 
 type CameraPose = readonly [x: number, y: number, z: number, yaw: number, pitch: number];
 

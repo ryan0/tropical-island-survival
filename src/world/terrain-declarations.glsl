@@ -17,6 +17,7 @@ uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
+#include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 
 #include "footpaths"
@@ -33,7 +34,7 @@ float fleck(vec2 p) {
   vec2 square = floor(p);
   vec2 middle = vec2(hash(square + 13.0), hash(square + 29.0)) * 0.6 + 0.2;
   vec2 d = fract(p) - middle;
-  float angle = hash(square + 41.0) * 6.283;
+  float angle = hash(square + 41.0) * FULL_TURN;
   float narrowness = 2.5 + 3.0 * hash(square + 53.0);
   vec2 e = vec2(d.x * cos(angle) + d.y * sin(angle), (-d.x * sin(angle) + d.y * cos(angle)) * narrowness);
   float isThere = step(0.45, hash(square + 61.0));
@@ -48,7 +49,7 @@ vec3 pebble(vec2 p, vec2 sunAlongGround, float density) {
   vec2 middle = vec2(hash(square + 3.0), hash(square + 8.0)) * 0.5 + 0.25;
   vec2 d = fract(p) - middle;
   float radius = 0.07 + 0.18 * hash(square + 15.0) * hash(square + 27.0);
-  float angle = hash(square + 33.0) * 3.1416;
+  float angle = hash(square + 33.0) * HALF_TURN;
   float c = cos(angle);
   float s = sin(angle);
   float oval = 1.0 + 0.9 * hash(square + 39.0);
@@ -72,7 +73,7 @@ float dimples(vec2 p, vec2 sunAlongGround) {
   float radius = 0.20 + 0.20 * hash(square + 7.0);
   vec2 d = (fract(p) - middle) / radius;
   // each hollow is an oval at its own angle (a footprint, not a hailstone dent) and its own depth
-  float angle = hash(square + 23.0) * 3.1416;
+  float angle = hash(square + 23.0) * HALF_TURN;
   float c = cos(angle);
   float s = sin(angle);
   float oval = 1.0 + 0.9 * hash(square + 37.0);

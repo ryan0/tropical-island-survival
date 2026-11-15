@@ -76,6 +76,7 @@ varying vec3 vWaterNormal;
 // z = how high the wave lifts the water. The flat sheets have (0, 200, 0).
 varying vec3 vWaveState;
 
+#include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 
 #include "../world/island-shape/island"
@@ -371,7 +372,7 @@ void main() {
   // (foam drawn out behind white water, lines pulled up a wave's face). Its coordinates have a seam on the west side
   // of the atoll (direction = +-pi), so it is faded out just there.
   vec4 shoreStreaks = texture2D(uDetail, vec2(directionFromCentre * 25.4648, metresOffBeach * 0.035 - uTime * 0.004));
-  float awayFromSeam = smoothstep(0.0, 0.08, 3.14159 - abs(directionFromCentre));
+  float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
   float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam * (1.0 - uIsFlatSheet));
 
   // One slow reading, 250 m across and drifting, for the wind's gusts and slicks (below).
@@ -464,9 +465,12 @@ void main() {
   float ruffledLooksHigher = (1.0 - slick) * (0.12 + 0.14 * max(windOverUsual - 1.0, 0.0));
   vec3 skyMirrored = mix(uSkyHorizon, uSkyOverhead, pow(clamp(mirrored.y + ruffledLooksHigher, 0.0, 1.0), 0.5));
   if (fresnel > 0.05) {
-    // the clouds, mirrored: the same sky pictures the sky shows, looked up in the mirrored direction
-    float across = atan(mirrored.z, mirrored.x) / 6.28318 + 0.5;
-    float up = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(mirrored.y, 0.0, 1.0)) / 1.5708);
+    // The clouds, mirrored: the same sky pictures the sky shows, looked up in the mirrored direction. The sky
+    // slides each picture by how far the clouds have drifted since it was drawn (sky.frag.glsl); here that is
+    // left out. The mirrored clouds lag by a degree or two at most, less than the waves smear them, and the
+    // slide would cost every water pixel two more texture reads.
+    float across = atan(mirrored.z, mirrored.x) / FULL_TURN + 0.5;
+    float up = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(mirrored.y, 0.0, 1.0)) / QUARTER_TURN);
     vec2 cloudUv = vec2(across, up);
     vec4 fromPictureA = texture2D(uSkyPictureFrom, cloudUv);
     vec4 fromPictureB = texture2D(uSkyPictureTo, cloudUv);

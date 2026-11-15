@@ -5,9 +5,8 @@ import type { RockSurface } from '../rocks/rocks-config';
 // from 0 to 1, as they are before the water dims them.
 
 /**
- * In the order they are made and built, which the reef's one stream of random numbers depends
- * on. The two small kinds are the simple shapes of knob and lobed coral, for the many small
- * ones that carpet the heads and the slopes.
+ * Every kind, in the order its meshes are made. The two small kinds are the simple shapes of knob
+ * and lobed coral, for the many small ones that carpet the heads and the slopes.
  */
 export const CORAL_KINDS = [
   'head',
@@ -38,6 +37,12 @@ export interface CoralKindConfig {
 }
 
 export const reefConfig = {
+  /**
+   * Which roll of the dice lays the reef out. Another number is another reef of the same kind,
+   * with its heads and patches elsewhere. This one puts several pale heads off the home beach.
+   */
+  layoutRoll: 1,
+
   kinds: {
     /** A coral head: a platform of old reef rock, steep-sided and nearly flat on top. */
     head: {
@@ -176,7 +181,4 @@ export const reefConfig = {
   /** The map of how high the heads stand, for the water: dots a side, and the metres it covers about home. */
   mapSize: 256,
   mapSpan: 300,
-
-  /** The fish of a head are drawn only when the head is within this distance of the camera. */
-  fishShownWithin: 70,
 } as const;

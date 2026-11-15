@@ -1,6 +1,6 @@
 import { BufferGeometry, Float32BufferAttribute, SphereGeometry } from 'three';
-import { smoothstep } from '../../core/maths';
-import { joined, painted, shapedAndPainted, type Paint } from './painted-shapes';
+import { smoothstep } from '../core/maths';
+import { joined, painted, shapedAndPainted, type Paint } from '../world/reef/painted-shapes';
 
 type FishPaint = (x: number, y: number, part: number) => Paint;
 

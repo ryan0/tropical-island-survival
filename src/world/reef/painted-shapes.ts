@@ -98,8 +98,6 @@ export function lumpyField(random: Random, waveCount: number): LumpyField {
     const alongX = randomSine(random);
     const alongY = randomSine(random);
     const alongZ = randomSine(random);
-    // A fourth is drawn and not used: the reef's stream of random numbers must stay as build 78's.
-    randomSine(random);
     waves.push({ alongX, alongY, alongZ });
   }
 
@@ -138,20 +136,14 @@ export function addStick(
   stick: Stick,
 ): Triple {
   const { length, footRadius, tipRadius, sides, footBrightness, tipBrightness, capped } = stick;
-  const [dx, dy, dz] = direction;
-  // Divided, not Vector3's normalize, which multiplies by the inverse length: its numbers differ
-  // slightly from build 78's, and the corals must come out exactly the same.
-  const directionLength = Math.hypot(dx, dy, dz);
-  const ux = dx / directionLength;
-  const uy = dy / directionLength;
-  const uz = dz / directionLength;
+  const along = new Vector3(...direction).normalize();
 
   const shape = new CylinderGeometry(tipRadius, footRadius, length, sides, 1, !capped);
   shape.translate(0, length / 2, 0);
   painted(shape, (x, y) => footBrightness + ((tipBrightness - footBrightness) * y) / length);
-  const turn = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), new Vector3(ux, uy, uz));
+  const turn = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), along);
   shape.applyMatrix4(new Matrix4().compose(new Vector3(...foot), turn, new Vector3(1, 1, 1)));
   parts.push(shape);
 
-  return [foot[0] + ux * length, foot[1] + uy * length, foot[2] + uz * length];
+  return [foot[0] + along.x * length, foot[1] + along.y * length, foot[2] + along.z * length];
 }

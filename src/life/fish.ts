@@ -1,42 +1,17 @@
-import {
-  Color,
-  DoubleSide,
-  Euler,
-  MeshLambertMaterial,
-  Quaternion,
-  type BufferGeometry,
-  type Scene,
-} from 'three';
+import { Color, DoubleSide, Euler, MeshLambertMaterial, Quaternion, type Scene } from 'three';
 import { smoothstep } from '../core/maths';
 import { within, type Random, type Range } from '../core/random';
-import { addInstances, coloursAreSet, createInstancePlacer } from './instances';
-import { lifeConfig } from './life-config';
+import { addInstances, coloursAreSet, createInstancePlacer } from '../world/instances';
+import type { GroundHeight, Landmarks, Point } from '../world/landmarks';
 import {
   ANY_DIRECTION,
   findPlace,
   mustFindPlace,
   squareAround,
-  type GroundHeight,
   type Place,
-  type Point,
-} from './placing';
-
-/**
- * Builds the fish model that the reef's fish share: nose towards +x, one unit long. `bodyDepth`
- * is how tall the body is for its length; `paint` gives the brightness of each point of it, and
- * is told whether the point is on the body (0), the tail (1) or a fin (2).
- */
-export type FishModel = (
-  bodyDepth: number,
-  paint: (x: number, y: number, part: number) => number,
-) => BufferGeometry;
-
-export interface Pier {
-  x: number;
-  /** Where it leaves the shore. */
-  z0: number;
-  length: number;
-}
+} from '../world/placing';
+import { createFishModel } from './fish-model';
+import { lifeConfig } from './life-config';
 
 export interface FishDependencies {
   scene: Scene;
@@ -44,8 +19,7 @@ export interface FishDependencies {
   groundHeight: GroundHeight;
   /** The middle of the home islet. */
   home: Point;
-  pier: Pier;
-  fishModel: FishModel;
+  pier: Landmarks['pier'];
 }
 
 export interface Fish {
@@ -101,13 +75,13 @@ function isBetween(height: number, [lowest, highest]: Range): boolean {
 }
 
 export function createFish(dependencies: FishDependencies): Fish {
-  const { scene, random, groundHeight, home, pier, fishModel } = dependencies;
+  const { scene, random, groundHeight, home, pier } = dependencies;
   const { homeSchools, roamingParties, byThePier } = config;
   const fishCount =
     homeSchools.count * homeSchools.fishInEach + roamingParties.count * roamingParties.fishInEach;
   const mesh = addInstances(
     scene,
-    fishModel(config.bodyDepth, paint),
+    createFishModel(config.bodyDepth, paint),
     new MeshLambertMaterial({ vertexColors: true, side: DoubleSide }),
     fishCount,
   );

@@ -18,6 +18,7 @@
 uniform vec3 uLightDirection;
 uniform vec2 uPictureSize;
 
+#include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 #include "cloud-field"
 #include "distance-up-to"
@@ -63,8 +64,8 @@ float cloudTowardsSun(vec3 p, float firstStep) {
 void main() {
   // The direction this dot shows.
   vec2 uv = gl_FragCoord.xy / uPictureSize;
-  float bearing = (uv.x - 0.5) * 6.28318;
-  float elevation = 1.5708 * (0.5 * uv.y + 0.5 * uv.y * uv.y);
+  float bearing = (uv.x - 0.5) * FULL_TURN;
+  float elevation = QUARTER_TURN * (0.5 * uv.y + 0.5 * uv.y * uv.y);
   vec3 direction = vec3(cos(bearing) * cos(elevation), sin(elevation), sin(bearing) * cos(elevation));
 
   // Where the line of sight enters the cloud layer and where it leaves it (or gives up, FURTHEST_WALKED out).

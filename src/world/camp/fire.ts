@@ -29,11 +29,6 @@ export interface FireDependencies {
   groundHeight: GroundHeight;
   /** Where the fire is. */
   place: Point;
-  /**
-   * Whether the camp is there. Without it the flame, the embers and the light are hidden and the
-   * logs are left out.
-   */
-  hasCamp: boolean;
 }
 
 export interface Fire {
@@ -69,7 +64,7 @@ function addFlameSheets(flame: Group, uniforms: Record<string, IUniform>): void 
 
 /** The campfire: flame, glowing coals, embers and its flickering light. */
 export function createFire(dependencies: FireDependencies): Fire {
-  const { scene, uniforms, groundHeight, place, hasCamp } = dependencies;
+  const { scene, uniforms, groundHeight, place } = dependencies;
   const ground = groundHeight(place.x, place.z);
 
   const flame = new Group();
@@ -114,19 +109,11 @@ export function createFire(dependencies: FireDependencies): Fire {
     const log = new Mesh(logShape, logMaterial);
     log.position.set(place.x, ground + 0.12, place.z);
     log.rotation.set(Math.PI / 2, 0, i * 0.8);
-    if (hasCamp) scene.add(log);
-  }
-
-  if (!hasCamp) {
-    // As build 78 has it: no camp, no fire, but its disc of glowing coals stays.
-    flame.visible = false;
-    embers.visible = false;
-    light.visible = false;
+    scene.add(log);
   }
 
   return {
     update(time, daylight) {
-      if (!hasCamp) return;
       const flicker = 0.85 + 0.15 * Math.sin(time * 13) + 0.1 * Math.sin(time * 7.3);
       light.intensity =
         (config.brightnessByDay + config.brightnessAddedAtNight * (1 - daylight)) * flicker;

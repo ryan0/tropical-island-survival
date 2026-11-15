@@ -9,3 +9,6 @@ site/
 test-results/
 playwright-report/
 review/
+
+# a helper's working copy of the repository, while it works
+.claude/worktrees/

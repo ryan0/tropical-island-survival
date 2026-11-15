@@ -1,5 +1,5 @@
 import { BufferGeometry, Float32BufferAttribute } from 'three';
-import type { Rgb, Triple } from '../../core/maths';
+import { FULL_TURN, type Rgb, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import type { GroundHeight } from '../landmarks';
 
@@ -33,8 +33,7 @@ export interface CampModel {
 
 const POLE_SIDES = 5;
 const POLE_SEGMENTS = 4;
-// A fifth of a turn, rounded as build 78 had it: every corner of every pole depends on it.
-const FIFTH_OF_A_TURN = 1.2566;
+const TURN_BETWEEN_POLE_SIDES = FULL_TURN / POLE_SIDES;
 const LEAFLETS_DOWN_EACH_SIDE = 11;
 const BOTH_SIDES = [-1, 1] as const;
 
@@ -46,7 +45,6 @@ function cross(a: Triple, b: Triple): Triple {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 }
 
-// Divided, not multiplied by the inverse: the numbers must come out as build 78's.
 function divided(vector: Triple, by: number): Triple {
   return [vector[0] / by, vector[1] / by, vector[2] / by];
 }
@@ -79,7 +77,7 @@ export function createCampModel(random: Random, groundHeight: GroundHeight): Cam
       const radius = startRadius + (endRadius - startRadius) * share;
       const ring: Triple[] = [];
       for (let k = 0; k < POLE_SIDES; k++) {
-        const angle = k * FIFTH_OF_A_TURN + i * 0.5;
+        const angle = k * TURN_BETWEEN_POLE_SIDES + i * 0.5;
         const x = Math.cos(angle) * radius + strayX;
         const y = Math.sin(angle) * radius + strayY;
         ring.push([

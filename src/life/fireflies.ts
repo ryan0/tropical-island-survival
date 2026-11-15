@@ -9,14 +9,9 @@ import {
 } from 'three';
 import { createCanvas } from '../core/canvas';
 import { within, type Random, type Range } from '../core/random';
+import type { GroundHeight, Point } from '../world/landmarks';
+import { ANY_DIRECTION, mustFindPlace, squareAround } from '../world/placing';
 import { lifeConfig } from './life-config';
-import {
-  ANY_DIRECTION,
-  mustFindPlace,
-  squareAround,
-  type GroundHeight,
-  type Point,
-} from './placing';
 
 export interface FirefliesDependencies {
   scene: Scene;

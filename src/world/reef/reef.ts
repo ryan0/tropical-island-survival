@@ -7,18 +7,16 @@ import {
   type DataTexture,
   type IUniform,
   type MeshLambertMaterial,
-  type Scene,
 } from 'three';
 import { FULL_TURN } from '../../core/maths';
-import type { Random } from '../../core/random';
+import type { RandomStreams } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
 import type { RockSurface } from '../rocks/rocks-config';
 import { createCoralShapes } from './coral-shapes';
 import { CORAL_KINDS, reefConfig } from './reef-config';
-import { createReefFish } from './reef-fish';
-import { layOutReef } from './reef-layout';
+import { layOutReef, type CoralHead } from './reef-layout';
 import { createReefMap } from './reef-map';
 import { createCoralMaterial } from './reef-material';
 
@@ -29,9 +27,8 @@ import { createCoralMaterial } from './reef-material';
 // tint. Colours are dimmed by depth as the water does it: red goes first.
 
 export interface ReefDependencies {
-  scene: Scene;
-  /** The reef's own stream. */
-  random: Random;
+  /** The models, where everything goes, and how each coral is turned and tinted: a stream each. */
+  randomStream: RandomStreams;
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   /** Whether a point is inside a rock or within `margin` of one. */
@@ -46,8 +43,8 @@ export interface ReefDependencies {
 export interface Reef {
   /** How high the coral heads stand, for the water's shader and the sand's. */
   map: DataTexture;
-  /** Moves the reef's fish. `time` is the clock the waves run by. */
-  update(time: number, cameraPosition: Vector3): void;
+  /** The coral heads, which the reef fish school round. */
+  heads: readonly CoralHead[];
 }
 
 // How far a head, and anything else, can reach from its own middle.
@@ -56,16 +53,19 @@ const CORAL_REACH = 2.5;
 const CELL_SIZE = 32;
 
 export function createReef(dependencies: ReefDependencies): Reef {
-  const { scene, random, groundHeight, landmarks, isInRock, uniforms, instanceCells } =
-    dependencies;
+  const { randomStream, groundHeight, landmarks, isInRock, uniforms, instanceCells } = dependencies;
   const coralMaterial = createCoralMaterial(uniforms);
   const rockMaterial = dependencies.createRockMaterial(reefConfig.rockSurface);
 
-  // All of these draw from the one random stream, in this order: the models, where everything
-  // goes, how each coral is turned and tinted, and last the fish.
-  const shapes = createCoralShapes(random);
-  const layout = layOutReef({ random, groundHeight, isInRock, landmarks });
+  const shapes = createCoralShapes(randomStream('coral shapes'));
+  const layout = layOutReef({
+    random: randomStream(`reef layout ${reefConfig.layoutRoll}`),
+    groundHeight,
+    isInRock,
+    landmarks,
+  });
   const map = createReefMap(layout.heads, landmarks.home);
+  const random = randomStream('coral turns and tints');
 
   const up = new Vector3(0, 1, 0);
   const matrix = new Matrix4();
@@ -120,12 +120,5 @@ export function createReef(dependencies: ReefDependencies): Reef {
     });
   }
 
-  const fish = createReefFish(scene, random, layout.heads);
-
-  return {
-    map,
-    update(time, cameraPosition) {
-      fish.update(time, cameraPosition);
-    },
-  };
+  return { map, heads: layout.heads };
 }

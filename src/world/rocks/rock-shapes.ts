@@ -44,8 +44,6 @@ function setCross(a: Readonly<Vector>, b: Readonly<Vector>, result: Vector): voi
   result.z = a.x * b.y - a.y * b.x;
 }
 
-// Not Vector3's normalize, which multiplies by the inverse length: its numbers differ slightly
-// from build 78's, and the rocks must come out exactly the same.
 function setUnit(x: number, y: number, z: number, result: Vector): void {
   const length = Math.hypot(x, y, z);
   result.x = x / length;

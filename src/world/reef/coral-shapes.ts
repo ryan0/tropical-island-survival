@@ -1,5 +1,5 @@
 import { CylinderGeometry, SphereGeometry, type BufferGeometry } from 'three';
-import { smoothstep, type Triple } from '../../core/maths';
+import { FULL_TURN, smoothstep, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { bushyCoral, simpleBushyCoral, staghornCoral } from './branching-coral-shapes';
 import { addStick, joined, lumpyField, shapedAndPainted, type LumpyField } from './painted-shapes';
@@ -20,7 +20,7 @@ export interface CoralShapes {
 function coralHead(random: Random): BufferGeometry {
   const lumps = lumpyField(random, 3);
   const otherLumps = lumpyField(random, 3);
-  const dome = new SphereGeometry(1, 26, 14, 0, 6.2832, 0, 1.5708);
+  const dome = new SphereGeometry(1, 26, 14, 0, FULL_TURN, 0, FULL_TURN / 4);
 
   const shape = shapedAndPainted(
     dome,
@@ -78,7 +78,7 @@ function rubbleLump(random: Random): BufferGeometry {
 function lobedMound(random: Random, segmentsAround: number, segmentsDown: number): BufferGeometry {
   const lumps = lumpyField(random, 3);
   const shape = shapedAndPainted(
-    new SphereGeometry(0.5, segmentsAround, segmentsDown, 0, 6.2832, 0, 1.8),
+    new SphereGeometry(0.5, segmentsAround, segmentsDown, 0, FULL_TURN, 0, 1.8),
     (x, y, z) => {
       const k = 1 + 0.17 * lumps(x * 5, y * 5, z * 5) + 0.05 * lumps(x * 11, y * 11, z * 11);
       return [x * k, y * 0.8 * k, z * k];
@@ -184,10 +184,7 @@ function cauliflowerCoral(random: Random): BufferGeometry {
 /** One knob: cauliflower coral seen from afar, and the many small ones. */
 function simpleCauliflowerCoral(random: Random): BufferGeometry {
   const lumps = lumpyField(random, 2);
-  // An angle is drawn though the knob stands in the middle: the reef's stream of random numbers
-  // must stay as build 78's.
-  const angle = random();
-  return joined([knob(lumps, { angle, distance: 0, radius: 0.36, height: 0.14 })]);
+  return joined([knob(lumps, { angle: 0, distance: 0, radius: 0.36, height: 0.14 })]);
 }
 
 /** Giant clam: two fat ribbed shells a little open, the fleshy lips between them in a vivid colour. */
@@ -211,7 +208,7 @@ function giantClam(lip: Triple): BufferGeometry {
   return joined([shape]);
 }
 
-/** Every coral model, made in the order the reef's stream of random numbers expects. */
+/** Every coral model. */
 export function createCoralShapes(random: Random): Record<CoralKind, CoralShapes> {
   const { kinds, clamLips } = reefConfig;
   const models = (kind: CoralKind, make: (index: number) => BufferGeometry): BufferGeometry[] =>

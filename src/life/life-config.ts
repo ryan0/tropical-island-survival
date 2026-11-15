@@ -25,7 +25,7 @@ export const lifeConfig = {
   },
 
   fish: {
-    /** How tall the body is for its length; the reef's fish are other shapes of the same model. */
+    /** How tall the body is for its length; the reef fish are other shapes of the same model. */
     bodyDepth: 0.5,
     length: [0.25, 0.4],
     /** Three kinds, by hue. Most of a school are one kind and the rest the next. */
@@ -91,6 +91,15 @@ export const lifeConfig = {
     settlingTries: 5000,
   },
 
+  reefFish: {
+    /** Only a head wider than this has fish of its own. */
+    smallestHead: 1.7,
+    /** No fish swims higher than this, so none breaks the surface over a head. */
+    highest: -0.15,
+    /** The fish of a head are drawn only when the head is within this distance of the camera. */
+    shownWithin: 70,
+  },
+
   crabs: {
     count: 8,
     /** They live on the sand just above the water, this far at most from the middle of home. */
@@ -128,45 +137,6 @@ export const lifeConfig = {
     /** The shell's depth below the water's surface, and how far it rises and falls. */
     depth: 0.5,
     drift: 0.12,
-  },
-
-  beachFinds: {
-    /** All lie on the sand between these heights, this far at most from the middle of home. */
-    ground: [0.05, 1.2],
-    reachFromHome: 75,
-    triesEach: 600,
-    starfish: {
-      count: 40,
-      size: [0.8, 1.4],
-      hue: [0.0, 0.08],
-      saturation: 0.85,
-      lightness: [0.4, 0.55],
-    },
-    shells: {
-      count: 120,
-      size: [0.6, 1.3],
-      hue: [0.06, 0.12],
-      saturation: [0.1, 0.4],
-      lightness: [0.75, 0.92],
-    },
-    pebbles: {
-      count: 250,
-      size: [0.4, 1.3],
-      /** Grey, a little warm. */
-      brightness: [0.25, 0.6],
-    },
-  },
-
-  flowers: {
-    count: 350,
-    /** They grow on high ground within this far of the middle of home. */
-    lowestGround: 1.9,
-    reachFromHome: 60,
-    triesEach: 800,
-    size: [0.7, 1.4],
-    stemHeight: 0.2,
-    stem: 0x3f7a2c,
-    blooms: [0xff7fb0, 0xffffff, 0xffe14a, 0xe02a2a],
   },
 
   butterflies: {

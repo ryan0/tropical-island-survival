@@ -10,12 +10,13 @@ import {
   type BufferGeometry,
   type Scene,
 } from 'three';
-import { clamp } from '../core/maths';
+import { clamp, FULL_TURN } from '../core/maths';
 import { within, type Random } from '../core/random';
-import { addInstances, coloursAreSet, whiteMaterial } from './instances';
+import { addInstances, coloursAreSet, whiteMaterial } from '../world/instances';
+import type { Point } from '../world/landmarks';
+import { ANY_DIRECTION } from '../world/placing';
+import { merged, placed, shapeFrom, spindle, triangle } from '../world/simple-shapes';
 import { lifeConfig } from './life-config';
-import { ANY_DIRECTION, type Point } from './placing';
-import { merged, placed, shapeFrom, spindle, triangle } from './shapes';
 
 export interface GullsDependencies {
   scene: Scene;
@@ -52,7 +53,7 @@ function bodyShape(): BufferGeometry {
   const beak = placed(new ConeGeometry(0.015, 0.07, 4), [0.38, 0.025, 0], undefined, [
     0,
     0,
-    -Math.PI / 2,
+    -FULL_TURN / 4,
   ]);
   const tail = placed(triangle([0, 0, 0.07], [0, 0, -0.07], [-0.2, 0, 0]), [-0.25, 0.01, 0]);
   return merged([body, head, beak, tail]);
@@ -122,8 +123,8 @@ export function createGulls({ scene, random, home }: GullsDependencies): Gulls {
         const yaw = Math.atan2(-dz, dx);
 
         let turned = gull.lastYaw === null ? 0 : yaw - gull.lastYaw;
-        if (turned > Math.PI) turned -= 2 * Math.PI;
-        if (turned < -Math.PI) turned += 2 * Math.PI;
+        if (turned > FULL_TURN / 2) turned -= FULL_TURN;
+        if (turned < -FULL_TURN / 2) turned += FULL_TURN;
         gull.lastYaw = yaw;
         const bankForThisTurn = clamp(
           (-turned / Math.max(dt, 0.001)) * 2,

@@ -1,5 +1,5 @@
 import { DataTexture, LinearFilter, RepeatWrapping, RGBAFormat } from 'three';
-import { mixAsShadersDo, smoothstep } from '../core/maths';
+import { mix, smoothstep } from '../core/maths';
 import type { Random } from '../core/random';
 import { createCloudRandom, type CloudPicture } from './cloud-noise';
 import { cloudsConfig } from './clouds-config';
@@ -61,9 +61,9 @@ function addLayer(field: Float32Array, random: Random, [across, down, weight]: L
       const y1 = (y0 + 1) % down;
       const tx = smoothstep(0, 1, cellX - x0);
       const ty = smoothstep(0, 1, cellY - y0);
-      const top = mixAsShadersDo(corner(x0, y0), corner(x1, y0), tx);
-      const bottom = mixAsShadersDo(corner(x0, y1), corner(x1, y1), tx);
-      field[y * SIZE + x] += weight * mixAsShadersDo(top, bottom, ty);
+      const top = mix(corner(x0, y0), corner(x1, y0), tx);
+      const bottom = mix(corner(x0, y1), corner(x1, y1), tx);
+      field[y * SIZE + x] += weight * mix(top, bottom, ty);
     }
   }
 }

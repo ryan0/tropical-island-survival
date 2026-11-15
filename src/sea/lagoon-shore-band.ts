@@ -1,5 +1,5 @@
 import type { Frustum, Mesh, Scene, ShaderMaterial, Vector3 } from 'three';
-import { FULL_TURN_TO_EIGHT_FIGURES } from '../core/maths';
+import { FULL_TURN } from '../core/maths';
 import type { IslandShape } from '../world/island-shape';
 import type { Point } from '../world/landmarks';
 import { seaConfig } from './sea-config';
@@ -50,7 +50,7 @@ function lagoonShoreLength(island: IslandShape): number {
   let length = 0;
   let previous: Point | null = null;
   for (let i = 0; i <= SHORE_LENGTH_STEPS; i++) {
-    const direction = (i / SHORE_LENGTH_STEPS) * FULL_TURN_TO_EIGHT_FIGURES;
+    const direction = (i / SHORE_LENGTH_STEPS) * FULL_TURN;
     const r = island.radius(direction) - island.landWidth(direction);
     const point = { x: Math.cos(direction) * r, z: Math.sin(direction) * r };
     if (previous !== null) length += Math.hypot(point.x - previous.x, point.z - previous.z);
@@ -104,16 +104,14 @@ export function createLagoonShoreBand(dependencies: LagoonShoreBandDependencies)
   const shoreLength = lagoonShoreLength(island);
   const shoreColumns = Math.ceil(shoreLength / config.columnSpacing);
   addStrip(shoreColumns, (column, landward) => {
-    const direction = ((column % shoreColumns) / shoreColumns) * FULL_TURN_TO_EIGHT_FIGURES;
+    const direction = ((column % shoreColumns) / shoreColumns) * FULL_TURN;
     const r = island.radius(direction) - island.landWidth(direction) + landward;
     return { x: Math.cos(direction) * r, z: Math.sin(direction) * r };
   });
 
-  const sandbankColumns = Math.ceil(
-    (FULL_TURN_TO_EIGHT_FIGURES * config.sandbankColumnsAt) / config.columnSpacing,
-  );
+  const sandbankColumns = Math.ceil((FULL_TURN * config.sandbankColumnsAt) / config.columnSpacing);
   addStrip(sandbankColumns, (column, landward) => {
-    const direction = ((column % sandbankColumns) / sandbankColumns) * FULL_TURN_TO_EIGHT_FIGURES;
+    const direction = ((column % sandbankColumns) / sandbankColumns) * FULL_TURN;
     const r = SANDBANK_RADIUS - landward;
     return { x: sandbank.x + Math.cos(direction) * r, z: sandbank.z + Math.sin(direction) * r };
   });

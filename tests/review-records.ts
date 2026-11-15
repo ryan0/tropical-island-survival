@@ -32,8 +32,12 @@ export interface PictureRecord extends Entry {
   /** Of one picture, in dots. */
   width: number;
   height: number;
-  /** Changed: the share of the pixels that differ, 0 to 1, and the most any differs by, of 255. */
-  differingShare: number;
+  /**
+   * Changed: the share of the pixels, 0 to 1, that differ clearly and that differ faintly
+   * (picture-difference.ts says where the line is), and the most any differs by, of 255.
+   */
+  clearShare: number;
+  faintShare: number;
   largestDifference: number;
 }
 
@@ -82,7 +86,10 @@ export function recordPicture(
     verdict: difference === null ? 'new' : hasChanged ? 'changed' : 'same',
     file,
     ...sizeOf(after),
-    differingShare: hasChanged ? difference.differingPixels / difference.comparedPixels : 0,
+    clearShare: hasChanged ? difference.clearlyDifferingPixels / difference.comparedPixels : 0,
+    faintShare: hasChanged
+      ? (difference.differingPixels - difference.clearlyDifferingPixels) / difference.comparedPixels
+      : 0,
     largestDifference: difference?.largestDifference ?? 0,
   });
 }

@@ -5,7 +5,7 @@ import {
   RGBAFormat,
   RepeatWrapping,
 } from 'three';
-import { FULL_TURN_TO_EIGHT_FIGURES, wrap } from '../core/maths';
+import { FULL_TURN, wrap } from '../core/maths';
 
 const SIZE = 256;
 const DOTS = SIZE * SIZE;
@@ -49,19 +49,18 @@ function createSmallWaves(random: Random): SmallWaves {
 
   for (let wave = 0; wave < WAVE_COUNT; wave++) {
     const crestsPerTile = 2 * Math.pow(13, random());
-    const direction =
-      random() < 0.7 ? 0.6 + (random() - 0.5) * 1.9 : random() * FULL_TURN_TO_EIGHT_FIGURES;
+    const direction = random() < 0.7 ? 0.6 + (random() - 0.5) * 1.9 : random() * FULL_TURN;
     let countAcross = Math.round(crestsPerTile * Math.cos(direction));
     const countDown = Math.round(crestsPerTile * Math.sin(direction));
     if (!countAcross && !countDown) countAcross = 2;
     const amplitude = Math.pow(Math.hypot(countAcross, countDown), -1.7);
-    const phase = random() * FULL_TURN_TO_EIGHT_FIGURES;
+    const phase = random() * FULL_TURN;
 
     for (let x = 0; x < SIZE; x++) {
-      cosineAcross[x] = Math.cos((FULL_TURN_TO_EIGHT_FIGURES * countAcross * x) / SIZE + phase);
-      sineAcross[x] = Math.sin((FULL_TURN_TO_EIGHT_FIGURES * countAcross * x) / SIZE + phase);
-      cosineDown[x] = Math.cos((FULL_TURN_TO_EIGHT_FIGURES * countDown * x) / SIZE);
-      sineDown[x] = Math.sin((FULL_TURN_TO_EIGHT_FIGURES * countDown * x) / SIZE);
+      cosineAcross[x] = Math.cos((FULL_TURN * countAcross * x) / SIZE + phase);
+      sineAcross[x] = Math.sin((FULL_TURN * countAcross * x) / SIZE + phase);
+      cosineDown[x] = Math.cos((FULL_TURN * countDown * x) / SIZE);
+      sineDown[x] = Math.sin((FULL_TURN * countDown * x) / SIZE);
     }
 
     for (let y = 0; y < SIZE; y++) {

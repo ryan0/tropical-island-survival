@@ -1,7 +1,6 @@
+import { FULL_TURN } from '../core/maths';
 import { within, type Random, type Range } from '../core/random';
-import type { GroundHeight, Point } from '../world/landmarks';
-
-export type { GroundHeight, Point } from '../world/landmarks';
+import type { GroundHeight, Point } from './landmarks';
 
 export interface Area {
   x: Range;
@@ -12,8 +11,7 @@ export interface Place extends Point {
   height: number;
 }
 
-// Build 78 wrote a full turn as 6.28. A truer one would turn everything placed with it a hair.
-export const ANY_DIRECTION: Range = [0, 6.28];
+export const ANY_DIRECTION: Range = [0, FULL_TURN];
 
 export function squareAround(centre: Point, reach: number): Area {
   return { x: [centre.x - reach, centre.x + reach], z: [centre.z - reach, centre.z + reach] };

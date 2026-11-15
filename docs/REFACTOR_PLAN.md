@@ -23,7 +23,7 @@ before and after.
 - [x] 5. Readable shaders
 - [x] 6. Merge duplicates
 - [x] 7. Compare with the last merged build
-- [ ] 8. Clear out what exactness cost
+- [x] 8. Clear out what exactness cost
 - [ ] 9. One wave model
 - [ ] 10. Make room for the roadmap
 - [ ] 11. Remove `legacy/`
@@ -50,10 +50,10 @@ index.html               page shell
 src/
   main.ts                creates the systems, wires them together, runs the frame loop
   core/                  renderer, frame clock, shared uniforms, automatic quality, random streams, maths helpers
-  world/                 the island's shape (one definition), terrain, rocks, reef, plants
+  world/                 the island's shape (one definition), terrain, rocks, reef, plants and flowers, beach finds
   sea/                   wave model, far sea, wave mesh, lagoon shore waves, whitecaps, spray, the view from under water
   sky/                   day cycle, sky dome, sun and moon, clouds, weather, wind
-  life/                  gulls, fish, crabs, turtle, butterflies, fireflies, dolphins; shells and flowers round home
+  life/                  gulls, lagoon fish, reef fish, crabs, turtle, butterflies, fireflies, dolphins
   player/                movement, swimming, camera, input, footprints
   ui/                    menu, captions, joystick, sound button, debug panel
   audio/                 surf and crickets
@@ -259,8 +259,8 @@ Done. Merged, each to one home, with every picture and every object unchanged:
 
 Looked at and left, because they are not the same idea or cannot be merged without changing a number:
 
-- The cloud field in the shader and in the program. They disagree on purpose until the statement that never
-  runs is corrected (below); making one from the other belongs with that.
+- The cloud field in the shader and in the program. The shader's reads textures, which the generator that
+  writes shader formulas out for the program cannot follow. (Step 8 made the two agree.)
 - The terrain's swash foam. Its step to lace is built differently from the water's (a straight fall, a fixed
   width), and cannot be made to match bit for bit.
 - The grass's turf edge and bare soil. The program uses simpler stand-ins for the shader's versions on purpose.
@@ -272,34 +272,7 @@ Looked at and left, because they are not the same idea or cannot be merged witho
 - The light of day and night: no two places work it out with the same numbers.
 - Build 78's one-off picture scripts in `legacy/tools`: they go with `legacy/` in step 8.
 
-Kept for now so that nothing moves; removing one changes what is seen:
-
-- The turtle's old search for a patch of water (`src/life/turtle.ts`). Nothing uses what it finds, but it draws
-  from the wildlife's random stream, and every shell, flower, butterfly and firefly is placed after it. Ryan has
-  said it is to go, later.
-- A full turn written as 6.28 where the wildlife picks a direction at random (`src/life/placing.ts`).
-
-Found on the way, and left as build 78 has them because putting them right changes what is seen. Ryan has said
-both are to be corrected, later:
-
-- In `src/sky/cloud-field.glsl` the statement that makes the cloud shapes rise as they boil (`sp.z-=uEvo.z;`)
-  sits behind a `//` comment on the same line, so the shader never runs it. The program's copy
-  (`src/sky/cloud-field.ts`) does make them rise, so the two disagree slightly about where cloud is.
-- Numbers reach the shaders rounded to four decimal places (`src/shaders/defines.ts`), so the sky's shaders
-  curve the earth with 0.0004 where the program uses 1/2400 (0.000417).
-
-Found while making the shaders readable, and not yet decided:
-
-- The sky's pink band at evening squares a number with `pow(x, 2.0)` where `x` is negative low in the sky. GLSL
-  leaves that undefined. It draws as intended on the test renderer and on Ryan's phone; another phone's GPU
-  might not. Writing it as `x * x` would be safe everywhere.
-- The coral reads the detail texture inside a branch, against the rule in `docs/DEVICE_NOTES.md`, as build 78
-  does. It has shown no fault on the phone.
-- The water mirrors the clouds without sliding the sky pictures by how far the clouds have drifted since each was
-  drawn, as the sky itself does (`uSkyPictureDrift`). Reflected clouds may sit a little out of step with the
-  clouds above. Build 78 does the same.
-- The beach finds and the flowers live in `src/life/` only because they share the wildlife's random stream. Ryan
-  has said they should move elsewhere (the world), later; they will need a stream of their own, which moves them.
+What step 6 kept so that nothing moved, and what it found and left undecided, was settled in step 8.
 
 ### 7. Compare with the last merged build
 
@@ -309,8 +282,9 @@ the reference is kept in the repository.
 
 - `npm run compare` (and every `npm run check`) draws each reference view from the working files and from the
   reference build, in the same renderer through the same frames, and writes `review/index.html`: changed views
-  first, each before and after and with the differing pixels marked; hold a picture to flip it to before. The
-  terminal lists the pictures that differ. The same run compares where every object in the scene is, the page
+  first and the most changed of them first, each before and after and with the differing pixels marked, pink
+  where they differ clearly and blue where faintly; hold a picture to flip it to before. The terminal lists the
+  pictures that differ. The same run compares where every object in the scene is, the page
   after its controls are used, and the sound.
 - **A difference is reported, not failed.** The checks fail on what is broken: a view that cannot be drawn, a
   page error, a shader that does not compile, a control that changes nothing, a silent page, the wave model's
@@ -331,14 +305,41 @@ program asked for a moment a fiftieth of a second off the shader's.
 
 ### 8. Clear out what exactness cost
 
-One pass, agreed to move the rocks, plants and animals once:
+Done. Everything that was written oddly only so that a picture matched build 78 is written plainly, and things
+moved once to pay for it. What moved:
 
-- A random stream of its own for each thing that is placed, so that the order systems are built in no longer
-  matters, and `main.ts` can build them in the order that reads best.
-- One full turn, one `mix`, and defines written to full precision.
-- Delete the turtle's dead search, kept only for the random numbers it drew.
-- Move the beach finds and the flowers out of `src/life/` into the world.
-- Decide each oddity recorded under step 6 and above: fix it, or keep it and say why.
+- **A random stream for each kind of thing that is placed**, by name: each animal, the starfish, shells and
+  pebbles, the flowers, and the reef's shapes, layout and tints. Changing how one kind is placed no longer moves
+  another, and the order `main.ts` builds things in no longer decides where anything lies. The animals, the
+  beach finds, the flowers, the reef and the spray were re-rolled; rocks, palms, grass and plants kept their
+  streams and stand where they did.
+- **The reef's layout is one of several rolls** (`reefConfig.layoutRoll`). The first re-roll left the lagoon
+  seen from home with less coral than before; of eight rolls looked at, this one puts several pale heads off
+  the home beach. The two under-water reference views were re-aimed at the new heads.
+- **One full turn** (`FULL_TURN`, 2π) in the program and, by name, in the shaders (`shared/turns.glsl`); **one
+  `mix`**; **numbers reach the shaders in full**, not rounded to four decimals, so the sky's shaders curve the
+  earth as the program does; the cloud noise divides by 2^32, not a slip of the keys near it. Each turns or
+  shifts what it touches by less than a pixel.
+- **Deleted:** the turtle's dead search and the three coral draws made and not used.
+- **Moved:** the beach finds to `src/world/beach/`, the flowers to `src/world/plants/`, the reef fish and the
+  fish model to `src/life/`, the placing and instancing helpers both sides use to `src/world/`.
+- **Two rules added while re-placing:** finds and flowers keep clear of rocks, and flowers keep off the
+  footpaths as the grass and plants do.
+
+Each oddity, decided:
+
+| Oddity | Decision |
+|---|---|
+| The cloud shapes never rose as they boiled in the shader, only in the program | Fixed: the shader now runs the statement. Clouds are shaped a little differently at any moment |
+| The sky's evening band squared a negative number with `pow` | Fixed: multiplied by itself |
+| The coral read the detail texture inside a branch | Fixed: the reads are made outside it, and the branch is gone |
+| A disc of glowing coals lay where the camp's fire would be, with no camp | Removed: without a camp `main.ts` builds no fire |
+| The water mirrors the clouds without sliding the sky pictures by their drift | Kept: the mirrored clouds lag by a degree or two at most, less than the waves smear them, and the slide would cost every water pixel two more texture reads |
+| An error in the wildlife stops the frame; build 78 swallowed it | Kept: an error should be seen |
+| The debug hooks keep build 78's names (`__lag`, `__fly`) | Kept for now: the tests drive the last merged build through them, so a rename leaves one review without pictures from before. To rename when little else changes |
+| The cloud field is written in the shader and again in the program | Kept as two: the shader's reads textures, which the generator for the program cannot follow. They now agree, but for the fine lumps the program leaves out on purpose |
+
+Still as build 78 wrote it, for step 9: the wave model's short names and its 6.2832 in program and shader.
 
 ### 9. One wave model
 

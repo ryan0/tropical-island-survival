@@ -304,7 +304,7 @@ export const referenceViews: ReferenceView[] = [
     name: 'under-water',
     shows: 'a coral head and the sea floor from under water',
     inQuickCheck: true,
-    pose: [-16, 1.2, 70, 0.905, -0.05],
+    pose: [-24.4, 1.2, 13.5, 0.905, -0.05],
     heightIsAboveGround: true,
     fieldOfView: 60,
     moments: [at(), at({ wind: 0.33, cloudCover: 0 })],
@@ -312,7 +312,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'under-water-looking-up',
     shows: 'the surface from below',
-    pose: [5, 1.0, 62, 3.0, 0.55],
+    pose: [2, 1.0, 62, 3.0, 0.55],
     heightIsAboveGround: true,
     fieldOfView: 60,
     moments: [at({ wind: 0.66, cloudCover: 0.45 })],

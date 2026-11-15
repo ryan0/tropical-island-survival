@@ -7,9 +7,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
 ## Where things stand
 
 - `src/` is the build, all of it TypeScript under the code standards, one folder for each subject. `main.ts`
-  builds every system and runs the frame loop. It still builds them in build 78's order: three.js numbers
-  objects as they are made, and each random stream is moved on by whatever drew from it before, so a change of
-  order moves things. The clearing-out step ends that.
+  builds every system and runs the frame loop. Each kind of thing that is placed draws from a random stream of
+  its own, by name, so changing one never moves another and the order they are built in moves nothing. (That
+  order still decides which of two things three.js draws first where nothing else does.)
 - The rebuild around Vite and TypeScript matched build 78 to the pixel. **That build is now a stepping stone:
   the aim is to simplify and improve on it.** A refactor leaves every picture as it was; an improvement changes
   pictures on purpose and is shown before and after. Take care not to lose what has been gained, and do not let
@@ -90,7 +90,8 @@ What has changed is reported, not failed. Every view in `tests/reference-views.t
 files and from the reference build: the commit the branch left `main` at, which is the last one Ryan merged. It
 is built once and its pictures drawn once, and both are kept in `node_modules/.cache/`. The run ends by listing
 the pictures that differ and writing `review/index.html`: changed views first, each before and after and with
-the differing pixels marked. The same run compares where every object in the scene is (animals are mostly out
+the differing pixels marked, pink where they differ clearly and blue where faintly (a shift of under a pixel
+leaves many faint ones and nothing to see). The same run compares where every object in the scene is (animals are mostly out
 of the pictures), the page after its controls are used, and the sound. `REFERENCE=<commit or tag> npm run
 compare` compares with another commit. Run one check at a time: each run replaces `review/`.
 

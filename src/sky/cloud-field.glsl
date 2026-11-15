@@ -110,9 +110,8 @@ vec2 cloudAt(vec3 p, vec2 weather, bool withFineLumps) {
   // The shapes are stretched upward: columns that the flat base cuts across.
   vec2 inField = p.xz - uFieldPlace.xy;
   vec3 shapePoint = vec3(inField + uBoil.xy, heightAboveSea * SHAPE_STRETCH) / SHAPE_REPEAT;
-  // Build 78 has `sp.z-=uBoil.z;` here, to make the shapes rise as they boil, but it sits inside the comment at
-  // the end of the line before it and so never runs (cloud-field.ts does make them rise). It is left out so that
-  // the picture stays build 78's; docs/REFACTOR_PLAN.md lists it to be corrected.
+  // (the shapes rise as they boil)
+  shapePoint.z -= uBoil.z;
   float shape = readShapeNoise(shapePoint).r;
   float aboveThreshold = (shape - (1.0 - fullness)) / max(fullness, 0.05);
   if (aboveThreshold <= 0.0) return vec2(0.0);

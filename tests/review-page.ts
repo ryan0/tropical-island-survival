@@ -1,3 +1,4 @@
+import { CLEAR_DIFFERENCE } from './picture-difference';
 import {
   PICTURES_FOLDER,
   type FindingRecord,
@@ -40,9 +41,16 @@ function escapeHtml(text: string): string {
     .replaceAll('"', '&quot;');
 }
 
+function percent(share: number): string {
+  return `${(100 * share).toFixed(2)}%`;
+}
+
 export function describeChange(picture: PictureRecord): string {
-  const share = (100 * picture.differingShare).toFixed(2);
-  return `${share}% of the pixels differ, by up to ${picture.largestDifference} of 255`;
+  return (
+    `${percent(picture.clearShare)} of the pixels differ clearly ` +
+    `(by more than ${CLEAR_DIFFERENCE} of 255, at most ${picture.largestDifference}), ` +
+    `${percent(picture.faintShare)} faintly`
+  );
 }
 
 function address(picture: PictureRecord): string {
@@ -229,9 +237,11 @@ function section(title: string, cards: string[], className: string): string {
 export function reviewPage(records: ReviewRecord[], heading: ReviewHeading): string {
   const findings = records.filter((record) => record.kind === 'finding');
   const pictures = records.filter((record) => record.kind === 'picture');
-  // Changed first: the order the large view steps through as well.
+  // Changed first, the most changed of them first: the order the large view steps through as well.
   const inOrder = (['changed', 'new', 'same'] as const).flatMap((verdict) =>
-    pictures.filter((picture) => picture.verdict === verdict),
+    pictures
+      .filter((picture) => picture.verdict === verdict)
+      .sort((a, b) => b.clearShare - a.clearShare),
   );
   const cardsOf = (verdict: Verdict, card: typeof smallCard): string[] =>
     inOrder.flatMap((picture, index) =>
@@ -275,7 +285,8 @@ export function reviewPage(records: ReviewRecord[], heading: ReviewHeading): str
       </p>
       <p>
         Click a picture to see it large. There, hold the picture or <kbd>Space</kbd> to see
-        before; <kbd>B</kbd> flips between the two by itself; <kbd>D</kbd> marks what differs;
+        before; <kbd>B</kbd> flips between the two by itself; <kbd>D</kbd> marks what differs
+        (pink clearly, blue faintly);
         <kbd>&larr;</kbd> <kbd>&rarr;</kbd> step through; <kbd>Esc</kbd> closes.
       </p>
     </header>

@@ -7,17 +7,14 @@ import {
   SphereGeometry,
   type Scene,
 } from 'three';
-import { within, type Random } from '../core/random';
+import { FULL_TURN, mix } from '../core/maths';
+import type { GroundHeight } from '../world/landmarks';
+import { merged, placed } from '../world/simple-shapes';
 import { lifeConfig } from './life-config';
-import type { GroundHeight, Point } from './placing';
-import { merged, placed } from './shapes';
 
 export interface TurtleDependencies {
   scene: Scene;
-  random: Random;
   groundHeight: GroundHeight;
-  /** The middle of the home islet. */
-  home: Point;
 }
 
 export interface Turtle {
@@ -25,33 +22,7 @@ export interface Turtle {
 }
 
 const config = lifeConfig.turtle;
-// A full turn as build 78 wrote it for the turtle's ring; see ANY_DIRECTION in placing.ts.
-const FULL_TURN = 6.283185;
 const RING_POINTS = 64;
-
-// Build 78 once looked for a patch of water for the turtle to circle, and later sent it round
-// the lagoon instead. Nothing uses what the search finds, but it draws from the random stream,
-// and where every shell, flower, butterfly and firefly lies depends on how many numbers it
-// drew. So the search is still made. Dropping it is a change that can be seen.
-function drawTheNumbersOfTheOldSearch(
-  random: Random,
-  groundHeight: GroundHeight,
-  home: Point,
-): void {
-  const RADIUS = 9;
-  const POINTS_TRIED = 24;
-  for (let attempt = 0; attempt < 400; attempt++) {
-    const x = home.x + within(random, [-40, 40]);
-    const z = home.z + within(random, [-75, 30]);
-    let isAllWater = true;
-    for (let i = 0; i < POINTS_TRIED && isAllWater; i++) {
-      const angle = (i / POINTS_TRIED) * 6.283;
-      const ground = groundHeight(x + RADIUS * Math.cos(angle), z + RADIUS * 0.6 * Math.sin(angle));
-      isAllWater = ground <= -2 && ground >= -4.2;
-    }
-    if (isAllWater) return;
-  }
-}
 
 /** How far from the atoll's centre the turtle's ring lies, in each of RING_POINTS directions. */
 function measureRing(groundHeight: GroundHeight): number[] {
@@ -71,8 +42,7 @@ function measureRing(groundHeight: GroundHeight): number[] {
   return ring;
 }
 
-export function createTurtle(dependencies: TurtleDependencies): Turtle {
-  const { scene, random, groundHeight, home } = dependencies;
+export function createTurtle({ scene, groundHeight }: TurtleDependencies): Turtle {
   const shellMaterial = new MeshLambertMaterial({ color: config.shell });
   const flipperMaterial = new MeshLambertMaterial({ color: config.flippers, side: DoubleSide });
   const turtle = new Group();
@@ -84,7 +54,7 @@ export function createTurtle(dependencies: TurtleDependencies): Turtle {
   const tail = placed(new ConeGeometry(0.04, 0.2, 5), [-0.58, -0.02, 0], undefined, [
     0,
     0,
-    Math.PI / 2,
+    FULL_TURN / 4,
   ]);
   turtle.add(new Mesh(merged([shell, head, tail]), shellMaterial));
 
@@ -102,14 +72,12 @@ export function createTurtle(dependencies: TurtleDependencies): Turtle {
   const backRight = addFlipper(-0.3, 0.2, 0.15, 0.06, 1);
   const backLeft = addFlipper(-0.3, -0.2, 0.15, 0.06, -1);
 
-  drawTheNumbersOfTheOldSearch(random, groundHeight, home);
   const ring = measureRing(groundHeight);
 
   function ringDistance(direction: number): number {
     const along = ((((direction / FULL_TURN) % 1) + 1) % 1) * RING_POINTS;
     const from = Math.floor(along);
-    const share = along - from;
-    return ring[from % RING_POINTS] * (1 - share) + ring[(from + 1) % RING_POINTS] * share;
+    return mix(ring[from % RING_POINTS], ring[(from + 1) % RING_POINTS], along - from);
   }
   function ringX(direction: number): number {
     return ringDistance(direction) * Math.cos(direction);

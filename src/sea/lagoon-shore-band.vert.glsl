@@ -16,6 +16,7 @@ varying vec3 vWaterPosition;      // this point's position in the world
 varying vec3 vWaterNormal;      // the surface's normal
 varying vec3 vWaveState;   // what water.vert.glsl hands on from the wave model; here always open, still water
 
+#include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 
 #include "../world/island-shape/island"
@@ -41,7 +42,7 @@ float bandHeight(vec2 p) {
   float backOfLast = pow(max(1.0 - smoothstep(0.0, 0.5, phase), 1e-4), 1.6);
   float faceOfNext = pow(max(smoothstep(0.62, 1.0, phase), 1e-4), 2.2);
   float crest = wave.y * backOfLast + wave.z * faceOfNext;
-  float trough = -0.11 * (wave.y + wave.z) * sin(3.1416 * phase);
+  float trough = -0.11 * (wave.y + wave.z) * sin(HALF_TURN * phase);
 
   // It grows as the water shallows, breaks at about a foot of depth and comes on as a low wall of white water;
   // nothing at the band's edges (where it joins the flat lagoon), nor far from the eye (where the band is not drawn).

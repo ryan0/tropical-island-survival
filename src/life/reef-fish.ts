@@ -8,18 +8,26 @@ import {
   Vector3,
   type Scene,
 } from 'three';
-import { FULL_TURN, smoothstep, type Rgb } from '../../core/maths';
-import type { Random } from '../../core/random';
+import { FULL_TURN, smoothstep, type Rgb } from '../core/maths';
+import type { Random } from '../core/random';
+import type { Point } from '../world/landmarks';
+import type { CoralHead } from '../world/reef/reef-layout';
 import { createFishModel } from './fish-model';
-import { reefConfig } from './reef-config';
-import type { CoralHead } from './reef-layout';
+import { lifeConfig } from './life-config';
 
 // Reef fish: small blue ones in loose clouds over the bigger heads, yellow butterflyfish in
-// ones and twos. Every head of any size has its fish, and the bigger heads have more.
+// ones and twos. Every head but the smallest has its fish, and the bigger heads have more.
+
+export interface ReefFishDependencies {
+  scene: Scene;
+  random: Random;
+  /** The coral heads they school round. */
+  heads: readonly CoralHead[];
+}
 
 export interface ReefFish {
-  /** `time` is the clock the waves run by. */
-  update(time: number, cameraPosition: Vector3): void;
+  /** `time` is the clock the waves run by. Only the fish of heads near the viewer are drawn. */
+  update(time: number, viewer: Point): void;
 }
 
 interface OneFish {
@@ -35,10 +43,9 @@ interface OneFish {
   length: number;
 }
 
-const BIG_ENOUGH_FOR_FISH = 1.7;
+const config = lifeConfig.reefFish;
 // A fish is drawn pointing at where it will be this much later.
 const SECONDS_AHEAD = 0.1;
-const HIGHEST = -0.15;
 
 /** The small blue-green ones (chromis): dark back, bright side, pale belly, a dark eye. */
 function paintBlue(x: number, y: number, part: number): Rgb {
@@ -59,16 +66,12 @@ function paintYellow(x: number, y: number, part: number): Rgb {
     : [1.1 - 0.12 * stripe, 1.0 - 0.2 * stripe, 0.7 - 0.3 * stripe];
 }
 
-export function createReefFish(
-  scene: Scene,
-  random: Random,
-  heads: readonly CoralHead[],
-): ReefFish {
+export function createReefFish({ scene, random, heads }: ReefFishDependencies): ReefFish {
   const fish: OneFish[] = [];
   let blueCount = 0;
   let yellowCount = 0;
   for (const head of heads) {
-    if (head.radius <= BIG_ENOUGH_FOR_FISH) continue;
+    if (head.radius <= config.smallestHead) continue;
 
     const blues = Math.round(2 + head.radius * 1.1);
     const yellows = head.radius > 3.2 ? 2 : random() < 0.5 ? 1 : 0;
@@ -120,19 +123,19 @@ export function createReefFish(
     const circle = one.circle * (1 + 0.08 * Math.sin(time * 0.37 + one.phase * 2));
     place.set(
       one.head.x + Math.cos(angle) * circle,
-      Math.min(HIGHEST, one.height + 0.1 * Math.sin(time * 0.9 + one.phase)),
+      Math.min(config.highest, one.height + 0.1 * Math.sin(time * 0.9 + one.phase)),
       one.head.z + Math.sin(angle) * circle,
     );
   }
 
   return {
-    update(time, cameraPosition) {
+    update(time, viewer) {
       // Each mesh's first places are filled afresh with the fish near enough to be drawn.
       let bluesShown = 0;
       let yellowsShown = 0;
       for (const one of fish) {
-        const fromCamera = Math.hypot(one.head.x - cameraPosition.x, one.head.z - cameraPosition.z);
-        if (fromCamera > reefConfig.fishShownWithin) continue;
+        const fromViewer = Math.hypot(one.head.x - viewer.x, one.head.z - viewer.z);
+        if (fromViewer > config.shownWithin) continue;
 
         findPlace(one, time, position);
         findPlace(one, time + SECONDS_AHEAD, ahead);

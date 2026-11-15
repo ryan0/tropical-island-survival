@@ -6,13 +6,14 @@ import {
   type BufferGeometry,
   type Scene,
 } from 'three';
+import { FULL_TURN } from '../core/maths';
+import type { IslandRadius } from '../world/landmarks';
+import { merged, placed, spindle, triangle } from '../world/simple-shapes';
 import { lifeConfig } from './life-config';
-import { merged, placed, spindle, triangle } from './shapes';
 
 export interface DolphinsDependencies {
   scene: Scene;
-  /** Distance from the atoll's centre to the outer shoreline, in a direction. */
-  islandRadius: (direction: number) => number;
+  islandRadius: IslandRadius;
 }
 
 export interface Dolphins {
@@ -33,7 +34,7 @@ function dolphinShape(): BufferGeometry {
   const beak = placed(new ConeGeometry(0.05, 0.25, 6), [1.2, -0.03, 0], undefined, [
     0,
     0,
-    -Math.PI / 2,
+    -FULL_TURN / 4,
   ]);
   const backFin = placed(triangle([0.25, 0, 0], [-0.2, 0, 0], [-0.25, 0.4, 0]), [0, 0.22, 0]);
   const tail = placed(triangle([0, 0, 0], [-0.3, 0, 0.35], [-0.3, 0, -0.35]), [-1.15, 0, 0]);
@@ -78,7 +79,7 @@ export function createDolphins({ scene, islandRadius }: DolphinsDependencies): D
           islandRadius(direction) +
           config.beyondTheShore +
           config.beyondTheShoreSpread * Math.cos(leap * 1.3 + i);
-        const yaw = -direction - 1.5708 + 0.5 * Math.sin(leap * 1.7 + i * 2);
+        const yaw = -direction - FULL_TURN / 4 + 0.5 * Math.sin(leap * 1.7 + i * 2);
         const middleX = Math.cos(direction) * distance;
         const middleZ = Math.sin(direction) * distance;
         const along = (through - 0.5) * config.leapLength;

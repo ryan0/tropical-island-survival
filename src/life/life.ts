@@ -1,33 +1,35 @@
 import type { Scene } from 'three';
-import type { Random } from '../core/random';
-import { createBeachFinds } from './beach-finds';
+import type { RandomStreams } from '../core/random';
+import type { GroundHeight, IslandRadius, Landmarks, Point } from '../world/landmarks';
+import type { CoralHead } from '../world/reef/reef-layout';
 import { createButterflies } from './butterflies';
 import { createCrabs } from './crabs';
 import { createDolphins } from './dolphins';
 import { createFireflies } from './fireflies';
-import { createFish, type FishModel, type Pier } from './fish';
-import { createFlowers } from './flowers';
+import { createFish } from './fish';
 import { createGulls } from './gulls';
-import type { GroundHeight, Point } from './placing';
+import { createReefFish } from './reef-fish';
 import { createTurtle } from './turtle';
 
 export interface LifeDependencies {
   scene: Scene;
-  /** One stream for everything here. */
-  random: Random;
+  /** Each kind of animal draws from a stream of its own, named for it. */
+  randomStream: RandomStreams;
   groundHeight: GroundHeight;
-  /** Distance from the atoll's centre to the outer shoreline, in a direction. */
-  islandRadius: (direction: number) => number;
+  islandRadius: IslandRadius;
   /** The middle of the home islet. */
   home: Point;
   hut: Point;
-  pier: Pier;
-  fishModel: FishModel;
+  pier: Landmarks['pier'];
+  /** The reef fish school round them. */
+  coralHeads: readonly CoralHead[];
 }
 
 export interface LifeFrame {
   /** Seconds on the scene's clock. */
   time: number;
+  /** Seconds on the clock the waves run by, which stands still while the tests take a picture. */
+  waveTime: number;
   dt: number;
   /** 0 at night to 1 in full day, and the other way about. */
   daylight: number;
@@ -41,26 +43,37 @@ export interface Life {
   update(frame: LifeFrame): void;
 }
 
-/** The animals, and the small things that lie or grow on the home islet. */
+/** The animals: in the air, in the water and on the home islet. */
 export function createLife(dependencies: LifeDependencies): Life {
-  const { scene, random, groundHeight, islandRadius, home, hut, pier, fishModel } = dependencies;
+  const { scene, randomStream, groundHeight, islandRadius, home, hut, pier, coralHeads } =
+    dependencies;
 
-  // All of these draw from the one random stream, so where each thing lies depends on
-  // everything built before it. This is build 78's order: change it and all that follows moves.
-  const gulls = createGulls({ scene, random, home });
-  const fish = createFish({ scene, random, groundHeight, home, pier, fishModel });
-  const crabs = createCrabs({ scene, random, groundHeight, home });
-  const turtle = createTurtle({ scene, random, groundHeight, home });
-  createBeachFinds({ scene, random, groundHeight, home });
-  createFlowers({ scene, random, groundHeight, home });
-  const butterflies = createButterflies({ scene, random, groundHeight, home });
-  const fireflies = createFireflies({ scene, random, groundHeight, home, hut });
+  const gulls = createGulls({ scene, random: randomStream('gulls'), home });
+  const fish = createFish({ scene, random: randomStream('fish'), groundHeight, home, pier });
+  const reefFish = createReefFish({ scene, random: randomStream('reef fish'), heads: coralHeads });
+  const crabs = createCrabs({ scene, random: randomStream('crabs'), groundHeight, home });
+  const turtle = createTurtle({ scene, groundHeight });
+  const butterflies = createButterflies({
+    scene,
+    random: randomStream('butterflies'),
+    groundHeight,
+    home,
+  });
+  const fireflies = createFireflies({
+    scene,
+    random: randomStream('fireflies'),
+    groundHeight,
+    home,
+    hut,
+  });
   const dolphins = createDolphins({ scene, islandRadius });
 
   return {
-    update({ time, dt, daylight, night, waterLevel, player }) {
+    update({ time, waveTime, dt, daylight, night, waterLevel, player }) {
       gulls.update(time, dt);
       fish.update(time);
+      // By the waves' clock, so that they hold still with the waves while a picture is taken.
+      reefFish.update(waveTime, player);
       crabs.update(time, dt, player);
       turtle.update(time, waterLevel);
       butterflies.update(time, daylight);

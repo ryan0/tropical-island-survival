@@ -8,17 +8,18 @@ import {
   type BufferGeometry,
   type Scene,
 } from 'three';
+import { FULL_TURN } from '../core/maths';
 import { within, type Random } from '../core/random';
-import { addInstances, coloursAreSet, createInstancePlacer, whiteMaterial } from './instances';
-import { lifeConfig } from './life-config';
 import {
-  ANY_DIRECTION,
-  mustFindPlace,
-  squareAround,
-  type GroundHeight,
-  type Point,
-} from './placing';
-import { merged, placed } from './shapes';
+  addInstances,
+  coloursAreSet,
+  createInstancePlacer,
+  whiteMaterial,
+} from '../world/instances';
+import type { GroundHeight, Point } from '../world/landmarks';
+import { ANY_DIRECTION, mustFindPlace, squareAround } from '../world/placing';
+import { merged, placed } from '../world/simple-shapes';
+import { lifeConfig } from './life-config';
 
 export interface CrabsDependencies {
   scene: Scene;
@@ -46,7 +47,7 @@ interface Crab {
 const config = lifeConfig.crabs;
 const SIDES = [-1, 1];
 // A crab that cannot go the way it means to tries a little to each side, then further round.
-const TURNS_TRIED = [0, 0.8, -0.8, 1.6, -1.6, 2.4, -2.4, 3.14];
+const TURNS_TRIED = [0, 0.8, -0.8, 1.6, -1.6, 2.4, -2.4, FULL_TURN / 2];
 
 // The claws point along +x.
 function crabShape(): BufferGeometry {

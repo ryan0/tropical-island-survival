@@ -9,16 +9,11 @@ import {
   type Scene,
 } from 'three';
 import { within, type Random } from '../core/random';
-import { addInstances, coloursAreSet, whiteMaterial } from './instances';
+import { addInstances, coloursAreSet, whiteMaterial } from '../world/instances';
+import type { GroundHeight, Point } from '../world/landmarks';
+import { ANY_DIRECTION, mustFindPlace, squareAround } from '../world/placing';
+import { shapeFrom } from '../world/simple-shapes';
 import { lifeConfig } from './life-config';
-import {
-  ANY_DIRECTION,
-  mustFindPlace,
-  squareAround,
-  type GroundHeight,
-  type Point,
-} from './placing';
-import { shapeFrom } from './shapes';
 
 export interface ButterfliesDependencies {
   scene: Scene;

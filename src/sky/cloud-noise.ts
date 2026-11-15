@@ -1,5 +1,5 @@
 import { DataTexture, LinearFilter, RGBAFormat } from 'three';
-import { mixAsShadersDo, smoothstep } from '../core/maths';
+import { mix, smoothstep } from '../core/maths';
 import type { Random } from '../core/random';
 import { cloudsConfig } from './clouds-config';
 
@@ -27,15 +27,12 @@ export const NOISE_TILE = SIZE + 2;
 /** The tiles lie side by side in one square picture, this many dots a side. */
 export const NOISE_PICTURE_WIDTH = NOISE_TILE * SLICES_ACROSS;
 
-/**
- * Each cloud picture has a random stream of its own, so that the clouds are the same each run.
- * The divisor is build 78's, a little over 2^32; correcting it would move every cloud.
- */
+/** Each cloud picture has a random stream of its own, so that the clouds are the same each run. */
 export function createCloudRandom(seed: number): Random {
   let state = seed;
   return () => {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 4296967296;
+    return state / 2 ** 32;
   };
 }
 
@@ -107,17 +104,17 @@ function softNoise(random: Random, cells: number): Float32Array {
     const tx = smoothstep(0, 1, x - x0);
     const ty = smoothstep(0, 1, y - y0);
     const tz = smoothstep(0, 1, z - z0);
-    const near = mixAsShadersDo(
-      mixAsShadersDo(corner(x0, y0, z0), corner(x1, y0, z0), tx),
-      mixAsShadersDo(corner(x0, y1, z0), corner(x1, y1, z0), tx),
+    const near = mix(
+      mix(corner(x0, y0, z0), corner(x1, y0, z0), tx),
+      mix(corner(x0, y1, z0), corner(x1, y1, z0), tx),
       ty,
     );
-    const far = mixAsShadersDo(
-      mixAsShadersDo(corner(x0, y0, z1), corner(x1, y0, z1), tx),
-      mixAsShadersDo(corner(x0, y1, z1), corner(x1, y1, z1), tx),
+    const far = mix(
+      mix(corner(x0, y0, z1), corner(x1, y0, z1), tx),
+      mix(corner(x0, y1, z1), corner(x1, y1, z1), tx),
       ty,
     );
-    return mixAsShadersDo(near, far, tz);
+    return mix(near, far, tz);
   });
 }
 

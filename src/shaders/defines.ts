@@ -1,12 +1,9 @@
 // Numbers from a config reach a shader as defines: three.js writes `#define NAME value` at the
 // top of the shader, and the shader uses the name.
 
-/**
- * Four decimal places, as build 78 wrote its numbers into its shaders. The rounding is part of
- * the picture: a define written more exactly would move what the shader draws.
- */
+/** The number in full, written as GLSL reads a float: a whole number gets its `.0`. */
 export function glslFloat(value: number): string {
-  return value.toFixed(4);
+  return Number.isInteger(value) ? value.toFixed(1) : String(value);
 }
 
 export function glslVec2(x: number, y: number): string {

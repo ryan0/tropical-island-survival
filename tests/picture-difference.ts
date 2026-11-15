@@ -1,6 +1,6 @@
 import { PNG } from 'pngjs';
 
-export interface Rectangle {
+interface Rectangle {
   left: number;
   top: number;
   width: number;
@@ -9,17 +9,28 @@ export interface Rectangle {
 
 export interface PictureDifference {
   differingPixels: number;
+  /** Those of them that differ by more than CLEAR_DIFFERENCE. */
+  clearlyDifferingPixels: number;
   comparedPixels: number;
   /** The largest difference in any one colour channel, out of 255. */
   largestDifference: number;
-  /** The smallest rectangle that holds every differing pixel. */
-  area: Rectangle | null;
-  /** A PNG: the reference, the candidate, and the reference dimmed with differing pixels marked. */
+  /**
+   * A PNG: the reference, the candidate, and the reference dimmed with the differing pixels
+   * marked, brightly where they differ clearly and dimly where faintly.
+   */
   sideBySide: Buffer;
 }
 
+/**
+ * A pixel that differs by more than this in a colour channel, out of 255, differs clearly: an
+ * eye can pick it out. Less is faint: a shift of under a pixel, or a rounding step in a shader,
+ * leaves many such and nothing to see.
+ */
+export const CLEAR_DIFFERENCE = 8;
+
 const CHANNELS = 4;
-const MARK = [255, 0, 200];
+const CLEAR_MARK = [255, 0, 200];
+const FAINT_MARK = [70, 80, 170];
 const DIMMING = 0.35;
 
 function contains(area: Rectangle, x: number, y: number): boolean {
@@ -46,12 +57,9 @@ export function comparePictures(referencePng: Buffer, candidatePng: Buffer): Pic
   const buildLabel = buildLabelArea(width, height);
   const sideBySide = new PNG({ width: width * 3, height });
   let differingPixels = 0;
+  let clearlyDifferingPixels = 0;
   let comparedPixels = 0;
   let largestDifference = 0;
-  let left = width;
-  let top = height;
-  let right = -1;
-  let bottom = -1;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -64,10 +72,11 @@ export function comparePictures(referencePng: Buffer, candidatePng: Buffer): Pic
         difference = Math.max(difference, Math.abs(inReference - inCandidate));
       }
 
+      const mark = difference > CLEAR_DIFFERENCE ? CLEAR_MARK : FAINT_MARK;
       for (let channel = 0; channel < CHANNELS; channel++) {
         const isAlpha = channel === 3;
         const dimmed = isAlpha ? 255 : reference.data[from + channel] * DIMMING;
-        const marked = isAlpha ? 255 : MARK[channel];
+        const marked = isAlpha ? 255 : mark[channel];
         const to = (y * width * 3 + x) * CHANNELS + channel;
         sideBySide.data[to] = reference.data[from + channel];
         sideBySide.data[to + width * CHANNELS] = candidate.data[from + channel];
@@ -79,33 +88,16 @@ export function comparePictures(referencePng: Buffer, candidatePng: Buffer): Pic
       if (difference === 0) continue;
 
       differingPixels++;
+      if (difference > CLEAR_DIFFERENCE) clearlyDifferingPixels++;
       largestDifference = Math.max(largestDifference, difference);
-      left = Math.min(left, x);
-      top = Math.min(top, y);
-      right = Math.max(right, x);
-      bottom = Math.max(bottom, y);
     }
   }
 
-  const area =
-    differingPixels === 0 ? null : { left, top, width: right - left + 1, height: bottom - top + 1 };
   return {
     differingPixels,
+    clearlyDifferingPixels,
     comparedPixels,
     largestDifference,
-    area,
     sideBySide: PNG.sync.write(sideBySide),
   };
-}
-
-export function describeDifference(difference: PictureDifference): string {
-  const { differingPixels, comparedPixels, largestDifference, area } = difference;
-  if (area === null) return 'the pictures are the same';
-
-  const share = ((100 * differingPixels) / comparedPixels).toFixed(2);
-  return (
-    `${differingPixels} of ${comparedPixels} pixels differ (${share}%), ` +
-    `by up to ${largestDifference} of 255, ` +
-    `all within ${area.width} x ${area.height} at ${area.left}, ${area.top}`
-  );
 }

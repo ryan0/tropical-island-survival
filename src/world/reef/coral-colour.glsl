@@ -14,17 +14,15 @@ vec2 mottleUv = vec2(vSurfacePosition.x + vSurfacePosition.y * 0.8, vSurfacePosi
 vec4 mottle = texture2D(uDetail, mottleUv * 1.9);
 diffuseColor.rgb *= 0.86 + 0.28 * mottle.b + 0.10 * (mottle.a - 0.3);
 
-// Close up, the polyps: a fine pitted grain (the detail texture read very small, twice)
+// Close up, the polyps: a fine pitted grain (the detail texture read very small, twice). It fades with
+// distance and is too faint to see beyond about 16 m. The two reads are made all the same, and not skipped by a
+// branch: a mipmapped texture read inside one goes wrong on some phones (docs/DEVICE_NOTES.md).
 float polypStrength = exp(-length(uCameraPosition - vSurfacePosition) * 0.22);
-// Beyond about 16 m the grain is too faint to see, so the two reads are skipped. (They are inside the branch,
-// against the rule in docs/DEVICE_NOTES.md, as build 78 has them.)
-if (polypStrength > 0.03) {
-  vec4 pitDetail = texture2D(uDetail, mottleUv * 11.0);
-  vec4 grainDetail = texture2D(uDetail, mottleUv.yx * 23.0);
-  float pits = 0.42 * (pitDetail.a - 0.35);
-  float grain = 0.30 * (grainDetail.b - 0.5);
-  diffuseColor.rgb *= 1.0 + polypStrength * (pits + grain);
-}
+vec4 pitDetail = texture2D(uDetail, mottleUv * 11.0);
+vec4 grainDetail = texture2D(uDetail, mottleUv.yx * 23.0);
+float pits = 0.42 * (pitDetail.a - 0.35);
+float grain = 0.30 * (grainDetail.b - 0.5);
+diffuseColor.rgb *= 1.0 + polypStrength * (pits + grain);
 
 // The sea's tint and its net of light
 diffuseColor.rgb = seaTint(diffuseColor.rgb, vSurfacePosition, CORAL_FACING_UP, CORAL_TINT_STRENGTH);

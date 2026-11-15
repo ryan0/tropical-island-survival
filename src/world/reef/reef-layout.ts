@@ -7,8 +7,8 @@ import { reefConfig, type CoralKind } from './reef-config';
 // Where the reef's corals go. Coral heads - mounds of old reef rock, "bommies" - stand in patches
 // on the sandy floor 1.3-7 m down, each packed with corals, with rubble round its foot and smaller
 // corals on the sand about it. On the reef slopes, deeper down, corals grow straight on the floor.
-// Everything takes its numbers from the reef's one stream in a fixed order, so changing what one
-// coral draws, or whether it draws at all, moves every coral after it.
+// Everything takes its numbers from the layout's one stream in turn, so changing what one coral
+// draws moves every coral placed after it.
 
 /** A coral head. */
 export interface CoralHead {
@@ -42,7 +42,7 @@ export interface ReefLayout {
 }
 
 export interface ReefLayoutDependencies {
-  /** The reef's stream of random numbers. */
+  /** The layout's own stream. */
   random: Random;
   groundHeight: GroundHeight;
   isInRock: IsInRock;
@@ -175,7 +175,6 @@ function isAlongThePier(pier: Landmarks['pier'], x: number, z: number): boolean 
 /**
  * The coral heads: in patches, clear of the pier. Where the water is shallow enough they grow up
  * to just under the surface, as wide flat platforms; in deeper water they are lower mounds.
- * Each head's rock is placed as it is found, so its numbers are drawn before the next head's.
  */
 function findHeads(placer: CoralPlacer, landmarks: Landmarks): CoralHead[] {
   const { random, groundHeight, isInRock } = placer;

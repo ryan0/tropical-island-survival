@@ -1,8 +1,8 @@
 import { BufferGeometry, Euler, Float32BufferAttribute, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Triple } from '../core/maths';
+import { FULL_TURN, type Triple } from '../core/maths';
 
-// The animals are put together from a few simple shapes, each moved into place and then joined
-// into one model.
+// The animals, the flowers and the beach finds are put together from a few simple shapes, each
+// moved into place and then joined into one model.
 
 const UNMOVED: Triple = [0, 0, 0];
 const FULL_SIZE: Triple = [1, 1, 1];
@@ -80,7 +80,7 @@ export function spindle(
     const along = i / segments;
     const fullness = Math.pow(Math.max(0, Math.sin(Math.PI * Math.pow(along, 0.75))), 0.7);
     for (let j = 0; j < cornersPerRing; j++) {
-      const angle = (j / cornersPerRing) * 2 * Math.PI;
+      const angle = (j / cornersPerRing) * FULL_TURN;
       positions.push(
         (along - 0.5) * length,
         Math.cos(angle) * halfHeight * fullness,
@@ -113,7 +113,7 @@ export function star(outerRadius: number, innerRadius: number, height: number): 
 
   for (let k = 0; k < POINTS_AND_NOTCHES; k++) {
     const radius = k % 2 === 0 ? outerRadius : innerRadius;
-    const angle = (k / POINTS_AND_NOTCHES) * 2 * Math.PI;
+    const angle = (k / POINTS_AND_NOTCHES) * FULL_TURN;
     positions.push(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
   }
   for (let k = 0; k < POINTS_AND_NOTCHES; k++) {

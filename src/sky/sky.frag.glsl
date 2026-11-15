@@ -36,6 +36,7 @@ uniform vec3 uCloudInShade;
 // From the camera, which is the dome's middle, towards this dot.
 varying vec3 vViewDirection;
 
+#include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 #include "distance-up-to"
 
@@ -71,8 +72,8 @@ vec4 lookUpSkyPicture(sampler2D picture, vec3 d, vec2 shift) {
   vec3 towardsSpot = normalize(spot);
 
   // Where that direction is in the picture, laid out as cloud-bake.frag.glsl draws it.
-  float across = atan(towardsSpot.z, towardsSpot.x) / 6.28318 + 0.5;
-  float up = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(towardsSpot.y, 0.0, 1.0)) / 1.5708);
+  float across = atan(towardsSpot.z, towardsSpot.x) / FULL_TURN + 0.5;
+  float up = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(towardsSpot.y, 0.0, 1.0)) / QUARTER_TURN);
   vec2 uv = vec2(across, up);
   // (read twice, half a dot apart each way, and averaged: that smooths away the grain the picture's stepping
   // leaves)
@@ -108,7 +109,9 @@ void main() {
   sky += SUNSET_FIRE_COLOUR * evening * smoothstep(-0.3, 1.0, towardsSun) * exp(-aboveHorizon * 6.0) * 0.55;
   float earthsShadow = evening * smoothstep(0.3, -0.9, towardsSun) * exp(-aboveHorizon * 5.0) * 0.65;
   sky = mix(sky, EARTHS_SHADOW_COLOUR, earthsShadow);
-  float pinkBand = exp(-pow((aboveHorizon - 0.16) / 0.12, 2.0));
+  // (squared by multiplying: pow of a negative number is undefined, and below the band this is negative)
+  float fromBandMiddle = (aboveHorizon - 0.16) / 0.12;
+  float pinkBand = exp(-fromBandMiddle * fromBandMiddle);
   sky = mix(sky, EVENING_PINK_COLOUR, evening * pinkBand * 0.28);
 
   // The sun: its glow and its disc.

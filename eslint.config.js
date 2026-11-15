@@ -3,7 +3,16 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores(['dist/', 'site/', 'legacy/', 'test-results/', 'playwright-report/', 'review/']),
+  globalIgnores([
+    'dist/',
+    'site/',
+    'legacy/',
+    'test-results/',
+    'playwright-report/',
+    'review/',
+    // a helper's working copy of the repository, while it works
+    '.claude/worktrees/',
+  ]),
   {
     extends: [
       js.configs.recommended,

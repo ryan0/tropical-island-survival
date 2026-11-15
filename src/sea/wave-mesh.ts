@@ -7,7 +7,7 @@ import {
   type Scene,
   type ShaderMaterial,
 } from 'three';
-import { FULL_TURN_TO_EIGHT_FIGURES, smoothstep } from '../core/maths';
+import { FULL_TURN, smoothstep } from '../core/maths';
 import type { IslandShape } from '../world/island-shape';
 import { waterConfig } from './water-config';
 import type { WaterSheet } from './water-materials';
@@ -74,7 +74,7 @@ function columnDirections(): Float32Array {
   // The weight summed from direction 0 to the end of each step.
   const totals = [0];
   for (let i = 0; i < WEIGHT_STEPS; i++) {
-    const direction = ((i + 0.5) / WEIGHT_STEPS) * FULL_TURN_TO_EIGHT_FIGURES;
+    const direction = ((i + 0.5) / WEIGHT_STEPS) * FULL_TURN;
     const southward = smoothstep(southernColumns.from, southernColumns.to, Math.sin(direction));
     totals.push(totals[i] + 1 + southernColumns.extra * southward);
   }
@@ -83,10 +83,10 @@ function columnDirections(): Float32Array {
     const target = (totals[WEIGHT_STEPS] * column) / columns;
     while (step < WEIGHT_STEPS - 1 && totals[step + 1] < target) step++;
     const withinStep = (target - totals[step]) / (totals[step + 1] - totals[step]);
-    directions[column] = ((step + withinStep) / WEIGHT_STEPS) * FULL_TURN_TO_EIGHT_FIGURES;
+    directions[column] = ((step + withinStep) / WEIGHT_STEPS) * FULL_TURN;
   }
   directions[0] = 0;
-  directions[columns] = FULL_TURN_TO_EIGHT_FIGURES;
+  directions[columns] = FULL_TURN;
   return directions;
 }
 
@@ -115,8 +115,8 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
         pointAt(column, row) {
           const direction = directions[column];
           const r = island.radius(direction) + distances[row];
-          // Rounded as the strip will store them: build 78 measured a piece's middle (which
-          // picks its level of detail) from the stored points.
+          // Rounded as the strip will store them, so that a piece's middle (which picks its
+          // level of detail) is measured from the points as they are drawn.
           return {
             x: Math.fround(Math.cos(direction) * r),
             z: Math.fround(Math.sin(direction) * r),

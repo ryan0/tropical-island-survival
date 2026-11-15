@@ -6,7 +6,7 @@ import { addStick, joined, lumpyField, shapedAndPainted, type Painter } from './
 const STUBS_ON_A_BUSH = 62;
 
 function bushDome(radius: number, paint: Painter): BufferGeometry {
-  const dome = new SphereGeometry(radius, 9, 5, 0, 6.2832, 0, 1.7);
+  const dome = new SphereGeometry(radius, 9, 5, 0, FULL_TURN, 0, 1.7);
   return shapedAndPainted(dome, (x, y, z) => [x, y * 0.75, z], paint);
 }
 
@@ -49,9 +49,6 @@ function addForkedStub(parts: BufferGeometry[], random: Random, index: number): 
 
 /** Bushy coral (Acropora): a dome of many short fine branches, paler at the tips. */
 export function bushyCoral(random: Random): BufferGeometry {
-  // Only the simple bush's dome is mottled, but this one draws the same field: the reef's stream
-  // of random numbers must stay as build 78's.
-  lumpyField(random, 2);
   const parts = [bushDome(0.34, () => 0.5)];
   for (let i = 0; i < STUBS_ON_A_BUSH; i++) addForkedStub(parts, random, i);
   return joined(parts);

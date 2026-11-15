@@ -1,6 +1,9 @@
 /** A stream of numbers from 0 up to 1. A stream of the same name gives the same numbers each run. */
 export type Random = () => number;
 
+/** A new stream of the name, for a system that places several kinds of thing to name its own. */
+export type RandomStreams = (name: string) => Random;
+
 export type Range = readonly [low: number, high: number];
 
 export function within(random: Random, [low, high]: Range): number {
@@ -12,7 +15,7 @@ export function within(random: Random, [low, high]: Range): number {
  * always refers to the same rock. Each part that scatters things draws from its own stream, by
  * name, so that changing how one kind of thing is placed does not move all the others.
  */
-export function createRandomStreams(seed: number): (name: string) => Random {
+export function createRandomStreams(seed: number): RandomStreams {
   return (name) => {
     let state = seed >>> 0;
     for (let i = 0; i < name.length; i++) {

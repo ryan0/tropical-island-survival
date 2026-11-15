@@ -1,4 +1,4 @@
-import { FULL_TURN_TO_EIGHT_FIGURES } from '../core/maths';
+import { FULL_TURN } from '../core/maths';
 import { skyConfig } from './sky-config';
 
 export interface DayCycle {
@@ -39,10 +39,7 @@ function aheadOf(from: number, to: number): number {
 }
 
 function sunHeightAt(phase: number): number {
-  return (
-    config.sunHeightAtSix +
-    config.sunHeightSwing * Math.cos(FULL_TURN_TO_EIGHT_FIGURES * (phase - 0.5))
-  );
+  return config.sunHeightAtSix + config.sunHeightSwing * Math.cos(FULL_TURN * (phase - 0.5));
 }
 
 export function createDayCycle(): DayCycle {

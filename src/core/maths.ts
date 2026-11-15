@@ -3,16 +3,8 @@ export type Triple = readonly [number, number, number];
 /** A colour as red, green and blue. */
 export type Rgb = readonly [red: number, green: number, blue: number];
 
-/**
- * A full turn as build 78 wrote it in most places. Rounded, not 2π: where everything placed with
- * it falls, and every picture drawn with it, depends on the exact number.
- */
-export const FULL_TURN = 6.283;
-/**
- * A full turn as build 78 wrote it where it laid points out round the atoll. Math.PI * 2 would
- * move them by a rounding step.
- */
-export const FULL_TURN_TO_EIGHT_FIGURES = 6.2831853;
+/** A full turn, in radians. */
+export const FULL_TURN = Math.PI * 2;
 
 export function clamp(value: number, low: number, high: number): number {
   return value < low ? low : value > high ? high : value;
@@ -24,17 +16,9 @@ export function smoothstep(from: number, to: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
-/**
- * `share` of the way from `from` to `to`. Not GLSL's mix, `from * (1 - share) + to * share`,
- * which rounds differently.
- */
+/** `share` of the way from `from` to `to`, as GLSL's mix. */
 export function mix(from: number, to: number, share: number): number {
   return from + (to - from) * share;
-}
-
-/** As GLSL's mix: the pictures made for the shaders blend this way, and the rounding is part of them. */
-export function mixAsShadersDo(from: number, to: number, share: number): number {
-  return from * (1 - share) + to * share;
 }
 
 /** `index` brought into 0 up to `count`, going round: -1 is the last. */

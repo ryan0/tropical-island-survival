@@ -22,7 +22,9 @@ const TALLY_WORDS = { changed: 'changed', same: 'the same', new: 'with nothing t
 
 function summary(records: ReviewRecord[], reference: Reference): string[] {
   const pictures = records.filter((record) => record.kind === 'picture');
-  const changed = pictures.filter((picture) => picture.verdict === 'changed');
+  const changed = pictures
+    .filter((picture) => picture.verdict === 'changed')
+    .sort((a, b) => b.clearShare - a.clearShare);
   const tally = (['changed', 'same', 'new'] as const).flatMap((verdict) => {
     const count = pictures.filter((picture) => picture.verdict === verdict).length;
     return count === 0 ? [] : [`${count} ${TALLY_WORDS[verdict]}`];
