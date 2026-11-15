@@ -1,6 +1,6 @@
 # Code standards
 
-Agreed with Ryan before the refactor began. They apply to everything outside `legacy/`.
+Agreed with Ryan before the refactor began. They apply to everything in the repository.
 
 ## What we are after
 

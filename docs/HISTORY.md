@@ -1,6 +1,7 @@
 # How it got here
 
-(File names in these notes are those of `legacy/`, the layout before the refactor.)
+(File names in these notes are those of `legacy/`, the layout before the refactor, kept at the git tag `build-78`.
+So are the debug hooks' names: `__lag` is now `__scene`.)
 
 Notes written at the time of each build: what changed, why, and what was learnt. Newest last. For the current state of
 things read ROADMAP.md first; come here for the reasoning behind a piece of code (the wave notes for builds 28 and 29

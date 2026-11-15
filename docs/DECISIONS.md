@@ -1,7 +1,8 @@
 # Decisions and why
 
 The choices that shaped the project, each with its reason. `HISTORY.md` has the detail build by build; this is the
-short version to read first. File names in brackets are in `legacy/src`.
+short version to read first. File names in brackets are build 78's, in `legacy/src` at
+the git tag `build-78`.
 
 ## The product
 
@@ -81,10 +82,10 @@ short version to read first. File names in brackets are in `legacy/src`.
 25. **Vite and TypeScript, built to one HTML page.** TypeScript because nearly all frame time is in shaders, which
     stay GLSL in any language, and because types catch broken references while one shared scope becomes modules.
     A CPU-heavy system could later be Rust compiled to WebAssembly without changing the rest.
-26. **three.js stays at r128 through the refactor.** A newer version changes lighting and colour. Upgrading is its
-    own step, judged by eye.
+26. **three.js stayed at r128 through the refactor.** A newer version changes lighting and colour. Upgrading is its
+    own step, tried on a branch and judged from the before and after pictures (`ROADMAP.md`).
 27. **Exactness is a tool, not the aim.** Through the first six steps of the refactor nothing visible changed,
-    checked to the pixel against `legacy/build78.html`. Since 14 November 2026 that build is a stepping stone:
+    checked to the pixel against build 78's page. Since 14 November 2026 that build is a stepping stone:
     the aim is to simplify and improve on it. Every change is compared with the last merged build and shown
     before and after; a refactor is expected to show no difference, an improvement the difference it meant.
     The checks fail only on what is broken, and Ryan's merge is what accepts a change. Nothing about the

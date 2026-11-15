@@ -56,14 +56,14 @@ export async function openScenePage(context: BrowserContext, file: string): Prom
 
   await page.addInitScript(installSteppedClock);
   await page.addInitScript((cloudPictureWidth) => {
-    window.__noq = 1;
-    window.__cloudW = cloudPictureWidth;
+    window.__isAutomaticQualityOff = true;
+    window.__cloudPictureWidth = cloudPictureWidth;
   }, CLOUD_PICTURE_WIDTH);
 
   await page.goto(pathToFileURL(file).href);
   await page.evaluate(
     ([frames, milliseconds]) => {
-      window.__lag.skip();
+      window.__scene.endIntro();
       window.__runFrames(frames, milliseconds);
     },
     [FRAMES_TO_START, FRAME_MILLISECONDS] as const,
@@ -74,18 +74,18 @@ export async function openScenePage(context: BrowserContext, file: string): Prom
 export async function showMoment(page: Page, view: ReferenceView, moment: Moment): Promise<void> {
   await page.evaluate(
     ({ view, moment, frames, milliseconds }) => {
-      const hooks = window.__lag;
+      const hooks = window.__scene;
       const [x, height, z, yaw, pitch] = view.pose;
-      const y = view.heightIsAboveGround ? hooks.hgt(x, z) + height : height;
+      const y = view.heightIsAboveGround ? hooks.groundHeight(x, z) + height : height;
 
-      hooks.freeze(moment.waveTime);
+      hooks.stopClockAt(moment.waveTime);
       window.__wind = moment.wind;
-      window.__weather = moment.cloudCover;
-      if ('dayPhase' in moment.sun) hooks.phase(moment.sun.dayPhase);
-      else hooks.sun(moment.sun.elevation);
-      window.__fly = [x, y, z, yaw, pitch];
-      hooks.cam.fov = view.fieldOfView;
-      hooks.cam.updateProjectionMatrix();
+      window.__cloudCover = moment.cloudCover;
+      if ('dayPhase' in moment.sun) hooks.jumpToTimeOfDay(moment.sun.dayPhase);
+      else hooks.fixSunHeight(moment.sun.elevation);
+      window.__cameraPose = [x, y, z, yaw, pitch];
+      hooks.camera.fov = view.fieldOfView;
+      hooks.camera.updateProjectionMatrix();
 
       window.__runFrames(frames, milliseconds);
     },

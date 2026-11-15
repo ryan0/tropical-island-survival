@@ -81,7 +81,7 @@ useOf('the corner button opens the menu', 0, async (page) => {
 useOf('choosing a time, a sky and a wind in the menu changes the scene', 1, async (page) => {
   // The menu steers the weather only while the clock runs.
   await page.evaluate(() => {
-    window.__freeze = false;
+    window.__isClockStopped = false;
   });
   await page.locator('#tod').click();
   await page.getByRole('button', { name: 'sunset', exact: true }).click();
@@ -92,8 +92,8 @@ useOf('choosing a time, a sky and a wind in the menu changes the scene', 1, asyn
 
 useOf('swimming into the lagoon shows its name', 2, async (page) => {
   await page.evaluate(() => {
-    window.__fly = undefined;
-    window.__lag.set(5, 60, 0.3, -0.1);
+    window.__cameraPose = undefined;
+    window.__scene.placePlayer(5, 60, 0.3, -0.1);
   });
   await runFrames(page, 3);
   await expect(page.locator('#cap')).toContainText('The Lagoon');
@@ -101,7 +101,7 @@ useOf('swimming into the lagoon shows its name', 2, async (page) => {
 
 useOf('pushing the joystick walks the player and clears the hint', 3, async (page) => {
   await page.evaluate(() => {
-    window.__fly = undefined;
+    window.__cameraPose = undefined;
   });
   const pad = await page.locator('#joy').boundingBox();
   if (pad === null) throw new Error('the joystick is not on the page');

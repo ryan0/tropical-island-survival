@@ -1,4 +1,4 @@
-// What a page holding the scene must offer for the tests to drive it. The names are build 78's.
+// What a page holding the scene must offer for the tests to drive it (src/core/test-hooks.ts).
 // The tests drive the reference build through them as well as the working files, so a hook
 // renamed here leaves one review without pictures from before, until the change is merged.
 
@@ -23,24 +23,23 @@ interface SceneObject {
 
 interface SceneDebugHooks {
   /** Ends the opening fly-in. */
-  skip(): void;
+  endIntro(): void;
   /** Stops the wave clock at `waveTime` seconds; weather, wind and clouds then hold still too. */
-  freeze(waveTime: number): void;
+  stopClockAt(waveTime: number): void;
   /** Time of day: 0 midnight, 0.5 noon. */
-  phase(dayPhase: number): void;
+  jumpToTimeOfDay(dayPhase: number): void;
   /** A sun height in radians that overrides the time of day. */
-  sun(elevation: number): void;
+  fixSunHeight(elevation: number): void;
   /** Puts the player somewhere, facing a direction. */
-  set(x: number, z: number, yaw: number, pitch: number): void;
-  /** Ground height at a point. */
-  hgt(x: number, z: number): number;
+  placePlayer(x: number, z: number, yaw: number, pitch: number): void;
+  groundHeight(x: number, z: number): number;
   /** Water height at a point and wave time, as the program computes it. */
-  waveH(x: number, z: number, waveTime: number, withoutBreakingLip: boolean): number;
+  waveHeight(x: number, z: number, waveTime: number, withoutBreakingLip: boolean): number;
   /** Distance from the atoll's centre to the outer shoreline, in a direction. */
-  islandR(th: number): number;
+  islandRadius(th: number): number;
   /** The wave model as the shader has it, ready to compile on its own. */
-  glslWaves(): string;
-  cam: { fov: number; updateProjectionMatrix(): void };
+  waveShaderSource(): string;
+  camera: { fov: number; updateProjectionMatrix(): void };
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {
     compile(scene: object, camera: object): void;
@@ -49,17 +48,17 @@ interface SceneDebugHooks {
 }
 
 interface Window {
-  __lag: SceneDebugHooks;
+  __scene: SceneDebugHooks;
   /** Camera placed by the tests: x, y, z, yaw, pitch. */
-  __fly?: [number, number, number, number, number];
-  /** Set by `freeze`; cleared to let the wave clock and the weather run again. */
-  __freeze?: boolean;
-  /** Wind strength and cloud cover while the clock is frozen. */
+  __cameraPose?: [number, number, number, number, number];
+  /** Set by `stopClockAt`; cleared to let the wave clock and the weather run again. */
+  __isClockStopped?: boolean;
+  /** Wind strength and cloud cover while the clock is stopped. */
   __wind?: number;
-  __weather?: number;
+  __cloudCover?: number;
   /** Read once as the page loads: no automatic quality steps; the width of the cloud pictures. */
-  __noq?: number;
-  __cloudW?: number;
+  __isAutomaticQualityOff?: boolean;
+  __cloudPictureWidth?: number;
   /** Added by the tests (scene-page.ts): the only thing that makes time pass in the page. */
   __runFrames(count: number, millisecondsEach: number): void;
   /** Added by the tests (sound.spec.ts): the page's sound, to be rendered and not played. */

@@ -23,7 +23,7 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
   number,
   number,
 ]): number[] {
-  const hooks = window.__lag;
+  const hooks = window.__scene;
   const canvas = document.createElement('canvas');
   canvas.width = samples;
   canvas.height = 1;
@@ -36,7 +36,7 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
   // (The wave model reads a debug switch that whoever includes it declares.)
   const heightsSource = `precision highp float;
     uniform float uDebugMode;
-    ${hooks.glslWaves()}
+    ${hooks.waveShaderSource()}
     uniform vec2 uDir;
     uniform float uT, uR0, uDr;
     void main() {
@@ -82,7 +82,7 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
     // Lines spread right round the atoll, each at its own moment of the swell.
     const th = 0.3 + line * 0.777;
     const waveTime = 12 + line * 2.37;
-    const firstRadius = hooks.islandR(th) - metresUpTheBeach;
+    const firstRadius = hooks.islandRadius(th) - metresUpTheBeach;
     gl.uniform2f(uniform('uDir'), Math.cos(th), Math.sin(th));
     gl.uniform1f(uniform('uT'), waveTime);
     gl.uniform1f(uniform('uR0'), firstRadius);
@@ -97,7 +97,7 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
       const inShader = (red / 255 + green / 65025 + blue / 16581375) * 8 - 4;
       const radius = firstRadius + i * metresBetweenSamples;
       const programTime = waveTime + programIsAhead;
-      const inProgram = hooks.waveH(
+      const inProgram = hooks.waveHeight(
         Math.cos(th) * radius,
         Math.sin(th) * radius,
         programTime,

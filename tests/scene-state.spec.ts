@@ -61,7 +61,7 @@ function describeScene(): string[] {
   };
 
   const lines: string[] = [];
-  window.__lag.scene.traverse((object) => {
+  window.__scene.scene.traverse((object) => {
     const { material } = object;
     const parts = [
       `${lines.length}: ${object.type}`,
@@ -100,7 +100,7 @@ async function letTheCrabsWalkThenStandBesideOne(page: Page): Promise<void> {
   await page.evaluate(
     ([crabs, frames, milliseconds]) => {
       const inEightCopies: Float32Array[] = [];
-      window.__lag.scene.traverse((object) => {
+      window.__scene.scene.traverse((object) => {
         if (object.instanceMatrix !== undefined && object.count === crabs) {
           inEightCopies.push(object.instanceMatrix.array);
         }
@@ -118,7 +118,7 @@ async function letTheCrabsWalkThenStandBesideOne(page: Page): Promise<void> {
 
       const x = moved[0][12] + 1.5;
       const z = moved[0][14];
-      window.__fly = [x, window.__lag.hgt(x, z) + 1.6, z, 0, 0];
+      window.__cameraPose = [x, window.__scene.groundHeight(x, z) + 1.6, z, 0, 0];
     },
     [CRABS, 24, STEP_MILLISECONDS] as const,
   );

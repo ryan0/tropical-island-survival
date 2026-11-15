@@ -42,7 +42,7 @@ function at(changes: Partial<Moment> = {}): Moment {
 }
 
 // Build 78's own picture tools fixed the sun's height and left the wind at its usual 0.66.
-function legacyToolsAt(elevation: number, waveTime = 20): Moment {
+function sunFixedAt(elevation: number, waveTime = 20): Moment {
   return at({ waveTime, wind: 0.66, sun: { elevation } });
 }
 
@@ -147,41 +147,41 @@ export const referenceViews: ReferenceView[] = [
     moments: aWaveBreakingOnTheOceanBeach,
   },
 
-  // Build 78's standard set (legacy/tools/views.json).
+  // Build 78's standard set (its tools/views.json).
   {
     name: 'top',
     shows: 'the whole atoll from straight above',
     pose: [0, 360, 10, 0, -1.5],
     fieldOfView: 70,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'aerial',
     shows: 'the atoll from the air',
     pose: [-230, 190, 400, -0.5, -0.42],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'north-pass',
     shows: 'the lagoon and its pass from the north',
     pose: [-10, 60, -290, 3.1416, -0.5],
     fieldOfView: 70,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'surf',
     shows: 'the surf from the beach, past leaves close to the camera',
     pose: [-14, 2.6, 160, 3.1416, -0.16],
     fieldOfView: 50,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'shore',
     shows: 'the home shore from the sea',
     pose: [-2, 6, 180, 0.05, -0.12],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'home-clearing',
@@ -189,14 +189,14 @@ export const referenceViews: ReferenceView[] = [
     inQuickCheck: true,
     pose: [-8, 5.2, 144.5, 0.7, -0.1],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'lagoon-beach',
     shows: 'the lagoon from its beach',
     pose: [5, 3.4, 101, 0.1, -0.1],
     fieldOfView: 65,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'night',
@@ -204,82 +204,82 @@ export const referenceViews: ReferenceView[] = [
     inQuickCheck: true,
     pose: [9, 2.6, 162, 0.67, -0.1],
     fieldOfView: 60,
-    moments: [legacyToolsAt(-0.16), ...clearAndPartlyCloudy(MIDNIGHT)],
+    moments: [sunFixedAt(-0.16), ...clearAndPartlyCloudy(MIDNIGHT)],
   },
 
-  // Build 78's views for comparing with photographs (legacy/tools/gviews.json).
+  // Build 78's views for comparing with photographs (its tools/gviews.json).
   {
     name: 'photo-barrel',
     shows: 'a breaking wave from beside it',
     pose: [30, 1.3, 199, 4.86, -0.03],
     fieldOfView: 32,
-    moments: [legacyToolsAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, 60.8)],
   },
   {
     name: 'photo-surf',
     shows: 'the reef flat through the water',
     pose: [40, 2.0, 166, 3.45, -0.05],
     fieldOfView: 40,
-    moments: [legacyToolsAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, 60.8)],
   },
   {
     name: 'photo-drone',
     shows: 'the reef and beach from a drone',
     pose: [120, 30, 150, 2.2, -0.5],
     fieldOfView: 55,
-    moments: [legacyToolsAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, 60.8)],
   },
   {
     name: 'photo-shore',
     shows: 'the wet sand at the water’s edge',
     pose: [9, 1.6, 169.2, 1.9, -0.22],
     fieldOfView: 62,
-    moments: [legacyToolsAt(0.72, 60.8)],
+    moments: [sunFixedAt(0.72, 60.8)],
   },
 
-  // Build 78's views for comparing two builds (legacy/tools/abviews.json), less the two that
+  // Build 78's views for comparing two builds (its tools/abviews.json), less the two that
   // repeat the standard set.
   {
     name: 'grove',
     shows: 'the palm grove',
     pose: [-6, 4.2, 150, 0.4, -0.05],
     fieldOfView: 70,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'inland',
     shows: 'looking inland from the beach',
     pose: [3, 3.1, 160, 0, 0],
     fieldOfView: 72,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'shore-from-further-out',
     shows: 'the home shore from further out',
     pose: [-2, 6, 186, 0.05, -0.05],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'behind-the-beach',
     shows: 'rocks and vegetation behind the beach',
     pose: [26, 3.2, 160, -0.5, -0.2],
     fieldOfView: 65,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'above-the-home-shore',
     shows: 'the home shore from above the reef',
     pose: [40, 28, 190, 0.5, -0.55],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.72)],
+    moments: [sunFixedAt(0.72)],
   },
   {
     name: 'low-sun',
     shows: 'the beach with the sun low',
     pose: [14, 2.0, 170, 0.3, -0.03],
     fieldOfView: 60,
-    moments: [legacyToolsAt(0.12)],
+    moments: [sunFixedAt(0.12)],
   },
 
   // Other times of day, under clear and partly cloudy skies.

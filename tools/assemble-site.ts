@@ -3,7 +3,6 @@
 //   site/index.html                    main
 //   site/preview/<branch>/index.html   each branch not yet merged into main
 //   site/preview/index.html            links to every page here
-//   site/legacy/index.html             build 78, to compare old and new on the phone
 //
 // A Pages deployment replaces the entire site, so every run builds every page again from its
 // branch. Nothing is kept between runs: a branch that is merged or deleted drops out by itself.
@@ -98,7 +97,6 @@ function listOfPages(pages: Page[]): string {
     <h1>Builds</h1>
     <ul>
       ${pages.map(listItem).join('\n      ')}
-      <li><a href="../legacy/">legacy</a> <small>build 78</small></li>
     </ul>
   </body>
 </html>
@@ -114,7 +112,6 @@ const pages = [
 ];
 
 writeFileSync(path.join(site, 'preview', 'index.html'), listOfPages(pages));
-cpSync(path.join(repository, 'legacy', 'build78.html'), path.join(site, 'legacy', 'index.html'));
 
 for (const page of pages) {
   console.log(

@@ -83,7 +83,7 @@ async function hearSound(context: BrowserContext, file: string): Promise<HeardSo
   const samples = await page.evaluate(
     async ([frames, milliseconds]) => {
       // The surf breaks only while the wave clock runs.
-      window.__freeze = false;
+      window.__isClockStopped = false;
       window.__runFrames(frames, milliseconds);
       if (window.__sound === undefined) throw new Error('the page built no sound');
       const rendered = await window.__sound.startRendering();

@@ -1,6 +1,7 @@
 # Refactor plan
 
-Agreed with Ryan on 12 November 2026; its aim was widened on 14 November. Update the status list as steps land.
+Agreed with Ryan on 12 November 2026; its aim was widened on 14 November. Finished on 15 November: this is now
+the record of it. What comes next is in `ROADMAP.md`.
 
 ## The aim
 
@@ -26,7 +27,7 @@ before and after.
 - [x] 8. Clear out what exactness cost
 - [x] 9. One wave model: left for the breaking wave's rebuild
 - [x] 10. Make room for the roadmap: the frame-rate readout
-- [ ] 11. Remove `legacy/`
+- [x] 11. Remove `legacy/`
 
 ## Decisions already made
 
@@ -57,12 +58,11 @@ src/
   player/                movement, swimming, camera, input, footprints
   ui/                    menu, captions, joystick, sound button, debug panel
   audio/                 surf and crickets
-  game/                  survival systems (empty until the refactor is done)
+  game/                  survival systems (empty until the first piece of the game)
   shaders/shared/        chunks used by several features: noise, sea tint, readings of the detail texture
 tests/                   comparison with the last merged build (pictures, scene state, controls, sound), wave mirror, shader compile
 tools/                   picture and measurement tools worth keeping
 docs/
-legacy/                  build 78; kept to look back at; removed in step 11
 ```
 
 ## Steps
@@ -270,7 +270,7 @@ Looked at and left, because they are not the same idea or cannot be merged witho
 - The far sea's hole and the band's reach in the water's shader: margins just inside the mesh's own extent, not
   the mesh's numbers.
 - The light of day and night: no two places work it out with the same numbers.
-- Build 78's one-off picture scripts in `legacy/tools`: they go with `legacy/` in step 8.
+- Build 78's one-off picture scripts in `legacy/tools`: they went with `legacy/` in step 11.
 
 What step 6 kept so that nothing moved, and what it found and left undecided, was settled in step 8.
 
@@ -336,7 +336,7 @@ Each oddity, decided:
 | A disc of glowing coals lay where the camp's fire would be, with no camp | Removed: without a camp `main.ts` builds no fire |
 | The water mirrors the clouds without sliding the sky pictures by their drift | Kept: the mirrored clouds lag by a degree or two at most, less than the waves smear them, and the slide would cost every water pixel two more texture reads |
 | An error in the wildlife stops the frame; build 78 swallowed it | Kept: an error should be seen |
-| The debug hooks keep build 78's names (`__lag`, `__fly`) | Kept for now: the tests drive the last merged build through them, so a rename leaves one review without pictures from before. To rename when little else changes |
+| The debug hooks keep build 78's names (`__lag`, `__fly`) | Kept in step 8, because the tests drive the last merged build through them and a rename leaves one review without pictures from before. Renamed in step 11, where nothing else in the page changed |
 | The cloud field is written in the shader and again in the program | Kept as two: the shader's reads textures, which the generator for the program cannot follow. They now agree, but for the fine lumps the program leaves out on purpose |
 
 Still as build 78 wrote it: the wave model's short names and its 6.2832 in program and shader. They stay
@@ -373,21 +373,29 @@ Done, in the one part that was needed now:
 
 ### 11. Remove `legacy/`
 
-No test uses it. It goes when Ryan no longer wants build 78 to look back at: delete the folder and its page on
-the site, move the tools worth keeping, bring the docs up to date.
+Done. Build 78 is at the git tag `build-78`, in the folder `legacy/` there: its page is `legacy/build78.html`
+and `legacy/README.md` describes its layout and tools. The folder, its page on the site and the commands that
+built it are gone from the repository.
+
+No tool was moved across. Two that the breaking wave's rebuild will want again, cross-sections of a breaking
+wave (`legacy/tools/xsec.js`) and the wave's height along a line out to sea (`profile.js`), drive build 78's
+page; they are to be written afresh against today's when the rebuild starts.
+
+The debug hooks were renamed in the same step: `__lag` is `__scene`, and each hook is named for what it does
+(the table under Reference views). The review of that step had no pictures from before, as foreseen; its 60
+pictures were checked against those of the merge before it, pixel by pixel: all the same.
 
 ## After the refactor
 
-`docs/ROADMAP.md`, which starts with a performance pass from the phone's numbers and a trial of a newer
-three.js.
+`docs/ROADMAP.md`, which starts with a trial of a newer three.js and the breaking wave's rebuild.
 
 ## Reference views
 
 A view is a camera pose, a time, a wind strength and a cloud cover. Pose is `x, y, z, yaw, pitch`; looking along
 `(-sin yaw, -cos yaw)`.
 
-The views are defined once, in `tests/reference-views.ts`. They are the eleven sea views below, the legacy sets
-from `legacy/tools/views.json`, `gviews.json` and `abviews.json`, and views at dawn, golden hour, sunset and
+The views are defined once, in `tests/reference-views.ts`. They are the eleven sea views below, build 78's three
+sets (its `tools/views.json`, `gviews.json` and `abviews.json`), and views at dawn, golden hour, sunset and
 night under clear and partly cloudy skies, under water, in a calm, and of the controls. The table records where
 the first eleven came from; the file is what the tests use.
 
@@ -405,16 +413,16 @@ the first eleven came from; the file is what the tests use.
 | ocean-shore | 5, eye 1.7 m above the sand, 163.8, 3.1416, -0.22 (fov 66) | 34.7, 35.0, 35.3, 35.9 | 0.66 | a wave breaking on the ocean beach |
 | ocean-shore-along | 5, eye 1.7 m above the sand, 164.8, 1.85, -0.20 (fov 66) | same | 0.66 | the same wave along the beach |
 
-Debug hooks the views use (legacy names; typed in `tests/scene-hooks.d.ts`, used only by `tests/scene-page.ts`):
+Debug hooks the views use (set up in `src/core/test-hooks.ts`, typed for the tests in `tests/scene-hooks.d.ts`):
 
 | Hook | Does |
 |---|---|
-| `__lag.freeze(t)` | stops the clock at `t` seconds |
-| `window.__fly = [x, y, z, yaw, pitch]` | places the camera |
-| `window.__wind`, `window.__weather` | fix wind strength and cloud cover |
-| `__lag.phase(p)` | time of day, 0 midnight, 0.5 noon |
-| `__lag.hgt(x, z)`, `__lag.waveH(x, z, t)` | ground height; water height |
-| `window.__cloudW`, `window.__noq` (before load) | a smaller cloud picture, for speed in the software renderer; no automatic quality |
+| `__scene.stopClockAt(t)` | stops the clock at `t` seconds |
+| `window.__cameraPose = [x, y, z, yaw, pitch]` | places the camera |
+| `window.__wind`, `window.__cloudCover` | fix wind strength and cloud cover |
+| `__scene.jumpToTimeOfDay(p)` | time of day, 0 midnight, 0.5 noon |
+| `__scene.groundHeight(x, z)`, `__scene.waveHeight(x, z, t)` | ground height; water height |
+| `window.__cloudPictureWidth`, `window.__isAutomaticQualityOff` (before load) | a smaller cloud picture, for speed in the software renderer; no automatic quality |
 
 The page must take the time only from `requestAnimationFrame` and `performance.now`: those are what the tests
 replace to step the clock.

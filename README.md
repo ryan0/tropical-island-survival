@@ -4,8 +4,7 @@ A coral atoll to explore in a phone browser, on its way to becoming a survival g
 three.js and hand-written shaders, no other assets.
 
 **State:** the scene has been rebuilt as a Vite and TypeScript project (`src/`) that matched the last hand-built
-page (`legacy/`, build 78) to the pixel, and is now being simplified and improved from there. See
-`docs/REFACTOR_PLAN.md`.
+page (build 78) to the pixel, and is now being simplified and improved from there. See `docs/ROADMAP.md`.
 
 ## Try it
 
@@ -22,14 +21,12 @@ npm run build
 
 The page is written to `dist/index.html`, one file with everything inside it.
 
-Build 78, kept to look back at, loads three.js from a CDN, so it needs a connection:
+Build 78, the last page built by hand, is kept at the git tag `build-78`, in the folder `legacy/`: its page is
+`legacy/build78.html`, and `legacy/README.md` describes its layout and tools. To look at it:
 
 ```
-cd legacy
-python3 build.py
+git worktree add ../build-78 build-78
 ```
-
-The page is written to `legacy/dist/index.html`. `legacy/README.md` describes the legacy layout and tools.
 
 ## Published builds
 
@@ -37,7 +34,6 @@ The page is written to `legacy/dist/index.html`. `legacy/README.md` describes th
 |---|---|
 | <https://ryan0.github.io/tropical-island-survival/> | `main` |
 | <https://ryan0.github.io/tropical-island-survival/preview/> | a list of the branches being worked on, each with its own page |
-| <https://ryan0.github.io/tropical-island-survival/legacy/> | build 78 |
 
 ## Read next
 

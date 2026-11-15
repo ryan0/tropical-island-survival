@@ -11,28 +11,28 @@ type CameraPose = readonly [x: number, y: number, z: number, yaw: number, pitch:
 /** What the tests call on the page. */
 interface SceneHooks {
   scene: Scene;
-  cam: PerspectiveCamera;
+  camera: PerspectiveCamera;
   renderer: WebGLRenderer;
-  skip(): void;
-  freeze(waveTime: number): void;
-  phase(dayPhase: number): void;
-  sun(elevation: number): void;
-  set(x: number, z: number, yaw: number, pitch: number): void;
-  hgt(x: number, z: number): number;
-  waveH(x: number, z: number, waveTime: number, withoutBreaking: boolean): number;
-  islandR(direction: number): number;
-  glslWaves(): string;
+  endIntro(): void;
+  stopClockAt(waveTime: number): void;
+  jumpToTimeOfDay(dayPhase: number): void;
+  fixSunHeight(elevation: number): void;
+  placePlayer(x: number, z: number, yaw: number, pitch: number): void;
+  groundHeight(x: number, z: number): number;
+  waveHeight(x: number, z: number, waveTime: number, withoutBreaking: boolean): number;
+  islandRadius(direction: number): number;
+  waveShaderSource(): string;
 }
 
 declare global {
   interface Window {
-    __lag?: SceneHooks;
-    __freeze?: boolean;
-    __fly?: CameraPose;
+    __scene?: SceneHooks;
+    __isClockStopped?: boolean;
+    __cameraPose?: CameraPose;
     __wind?: number;
-    __weather?: number;
-    __noq?: number;
-    __cloudW?: number;
+    __cloudCover?: number;
+    __isAutomaticQualityOff?: boolean;
+    __cloudPictureWidth?: number;
   }
 }
 
@@ -70,37 +70,37 @@ export interface TestHooks {
 
 export function createTestHooks(): TestHooks {
   return {
-    isAutomaticQualityOff: Boolean(window.__noq),
-    cloudPictureWidth: window.__cloudW,
+    isAutomaticQualityOff: window.__isAutomaticQualityOff === true,
+    cloudPictureWidth: window.__cloudPictureWidth,
 
-    isClockStopped: () => window.__freeze === true,
+    isClockStopped: () => window.__isClockStopped === true,
     stopClock(isStopped) {
-      window.__freeze = isStopped;
+      window.__isClockStopped = isStopped;
     },
-    cloudCover: () => window.__weather,
+    cloudCover: () => window.__cloudCover,
     wind: () => window.__wind,
-    cameraPose: () => window.__fly,
+    cameraPose: () => window.__cameraPose,
 
     install(systems) {
-      window.__lag = {
+      window.__scene = {
         scene: systems.scene,
-        cam: systems.camera,
+        camera: systems.camera,
         renderer: systems.renderer,
-        skip: systems.endIntro,
-        freeze(waveTime) {
-          window.__freeze = true;
+        endIntro: systems.endIntro,
+        stopClockAt(waveTime) {
+          window.__isClockStopped = true;
           systems.setWaveTime(waveTime);
         },
-        phase(dayPhase) {
+        jumpToTimeOfDay(dayPhase) {
           systems.fixSunHeight(null);
           systems.jumpToTimeOfDay(dayPhase);
         },
-        sun: systems.fixSunHeight,
-        set: systems.placePlayer,
-        hgt: systems.groundHeight,
-        waveH: systems.waveHeight,
-        islandR: systems.islandRadius,
-        glslWaves: systems.waveShaderSource,
+        fixSunHeight: systems.fixSunHeight,
+        placePlayer: systems.placePlayer,
+        groundHeight: systems.groundHeight,
+        waveHeight: systems.waveHeight,
+        islandRadius: systems.islandRadius,
+        waveShaderSource: systems.waveShaderSource,
       };
     },
   };

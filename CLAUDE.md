@@ -13,11 +13,11 @@ Ryan directs it and judges it on his phone; Claude writes it.
 - The rebuild around Vite and TypeScript matched build 78 to the pixel. **That build is now a stepping stone:
   the aim is to simplify and improve on it.** A refactor leaves every picture as it was; an improvement changes
   pictures on purpose and is shown before and after. Take care not to lose what has been gained, and do not let
-  that care hold back what comes next. The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it
-  before starting work.
-- `legacy/` is build 78, the last build made before this repository existed. It is kept to look back at and is
-  not edited; no test uses it.
-- New features (rain, night, things to gather, survival systems) wait until the refactor is done.
+  that care hold back what comes next.
+- The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
+  `docs/ROADMAP.md`. Read it before starting work.
+- Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder
+  `legacy/` there. Nothing in the repository uses it.
 
 ## How we work with Ryan
 
@@ -29,7 +29,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   looks at the pictures itself, and says which views changed, wanted or not; for a small change, and between
   passes at one thing, that is the whole review. Ryan looks at the before and after on the desktop
   (`review/index.html`). The phone signs off a batch of related work.
-- **Match the references.** Ryan sends photos and phone screenshots. The look rules and what each reference showed
+- **Match the references.** Ryan sends photos, phone screenshots and videos; they are kept in `reference-photos/`,
+  which git ignores (videos of waves in `reference-photos/waves/`). The look rules and what each reference showed
   are in `docs/LOOK.md`. He often asks for several passes in a row at one thing.
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
@@ -68,7 +69,8 @@ These come from bugs that only appeared on Ryan's phone. Details: `docs/DEVICE_N
 
 ## Commands
 
-New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright install --only-shell chromium`):
+Node 22, npm; once per machine: `npm ci` and `npx playwright install --only-shell chromium`. Cutting a video
+into stills needs `ffmpeg`.
 
 ```
 npm run dev        # dev server
@@ -98,16 +100,8 @@ of the pictures), the page after its controls are used, and the sound. `REFERENC
 compare` compares with another commit. Run one check at a time: each run replaces `review/`.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
-`preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`. Its checks have no reference
-build to compare with, so they catch only what is broken.
-
-Legacy build (Python 3, Node, Playwright with Chromium):
-
-```
-cd legacy
-python3 build.py
-node tools/check.js
-```
+`preview/<branch>/` below it (`preview/` lists them). Its checks have no reference build to compare with, so
+they catch only what is broken.
 
 ## Conventions
 
@@ -120,11 +114,10 @@ node tools/check.js
 
 | File | What it holds |
 |---|---|
-| `docs/REFACTOR_PLAN.md` | The agreed plan, the target layout, the steps, what is done |
+| `docs/REFACTOR_PLAN.md` | The refactor, finished: the layout, what each step did, the reference views |
 | `docs/CODE_STANDARDS.md` | The agreed code standards with examples |
 | `docs/DECISIONS.md` | Why the project is built the way it is |
 | `docs/LOOK.md` | What it should look like, what was rejected and why |
-| `docs/ROADMAP.md` | What comes after the refactor; known weak points |
+| `docs/ROADMAP.md` | What comes next, in order; the breaking wave's rebuild; known weak points |
 | `docs/DEVICE_NOTES.md` | What the phone taught us about shaders |
 | `docs/HISTORY.md` | Notes from builds 26-78: what changed and why |
-| `legacy/README.md` | How the legacy build and its tools work |

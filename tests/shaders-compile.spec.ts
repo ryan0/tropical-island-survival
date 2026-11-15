@@ -8,7 +8,7 @@ import { openScenePage } from './scene-page';
 async function compileEveryShader(context: BrowserContext, breakOneFirst = false) {
   const scene = await openScenePage(context, builtPage);
   const programs = await scene.page.evaluate((breakOne) => {
-    const hooks = window.__lag;
+    const hooks = window.__scene;
     if (breakOne) {
       let isBroken = false;
       hooks.scene.traverse(({ material }) => {
@@ -18,10 +18,10 @@ async function compileEveryShader(context: BrowserContext, breakOneFirst = false
       });
     }
     for (const dayPhase of [0.5, 0]) {
-      hooks.freeze(20);
-      hooks.phase(dayPhase);
+      hooks.stopClockAt(20);
+      hooks.jumpToTimeOfDay(dayPhase);
       window.__runFrames(1, 50);
-      hooks.renderer.compile(hooks.scene, hooks.cam);
+      hooks.renderer.compile(hooks.scene, hooks.camera);
     }
     return hooks.renderer.info.programs?.length ?? 0;
   }, breakOneFirst);
