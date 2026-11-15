@@ -15,6 +15,7 @@ import { createSpray, type SprayFrame } from './sea/spray';
 import { createUnderWater } from './sea/under-water';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
+import { createSeaFloorPictures } from './sea/sea-floor-pictures';
 import { createWaveModel } from './sea/wave-model';
 import { createDetailTexture } from './shaders/detail-texture';
 import { createCloudNoise } from './sky/cloud-noise';
@@ -108,12 +109,16 @@ const skyDome = createSkyDome({
 const sunGlare = createSunGlare(pageElement('glare'), camera);
 
 // ---- the sea ----
+const seaFloor = createSeaFloorPictures(island.groundHeight);
+uniforms.uSeaFloor.value = seaFloor.floor;
+uniforms.uBreakTimes.value = seaFloor.breaks;
 const waves = createWaveModel(island);
 const waterMaterials = createWaterMaterials({
   uniforms,
   home: landmarks.home,
   cloudShadeSpan,
   windDirection: windDirection(),
+  openSeaSpeed: seaFloor.openSeaSpeed,
 });
 const water = createWater({
   scene,
@@ -277,7 +282,7 @@ const menu = createSceneMenu(document.body, {
 const debugPanel = createDebugPanel(
   document.body,
   () => [
-    ...describeBuild(renderer, build, water, quality),
+    ...describeBuild(renderer, build, water, quality, seaFloor),
     describeSpeed(renderer, frameMeter),
     describeEye(camera.position),
   ],
@@ -295,6 +300,7 @@ testHooks.install({
   islandRadius: island.radius,
   waveHeight: waves.heightAt,
   waveShaderSource: waterMaterials.waveShaderSource,
+  seaFloor,
   setWaveTime(time) {
     uniforms.uTime.value = time;
   },

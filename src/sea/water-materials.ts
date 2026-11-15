@@ -26,6 +26,8 @@ export interface WaterMaterialsDependencies {
   cloudShadeSpan: number;
   /** The way the wind blows, level and of unit length (x, z). */
   windDirection: readonly [number, number];
+  /** Metres a second a swell makes in the open sea (sea-floor-pictures.ts). */
+  openSeaSpeed: number;
 }
 
 export interface WaterMaterials {
@@ -93,6 +95,12 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     BAND_UP_BEACH: glslFloat(band.rows.first),
     BAND_SHOWN_WITHIN: glslFloat(band.shownWithin),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
+    SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
+    OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
+    SWELL_0_TOWARDS: glslVec2(...seaConfig.swells[0].towards),
+    SWELL_1_TOWARDS: glslVec2(...seaConfig.swells[1].towards),
+    SWELL_0_PERIOD: glslFloat(seaConfig.swells[0].period),
+    SWELL_1_PERIOD: glslFloat(seaConfig.swells[1].period),
   };
 
   return {

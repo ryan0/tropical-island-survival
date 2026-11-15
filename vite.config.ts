@@ -31,6 +31,7 @@ export default defineConfig({
     // Formulas written once, in GLSL, for the shaders, and given to the program as JavaScript.
     glslForProgram('virtual:island-shape', 'src/world/island-shape'),
     glslForProgram('virtual:ground-patterns', 'src/world/ground-patterns'),
+    glslForProgram('virtual:wave-timing', 'src/sea/wave-timing'),
     viteSingleFile(),
     phoneLink(),
   ],

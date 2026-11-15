@@ -18,12 +18,18 @@ export type SharedUniforms = Record<string, IUniform> &
     uUnderWaterColour: { value: Color };
     /** 1 while the lagoon's shore-wave band is shown. */
     uShoreBandShown: { value: number };
-    /** A debug switch: 0 normal, 1 waves off, 2 no falling lip, 3 plain water colour. */
+    /**
+     * A debug switch: 0 normal, 1 waves off, 2 no falling lip, 3 plain water colour, 4 the sea
+     * floor's pictures drawn on the water.
+     */
     uDebugMode: { value: number };
     /** The detail texture. */
     uDetail: { value: Texture };
     /** The map of how high the coral heads stand, once the reef is built. */
     uReefMap: { value: Texture | null };
+    /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
+    uSeaFloor: { value: Texture | null };
+    uBreakTimes: { value: Texture | null };
     /** The camera's position, for materials three.js does not give it to. */
     uCameraPosition: { value: Vector3 };
     /** The 16 biggest things standing in the surf: x, z, radius. The water draws foam round them. */
@@ -50,6 +56,8 @@ export function createSharedUniforms(
     uUnderWaterColour: { value: new Color() },
     uDetail: { value: detailTexture },
     uReefMap: { value: null },
+    uSeaFloor: { value: null },
+    uBreakTimes: { value: null },
     uCameraPosition: { value: new Vector3() },
     uSurfObstacles: { value: noObstacles },
     ...skyLight,

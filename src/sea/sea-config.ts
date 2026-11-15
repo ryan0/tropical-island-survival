@@ -19,9 +19,50 @@ export interface WaveTrain {
   canPlunge: 0 | 1;
 }
 
+/** One swell arriving from the open sea. */
+export interface Swell {
+  /** Seconds from one crest to the next. */
+  period: number;
+  /** The way it travels, as (x, z) of length 1: (0, -1) is northwards, from the south. */
+  towards: readonly [number, number];
+}
+
 export const seaConfig = {
   /** Height of the still sea surface. */
   level: 0,
+
+  /**
+   * The swells. Two from nearly the same quarter whose periods differ a little: they beat, so a
+   * set of bigger waves comes round every 45 s (1 / (1/9 - 1/11.25)), with a wave about every 10 s.
+   */
+  swells: [
+    { period: 9, towards: [0, -1] },
+    { period: 11.25, towards: [0.309, -0.951] },
+  ] satisfies Swell[],
+
+  /**
+   * The sea floor as the waves know it: a picture of its depth, and of how long each swell takes to
+   * reach every spot of it (sea-floor-pictures.ts).
+   */
+  floorPicture: {
+    /** Metres across, centred on the atoll: it reaches past the wave mesh on every side. */
+    span: 640,
+    /** Dots across: 1.25 m each. */
+    size: 512,
+    /**
+     * The depth is averaged over this many dots each way, 9 m in all: a wave feels the floor over
+     * some metres, not each spur and groove of the reef's edge, which would break it raggedly.
+     */
+    smoothedOver: 3,
+    /**
+     * A wave breaks where the water is about as shallow as the wave is high. The picture keeps, for
+     * four depths, how long ago the swell first crossed water that shallow: small waves break at
+     * the first depths, set waves at the last.
+     */
+    breakDepths: [0.7, 1.2, 1.7, 2.4],
+    /** Times before and after a crossing are kept up to this many seconds. */
+    longestKept: 30,
+  },
 
   /** The swell: three trains. The wave shader and the program's copy of it both read this. */
   waveTrains: [

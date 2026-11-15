@@ -58,6 +58,8 @@ uniform vec3 uSurfObstacles[16];
 uniform sampler2D uDetail;
 // The map of how high the coral heads stand (reef-map.ts).
 uniform sampler2D uReefMap;
+uniform sampler2D uSeaFloor;      // the sea floor as the waves know it: (delay of swell 0, of swell 1, depth, unused)
+uniform sampler2D uBreakTimes;      // seconds since the main swell crossed each of four depths (sea-floor-pictures.ts)
 // The two sky pictures being blended, and how far from A to B (clouds.ts); the colours of cloud in the sun and in
 // shade.
 uniform sampler2D uSkyPictureFrom;
@@ -709,6 +711,26 @@ void main() {
   if (abs(uDebugMode - 3.0) < 0.5) {
     colour = PLAIN_WATER;
     opacity = 0.95;
+  }
+  // (uDebugMode 4: the sea floor's pictures, for looking at from the air. The depth as colour, from sand through
+  // green to blue; each swell's crests as lines travelling in, white for the main swell and yellow for the second;
+  // and red where a middling wave, one that breaks in water 1.7 m deep, broke within the last few seconds.)
+  if (abs(uDebugMode - 4.0) < 0.5) {
+    vec2 pictureUv = xz / SEA_PICTURE_SPAN + 0.5;
+    vec4 seaFloor = texture2D(uSeaFloor, pictureUv);
+    vec4 sinceBreak = texture2D(uBreakTimes, pictureUv);
+    float depth = seaFloor.z;
+    vec3 shallows = mix(vec3(0.93, 0.87, 0.66), vec3(0.20, 0.78, 0.62), smoothstep(0.0, 1.5, depth));
+    colour = mix(shallows, vec3(0.05, 0.22, 0.50), smoothstep(1.5, 9.0, depth));
+    float brokeLately = smoothstep(0.0, 0.3, sinceBreak.z) * (1.0 - smoothstep(2.0, 6.0, sinceBreak.z));
+    colour = mix(colour, vec3(0.90, 0.25, 0.20), 0.7 * brokeLately);
+    float mainArrival = dot(xz, SWELL_0_TOWARDS) / OPEN_SEA_SPEED + seaFloor.x;
+    float secondArrival = dot(xz, SWELL_1_TOWARDS) / OPEN_SEA_SPEED + seaFloor.y;
+    float mainCrest = 1.0 - smoothstep(0.03, 0.06, abs(fract((uTime - mainArrival) / SWELL_0_PERIOD) - 0.5));
+    float secondCrest = 1.0 - smoothstep(0.02, 0.04, abs(fract((uTime - secondArrival) / SWELL_1_PERIOD) - 0.5));
+    colour = mix(colour, vec3(1.0, 0.92, 0.35), 0.8 * secondCrest);
+    colour = mix(colour, vec3(1.0), mainCrest);
+    opacity = 1.0;
   }
   // (a dot's worth of noise: it breaks up the bands a smooth gradient shows in 8-bit colour)
   colour += (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0);

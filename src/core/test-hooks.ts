@@ -1,4 +1,5 @@
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
+import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { GroundHeight, IslandRadius } from '../world/landmarks';
 
 // The tests drive the page through a few names on `window`; tests/scene-hooks.d.ts says what
@@ -22,6 +23,7 @@ interface SceneHooks {
   waveHeight(x: number, z: number, waveTime: number, withoutBreaking: boolean): number;
   islandRadius(direction: number): number;
   waveShaderSource(): string;
+  seaFloor: SeaFloorPictures;
 }
 
 declare global {
@@ -45,6 +47,7 @@ export interface HookedSystems {
   islandRadius: IslandRadius;
   waveHeight: (x: number, z: number, time: number, withoutBreaking: boolean) => number;
   waveShaderSource: () => string;
+  seaFloor: SeaFloorPictures;
   /** Sets the clock the waves run by. */
   setWaveTime: (time: number) => void;
   jumpToTimeOfDay: (phase: number) => void;
@@ -101,6 +104,7 @@ export function createTestHooks(): TestHooks {
         waveHeight: systems.waveHeight,
         islandRadius: systems.islandRadius,
         waveShaderSource: systems.waveShaderSource,
+        seaFloor: systems.seaFloor,
       };
     },
   };

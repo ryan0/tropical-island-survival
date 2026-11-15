@@ -107,6 +107,38 @@ them are in `reference-photos/waves/sheets/`.
 So pass 1 aims at a wave every 9 to 10 s, sets about every 45 s, a stand-up of about 2 s, and the lip in the
 air for about half a second.
 
+### Pass 1: what is built, and the design of the rest
+
+**Built (first half): the two pictures** (`src/sea/sea-floor-pictures.ts`, made once at start-up, about a third
+of a second on the desktop; the debug panel says how long on the phone).
+
+- *The floor picture*, 512 dots across 640 m. The depth, averaged over 9 m so that the reef's spurs and grooves do
+  not break a wave raggedly. And for each of two swells its delay: how far it has fallen behind a swell crossing
+  open sea, from travelling at the speed its depth allows (`wave-timing/timing.glsl`, shared with the program).
+  A crest lies wherever a swell's arrival time and the clock agree.
+- *The breaks picture.* For four depths (0.7, 1.2, 1.7, 2.4 m), the seconds since the main swell first crossed
+  water that shallow on its way to each dot; negative while that is still ahead of it.
+- *A debug view* (`sea floor pictures` in the debug panel, best seen flying): depth as colour, each swell's crests
+  as travelling lines, red where a middling wave has just broken.
+
+**To build (second half): the wave model on these clocks**, drawn with today's mesh and shapes.
+
+1. *Where the crests are.* A wave's phase at a spot is the clock less the swell's arrival there. Two swells, of 9
+   and 11.25 s, so a set comes round every 45 s. The variety from crest to crest and along a crest stays.
+2. *When each wave breaks.* A wave's height gives the depth it breaks in (it grows as the water shallows and
+   breaks at about 0.78 of the depth). The four kept depths, read between, give its own seconds since breaking.
+   Bigger waves so break further out, and the break runs along a crest wherever the floor is uneven.
+3. *The break runs on seconds, not metres.* Steepening from about 3 s before; standing up over the last 2 s; the
+   lip in the air for as long as gravity takes over its height (about half a second); then the landing and the
+   white water.
+4. *The kind of break.* Plunging where the floor rises abruptly to the break, crumbling where it rises gently:
+   told from how few seconds lie between the crossings of the deeper depths.
+5. *Left as formulas for now:* the swash and its run-up on the beach, the fade up the sand and at the wave mesh's
+   edge, how much swell reaches the lee.
+6. *One model.* The program reads the same pictures and the same timing formulas. The mirror test stays; it
+   moves to WebGL 2 and is given the pictures.
+7. *The far sea's shaded swell lines* take the same clock, so they still join the mesh's waves.
+
 ## Later
 
 - More passes on the reef.

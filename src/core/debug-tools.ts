@@ -1,4 +1,5 @@
 import type { WebGLRenderer } from 'three';
+import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import type { BuildInfo } from '../ui/build-label';
@@ -37,6 +38,7 @@ export function describeBuild(
   build: BuildInfo,
   water: Water,
   quality: AutomaticQuality,
+  seaFloor: SeaFloorPictures,
 ): string[] {
   const context = renderer.getContext();
   const webGl = renderer.capabilities.isWebGL2 ? '2' : '1';
@@ -44,6 +46,7 @@ export function describeBuild(
     `build v${build.version} · ${build.commit} · WebGL${webGl} · frag highp bits ${fragmentPrecisionBits(context)} · three precision ${renderer.capabilities.precision}`,
     `GPU: ${graphicsCardName(context)}`,
     `water: ${water.waveMeshDescription} · quality stage ${quality.stage} · pixel ratio ${renderer.getPixelRatio()}`,
+    `sea floor pictures: ${seaFloor.size} dots across, made in ${seaFloor.madeInMilliseconds.toFixed(0)} ms`,
   ];
 }
 
@@ -101,5 +104,6 @@ export function debugSwitches(
     { label: 'waves off', set: waterDebug(1) },
     { label: 'no falling lip', set: waterDebug(2) },
     { label: 'plain water colour', set: waterDebug(3) },
+    { label: 'sea floor pictures', set: waterDebug(4) },
   ];
 }

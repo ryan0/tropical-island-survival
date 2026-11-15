@@ -1,9 +1,9 @@
 // A formula that both the shaders and the program need is written once, in GLSL, for the shaders:
-// the shape of the island (src/world/island-shape), and the patterns of the turf that the grass
-// follows (src/world/ground-patterns). This plugin turns the .glsl files of such a folder into
-// JavaScript functions of the same names and offers them to the program as a module
-// ('virtual:island-shape', 'virtual:ground-patterns'), so that shaders and program can never
-// disagree.
+// the shape of the island (src/world/island-shape), the patterns of the turf that the grass
+// follows (src/world/ground-patterns), and the swell's timing (src/sea/wave-timing). This plugin
+// turns the .glsl files of such a folder into JavaScript functions of the same names and offers
+// them to the program as a module ('virtual:island-shape', 'virtual:ground-patterns',
+// 'virtual:wave-timing'), so that shaders and program can never disagree.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
