@@ -82,8 +82,9 @@ the git tag `build-78`.
 25. **Vite and TypeScript, built to one HTML page.** TypeScript because nearly all frame time is in shaders, which
     stay GLSL in any language, and because types catch broken references while one shared scope becomes modules.
     A CPU-heavy system could later be Rust compiled to WebAssembly without changing the rest.
-26. **three.js stayed at r128 through the refactor.** A newer version changes lighting and colour. Upgrading is its
-    own step, tried on a branch and judged from the before and after pictures (`ROADMAP.md`).
+26. **three.js stays at r128.** It stayed through the refactor because a newer version changes lighting and colour.
+    A trial of 0.187 on 15 November 2026 found the move cheap on the desktop, but its shadows lose the graphics
+    context on Ryan's phone (`DEVICE_NOTES.md`). To try again when three.js or the phone's driver has moved on.
 27. **Exactness is a tool, not the aim.** Through the first six steps of the refactor nothing visible changed,
     checked to the pixel against build 78's page. Since 14 November 2026 that build is a stepping stone:
     the aim is to simplify and improve on it. Every change is compared with the last merged build and shown

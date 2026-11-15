@@ -5,24 +5,20 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
-1. **A trial of a newer three.js**, on a branch, judged from the before and after pictures. It is 0.128 today,
-   from 2021; the latest is 0.187. Sooner is cheaper: every new shader is one more to carry across. The
-   materials that patch three's own shaders (six files) are where it is likeliest to bite. Ryan decides from
-   the trial whether to move.
-2. **The breaking wave: a study, then a design.** Ours cut into stills at exact times and measured, set beside
+1. **The breaking wave: a study, then a design.** Ours cut into stills at exact times and measured, set beside
    what the maths gives and beside footage. Then a design for Ryan to agree before any wave code changes (the
    section below).
-3. **The breaking wave, built**, in passes against the footage.
-4. **A first piece of the game.** The scene is far ahead of the game. Picking one thing up, with a count on the
+2. **The breaking wave, built**, in passes against the footage.
+3. **A first piece of the game.** The scene is far ahead of the game. Picking one thing up, with a count on the
    screen, settles the shape of `src/game/` against something real and tries touch on the phone. It may come
    before the wave is built if Ryan would rather have the game move sooner.
-5. **Rain.** Light rain, then heavy rain, then storm with stronger wind than "high". It reuses the cloud, light
+4. **Rain.** Light rain, then heavy rain, then storm with stronger wind than "high". It reuses the cloud, light
    and wind systems: overcast sky, darker light, rings on the lagoon, wet sand and leaves, streaks in the air.
    It is also the weather a survival game leans on most: shelter, staying dry, collecting water.
-6. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
-7. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
+5. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
+6. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
    happen here.
-8. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
+7. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
    fire, shelter. The castaway's camp behind `CAMP = false` is a starting point for things the player makes.
 
 ## The breaking wave, rebuilt
@@ -72,7 +68,8 @@ does, it is plain physics or common knowledge, to be checked against the footage
 ## Later
 
 - More passes on the reef.
-- A decision on a newer three.js, and on WebGPU.
+- A newer three.js. A trial of 0.187 was shelved on 15 November 2026: cheap on the desktop, but its shadows lose
+  the graphics context on Ryan's phone (`DEVICE_NOTES.md`). And a decision on WebGPU.
 - Sound beyond surf and crickets: wind, rain, the shore break.
 - Spray where the shore break lands.
 

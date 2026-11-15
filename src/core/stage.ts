@@ -15,18 +15,41 @@ export interface Stage {
 const SHARPEST = 1.5;
 const FOG_COLOUR_BEFORE_THE_FIRST_FRAME = 0xa8e0f7;
 
+// Which kinds of WebGL the browser will give. (three.js uses WebGL 2 and makes do with WebGL 1.)
+function contextsOffered(): string {
+  const offers = (kind: string) =>
+    document.createElement('canvas').getContext(kind) === null ? 'no' : 'yes';
+  return `WebGL 2: ${offers('webgl2')} · WebGL 1: ${offers('webgl')}`;
+}
+
 /**
  * What everything else is built on: the renderer, the scene and the camera.
- * `errorMessage` is shown, and nothing more is done, if the browser has no WebGL.
- * `hint` afterwards reports any error the page throws, since a phone has no console to look in.
+ * `errorMessage` is shown, and nothing more is done, if the browser gives no WebGL: it says why,
+ * as far as three.js and the browser will tell. `hint` afterwards reports any error the page
+ * throws, and the loss of the graphics context. A phone has no console to look in.
  */
 export function createStage(errorMessage: HTMLElement, hint: HTMLElement): Stage {
+  // The canvas is made here, not by three.js, so that the browser's own reason for refusing can
+  // be heard: it is given to the canvas, as an event, at the moment the context is asked for.
+  const canvas = document.createElement('canvas');
+  canvas.style.display = 'block';
+  let browsersReason = '';
+  canvas.addEventListener('webglcontextcreationerror', (event) => {
+    browsersReason = (event as WebGLContextEvent).statusMessage;
+  });
+
   let renderer: WebGLRenderer;
   try {
-    renderer = new WebGLRenderer({ antialias: true });
+    renderer = new WebGLRenderer({ canvas, antialias: true });
   } catch (error) {
     errorMessage.style.display = 'flex';
-    errorMessage.textContent = 'WebGL is not available in this browser.';
+    errorMessage.style.whiteSpace = 'pre-line';
+    errorMessage.textContent = [
+      'WebGL is not available in this browser.',
+      error instanceof Error ? error.message : String(error),
+      browsersReason,
+      contextsOffered(),
+    ].join('\n');
     throw error;
   }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, SHARPEST));
@@ -34,11 +57,16 @@ export function createStage(errorMessage: HTMLElement, hint: HTMLElement): Stage
   renderer.shadowMap.type = PCFShadowMap;
   useSmootherShadowEdges();
 
+  // A context the browser takes away (a driver fault, too little memory) stops the picture with no
+  // error thrown. The page says so, and how far it had got.
+  canvas.addEventListener('webglcontextlost', () => {
+    hint.style.opacity = '1';
+    hint.textContent = `the graphics context was lost after ${renderer.info.render.frame} frames`;
+  });
   window.addEventListener('error', (event) => {
     hint.style.opacity = '1';
     hint.textContent = `error: ${event.message || ''} @${event.lineno || ''}`;
   });
-  const canvas = renderer.domElement;
   document.body.insertBefore(canvas, document.body.firstChild);
 
   const scene = new Scene();

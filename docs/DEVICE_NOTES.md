@@ -38,7 +38,37 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
   3 = plain water colour. Handy for narrowing down a bug from screenshots.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
-- The phone in question takes 1080x2424 screenshots (shared scaled to 864x1939); its GPU model is not known.
+- The phone in question takes 1080x2424 screenshots (shared scaled to 864x1939); its GPU model is not known. Since
+  November 2026 Ryan's phone is a Pixel 10.
+- If the browser refuses WebGL, the page says why: three.js's error, the browser's own reason, and which kinds of
+  WebGL it offers. If the graphics context is lost while the page runs, it says so, with the frames drawn so far.
+- After a page loses its context, Chrome blocks that address from WebGL: the page then reports "Web page caused the
+  context loss and was blocked", with WebGL 2 and WebGL 1 both refused. It is not the phone lacking WebGL. The block
+  lasts until Chrome is closed (swiped away from the recent apps) and opened again.
+
+## three.js 0.187 loses the phone's graphics context (trial, 15 November 2026)
+
+A trial of moving from three.js 0.128 to 0.187, on the branch `three-trial` (kept on Ryan's machine, not merged).
+
+**On the desktop it is a cheap move.** Nine files: an option three.js no longer has; a line break ahead of
+three.js's shader in the materials that patch it; two variables three.js renamed (`texelColor`, `vUv`), and `vColor`
+now four numbers; colour management switched off so colours are drawn as written; light strengths multiplied by π;
+the leaf lighting patch rewritten, because Lambert materials are now lit for each pixel and not each corner. All
+tests passed, and no picture differed clearly in more than 2% of its pixels.
+
+**On the phone the picture showed for a second, flickered, and the context was lost.** With shadows switched off it
+held. With shadows it was lost after 84 to 188 frames whatever was tried: read plainly instead of through the
+graphics card's comparison, a map of a quarter the size, the map drawn once and never again, the map drawn every
+frame. The page creates no textures, framebuffers or programs after its first two frames, so nothing of ours piles
+up: the fault is below the page, in the phone's driver.
+
+**What is suspected, not proven:** reading a depth texture. three.js now draws shadows into a depth texture and
+reads that; 0.128 packs the depth into an ordinary colour texture, which this phone is happy with. Even the map
+drawn once and only read afterwards lost the context. Until shown otherwise, do not read a depth texture.
+
+**So three.js stays at 0.128.** A way round would be to draw the shadows ourselves as 0.128 does, on top of the
+newer three.js; that is a batch or two of work, to weigh if a newer three.js is ever needed for its own sake. Worth
+another try when three.js or the phone's driver has moved on: the trial's branch has all it took.
 
 ## Things three.js (r128) does that are easy to trip over
 

@@ -52,6 +52,8 @@ These come from bugs that only appeared on Ryan's phone. Details: `docs/DEVICE_N
   position is assembled, guarded `pow` and divisions, and a hard limit on how far a vertex may move.
 - Water meshes carry `position` and nothing else.
 - Read a mipmapped texture before a branch, never inside it.
+- Do not read a depth texture. three.js 0.187's shadows do, and they lose the phone's graphics context; that is why
+  three.js stays at 0.128. (Suspected, not proven.)
 - In a patched built-in material, use the shared camera uniform, not `cameraPosition`.
 - The shape of the island is defined once and shared by shaders and program. So is anything else both need.
 - The water shader knows the ground only as a formula; the ground is drawn as triangles. Within a hand's depth of
@@ -97,7 +99,8 @@ the pictures that differ and writing `review/index.html`: changed views first, e
 the differing pixels marked, pink where they differ clearly and blue where faintly (a shift of under a pixel
 leaves many faint ones and nothing to see). The same run compares where every object in the scene is (animals are mostly out
 of the pictures), the page after its controls are used, and the sound. `REFERENCE=<commit or tag> npm run
-compare` compares with another commit. Run one check at a time: each run replaces `review/`.
+compare` compares with another commit. Run one check at a time: each run replaces `review/`. The reference build
+is built with the working files' packages, so a run cannot compare across a change of packages.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
 `preview/<branch>/` below it (`preview/` lists them). Its checks have no reference build to compare with, so
