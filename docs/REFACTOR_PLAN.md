@@ -1,11 +1,17 @@
 # Refactor plan
 
-Agreed with Ryan on 12 November 2026. Update the status list as steps land.
+Agreed with Ryan on 12 November 2026; its aim was widened on 14 November. Update the status list as steps land.
 
 ## The aim
 
 Turn build 78 into a project that is pleasant to work in: a Vite and TypeScript pipeline, real modules, clear
-names, no duplicate logic. **Nothing that can be seen may change.** New features wait until this is done.
+names, no duplicate logic. New features wait until this is done.
+
+Through step 6 **nothing that could be seen was allowed to change**, and every picture was held to build 78 to
+the pixel. That bought a rebuild with nothing lost. From step 7 on, the build is a stepping stone: the aim is
+to **simplify and improve on it**, keeping what has been gained without letting that care hold back what comes
+next. A refactor still leaves every picture as it was. An improvement changes pictures on purpose, and is shown
+before and after.
 
 ## Status
 
@@ -13,11 +19,14 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 - [x] 1. Pipeline and publishing
 - [x] 2. Picture comparison
 - [x] 3. Lift and shift
-- [ ] 4. Clean, system by system
-- [ ] 5. Readable shaders
-- [ ] 6. Merge duplicates
-- [ ] 7. One wave model
-- [ ] 8. Remove `legacy/`
+- [x] 4. Clean, system by system
+- [x] 5. Readable shaders
+- [x] 6. Merge duplicates
+- [x] 7. Compare with the last merged build
+- [ ] 8. Clear out what exactness cost
+- [ ] 9. One wave model
+- [ ] 10. Make room for the roadmap
+- [ ] 11. Remove `legacy/`
 
 ## Decisions already made
 
@@ -32,7 +41,7 @@ names, no duplicate logic. **Nothing that can be seen may change.** New features
 | Where it runs | Claude Code cloud sessions against this repository, or Ryan's own sandboxed machine |
 | Who merges | Ryan |
 | How a system is cleaned | Its lifted file shrinks to a bridge that builds the cleaned system at the same point in start-up and passes the old names on; bridges go when `main.ts` takes over (step 4) |
-| Performance | A win found on the way goes in only if the pictures still match; otherwise note it for later |
+| Performance | Through step 6, a win went in only if the pictures still matched. Now it is shown before and after like any other change |
 
 ## Target layout
 
@@ -50,16 +59,16 @@ src/
   audio/                 surf and crickets
   game/                  survival systems (empty until the refactor is done)
   shaders/shared/        chunks used by several features: noise, sea tint, readings of the detail texture
-tests/                   picture comparison, scene state, controls, sound, wave mirror, shader compile
+tests/                   comparison with the last merged build (pictures, scene state, controls, sound), wave mirror, shader compile
 tools/                   picture and measurement tools worth keeping
 docs/
-legacy/                  build 78; removed in step 8
+legacy/                  build 78; kept to look back at; removed in step 11
 ```
 
 ## Steps
 
 Each step is one branch (step 4 is one branch per system). A step is done when its checks pass and Ryan has
-looked at the preview on his phone.
+reviewed it: the before and after on the desktop for each change, the phone for each batch of related work.
 
 ### 1. Pipeline and publishing
 
@@ -94,6 +103,8 @@ step, so both pages live through exactly the same frames and build 78 drawn twic
 pixel; a picture passes only if no pixel differs. Each test also proves it can fail, on a copy of build 78
 with one line changed. Until step 3 the page under test is build 78 itself (`tests/pages.ts`). The wave mirror's
 limits are eight times tighter than build 78's own check, which let a changed shoaling curve through.
+
+Step 7 replaced the comparison with build 78 by one with the last merged build.
 
 ### 3. Lift and shift
 
@@ -290,16 +301,61 @@ Found while making the shaders readable, and not yet decided:
 - The beach finds and the flowers live in `src/life/` only because they share the wildlife's random stream. Ryan
   has said they should move elsewhere (the world), later; they will need a stream of their own, which moves them.
 
-### 7. One wave model
+### 7. Compare with the last merged build
 
-The model is written in the shader and again in the program, kept in step by a test. Generate one from the other
-(or both from one source), so that a change is made once. Do this last: it is the most delicate code in the
-project, and `docs/DEVICE_NOTES.md` constrains how the shader side may be written.
+Done. Build 78 is out of the tests. What a change is held against is the **reference build**: the commit the
+branch left `main` at, which is the last one Ryan merged. His merge is what accepts a change, so nothing about
+the reference is kept in the repository.
 
-### 8. Remove `legacy/`
+- `npm run compare` (and every `npm run check`) draws each reference view from the working files and from the
+  reference build, in the same renderer through the same frames, and writes `review/index.html`: changed views
+  first, each before and after and with the differing pixels marked; hold a picture to flip it to before. The
+  terminal lists the pictures that differ. The same run compares where every object in the scene is, the page
+  after its controls are used, and the sound.
+- **A difference is reported, not failed.** The checks fail on what is broken: a view that cannot be drawn, a
+  page error, a shader that does not compile, a control that changes nothing, a silent page, the wave model's
+  copies apart.
+- The reference build is built once from its commit and its pictures drawn once; both are kept in
+  `node_modules/.cache/` until `main` moves. `REFERENCE=<commit or tag>` compares with another commit, such as
+  a tagged milestone.
+- Review goes in three steps. Claude looks at the before and after of every attempt and says which views
+  changed. Ryan looks at the review page on the desktop. The phone signs off a batch, for what only it shows:
+  motion, frame rate, its own GPU.
+- GitHub's checks have no `main` to compare with, so they catch only what is broken.
+- The tests drive the reference build through the same debug hooks as the working files. A hook that is
+  renamed leaves one review without pictures from before, until the change is merged.
 
-Keep `build78.html` in `tests/` if the comparison is still wanted, delete the rest, move the tools worth keeping,
-bring the docs up to date.
+The tests that proved a check could fail by changing a line of build 78 went with it. The two checks that
+still fail a run keep such a proof, made in the page: a shader given a line that cannot compile, and a wave
+program asked for a moment a fiftieth of a second off the shader's.
+
+### 8. Clear out what exactness cost
+
+One pass, agreed to move the rocks, plants and animals once:
+
+- A random stream of its own for each thing that is placed, so that the order systems are built in no longer
+  matters, and `main.ts` can build them in the order that reads best.
+- One full turn, one `mix`, and defines written to full precision.
+- Delete the turtle's dead search, kept only for the random numbers it drew.
+- Move the beach finds and the flowers out of `src/life/` into the world.
+- Decide each oddity recorded under step 6 and above: fix it, or keep it and say why.
+
+### 9. One wave model
+
+The model is written in the shader and again in the program, kept in step by a test. Make the shader the one
+source and generate the program's copy from it, so that a change is made once. It is the most delicate code in
+the project, and `docs/DEVICE_NOTES.md` constrains how the shader side may be written. The generated copy need
+not match today's to the last bit: it must agree with the shader within the mirror test's limits.
+
+### 10. Make room for the roadmap
+
+To be agreed with Ryan before it starts: a frame-rate readout so the phone can report numbers, a way to retune
+a config number without a rebuild, and the shape the game systems will take in `src/game/`.
+
+### 11. Remove `legacy/`
+
+No test uses it. It goes when Ryan no longer wants build 78 to look back at: delete the folder and its page on
+the site, move the tools worth keeping, bring the docs up to date.
 
 ## After the refactor
 
@@ -353,4 +409,4 @@ replace to step the clock.
 - **Order of start-up.** Legacy files run top to bottom in one scope and some rely on that order. Step 3 keeps the
   order; step 4 removes the reliance.
 - **Random streams.** The island's layout comes from seeded random streams consumed in a fixed order. Moving code
-  can change the order and so the island. The picture comparison catches it.
+  can change the order and so the island. The comparison with the last merged build reports it.

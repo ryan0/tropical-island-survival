@@ -6,18 +6,27 @@ Ryan directs it and judges it on his phone; Claude writes it.
 
 ## Where things stand
 
-- `legacy/` is build 78, the last build made before this repository existed. It is the reference: do not edit it.
-- `src/` is the new build, all of it TypeScript under the code standards, one folder for each subject. `main.ts`
-  builds every system and runs the frame loop. It builds them in build 78's order, which matters: three.js numbers
-  objects as they are made, and each random stream is moved on by whatever drew from it before.
-- The project is being rebuilt around Vite and TypeScript **without changing anything that can be seen**.
-  The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it before starting work.
+- `src/` is the build, all of it TypeScript under the code standards, one folder for each subject. `main.ts`
+  builds every system and runs the frame loop. It still builds them in build 78's order: three.js numbers
+  objects as they are made, and each random stream is moved on by whatever drew from it before, so a change of
+  order moves things. The clearing-out step ends that.
+- The rebuild around Vite and TypeScript matched build 78 to the pixel. **That build is now a stepping stone:
+  the aim is to simplify and improve on it.** A refactor leaves every picture as it was; an improvement changes
+  pictures on purpose and is shown before and after. Take care not to lose what has been gained, and do not let
+  that care hold back what comes next. The steps and their status are in `docs/REFACTOR_PLAN.md`. Read it
+  before starting work.
+- `legacy/` is build 78, the last build made before this repository existed. It is kept to look back at and is
+  not edited; no test uses it.
 - New features (rain, night, things to gather, survival systems) wait until the refactor is done.
 
 ## How we work with Ryan
 
 - **The phone is the judge.** The test renderer is software GL at under one frame a second. It can show a still
   picture and catch shader errors; it cannot show motion or frame rate. Say plainly what only the phone can confirm.
+- **Review goes in three steps.** Claude compares every change with the last merged build (`npm run compare`),
+  looks at the pictures itself, and says which views changed, wanted or not; for a small change, and between
+  passes at one thing, that is the whole review. Ryan looks at the before and after on the desktop
+  (`review/index.html`). The phone signs off a batch of related work.
 - **Match the references.** Ryan sends photos and phone screenshots. The look rules and what each reference showed
   are in `docs/LOOK.md`. He often asks for several passes in a row at one thing.
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
@@ -60,25 +69,34 @@ These come from bugs that only appeared on Ryan's phone. Details: `docs/DEVICE_N
 New pipeline (Node 22, npm; once per machine: `npm ci` and `npx playwright install --only-shell chromium`):
 
 ```
-npm run dev        # dev server; add `-- --host` to open it from the phone on the home network
+npm run dev        # dev server
+npm run dev:phone  # the same, open to the phone on the home network: it prints a QR code to scan
 npm run check      # types, lint, build, tests: what GitHub runs on every branch (about three minutes; four
-                   # when build 78's pictures must be drawn again)
+                   # on the first run after a merge, which draws the reference build's pictures)
 npm run check:quick   # the same with a handful of the tests, for use while working (under a minute)
-npm run pictures   # only the picture comparison with build 78; `-- -g lagoon` for the views so named
+npm run compare    # builds, draws every view and writes review/index.html; `-- -g lagoon` for the views so named
 npm run format     # let Prettier rewrite the files
 npm run site       # the whole Pages site into site/, as GitHub publishes it
 ```
 
-The tests draw every view in `tests/reference-views.ts` from `legacy/build78.html` and from the page under test
-and fail on any pixel that differs; the pictures of a failure (reference, page under test, difference) are in
-`test-results/`. Build 78's pictures are drawn once and kept in `node_modules/.cache/build78-pictures/`; they are
-drawn again by themselves when the tests, the browser or the packages change, or when that folder is deleted.
-They also compare where every object in the scene is on the two pages (animals are mostly out of the pictures),
-use the menu, joystick, captions and debug panel on both, compare the sound the two make, compile every shader
-and compare the wave model's two copies. Run one check at a time: each run empties `test-results/`.
+On Android 17 the phone's Chrome reaches the dev server only once it is allowed **Nearby devices** (Settings →
+Apps → Chrome → Permissions; some builds call it Local network). Until then it shows `ERR_TOO_MANY_RETRIES`, and
+nothing reaches the computer.
+
+The tests fail on what is broken: a view that cannot be drawn, a page error, a shader that does not compile, a
+control that changes nothing, a silent page, the wave model's two copies drifting apart.
+
+What has changed is reported, not failed. Every view in `tests/reference-views.ts` is drawn from the working
+files and from the reference build: the commit the branch left `main` at, which is the last one Ryan merged. It
+is built once and its pictures drawn once, and both are kept in `node_modules/.cache/`. The run ends by listing
+the pictures that differ and writing `review/index.html`: changed views first, each before and after and with
+the differing pixels marked. The same run compares where every object in the scene is (animals are mostly out
+of the pictures), the page after its controls are used, and the sound. `REFERENCE=<commit or tag> npm run
+compare` compares with another commit. Run one check at a time: each run replaces `review/`.
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
-`preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`.
+`preview/<branch>/` below it (`preview/` lists them), and build 78 to `legacy/`. Its checks have no reference
+build to compare with, so they catch only what is broken.
 
 Legacy build (Python 3, Node, Playwright with Chromium):
 

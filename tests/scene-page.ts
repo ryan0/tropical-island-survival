@@ -1,7 +1,5 @@
-import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import type { BrowserContext, Page } from '@playwright/test';
-import { threeLibraryFile, threeLibraryOnCdn } from './pages';
 import type { Moment, ReferenceView } from './reference-views';
 
 // The page's own cloud pictures are 4096 wide, which the software renderer takes far too long over.
@@ -17,7 +15,7 @@ const CONTROLS = '#title, #cap, #hint, #joy, #snd, #tod, #menu';
 
 export interface ScenePage {
   page: Page;
-  /** Page errors, console errors and anything the page reports as failed. */
+  /** Page errors and console errors: a shader that does not compile is one of these. */
   problems: string[];
 }
 
@@ -47,9 +45,7 @@ function collectProblems(page: Page): string[] {
   const problems: string[] = [];
   page.on('pageerror', (error) => problems.push(`page error: ${error.message}`));
   page.on('console', (message) => {
-    // Build 78 drops a part of the scene that throws and carries on, saying so only in the log.
-    const saysFailed = message.text().includes(' failed: ');
-    if (message.type() === 'error' || saysFailed) problems.push(`console: ${message.text()}`);
+    if (message.type() === 'error') problems.push(`console: ${message.text()}`);
   });
   return problems;
 }
@@ -63,9 +59,6 @@ export async function openScenePage(context: BrowserContext, file: string): Prom
     window.__noq = 1;
     window.__cloudW = cloudPictureWidth;
   }, CLOUD_PICTURE_WIDTH);
-  await page.route(threeLibraryOnCdn, (route) =>
-    route.fulfill({ contentType: 'application/javascript', body: readFileSync(threeLibraryFile) }),
-  );
 
   await page.goto(pathToFileURL(file).href);
   await page.evaluate(

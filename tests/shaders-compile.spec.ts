@@ -1,15 +1,22 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
-import { writeChangedCopy } from './changed-page';
-import { legacyPage, scenePage } from './pages';
+import { builtPage } from './pages';
 import { openScenePage } from './scene-page';
 
 // three.js compiles a material when it first draws it, so a broken shader on something out of
 // sight goes unnoticed. This compiles every material in the scene, seen or not, by day and by
 // night: with the sun down the lit materials are built again for one light fewer.
-async function compileEveryShader(context: BrowserContext, file: string) {
-  const scene = await openScenePage(context, file);
-  const programs = await scene.page.evaluate(() => {
+async function compileEveryShader(context: BrowserContext, breakOneFirst = false) {
+  const scene = await openScenePage(context, builtPage);
+  const programs = await scene.page.evaluate((breakOne) => {
     const hooks = window.__lag;
+    if (breakOne) {
+      let isBroken = false;
+      hooks.scene.traverse(({ material }) => {
+        if (isBroken || material?.fragmentShader === undefined) return;
+        material.fragmentShader += 'void brokenOnPurpose() { notDeclaredAnywhere(); }';
+        isBroken = true;
+      });
+    }
     for (const dayPhase of [0.5, 0]) {
       hooks.freeze(20);
       hooks.phase(dayPhase);
@@ -17,22 +24,20 @@ async function compileEveryShader(context: BrowserContext, file: string) {
       hooks.renderer.compile(hooks.scene, hooks.cam);
     }
     return hooks.renderer.info.programs?.length ?? 0;
-  });
+  }, breakOneFirst);
   return { programs, problems: scene.problems };
 }
 
 test('every shader in the scene compiles', { tag: '@quick' }, async ({ context }) => {
-  const { programs, problems } = await compileEveryShader(context, scenePage);
+  const { programs, problems } = await compileEveryShader(context);
 
   expect(problems).toEqual([]);
   expect(programs).toBeGreaterThan(0);
 });
 
-test('a shader that does not compile is reported', async ({ context }, testInfo) => {
-  const brokenPage = testInfo.outputPath('build78-with-a-broken-shader.html');
-  writeChangedCopy(legacyPage, brokenPage, 'vec3 seaTint(vec3 c', 'vec3 seaTintMisnamed(vec3 c');
+// A check that cannot fail proves nothing: one shader is given a line that cannot compile.
+test('a shader that does not compile is reported', async ({ context }) => {
+  const { problems } = await compileEveryShader(context, true);
 
-  const { problems } = await compileEveryShader(context, brokenPage);
-
-  expect(problems.join('\n')).toContain('seaTint');
+  expect(problems.join('\n')).toContain('notDeclaredAnywhere');
 });

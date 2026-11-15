@@ -1,5 +1,6 @@
-// What a page holding the scene must offer for the tests to drive it. The names are build 78's,
-// so the same tests can drive the legacy page and the new build; they stay until legacy/ is gone.
+// What a page holding the scene must offer for the tests to drive it. The names are build 78's.
+// The tests drive the reference build through them as well as the working files, so a hook
+// renamed here leaves one review without pictures from before, until the change is merged.
 
 /** As much of a three.js object as the tests read (scene-state.spec.ts). */
 interface SceneObject {
@@ -11,7 +12,13 @@ interface SceneObject {
   instanceMatrix?: { array: Float32Array };
   instanceColor?: { array: Float32Array } | null;
   geometry?: { attributes: { position?: { array?: Iterable<number> } } };
-  material?: { type?: string; opacity?: number; color?: { getHex(): number } };
+  material?: {
+    type?: string;
+    opacity?: number;
+    color?: { getHex(): number };
+    /** A material with a shader of its own. */
+    fragmentShader?: string;
+  };
 }
 
 interface SceneDebugHooks {

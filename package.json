@@ -8,12 +8,13 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:phone": "vite --host",
     "build": "vite build",
     "types": "tsc -b",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test": "vite build && playwright test",
-    "pictures": "playwright test tests/pictures.spec.ts",
+    "compare": "vite build && playwright test tests/pictures.spec.ts",
     "check": "npm run types && npm run lint && npm run test",
     "check:quick": "npm run types && npm run lint && vite build && playwright test --grep @quick",
     "site": "node tools/assemble-site.ts"
@@ -33,6 +34,7 @@
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.2",
+    "uqr": "^0.1.3",
     "vite": "^8.3.8",
     "vite-plugin-glsl": "^1.6.2",
     "vite-plugin-singlefile": "^2.3.4"

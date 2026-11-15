@@ -83,8 +83,12 @@ short version to read first. File names in brackets are in `legacy/src`.
     A CPU-heavy system could later be Rust compiled to WebAssembly without changing the rest.
 26. **three.js stays at r128 through the refactor.** A newer version changes lighting and colour. Upgrading is its
     own step, judged by eye.
-27. **The refactor changes nothing visible**, checked by comparing pictures with `legacy/build78.html`.
-    A performance win found on the way goes in only if the pictures still match.
+27. **Exactness is a tool, not the aim.** Through the first six steps of the refactor nothing visible changed,
+    checked to the pixel against `legacy/build78.html`. Since 14 November 2026 that build is a stepping stone:
+    the aim is to simplify and improve on it. Every change is compared with the last merged build and shown
+    before and after; a refactor is expected to show no difference, an improvement the difference it meant.
+    The checks fail only on what is broken, and Ryan's merge is what accepts a change. Nothing about the
+    reference is kept in the repository.
 28. **GitHub: public repository, no licence for now.** GitHub Actions builds and publishes to GitHub Pages so any
     build opens on the phone; a dev server on the home network is the faster loop at home.
 29. **Reference photos stay out of the repository.** Most are other people's. `reference-photos/` is ignored by

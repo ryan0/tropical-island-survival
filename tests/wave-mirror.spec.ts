@@ -1,6 +1,5 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
-import { writeChangedCopy } from './changed-page';
-import { legacyPage, scenePage } from './pages';
+import { builtPage } from './pages';
 import { openScenePage } from './scene-page';
 
 // The wave model is written twice: in the shader that moves the water, and in the program for
@@ -11,14 +10,19 @@ import { openScenePage } from './scene-page';
 const LINES_OUT_TO_SEA = 24;
 const SAMPLES_ALONG_A_LINE = 256;
 
-// Metres. Build 78's two copies agree to 0.00007 on average and 0.0007 at the 99th percentile;
-// the limits leave seven times that. (Build 78's own check allowed 0.004 and 0.04, which let a
-// visibly different shoaling curve through.)
+// Metres. The two copies agree to 0.00007 on average and 0.0007 at the 99th percentile; the
+// limits leave seven times that. (Limits of 0.004 and 0.04 once let a visibly different shoaling
+// curve through.)
 const MEAN_LIMIT = 0.0005;
 const NINETY_NINTH_PERCENTILE_LIMIT = 0.005;
 
 // Runs in the page. Returns, for every sample, how far apart the two copies are in metres.
-function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, number]): number[] {
+// (`programIsAhead` asks the program for the waves that many seconds later than the shader.)
+function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: readonly [
+  number,
+  number,
+  number,
+]): number[] {
   const hooks = window.__lag;
   const canvas = document.createElement('canvas');
   canvas.width = samples;
@@ -29,10 +33,8 @@ function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, 
   // Each pixel along the row is one point on the line; its colour is the wave height there,
   // from -4 m to 4 m, spread over the three channels to keep the precision.
   const pointsSource = 'attribute vec2 a; void main() { gl_Position = vec4(a, 0., 1.); }';
-  // (The wave model reads a debug switch that whoever includes it declares: build 78 calls it
-  // uDbg, the new build uDebugMode. Each page's shader uses one of the two.)
+  // (The wave model reads a debug switch that whoever includes it declares.)
   const heightsSource = `precision highp float;
-    uniform float uDbg;
     uniform float uDebugMode;
     ${hooks.glslWaves()}
     uniform vec2 uDir;
@@ -86,7 +88,6 @@ function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, 
     gl.uniform1f(uniform('uR0'), firstRadius);
     gl.uniform1f(uniform('uDr'), metresBetweenSamples);
     // The program's copy does not model the falling lip, so the shader's is switched off too.
-    gl.uniform1f(uniform('uDbg'), breakingLipOff);
     gl.uniform1f(uniform('uDebugMode'), breakingLipOff);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.readPixels(0, 0, samples, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -95,18 +96,25 @@ function differencesBetweenShaderAndProgram([lines, samples]: readonly [number, 
       const [red, green, blue] = pixels.subarray(i * 4, i * 4 + 3);
       const inShader = (red / 255 + green / 65025 + blue / 16581375) * 8 - 4;
       const radius = firstRadius + i * metresBetweenSamples;
-      const inProgram = hooks.waveH(Math.cos(th) * radius, Math.sin(th) * radius, waveTime, true);
+      const programTime = waveTime + programIsAhead;
+      const inProgram = hooks.waveH(
+        Math.cos(th) * radius,
+        Math.sin(th) * radius,
+        programTime,
+        true,
+      );
       differences.push(Math.abs(inShader - inProgram));
     }
   }
   return differences;
 }
 
-async function measureMirror(context: BrowserContext, file: string) {
-  const scene = await openScenePage(context, file);
+async function measureMirror(context: BrowserContext, programIsAhead = 0) {
+  const scene = await openScenePage(context, builtPage);
   const differences = await scene.page.evaluate(differencesBetweenShaderAndProgram, [
     LINES_OUT_TO_SEA,
     SAMPLES_ALONG_A_LINE,
+    programIsAhead,
   ] as const);
   differences.sort((a, b) => a - b);
 
@@ -122,19 +130,17 @@ test(
   'the wave model in the shader and its copy in the program agree',
   { tag: '@quick' },
   async ({ context }) => {
-    const { mean, ninetyNinthPercentile } = await measureMirror(context, scenePage);
+    const { mean, ninetyNinthPercentile } = await measureMirror(context);
 
     expect(mean).toBeLessThan(MEAN_LIMIT);
     expect(ninetyNinthPercentile).toBeLessThan(NINETY_NINTH_PERCENTILE_LIMIT);
   },
 );
 
-test('a wave shader that drifts from the program is reported', async ({ context }, testInfo) => {
-  const driftedPage = testInfo.outputPath('build78-with-steeper-shoaling.html');
-  // How much a wave grows as the water gets shallow, in the shader only.
-  writeChangedCopy(legacyPage, driftedPage, 'float sh=pow(6./dd,.25)', 'float sh=pow(6./dd,.35)');
-
-  const { mean } = await measureMirror(context, driftedPage);
+// A check that cannot fail proves nothing: the two copies are asked for moments a fiftieth of
+// a second apart, in which a wave travels about a hand's width.
+test('a program out of step with the shader is reported', async ({ context }) => {
+  const { mean } = await measureMirror(context, 0.02);
 
   expect(mean).toBeGreaterThan(MEAN_LIMIT);
 });

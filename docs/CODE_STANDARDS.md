@@ -106,10 +106,11 @@ written from the config. Text substitution into shader source (`{{NAME}}`) is no
 
 - Prettier formats; ESLint with the strict TypeScript rules lints. Neither is argued with in review.
 - Checks run in GitHub Actions on every branch: types, lint, build, shader compile, the wave model's mirror test,
-  and the picture comparison against `legacy/build78.html`. A branch is ready when they pass.
+  and every reference view drawn without an error. A branch is ready when they pass and its changes have been
+  reviewed against the last merged build (`npm run compare`).
 
 ## Commits and branches
 
-- One step of the plan per branch. Small commits that each leave the picture unchanged.
+- One step of the plan per branch. A commit either leaves every picture unchanged or changes them on purpose.
 - The message says what changed and why in plain words.
 - Ryan merges.

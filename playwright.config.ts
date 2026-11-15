@@ -3,10 +3,12 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: 'tests',
   forbidOnly: Boolean(process.env.CI),
-  reporter: 'list',
+  // Finds the reference build before the tests; turns what they recorded into the review page after.
+  globalSetup: './tests/prepare-run.ts',
+  reporter: [['list'], ['./tests/review-reporter.ts']],
   fullyParallel: true,
-  // A scene test draws build 78 in the software renderer: seconds a picture here, and several
-  // times that on a small shared machine.
+  // A scene test draws in the software renderer: seconds a picture here, and several times that
+  // on a small shared machine.
   timeout: 300_000,
   use: {
     browserName: 'chromium',

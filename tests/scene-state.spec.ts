@@ -1,13 +1,14 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { writeChangedCopy } from './changed-page';
-import { legacyPage, scenePage } from './pages';
+import { askTheReference, builtPage } from './pages';
 import { referenceViews, type Moment, type ReferenceView } from './reference-views';
+import { recordFinding } from './review-records';
 import { openScenePage, showMoment } from './scene-page';
 
 // A picture shows what is in front of the camera at one moment; most of the animals are
-// somewhere else, or between leaps. These tests compare the scene itself instead: where every
-// object in it is, whether it is shown, and every copy of everything drawn in copies, in
-// build 78 and in the page under test, at several moments and as time passes.
+// somewhere else, or between leaps. This compares the scene itself instead: where every object
+// in it is, whether it is shown, and every copy of everything drawn in copies, in the reference
+// build and in the working files, at several moments and as time passes. What has moved is
+// reported on the review page; only a scene that cannot be watched fails.
 
 // Nothing here looks at a picture, and the software renderer is quicker over a small one.
 test.use({ viewport: { width: 64, height: 64 } });
@@ -20,6 +21,8 @@ const CRABS = 8;
 
 const NOON: Moment = { waveTime: 20, wind: 0.66, cloudCover: 0.45, sun: { dayPhase: 0.5 } };
 const MIDNIGHT: Moment = { ...NOON, sun: { dayPhase: 0 } };
+/** On the review page this comes before the sound. */
+const ORDER = 0;
 
 interface SceneStates {
   /** One line for each object in the scene, at each of the moments looked at. */
@@ -148,32 +151,30 @@ async function watchTheScene(context: BrowserContext, file: string): Promise<Sce
   return { moments, problems };
 }
 
-function momentsThatDiffer(reference: SceneStates, candidate: SceneStates): string[] {
-  return Object.keys(reference.moments).filter(
-    (name) => reference.moments[name].join('\n') !== candidate.moments[name].join('\n'),
-  );
+// One line for each moment at which anything is not as the reference build has it.
+function whatHasMoved(reference: SceneStates, now: SceneStates): string[] {
+  return Object.entries(now.moments).flatMap(([name, lines]) => {
+    const before = reference.moments[name];
+    const moved = lines.filter((line, index) => line !== before[index]).length;
+    if (moved === 0 && before.length === lines.length) return [];
+    return [`${name}: ${moved} of ${lines.length} objects differ (${before.length} before)`];
+  });
 }
 
-test('everything in the scene is where build 78 has it', { tag: '@quick' }, async ({ context }) => {
-  const reference = await watchTheScene(context, legacyPage);
-  const candidate = await watchTheScene(context, scenePage);
+test('the scene can be watched as time passes', { tag: '@quick' }, async ({ context }) => {
+  const now = await watchTheScene(context, builtPage);
+  const reference = await askTheReference((page) => watchTheScene(context, page));
 
-  for (const [name, lines] of Object.entries(reference.moments)) {
-    expect(lines.length, `build 78's scene is empty ${name}`).toBeGreaterThan(0);
-    expect(candidate.moments[name], name).toEqual(lines);
+  recordFinding(
+    {
+      order: ORDER,
+      name: 'the scene',
+      shows: 'where every object is at five moments, by day and by night, as animals move',
+    },
+    reference === null ? null : whatHasMoved(reference, now),
+  );
+  for (const [name, lines] of Object.entries(now.moments)) {
+    expect(lines.length, `objects in the scene ${name}`).toBeGreaterThan(0);
   }
-  expect(reference.problems, 'problems in the reference page').toEqual([]);
-  expect(candidate.problems, 'problems in the page under test').toEqual([]);
-});
-
-test('a crab that runs from the player at another speed is reported', async ({
-  context,
-}, testInfo) => {
-  const changedPage = testInfo.outputPath('build78-with-faster-crabs.html');
-  writeChangedCopy(legacyPage, changedPage, 'sp = 2.4;', 'sp = 2.6;');
-
-  const reference = await watchTheScene(context, legacyPage);
-  const changed = await watchTheScene(context, changedPage);
-
-  expect(momentsThatDiffer(reference, changed)).toEqual(['with the player beside a crab']);
+  expect(now.problems, 'problems in the page').toEqual([]);
 });

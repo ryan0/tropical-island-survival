@@ -1,5 +1,5 @@
-// The views the refactor is judged by: each is drawn from build 78 and from the page under
-// test, and the two pictures must be the same (pictures.spec.ts).
+// The views every change is looked at through: each is drawn from the reference build and from
+// the working files, and the two pictures go side by side on the review page (pictures.spec.ts).
 //
 // A view is where the camera stands; its moments are when: the wave clock, the wind, the cloud
 // cover and the sun. Wind is 0 (none), 0.33, 0.66 or 1 (high); cloud cover is 0 (clear) to 1.

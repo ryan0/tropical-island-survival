@@ -15,6 +15,7 @@ reference-photos/
 .vscode/
 *.swp
 
-# test output
+# test output; the review page of the last comparison
 test-results/
 playwright-report/
+review/

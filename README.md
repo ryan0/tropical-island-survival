@@ -3,25 +3,17 @@
 A coral atoll to explore in a phone browser, on its way to becoming a survival game. It runs as one HTML page:
 three.js and hand-written shaders, no other assets.
 
-**State:** the scene works (`legacy/`, build 78) and is being rebuilt as a Vite and TypeScript project without
-changing how it looks. See `docs/REFACTOR_PLAN.md`.
+**State:** the scene has been rebuilt as a Vite and TypeScript project (`src/`) that matched the last hand-built
+page (`legacy/`, build 78) to the pixel, and is now being simplified and improved from there. See
+`docs/REFACTOR_PLAN.md`.
 
-## Try the current build
+## Try it
 
-Open `legacy/build78.html` in a browser. It loads three.js from a CDN, so it needs a connection.
+Open the published `main` build (below).
 
 ## Build it from source
 
-The scene, as build 78:
-
-```
-cd legacy
-python3 build.py
-```
-
-The page is written to `legacy/dist/index.html`. `legacy/README.md` describes the legacy layout and tools.
-
-The new project (Node 22), which draws the same scene:
+Node 22:
 
 ```
 npm ci
@@ -29,6 +21,15 @@ npm run build
 ```
 
 The page is written to `dist/index.html`, one file with everything inside it.
+
+Build 78, kept to look back at, loads three.js from a CDN, so it needs a connection:
+
+```
+cd legacy
+python3 build.py
+```
+
+The page is written to `legacy/dist/index.html`. `legacy/README.md` describes the legacy layout and tools.
 
 ## Published builds
 

@@ -4,6 +4,7 @@ import glsl from 'vite-plugin-glsl';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 import packageJson from './package.json' with { type: 'json' };
 import { glslForProgram } from './tools/glsl-for-program-plugin.ts';
+import { phoneLink } from './tools/phone-link-plugin.ts';
 
 function git(...args: string[]): string {
   return execFileSync('git', args, { cwd: import.meta.dirname, encoding: 'utf8' }).trim();
@@ -31,5 +32,6 @@ export default defineConfig({
     glslForProgram('virtual:island-shape', 'src/world/island-shape'),
     glslForProgram('virtual:ground-patterns', 'src/world/ground-patterns'),
     viteSingleFile(),
+    phoneLink(),
   ],
 });

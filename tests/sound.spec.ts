@@ -1,12 +1,13 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
-import { writeChangedCopy } from './changed-page';
-import { legacyPage, scenePage } from './pages';
+import { askTheReference, builtPage } from './pages';
 import { referenceViews, type Moment, type ReferenceView } from './reference-views';
+import { recordFinding } from './review-records';
 import { openScenePage, showMoment } from './scene-page';
 
 // Nothing here can listen. So the page is given an audio context that renders its sound into
-// memory instead of playing it, and the samples that build 78 and the page under test render
-// are compared: the same sound is the same numbers.
+// memory instead of playing it, and the samples that the reference build and the working files
+// render are compared: the same sound is the same numbers. A sound that has changed is reported
+// on the review page; only a page that makes no sound fails.
 
 const RENDERED = { seconds: 2, samplesPerSecond: 22050 };
 const FRAME_MILLISECONDS = 50;
@@ -16,6 +17,8 @@ const FRAMES_OF_SURF = 10;
 // memory, so one sound rendered twice can differ by a rounding step of its samples, 0.00000006.
 // The quietest step of a CD is five hundred times that; this allows sixteen rounding steps.
 const ROUNDING = 1e-6;
+/** On the review page this comes after the scene. */
+const ORDER = 1;
 // Crickets sing only at night, and the surf is loudest in a high wind.
 const MIDNIGHT_IN_A_HIGH_WIND: Moment = {
   waveTime: 34.7,
@@ -105,42 +108,36 @@ function loudest(samples: number[]): number {
   return samples.reduce((largest, sample) => Math.max(largest, Math.abs(sample)), 0);
 }
 
-test('the surf and the crickets sound the same', async ({ context }) => {
+function whatSoundsDifferent(reference: HeardSound, now: HeardSound): string[] {
+  const difference = largestDifference(reference.samples, now.samples);
+  if (difference < ROUNDING && reference.samples.length === now.samples.length) return [];
+  return [`samples differ by up to ${difference.toFixed(6)}, where the loudest is 1`];
+}
+
+test('the surf and the crickets sound, and the button says so', async ({ context }) => {
   await context.addInitScript(renderSoundInsteadOfPlayingIt, RENDERED);
 
-  const reference = await hearSound(context, legacyPage);
-  const candidate = await hearSound(context, scenePage);
+  const now = await hearSound(context, builtPage);
+  const reference = await askTheReference((page) => hearSound(context, page));
 
-  expect(loudest(reference.samples), 'build 78 is silent: nothing is compared').toBeGreaterThan(0);
-  expect(candidate.samples).toHaveLength(reference.samples.length);
-  expect(largestDifference(reference.samples, candidate.samples)).toBeLessThan(ROUNDING);
-  expect(reference.buttonTexts).toEqual(['waves on', 'waves off']);
-  expect(candidate.buttonTexts).toEqual(reference.buttonTexts);
-  expect(reference.problems, 'problems in the reference page').toEqual([]);
-  expect(candidate.problems, 'problems in the page under test').toEqual([]);
+  recordFinding(
+    {
+      order: ORDER,
+      name: 'the sound',
+      shows: 'two seconds of surf and crickets at night in a high wind, sample by sample',
+    },
+    reference === null ? null : whatSoundsDifferent(reference, now),
+  );
+  expect(loudest(now.samples), 'the loudest sample').toBeGreaterThan(0);
+  expect(now.buttonTexts).toEqual(['waves on', 'waves off']);
+  expect(now.problems, 'problems in the page').toEqual([]);
 });
 
 test('a browser without audio is told so on the sound button', async ({ context }) => {
   await context.addInitScript(removeAudioFromTheBrowser);
 
-  const reference = await tapTheSoundButton(context, legacyPage);
-  const candidate = await tapTheSoundButton(context, scenePage);
+  const { soundButton, problems } = await tapTheSoundButton(context, builtPage);
 
-  await expect(reference.soundButton).toHaveText('no audio');
-  await expect(candidate.soundButton).toHaveText('no audio');
-  expect(reference.problems, 'problems in the reference page').toEqual([]);
-  expect(candidate.problems, 'problems in the page under test').toEqual([]);
-});
-
-test('a surf that answers differently to the breaking waves is reported', async ({
-  context,
-}, testInfo) => {
-  const changedPage = testInfo.outputPath('build78-with-louder-breaking-surf.html');
-  writeChangedCopy(legacyPage, changedPage, '=0.22+0.55*surfE', '=0.22+0.75*surfE');
-  await context.addInitScript(renderSoundInsteadOfPlayingIt, RENDERED);
-
-  const reference = await hearSound(context, legacyPage);
-  const changed = await hearSound(context, changedPage);
-
-  expect(largestDifference(reference.samples, changed.samples)).toBeGreaterThan(ROUNDING);
+  await expect(soundButton).toHaveText('no audio');
+  expect(problems, 'problems in the page').toEqual([]);
 });
