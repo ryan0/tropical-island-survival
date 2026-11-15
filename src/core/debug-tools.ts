@@ -3,6 +3,7 @@ import type { Water } from '../sea/water';
 import type { BuildInfo } from '../ui/build-label';
 import type { DebugSwitch } from '../ui/debug-panel';
 import type { AutomaticQuality } from './automatic-quality';
+import type { FrameMeter } from './frame-meter';
 import type { SharedUniforms } from './shared-uniforms';
 import type { TestHooks } from './test-hooks';
 
@@ -43,6 +44,22 @@ export function describeBuild(
     `GPU: ${graphicsCardName(context)}`,
     `water: ${water.waveMeshDescription} · quality stage ${quality.stage} · pixel ratio ${renderer.getPixelRatio()}`,
   ];
+}
+
+/**
+ * How fast the page is running and how much it is drawing, for the phone to report. A phone draws
+ * no faster than its screen refreshes, so at full speed the frame rate says nothing of what is
+ * to spare: the program's own time for a frame does.
+ */
+export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): string {
+  const { calls, triangles } = renderer.info.render;
+  return [
+    `${frames.framesPerSecond.toFixed(0)} frames a second`,
+    `slowest ${frames.slowestFrameMilliseconds.toFixed(0)} ms`,
+    `program ${frames.programMilliseconds.toFixed(1)} ms a frame`,
+    `${calls} draws`,
+    `${Math.round(triangles / 1000)} thousand triangles`,
+  ].join(' · ');
 }
 
 export function debugSwitches(

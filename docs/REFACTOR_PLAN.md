@@ -24,8 +24,8 @@ before and after.
 - [x] 6. Merge duplicates
 - [x] 7. Compare with the last merged build
 - [x] 8. Clear out what exactness cost
-- [ ] 9. One wave model
-- [ ] 10. Make room for the roadmap
+- [x] 9. One wave model: left for the breaking wave's rebuild
+- [x] 10. Make room for the roadmap: the frame-rate readout
 - [ ] 11. Remove `legacy/`
 
 ## Decisions already made
@@ -169,7 +169,7 @@ weighed and set aside: turning every lifted file into a function first, and a sh
   still gathers the shared set, which goes to `src/core/` last. Weather and wind now step through their spells
   with one piece of code (it was on the list for step 6). No new test: the pictures, the scene-state test and
   the menu test cover it, and a one-off comparison with the clock running matched build 78 in every uniform.
-- [ ] world, in parts:
+- [x] world, in parts:
   - [x] terrain: `src/world/` holds the landmarks (home, hut, pier, footpaths, and the searches for the
     shorelines), the ground and its grit picture. The island's shape moved to `src/world/island-shape/` (still
     the one definition, still turned into functions for the program by the build), and the terrain's shaders
@@ -339,19 +339,37 @@ Each oddity, decided:
 | The debug hooks keep build 78's names (`__lag`, `__fly`) | Kept for now: the tests drive the last merged build through them, so a rename leaves one review without pictures from before. To rename when little else changes |
 | The cloud field is written in the shader and again in the program | Kept as two: the shader's reads textures, which the generator for the program cannot follow. They now agree, but for the fine lumps the program leaves out on purpose |
 
-Still as build 78 wrote it, for step 9: the wave model's short names and its 6.2832 in program and shader.
+Still as build 78 wrote it: the wave model's short names and its 6.2832 in program and shader. They stay
+until the breaking wave is rebuilt (step 9).
 
 ### 9. One wave model
 
-The model is written in the shader and again in the program, kept in step by a test. Make the shader the one
-source and generate the program's copy from it, so that a change is made once. It is the most delicate code in
-the project, and `docs/DEVICE_NOTES.md` constrains how the shader side may be written. The generated copy need
-not match today's to the last bit: it must agree with the shader within the mirror test's limits.
+Not done, on purpose. The plan was to make the shader the one source and generate the program's copy from it.
+Two things changed that:
+
+- **The two copies are not the same model.** A breaking wave overhangs, and the shader makes its lip by moving
+  water sideways. The program needs one height for each spot, so it has a simpler stand-up of its own, and it
+  gathers what the spray needs (a lip falling, a lip landing, a bore), which the shader never works out in that
+  form. A generator would need a translator for GLSL and would still leave those parts written by hand.
+- **Ryan wants the breaking wave rebuilt** (`docs/ROADMAP.md`). About half of what the two copies share is the
+  break itself, which the rebuild replaces.
+
+So the wave model stays as it is, two copies kept in step by the mirror test, the program's still under build
+78's short names. The rebuild is to end with one model by design: a plain swell short enough for its two
+copies to be trivial, and a breaker the program need not know the shape of.
 
 ### 10. Make room for the roadmap
 
-To be agreed with Ryan before it starts: a frame-rate readout so the phone can report numbers, a way to retune
-a config number without a rebuild, and the shape the game systems will take in `src/game/`.
+Done, in the one part that was needed now:
+
+- **The frame-rate readout.** The debug panel (hold the corner button) reports, twice a second, the frames a
+  second, the slowest frame, the program's own time for a frame, and how many draws and triangles the last
+  frame took (`src/core/frame-meter.ts`). A phone draws no faster than its screen refreshes, so at full speed
+  it is the program's time that says what is to spare. The lines above it (quality stage, pixel ratio) are now
+  live as well: they were written once, when the panel first opened.
+- **Retuning without a rebuild** waits for the first feature that needs a tuning pass. `npm run dev:phone`
+  covers most of it: a saved change reloads the page on the phone.
+- **The shape of `src/game/`** is to be agreed against the first real piece of the game, not in the abstract.
 
 ### 11. Remove `legacy/`
 
@@ -360,9 +378,8 @@ the site, move the tools worth keeping, bring the docs up to date.
 
 ## After the refactor
 
-1. Performance pass with real profiling, starting with a frame-rate readout in the debug panel.
-2. Decide whether to move to a newer three.js.
-3. Then `docs/ROADMAP.md`.
+`docs/ROADMAP.md`, which starts with a performance pass from the phone's numbers and a trial of a newer
+three.js.
 
 ## Reference views
 

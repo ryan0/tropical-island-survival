@@ -1,6 +1,7 @@
 import { createAudio } from './audio/audio';
 import { createAutomaticQuality } from './core/automatic-quality';
-import { debugSwitches, describeBuild } from './core/debug-tools';
+import { debugSwitches, describeBuild, describeSpeed } from './core/debug-tools';
+import { createFrameMeter } from './core/frame-meter';
 import { createRandomStreams } from './core/random';
 import { createSharedUniforms } from './core/shared-uniforms';
 import { createStage } from './core/stage';
@@ -261,6 +262,7 @@ const quality = createAutomaticQuality(
   lights.sunLight,
   testHooks.isAutomaticQualityOff,
 );
+const frameMeter = createFrameMeter();
 const soundButton = pageElement('snd');
 watchSoundButton(soundButton, audio.toggle);
 const menu = createSceneMenu(document.body, {
@@ -274,7 +276,7 @@ const menu = createSceneMenu(document.body, {
 });
 const debugPanel = createDebugPanel(
   document.body,
-  () => describeBuild(renderer, build, water, quality),
+  () => [...describeBuild(renderer, build, water, quality), describeSpeed(renderer, frameMeter)],
   debugSwitches(water, uniforms, testHooks),
 );
 // The button in the corner names the time of day. A tap opens the menu; a long press, the debug panel.
@@ -363,6 +365,7 @@ const startedAt = performance.now();
 let lastFrameAt = startedAt;
 
 function frame(now: number): void {
+  const begunAt = performance.now();
   const realSeconds = (now - lastFrameAt) / 1000;
   const dt = Math.min(LONGEST_STEP, realSeconds);
   const time = (now - startedAt) / 1000;
@@ -442,6 +445,7 @@ function frame(now: number): void {
   instanceCells.update(camera.position);
 
   renderer.render(scene, camera);
+  frameMeter.update(realSeconds, (performance.now() - begunAt) / 1000);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

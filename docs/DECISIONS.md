@@ -38,8 +38,8 @@ short version to read first. File names in brackets are in `legacy/src`.
    shoal, break on the reef edge with a falling lip, cross the reef flat as white water, stand up again at the
    beach and break on the sand. The notes for builds 28, 29 and 78 describe it.
 10. **The wave model exists twice**, in the shader that moves the mesh and in JavaScript for everything else
-    (swimming height, spray, footprints). A test compares them on the GPU. The refactor should end with one
-    definition.
+    (swimming height, spray, footprints). A test compares them on the GPU. They stay two until the breaking
+    wave is rebuilt, which is to end with one model (`docs/ROADMAP.md`).
 11. **Water is three meshes sharing one shader.** A flat far sea with holes cut in the shader; a ring of wave mesh
     round the atoll in 16 sectors with three levels of detail; a strip along the lagoon shore that is lifted only
     in a high wind [38_water.js].

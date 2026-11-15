@@ -18,22 +18,29 @@ function switchButton(debugSwitch: DebugSwitch): HTMLButtonElement {
   return button;
 }
 
-/**
- * @param describe The lines of text at the top of the panel. Asked for once, when the panel is
- *   first opened: what it reports (the GPU, the quality steps taken) is not known earlier.
- */
+// What the panel reports changes as the page runs (the frame rate, the quality steps taken), so
+// it is asked for again this often while the panel is open.
+const REPORTED_EVERY_MILLISECONDS = 500;
+
+/** @param describe The lines of text at the top of the panel, asked for again and again while it is open. */
 export function createDebugPanel(
   parent: HTMLElement,
   describe: () => string[],
   switches: DebugSwitch[],
 ): DebugPanel {
+  const report = document.createElement('div');
+  report.className = 'debug-report';
   let panel: HTMLElement | null = null;
+  let reporting: number | undefined;
+
+  function writeReport(): void {
+    report.textContent = describe().join('\n');
+  }
 
   function build(): HTMLElement {
     const element = document.createElement('div');
     element.className = 'debug-panel';
-    for (const line of describe()) element.append(line, document.createElement('br'));
-    element.append(...switches.map(switchButton));
+    element.append(report, ...switches.map(switchButton));
     return element;
   }
 
@@ -45,6 +52,11 @@ export function createDebugPanel(
       } else {
         panel.hidden = !panel.hidden;
       }
+
+      window.clearInterval(reporting);
+      if (panel.hidden) return;
+      writeReport();
+      reporting = window.setInterval(writeReport, REPORTED_EVERY_MILLISECONDS);
     },
   };
 }

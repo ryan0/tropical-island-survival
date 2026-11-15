@@ -1,4 +1,5 @@
 import type { DirectionalLight, WebGLRenderer } from 'three';
+import { A_PAUSE } from './frame-meter';
 import type { View } from './view';
 
 export interface AutomaticQuality {
@@ -16,8 +17,6 @@ export const SETTLED = 3;
 const FRAMES_IN_A_BATCH = 90;
 const TOO_SLOW = 0.036;
 const FAST_ENOUGH = 0.024;
-// A frame this long is a pause (the tab was hidden), not a slow phone.
-const A_PAUSE = 1;
 
 /**
  * If the phone cannot keep up, drops the resolution, then the shadows, then the resolution

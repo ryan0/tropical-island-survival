@@ -23,6 +23,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
 
 - **The phone is the judge.** The test renderer is software GL at under one frame a second. It can show a still
   picture and catch shader errors; it cannot show motion or frame rate. Say plainly what only the phone can confirm.
+  The debug panel (hold the corner button) reports the frame rate, the program's time for a frame, and the draws
+  and triangles.
 - **Review goes in three steps.** Claude compares every change with the last merged build (`npm run compare`),
   looks at the pictures itself, and says which views changed, wanted or not; for a small change, and between
   passes at one thing, that is the whole review. Ryan looks at the before and after on the desktop
