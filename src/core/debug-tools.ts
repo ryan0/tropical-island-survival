@@ -1,5 +1,6 @@
 import type { WebGLRenderer } from 'three';
 import type { Water } from '../sea/water';
+import type { Player } from '../player/player';
 import type { BuildInfo } from '../ui/build-label';
 import type { DebugSwitch } from '../ui/debug-panel';
 import type { AutomaticQuality } from './automatic-quality';
@@ -62,15 +63,22 @@ export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): stri
   ].join(' · ');
 }
 
+/** Where the eye is, to say where something was seen. */
+export function describeEye(eye: { x: number; y: number; z: number }): string {
+  return `eye at x ${eye.x.toFixed(0)}, z ${eye.z.toFixed(0)} · ${eye.y.toFixed(1)} m above the sea`;
+}
+
 export function debugSwitches(
   water: Water,
   uniforms: SharedUniforms,
   testHooks: TestHooks,
+  player: Pick<Player, 'setFlying'>,
 ): DebugSwitch[] {
   const waterDebug = (mode: number) => (on: boolean) => {
     uniforms.uDebugMode.value = on ? mode : 0;
   };
   return [
+    { label: 'fly', set: player.setFlying },
     {
       label: 'wireframe',
       set(on) {

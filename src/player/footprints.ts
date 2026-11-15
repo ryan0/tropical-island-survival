@@ -17,7 +17,7 @@ export interface FootprintsDependencies {
   scene: Scene;
   groundHeight: GroundHeight;
   waves: WaveModel;
-  player: Pick<Player, 'position' | 'groundHeight' | 'isIntroRunning'>;
+  player: Pick<Player, 'position' | 'groundHeight' | 'isIntroRunning' | 'isFlying'>;
 }
 
 export interface Footprints {
@@ -116,7 +116,7 @@ export function createFootprints(dependencies: FootprintsDependencies): Footprin
         const isDrySand = ground > lowestDryGround && ground < highestDryGround;
         // Not where the player stands on something built over the ground.
         const isStandingOnIt = player.groundHeight === ground;
-        if (!player.isIntroRunning && isDrySand && isStandingOnIt) {
+        if (!player.isIntroRunning && !player.isFlying && isDrySand && isStandingOnIt) {
           leavePrint(stepX, stepZ, stepLength);
         }
       }

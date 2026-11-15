@@ -45,7 +45,14 @@ export interface Player {
   /** The height of the ground under the player, as of the last update. */
   readonly groundHeight: number;
   readonly isIntroRunning: boolean;
-  /** Walking, swimming and diving, the opening fly-in, and the camera. */
+  /**
+   * Flying: the stick moves the eye the way it looks, over land and sea alike, and nothing holds
+   * it to the ground. For looking at the scene from anywhere; the debug panel switches it. When
+   * it is switched off the player comes down where the eye was.
+   */
+  readonly isFlying: boolean;
+  setFlying(isFlying: boolean): void;
+  /** Walking, swimming and diving, or flying; the opening fly-in; and the camera. */
   update(frame: PlayerFrame): void;
   /** Shows a place's name as the player comes into it. Called later in the frame than `update`. */
   updatePlaceNames(dt: number): void;
@@ -55,7 +62,7 @@ export interface Player {
   endIntro(): void;
 }
 
-const { start, walking, wading, swimming } = playerConfig;
+const { start, walking, wading, swimming, flying } = playerConfig;
 
 function speedOver(ground: number): number {
   if (ground < swimming.below) return swimming.speed;
@@ -88,11 +95,18 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
   const placeNames = createPlaceNames({ captions, island, sandbank, landmarks, hasCamp, intro });
 
   let groundHeight = 0;
+  let isFlying = false;
   let stepPhase = 0;
   let swimmingEyeHeight: number = swimming.surfaceEyeHeight;
   let isSwimmingHintShown = false;
 
-  function move(forward: number, sideways: number, speed: number, dt: number): void {
+  function move(
+    forward: number,
+    sideways: number,
+    speed: number,
+    dt: number,
+    farthest: number,
+  ): void {
     const { yaw } = controls;
     const forwardX = -Math.sin(yaw);
     const forwardZ = -Math.cos(yaw);
@@ -102,10 +116,23 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     position.z += (forwardZ * forward + rightZ * sideways) * speed * dt;
 
     const fromCentre = Math.hypot(position.x, position.z);
-    if (fromCentre > playerConfig.farthestFromCentre) {
-      position.x *= playerConfig.farthestFromCentre / fromCentre;
-      position.z *= playerConfig.farthestFromCentre / fromCentre;
+    if (fromCentre > farthest) {
+      position.x *= farthest / fromCentre;
+      position.z *= farthest / fromCentre;
     }
+  }
+
+  /** The stick moves the eye the way it looks, faster the higher it is. */
+  function fly(forward: number, sideways: number, dt: number): void {
+    const aboveSurface = Math.max(0, position.y - Math.max(groundHeight, 0));
+    const speed = flying.speed + flying.speedPerMetreOfHeight * aboveSurface;
+    move(forward * Math.cos(controls.pitch), sideways, speed, dt, flying.farthestFromCentre);
+    groundHeight = island.groundHeight(position.x, position.z);
+    const climbed = position.y + Math.sin(controls.pitch) * forward * speed * dt;
+    position.y = Math.max(
+      groundHeight + flying.lowestAboveGround,
+      Math.min(flying.highest, climbed),
+    );
   }
 
   /** Pushing forward while looking down dives; looking up comes back up. */
@@ -123,6 +150,27 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     return swimmingEyeHeight + surface + Math.sin(time * swimming.floatRate) * float;
   }
 
+  function walkOrSwim(time: number, dt: number, forward: number, sideways: number): void {
+    const groundBefore = island.groundHeight(position.x, position.z);
+    const isSwimming = groundBefore < swimming.below;
+    const speed = speedOver(groundBefore);
+    move(forward, sideways, speed, dt, playerConfig.farthestFromCentre);
+    const effort = Math.min(1, Math.hypot(forward, sideways));
+    stepPhase += dt * effort * (isSwimming ? swimming.strokeRate : walking.stepRate);
+
+    groundHeight = island.groundHeight(position.x, position.z);
+    let eyeHeight: number;
+    if (groundHeight > swimming.below) {
+      // The next swim starts at the surface.
+      swimmingEyeHeight = swimming.surfaceEyeHeight;
+      eyeHeight = groundHeight + walking.eyeHeight + Math.sin(stepPhase) * walking.bob * effort;
+    } else {
+      eyeHeight = swimmingEye(time, dt, forward, speed);
+      showSwimmingHintOnce();
+    }
+    position.y += (eyeHeight - position.y) * Math.min(1, dt * playerConfig.eyeFollowRate);
+  }
+
   function showSwimmingHintOnce(): void {
     if (isSwimmingHintShown || intro.isRunning) return;
 
@@ -138,6 +186,14 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     get isIntroRunning() {
       return intro.isRunning;
     },
+    get isFlying() {
+      return isFlying;
+    },
+
+    setFlying(shouldFly) {
+      isFlying = shouldFly;
+      if (shouldFly) intro.end();
+    },
 
     update({ time, dt, cameraOverride }) {
       let forward = controls.forward(-stick.y);
@@ -148,24 +204,8 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
         sideways = 0;
       }
 
-      const groundBefore = island.groundHeight(position.x, position.z);
-      const isSwimming = groundBefore < swimming.below;
-      const speed = speedOver(groundBefore);
-      move(forward, sideways, speed, dt);
-      const effort = Math.min(1, Math.hypot(forward, sideways));
-      stepPhase += dt * effort * (isSwimming ? swimming.strokeRate : walking.stepRate);
-
-      groundHeight = island.groundHeight(position.x, position.z);
-      let eyeHeight: number;
-      if (groundHeight > swimming.below) {
-        // The next swim starts at the surface.
-        swimmingEyeHeight = swimming.surfaceEyeHeight;
-        eyeHeight = groundHeight + walking.eyeHeight + Math.sin(stepPhase) * walking.bob * effort;
-      } else {
-        eyeHeight = swimmingEye(time, dt, forward, speed);
-        showSwimmingHintOnce();
-      }
-      position.y += (eyeHeight - position.y) * Math.min(1, dt * playerConfig.eyeFollowRate);
+      if (isFlying) fly(forward, sideways, dt);
+      else walkOrSwim(time, dt, forward, sideways);
 
       camera.position.set(position.x, position.y, position.z);
       camera.rotation.set(controls.pitch, controls.yaw, 0);
@@ -177,7 +217,7 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     },
 
     updatePlaceNames(dt) {
-      placeNames.update(position.x, position.z, groundHeight);
+      if (!isFlying) placeNames.update(position.x, position.z, groundHeight);
       captions.update(dt);
     },
 

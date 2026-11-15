@@ -20,6 +20,17 @@ export const playerConfig = {
   /** How quickly the eye follows the ground and the water: the larger, the more closely. */
   eyeFollowRate: 7,
 
+  /** Flying, switched on in the debug panel: for looking at the scene from anywhere. */
+  flying: {
+    /** Metres a second close to the ground or the sea, and how much faster for each metre above it. */
+    speed: 6,
+    speedPerMetreOfHeight: 0.35,
+    /** The eye comes no nearer the ground or the sea floor than this, and goes no higher than `highest`. */
+    lowestAboveGround: 0.4,
+    highest: 400,
+    farthestFromCentre: 1200,
+  },
+
   walking: {
     speed: 6.5,
     eyeHeight: 1.7,

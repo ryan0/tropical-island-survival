@@ -5,20 +5,27 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
-1. **The breaking wave: a study, then a design.** Ours cut into stills at exact times and measured, set beside
-   what the maths gives and beside footage. Then a design for Ryan to agree before any wave code changes (the
-   section below).
-2. **The breaking wave, built**, in passes against the footage.
-3. **A first piece of the game.** The scene is far ahead of the game. Picking one thing up, with a count on the
+1. **The breaking wave, pass 1: its timing, on a picture of the sea floor.** How often waves come, sets and
+   lulls, speed from depth, the stand-up, the lip under gravity, the landing, and the break running along the
+   crest; drawn with today's mesh and shapes. The section below has the design.
+2. **A wider reef and a more varied lagoon.** Ryan, 15 November 2026: the waves breaking further from the shore,
+   perhaps several breaks; a larger area between the shore and the deep ocean, with more varied depths, for
+   exploring, foraging, spear fishing and diving; the lagoon with more varied depth, more interesting to explore,
+   possibly larger. To be designed with him. Because the waves read the sea floor from a picture, it does not
+   touch them again.
+3. **The breaking wave, passes 2 to 4**: the breaker's own mesh and shapes (what cures the jaggedness); the white
+   water and the light through the lip; the weather driving it. After the wider reef, because the mesh depends
+   on how far out waves break.
+4. **A first piece of the game.** The scene is far ahead of the game. Picking one thing up, with a count on the
    screen, settles the shape of `src/game/` against something real and tries touch on the phone. It may come
    before the wave is built if Ryan would rather have the game move sooner.
-4. **Rain.** Light rain, then heavy rain, then storm with stronger wind than "high". It reuses the cloud, light
+5. **Rain.** Light rain, then heavy rain, then storm with stronger wind than "high". It reuses the cloud, light
    and wind systems: overcast sky, darker light, rings on the lagoon, wet sand and leaves, streaks in the air.
    It is also the weather a survival game leans on most: shelter, staying dry, collecting water.
-5. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
-6. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
+6. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
+7. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
    happen here.
-7. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
+8. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
    fire, shelter. The castaway's camp behind `CAMP = false` is a starting point for things the player makes.
 
 ## The breaking wave, rebuilt
@@ -64,6 +71,41 @@ does, it is plain physics or common knowledge, to be checked against the footage
 - **The shape has corners.** A notch at the crest where the lip starts; a small wave is a step with a flat top.
   Along the crest it is ruler-straight and one height for tens of metres, and the lip is a white ribbon with
   its facets showing. The white water is flat paint on the surface.
+
+### The footing: the sea floor as a picture (agreed 15 November 2026)
+
+Today the wave model has a sea floor of its own: a beach curve, and a line 40 m out where waves break. The
+rebuilt waves read the real one from a picture, so that they break wherever the water gets shallow, whatever is
+drawn later.
+
+- **Two pictures.** One holds the depth of the sea floor. The other, worked out from it once, holds how long
+  the swell takes to reach each spot; crests are where that time and the clock agree, so they bend round
+  shallows and slow over the reef by themselves.
+- **What comes of it by itself:** bigger waves break further out and smaller ones further in, so there are
+  several breaks; an uneven reef edge makes the break run along the crest; the kind of break follows from how
+  abruptly the water shallows.
+- **One wave model.** The shader and the program read the same two pictures.
+- **The phone can do it.** It reads a picture in the water's vertex shader, bytes or half floats, smoothly
+  (`DEVICE_NOTES.md`).
+
+### What the footage shows (15 November 2026)
+
+Eight videos Ryan chose, in `reference-photos/waves/` and described in `LOOK.md`; sheets of stills cut from
+them are in `reference-photos/waves/sheets/`.
+
+- **A wave about every 10 s**: two breaks 10 s apart on a windy reef ledge; fronts 8 to 10 s apart in a cove.
+- **Sets**: in the cove a big run-up every 25 to 50 s, smaller ones between.
+- **The break runs along the crest.** One crest shows unbroken wall, a falling lip and white water at once. A
+  crumbling break starts at a peak and spreads both ways. From above, waves break in patches where the reef is
+  shallow and pass unbroken beside them. Ours breaks along a whole crest at nearly one moment.
+- **Both kinds of break**, crumbling and plunging. Ryan: not every wave has a lip; often a wave crumbles at
+  its peak and throws a lip where it abruptly meets a shallower stretch.
+- **The lip is a thick falling curtain** that reaches the water ahead, pale and translucent, streaked as it
+  falls. **The landing throws up a white mass higher than the wave** within about a second, which rolls on.
+- **On the flat the white water is a thin lacy sheet** with a low tumbling front, several lines of it at once.
+
+So pass 1 aims at a wave every 9 to 10 s, sets about every 45 s, a stand-up of about 2 s, and the lip in the
+air for about half a second.
 
 ## Later
 

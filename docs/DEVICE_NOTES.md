@@ -33,8 +33,12 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 
 - The software renderer cannot confirm a fix for a phone-only bug. Say so, ship a build number, ask for a screenshot.
 - The build number (bottom centre) tells you whether a screenshot is from the current build.
-- Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string and has switches for
-  wireframe, hiding the wave mesh, hiding the far sea and freezing the waves.
+- Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate and where
+  the eye is, and has switches for flying, wireframe, hiding the wave mesh, hiding the far sea and freezing the
+  waves. Flying: the stick moves the eye the way it looks (push forward while looking up to climb), faster the
+  higher it is; it can go under water but not through the ground.
+- The phone reads a picture in the water's vertex shader without trouble, bytes or half floats, smoothly
+  filtered (tried on 15 November 2026 with a picture of mounds in place of the waves).
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
   3 = plain water colour. Handy for narrowing down a bug from screenshots.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.

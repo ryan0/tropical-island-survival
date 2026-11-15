@@ -1,6 +1,6 @@
 import { createAudio } from './audio/audio';
 import { createAutomaticQuality } from './core/automatic-quality';
-import { debugSwitches, describeBuild, describeSpeed } from './core/debug-tools';
+import { debugSwitches, describeBuild, describeEye, describeSpeed } from './core/debug-tools';
 import { createFrameMeter } from './core/frame-meter';
 import { createRandomStreams } from './core/random';
 import { createSharedUniforms } from './core/shared-uniforms';
@@ -276,8 +276,12 @@ const menu = createSceneMenu(document.body, {
 });
 const debugPanel = createDebugPanel(
   document.body,
-  () => [...describeBuild(renderer, build, water, quality), describeSpeed(renderer, frameMeter)],
-  debugSwitches(water, uniforms, testHooks),
+  () => [
+    ...describeBuild(renderer, build, water, quality),
+    describeSpeed(renderer, frameMeter),
+    describeEye(camera.position),
+  ],
+  debugSwitches(water, uniforms, testHooks, player),
 );
 // The button in the corner names the time of day. A tap opens the menu; a long press, the debug panel.
 const timeButton = pageElement('tod');

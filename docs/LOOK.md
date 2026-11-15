@@ -44,6 +44,24 @@ white sand under a net of light.
 *Rejected:* whitecaps as small flecks; foam as solid white shapes; anything pale and translucent lying on the
 water like a decal; hairline crests.
 
+## Waves breaking (videos)
+
+*References,* in `reference-photos/waves/`, each named by its YouTube id; Ryan's words on what each is for.
+`docs/ROADMAP.md` has what was measured from them.
+
+- `3jOXW2jrrn0` A drone over Pipeline's reef (96 s). Top-down views, at a slight angle, of waves breaking over a
+  real reef in a little wind; also how a reef looks from above, through the water.
+- `I0jNG4Ihk8o` A surf film (23 min). Many front-on and angled shots of waves breaking, with surfers for scale.
+- `rFgV7EpyxAw` Under water (16 s). How a reef looks under water, and a wave from below.
+- `652zUeqI7_E` Waves breaking towards a beach, with surfers and waders for scale (3 min); 0:52 to 1:02 is a good
+  stretch: white water spreading over a shallow flat, several lines of break behind.
+- `Gd1ZKedLwKE` A cove from the shore on a very windy night (12 hours, a still camera).
+- `7bHltyWh_Qc` A reef in Australia from a still vantage point (2 hours). How many breaks there often are, and
+  how far a reef can reach.
+- `irBF_I8g7y8` Softer, crumbling waves head on (0:10 to 0:40). Not every wave has a lip and crashes: we want
+  some of both.
+- `y9MEmtDdhB4` A wave breaking on a beach, head on, in a very high wind (19 s).
+
 ## The lagoon shore
 
 *References:* a lagoon with sand islets from the air; a gentle shore where clear water thins to nothing over
