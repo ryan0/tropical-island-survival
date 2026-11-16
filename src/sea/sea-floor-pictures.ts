@@ -22,7 +22,9 @@ import { seaConfig } from './sea-config';
 //
 // The floor picture holds the depth, and for each swell how long it takes to arrive: a swell
 // travels at the speed its depth allows (wave-timing/timing.glsl), so its crests slow over the
-// reef and bend round shallows. A crest lies wherever the arrival time and the clock agree.
+// reef and bend round shallows. A crest lies wherever the arrival time and the clock agree. It
+// also holds how nearly the main swell is heading for the island's centre, which is the way the
+// wave mesh can move its water: 1 straight in, 0 along the shore.
 //
 // The breaks picture holds, for four depths, how many seconds ago the main swell first crossed
 // water that shallow on its way to each spot: negative while that is still ahead of it. A wave
@@ -55,7 +57,7 @@ export interface SeaFloorPictures {
   /** Metres across, centred on the atoll; and dots across. */
   readonly span: number;
   readonly size: number;
-  /** Each dot: the delay of swell 0, the delay of swell 1, the depth; the fourth is unused. */
+  /** Each dot: the delay of swell 0, the delay of swell 1, the depth, how nearly swell 0 heads inshore. */
   readonly floor: DataTexture;
   /** Each dot: seconds since the main swell first crossed each of the four break depths. */
   readonly breaks: DataTexture;
@@ -325,6 +327,56 @@ function evenedOut(values: Float32Array): Float32Array {
   return evened;
 }
 
+/**
+ * How nearly the swell is heading for the atoll's centre at each dot: 1 straight in, 0 along the
+ * shore, -1 straight out. Where swell that has come round the island by two ways meets, the
+ * heading turns about sharply: each dot is given the worst heading near it.
+ */
+function howNearlyInshore(arrival: Float32Array): Float32Array {
+  const inshore = new Float32Array(size * size);
+  const last = size - 1;
+  for (let row = 0; row < size; row++) {
+    for (let column = 0; column < size; column++) {
+      const at = row * size + column;
+      const alongRow = arrival[at + (column < last ? 1 : 0)] - arrival[at - (column > 0 ? 1 : 0)];
+      const alongColumn =
+        arrival[at + (row < last ? size : 0)] - arrival[at - (row > 0 ? size : 0)];
+      const x = metresAt(column);
+      const z = metresAt(row);
+      const steepness = Math.hypot(alongRow, alongColumn) * Math.hypot(x, z);
+      inshore[at] = steepness > 1e-9 ? -(alongRow * x + alongColumn * z) / steepness : 0;
+    }
+  }
+
+  // The least of the dots within REACH, then that evened out over the same reach: where the heading
+  // turns about, the picture says the worst of it, and says so smoothly.
+  const REACH = 2;
+  const within = (values: Float32Array, row: number, column: number, least: boolean): number => {
+    let found = least ? Infinity : 0;
+    let count = 0;
+    for (let r = Math.max(0, row - REACH); r <= Math.min(last, row + REACH); r++) {
+      for (let c = Math.max(0, column - REACH); c <= Math.min(last, column + REACH); c++) {
+        found = least ? Math.min(found, values[r * size + c]) : found + values[r * size + c];
+        count++;
+      }
+    }
+    return least ? found : found / count;
+  };
+  const worst = new Float32Array(size * size);
+  const evened = new Float32Array(size * size);
+  for (let row = 0; row < size; row++) {
+    for (let column = 0; column < size; column++) {
+      worst[row * size + column] = within(inshore, row, column, true);
+    }
+  }
+  for (let row = 0; row < size; row++) {
+    for (let column = 0; column < size; column++) {
+      evened[row * size + column] = within(worst, row, column, false);
+    }
+  }
+  return evened;
+}
+
 // A half float as a number: sign, five bits of exponent, ten of fraction.
 function fromHalfFloat(half: number): number {
   const sign = half & 0x8000 ? -1 : 1;
@@ -361,6 +413,7 @@ export function createSeaFloorPictures(groundHeight: GroundHeight): SeaFloorPict
   const mainArrival = arrivalTimes(depth, mainSwell.towards, openSeaSpeed);
   const secondArrival = arrivalTimes(depth, secondSwell.towards, openSeaSpeed);
   const breakValues = timesSinceCrossing(depth, mainArrival);
+  const headingInshore = howNearlyInshore(mainArrival);
 
   // A swell's delay is how far it has fallen behind a swell crossing open sea: a small number,
   // which a half float holds finely, where the arrival time itself is a large one.
@@ -375,6 +428,7 @@ export function createSeaFloorPictures(groundHeight: GroundHeight): SeaFloorPict
       floorValues[at * CHANNELS] = delay(mainArrival, mainSwell.towards);
       floorValues[at * CHANNELS + 1] = delay(secondArrival, secondSwell.towards);
       floorValues[at * CHANNELS + 2] = depth[at];
+      floorValues[at * CHANNELS + 3] = headingInshore[at];
     }
   }
 

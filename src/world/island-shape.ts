@@ -1,7 +1,9 @@
 import {
   hgt,
+  alongReef,
   islandR,
   landW,
+  offshoreOfReef,
   openSea,
   passGap,
   sandbankX,
@@ -18,6 +20,13 @@ import type { GroundHeight, IslandRadius, Point } from './landmarks';
 export interface IslandShape {
   groundHeight: GroundHeight;
   radius: IslandRadius;
+  /**
+   * The reef's zones lie at the same distances along the reef all round the atoll, though the reef
+   * is narrower round the north: a distance off the ocean beach in a direction as the distance
+   * along the reef, and back.
+   */
+  alongReef: (offshore: number, direction: number) => number;
+  offshoreOfReef: (along: number, direction: number) => number;
   /** How wide the ring of land is. */
   landWidth: (direction: number) => number;
   /** How much of the pass through the reef lies in a direction: 0 where there is none. */
@@ -34,6 +43,8 @@ export function createIslandShape(): IslandShape {
   return {
     groundHeight: hgt,
     radius: islandR,
+    alongReef,
+    offshoreOfReef,
     landWidth: landW,
     passGap,
     openSea,

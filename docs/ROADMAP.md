@@ -11,8 +11,8 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 2. **A wider reef and a more varied lagoon.** Ryan, 15 November 2026: the waves breaking further from the shore,
    perhaps several breaks; a larger area between the shore and the deep ocean, with more varied depths, for
    exploring, foraging, spear fishing and diving; the lagoon with more varied depth, more interesting to explore,
-   possibly larger. To be designed with him. Because the waves read the sea floor from a picture, it does not
-   touch them again.
+   possibly larger. Agreed from a proposal, in three batches: the ocean floor (built, below), the lagoon's floor
+   (its outline kept, so nothing on land moves), then coral heads over the gardens, which Ryan means to rearrange.
 3. **The breaking wave, passes 2 to 4**: the breaker's own mesh and shapes (what cures the jaggedness); the white
    water and the light through the lip; the weather driving it. After the wider reef, because the mesh depends
    on how far out waves break.
@@ -113,7 +113,8 @@ air for about half a second.
 of a second on the desktop; the debug panel says how long on the phone).
 
 - *The floor picture*, 512 dots across 640 m. The depth, averaged over 9 m so that the reef's spurs and grooves do
-  not break a wave raggedly. And for each of two swells its delay: how far it has fallen behind a swell crossing
+  not break a wave raggedly; how nearly the main swell heads for the atoll's centre; and for each of two swells
+  its delay: how far it has fallen behind a swell crossing
   open sea, from travelling at the speed its depth allows (`wave-timing/timing.glsl`, shared with the program).
   A crest lies wherever a swell's arrival time and the clock agree.
 - *The breaks picture.* For four depths (0.7, 1.2, 1.7, 2.4 m), the seconds since the main swell first crossed
@@ -152,6 +153,36 @@ wave of the biggest set about 1.7 m, with a face up to 2 m; a small one reaches 
 lands (pass 2 and 3); as a wave stands up, its face is put together from the water ahead of it, which shows as a
 small shelf at its foot for a moment; the white water at the beach is broad when both swells arrive together.
 
+### The wider reef, first batch: the ocean floor (15 November 2026)
+
+The reef off the ocean beach was 45 m of flat and a drop to 9.5 m. It is now about 230 m wide due south and 0.55
+of that round the north (`island-shape/shore.glsl` has where each zone begins, `island.glsl` its ground):
+
+| Zone | Metres off the beach, due south | Depth |
+|---|---|---|
+| The beach's shallows | 0 to 12 | to 0.9 m |
+| The shallows | 12 to 45 | about 1 m of sand |
+| The gardens | 45 to 118 | 2.3 m, with pools to 4 m and mounds to under 1 m |
+| The reef crest | 118 to 145 | 0.65 m: the shallowest, where the white water runs out |
+| The fore reef | 145 to 200 | 1.25 m down to 10.5 m, in spurs and grooves |
+| The drop-off | 200 to 232 | to the sea floor, now 30.5 m down |
+
+The channel through the sandbar runs on out through the reef, 3.5 m deeper than the reef beside it.
+
+- **The waves needed no change**: they read the new floor from the pictures. The swell stands up on the fore reef
+  some 160 m out, throws its lip about 150 m out in two metres of water, and crosses the crest as white water.
+  What reaches the ocean beach is small, a hand high: the beach is much calmer than it was.
+- **Everything that went by metres off the beach now goes by distance along the reef** (`alongReef`), so that
+  the zones lie the same all round though the reef is narrower in the north: the wave mesh's rows, the far sea's
+  hole, the swell's fade at the mesh's edge, the spray's look-out, and the water's shading of the surf zone.
+- **What grew:** the ground mesh (960 m square, still 2 m squares, so the land is as it was), the wave mesh (out
+  to 262 m along the reef: 315 thousand points, from 161 thousand), the pictures (1024 m across, 2 m a dot).
+  The phone's frame rate is to be measured again. If it has dropped, the wave mesh's rows are the first thing to
+  thin (`waterConfig.waveMesh.rows`), and how near a sector must be to be drawn at its finest.
+- **Known, and left for the batches that follow:** the old coral heads stand where they did, now in the
+  shallows; the new ground is sand-coloured throughout (the crest and the fore reef want coral and rock, from
+  Ryan's references); nothing lives out there yet.
+
 ### The white water, first part (15 November 2026)
 
 Brought forward from pass 3, because it reads the pictures and so survives the wider reef.
@@ -166,8 +197,12 @@ Brought forward from pass 3, because it reads the pictures and so survives the w
 
 "This is working very well and a big improvement." For later:
 
-- There is some weirdness with the waves at the horns of the crescent. (Not yet found in stills: to be shown by a
-  screenshot with the eye's position from the debug panel.)
+- There is some weirdness with the waves at the horns of the crescent. Found from his screenshot: sheets of
+  water dragged out into long triangles off a horn's tip. The wave mesh can move its water only towards the
+  atoll's centre, and round the horns the swell runs along the shore, so a lip there was thrown sideways to its
+  wave. Cured by having a wave throw a lip only where the swell heads inshore to within some 25 degrees (the
+  floor picture's fourth number): the island's southern two thirds. Elsewhere it crumbles. The breaker's own
+  mesh must move along the swell's own heading, which the pictures will then have to hold as a direction.
 - Varied swell directions and sizes, several swells from different headings, as part of the weather. The footing
   allows it: a swell's direction is a number, and its arrival picture is made again when it turns.
 - The waves do not meet the reef's coral heads naturally: they read the ground only, not what stands on it. He

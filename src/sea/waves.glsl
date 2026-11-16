@@ -20,6 +20,8 @@
 // Needs from outside:
 //   uDebugMode    a uniform, declared by the includer: 1 switches the waves off, 2 the falling lip
 //   SEA_PICTURE_SPAN, OPEN_SEA_SPEED   defines: the pictures' span in metres, and a swell's speed in the open sea
+//   WAVE_MESH_FADES_FROM, WAVE_MESH_ENDS   defines: where the wave mesh ends, in metres along the reef, and where
+//                 the swell begins to fade towards that
 //   SWELLS, SWELLS_FOAM   defines: one SWELL(...) for each swell, with its numbers, and one SWELL_FOAM(...) for
 //                 each, added together (water-materials.ts)
 //   shoreH, islandR and openSea, from island-shape/shore.glsl (included here)
@@ -32,7 +34,7 @@
 #include "../shaders/shared/turns"
 
 // The sea floor as the waves know it (sea-floor-pictures.ts). uSeaFloor: (the main swell's delay, the second
-// swell's, the depth, unused). uBreakTimes: the seconds since the main swell crossed each of timing.glsl's four
+// swell's, the depth, how nearly the main swell is heading inshore). uBreakTimes: the seconds since the main swell crossed each of timing.glsl's four
 // depths.
 uniform sampler2D uSeaFloor;
 uniform sampler2D uBreakTimes;
@@ -82,6 +84,7 @@ vec2 breakingFront(float fromCrest, float lipFall, float hollowness) {
 //   frequency, variety, canPlunge   the swell's own numbers (see SWELL); frequency in radians a second
 //   th             the direction from the atoll's centre
 //   depth          the sea floor's depth here
+//   headingInshore how nearly the main swell is heading for the atoll's centre here: 1 straight in
 //   sinceCrossings the breaks picture here
 //   site           what every swell meets here (see waveF)
 vec4 waveOfTrain(
@@ -93,6 +96,7 @@ vec4 waveOfTrain(
   float canPlunge,
   float th,
   float depth,
+  float headingInshore,
   vec4 sinceCrossings,
   vec4 site
 ) {
@@ -189,7 +193,7 @@ vec4 waveOfTrain(
   // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
   float shoalsIn =
     shoalingSeconds(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
-  float plunging = plungingFor(shoalsIn) * canPlunge;
+  float plunging = plungingFor(shoalsIn) * plungingHeading(headingInshore) * canPlunge;
   // The wave stands up into a steep hollow face before its lip starts to fall (lipFall).
   float standingUp = standingUpAt(crestStage) * plunging;
   // (uDebugMode 2: no falling lip)
@@ -296,10 +300,10 @@ float foamLeftBySwell(float turns, float period, float fullSize, float variety, 
 // one of these for each swell. It is made of foamLeftBehind's local names.
 #define SWELL_FOAM(DELAY, TOWARDS, PERIOD, SIZE, VARIETY) foamLeftBySwell((t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5, PERIOD, SIZE * swellStrength * alongShoreSwing(th, t, VARIETY), VARIETY, th, sinceCrossings)
 
-// How much of the swell reaches a spot: it dies away 62 to 95 m off the beach, where the wave mesh ends; it is
-// strongest on the south side, which it comes from; none of it enters the channel; and uDebugMode 1 switches it off.
+// How much of the swell reaches a spot: it dies away over the last of the wave mesh, out past the reef's drop-off
+// (WAVE_MESH_FADES_FROM to WAVE_MESH_ENDS along the reef); it is strongest on the south side, which it comes from; none of it enters the channel; and uDebugMode 1 switches it off.
 float swellReaching(float th, float offBeach) {
-  float towardsMeshEdge = 1.0 - smoothstep(62.0, 95.0, offBeach);
+  float towardsMeshEdge = 1.0 - smoothstep(WAVE_MESH_FADES_FROM, WAVE_MESH_ENDS, alongReef(offBeach, th));
   float southern = 0.68 + 0.32 * smoothstep(-0.4, 0.8, sin(th));
   float switchedOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
   return towardsMeshEdge * southern * openSea(th) * switchedOn;
@@ -311,7 +315,7 @@ float swellReaching(float th, float offBeach) {
 // travels. A crest is where the clock and the swell's arrival agree: there `turns` is a whole number and a half.
 // The run-up goes by the swell's arrival at the waterline. It is made of waveF's local names, so it belongs inside
 // waveF and nowhere else.
-#define SWELL(NAME, DELAY, TOWARDS, PERIOD, SIZE, VARIETY, CAN_PLUNGE, RUN_UP) fullSize = SIZE * swellStrength * alongShoreSwing(th, t, VARIETY); turns = (t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5; vec4 NAME = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / PERIOD, VARIETY, CAN_PLUNGE, th, depth, sinceCrossings, site); runUp += RUN_UP * runUpOf(fullSize, th, (t - dot(waterline, TOWARDS) / OPEN_SEA_SPEED - seaFloorAtWaterline.DELAY) / PERIOD, PERIOD, VARIETY);
+#define SWELL(NAME, DELAY, TOWARDS, PERIOD, SIZE, VARIETY, CAN_PLUNGE, RUN_UP) fullSize = SIZE * swellStrength * alongShoreSwing(th, t, VARIETY); turns = (t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5; vec4 NAME = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / PERIOD, VARIETY, CAN_PLUNGE, th, depth, seaFloor.w, sinceCrossings, site); runUp += RUN_UP * runUpOf(fullSize, th, (t - dot(waterline, TOWARDS) / OPEN_SEA_SPEED - seaFloorAtWaterline.DELAY) / PERIOD, PERIOD, VARIETY);
 
 // The whole sea surface at p (x, z) at time t: (height above still water, push towards the shore, foam 0..1, metres
 // off the beach).

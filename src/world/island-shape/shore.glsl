@@ -24,6 +24,35 @@ const float CHANNEL_EDGE_WIDTH = 0.00564;
 const float SHELTER_EDGE = 0.96025;
 const float SHELTER_EDGE_WIDTH = 0.02271;
 
+// The reef, off the ocean beach, as it lies due south, where it is widest: metres off the beach at which each of
+// its zones begins. The beach's own shallows reach REEF_BEGINS out; then come the shallows, the gardens (pools and
+// coral heads), the crest, the fore reef and the drop-off, which reaches the sea floor at DROP_OFF_ENDS. Round the
+// north the reef is REEF_NARROWEST as wide. (island.glsl shapes the ground of each; the water's shaders and the
+// wave mesh go by the same zones.)
+const float REEF_BEGINS = 12.0;
+const float GARDENS_BEGIN = 45.0;
+const float CREST_BEGINS = 118.0;
+const float FORE_REEF_BEGINS = 145.0;
+const float DROP_OFF_BEGINS = 200.0;
+const float DROP_OFF_ENDS = 232.0;
+const float REEF_NARROWEST = 0.55;
+
+// How wide the reef is in a direction, as a share of its width due south.
+float reefShare(float direction) {
+  return REEF_NARROWEST + (1.0 - REEF_NARROWEST) * (0.5 + 0.5 * sin(direction));
+}
+
+// A distance off the beach in a direction, as the distance it would be due south: the reef's zones lie at the same
+// such distances all round the atoll. (The beach's own shallows are as wide everywhere.)
+float alongReef(float offshore, float direction) {
+  return min(offshore, REEF_BEGINS) + max(offshore - REEF_BEGINS, 0.0) / reefShare(direction);
+}
+
+// And back: how far off the beach, in a direction, a distance along the reef lies.
+float offshoreOfReef(float along, float direction) {
+  return min(along, REEF_BEGINS) + max(along - REEF_BEGINS, 0.0) * reefShare(direction);
+}
+
 // The distance from the centre of the atoll to its ocean shoreline at still water, in a direction.
 // The atoll is a horseshoe: long north-south, open to the north (270 degrees, -z), the swell arriving from the south.
 float islandR(float direction) {
@@ -68,7 +97,7 @@ float openSea(float direction) {
 
 // The ocean beach as the waves see it: a slope that deepens steadily offshore and levels off inland. The real ground
 // (hgt in island.glsl) follows it exactly from 9.5 m up the beach down to about 1 m of water; further out the real
-// sea floor differs (reef flat, drop-off) and the waves do not know yet.
+// sea floor is the reef's, which the waves read from pictures of it (sea/sea-floor-pictures.ts).
 // Across the pass the beach only climbs a few decimetres: it is a low sandbar that the swell breaks on and sometimes
 // washes over. The channel cuts through it.
 float shoreH(float x, float z) {

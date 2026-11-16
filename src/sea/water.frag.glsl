@@ -91,10 +91,10 @@ varying vec3 vWaveState;
 // White horses begin at this wind.
 const float WHITECAPS_FROM_WIND = 0.74;
 
-// The hole cut in the far sea for the wave mesh: from this far up the ocean beach to this far off it, a little
-// inside the mesh's own edges (waterConfig.waveMesh.rows: change them together).
+// The hole cut in the far sea for the wave mesh: from this far up the ocean beach to this far short of the mesh's
+// outer edge, a little inside the mesh's own edges (waterConfig.waveMesh.rows: change them together).
 const float FAR_SEA_HOLE_UP_BEACH = 8.6;
-const float FAR_SEA_HOLE_OFFSHORE = 93.0;
+const float FAR_SEA_HOLE_SHORT_OF_EDGE = 2.0;
 // The lagoon's shore band reaches this far out into the lagoon, a little short of its mesh's last row
 // (waterConfig.lagoonShoreBand.rows: change them together).
 const float BAND_OUT_INTO_LAGOON = 13.0;
@@ -324,7 +324,8 @@ void main() {
 
   float inLagoon = 0.0;
   if (uIsFlatSheet > 0.5) {
-    float holeOutside = oceanShoreRadius + FAR_SEA_HOLE_OFFSHORE;
+    float holeOutside = oceanShoreRadius
+      + offshoreOfReef(WAVE_MESH_ENDS - FAR_SEA_HOLE_SHORT_OF_EDGE, directionFromCentre);
     float holeInside = oceanShoreRadius - FAR_SEA_HOLE_UP_BEACH;
     if (distanceFromCentre < holeOutside && distanceFromCentre > holeInside) discard;
     inLagoon = step(distanceFromCentre, oceanShoreRadius);
@@ -363,6 +364,8 @@ void main() {
   float sunShows = 1.0 - uNight;
   float waveFoam = vWaveState.x;
   float metresOffBeach = vWaveState.y;
+  // (the same as a distance along the reef, whose zones lie at the same such distances all round: shore.glsl)
+  float reefDistance = alongReef(metresOffBeach, directionFromCentre);
   float waveHeight = vWaveState.z;
 
   // ---- The detail texture ----
@@ -397,7 +400,7 @@ void main() {
 
   // Sheltered water (shallows, close to the beach, the lagoon) carries only small ripples.
   float deepEnough = 0.35 + 0.65 * smoothstep(0.0, 2.0, waterDepth);
-  float offTheBeach = mix(0.55, 1.0, clamp(metresOffBeach / 70.0, 0.0, 1.0));
+  float offTheBeach = mix(0.55, 1.0, clamp(reefDistance / DROP_OFF_BEGINS, 0.0, 1.0));
   float outOfLagoon = 1.0 - 0.5 * inLagoon;
   float rippleExposure = deepEnough * offTheBeach * outOfLagoon;
   // The wind does not ruffle the water evenly: gusts roughen and darken it in patches, and between them lie slicks,
@@ -433,13 +436,14 @@ void main() {
 
   // Out beyond the reef the sea rolls in as long low lines. Out there they are not modelled, only shaded - each line
   // tilts the surface a little towards the island on its face and away on its back, which is what makes swell show
-  // as dark and light bands. The shading takes over where the modelled waves fade out (62-95 m offshore) and fades
+  // as dark and light bands. The shading takes over where the modelled waves fade out, past the drop-off, and fades
   // away far out. First the swells that break on the reef (waves.glsl), before they have grown, by the wave model's
   // own clock; then, further out, shorter lines of the open sea's own, as rings round the island. All are wobbled a
   // little far out so that the lines are not ruled.
   float swellMetresOffshore = mix(metresOffBeach, distanceFromCentre - oceanShoreRadius, uIsFlatSheet);
-  float pastModelledWaves = smoothstep(62.0, 95.0, swellMetresOffshore);
-  float notFarOut = 1.0 - smoothstep(240.0, 560.0, swellMetresOffshore);
+  float swellAlongReef = alongReef(swellMetresOffshore, directionFromCentre);
+  float pastModelledWaves = smoothstep(WAVE_MESH_FADES_FROM, WAVE_MESH_ENDS, swellAlongReef);
+  float notFarOut = 1.0 - smoothstep(WAVE_MESH_ENDS + 150.0, WAVE_MESH_ENDS + 470.0, swellAlongReef);
   // (strongest on the side the swell comes from, the south; faint in the atoll's lee)
   float facingSwell = 0.28 + 0.72 * smoothstep(-0.4, 0.8, sin(directionFromCentre));
   float wavesOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
@@ -448,15 +452,15 @@ void main() {
   // +1 on a line's face, -1 on its back
   float swellLineSide = 0.0;
   if (swellLines > 0.003) {
-    float swellWobble = (ripplesLarge.b - 0.5) * 1.6 * smoothstep(95.0, 150.0, swellMetresOffshore);
+    float swellWobble = (ripplesLarge.b - 0.5) * 1.6 * smoothstep(WAVE_MESH_ENDS, WAVE_MESH_ENDS + 55.0, swellAlongReef);
     // (the picture has no mipmaps, so it may be read inside this branch)
     vec4 seaFloorHere = texture2D(uSeaFloor, xz / SEA_PICTURE_SPAN + 0.5);
     vec2 modelledTilt = MODELLED_SWELL;
     // (the open sea's lines keep a clock of their own: the further out, the earlier, coming in at 4.95 m/s)
     float swellTime = uTime + 16.749 + (swellMetresOffshore - 40.0) / 4.95;
-    float beyondTheMesh = smoothstep(95.0, 170.0, swellMetresOffshore);
+    float beyondTheMesh = smoothstep(WAVE_MESH_ENDS, WAVE_MESH_ENDS + 75.0, swellAlongReef);
     float trainSlopes = (WATER_SWELL) * beyondTheMesh;
-    float longSwellGrows = smoothstep(95.0, 170.0, swellMetresOffshore);
+    float longSwellGrows = smoothstep(WAVE_MESH_ENDS, WAVE_MESH_ENDS + 75.0, swellAlongReef);
     float longSwellHeight = 0.55 + 0.45 * sin(uTime * 0.07 + directionFromCentre * 3.0);
     float longSwellSlope = LONG_SWELL_SLOPE * longSwellGrows * longSwellHeight
       * cos(0.70 * swellTime + 4.0 * directionFromCentre + 1.3 + swellWobble);
@@ -522,7 +526,7 @@ void main() {
   waterColour += SUNLIT_RIPPLE_TINT * facingSun * uDaylight;
   waterColour *= 0.96 + 0.09 * slick;
   // A wave standing up lets the light through: its face glows green.
-  float inSurfZone = 1.0 - smoothstep(58.0, 80.0, metresOffBeach);
+  float inSurfZone = 1.0 - smoothstep(FORE_REEF_BEGINS + 25.0, DROP_OFF_BEGINS + 10.0, reefDistance);
   waterColour = mix(waterColour, WAVE_GLOW_GREEN, clamp(waveHeight * 1.5, 0.0, 0.6) * inSurfZone);
   // (The lagoon's shore waves, where they have real height: clear water, so their backs show little but the sky
   // they mirror; a steep face is a small wall of water, and there you look into its green.)
@@ -551,7 +555,8 @@ void main() {
   opacity = max(opacity, smoothstep(0.12, 0.45, waveHeight) * 0.82 * inSurfZone * thickness);
   opacity = max(opacity, steepFace * 0.97 * thickness);
   // where the swell breaks the water is churned up and never quite clear
-  float churnedUp = 0.5 * smoothstep(33.0, 40.0, metresOffBeach) * (1.0 - smoothstep(52.0, 62.0, metresOffBeach));
+  float churnedUp = 0.5 * smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
+    * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
   opacity = max(opacity, churnedUp * smoothstep(0.3, 1.2, waterDepth));
   // water with foam on it or bubbles in it is cloudy: it hides the sea floor and the light playing on it
   opacity = max(opacity, smoothstep(0.03, 0.5, waveFoam) * 0.86 * smoothstep(0.06, 0.4, waterDepth));
@@ -576,11 +581,13 @@ void main() {
   // beach and the breakers - they are a third the size, lower and fewer, and leave little foam (on the reef flat
   // less still); in the lagoon only where it is deep, and none among the breakers themselves.
   // windFoam: foam lying on the water (the lagoon's shore waves add theirs below); whiteCrests: crests standing up.
-  float sheltered = max(inLagoon, step(metresOffBeach, 44.0));
+  float sheltered = max(inLagoon, step(reefDistance, FORE_REEF_BEGINS - 2.0));
   float windFoam = 0.0;
   float whiteCrests = 0.0;
-  float openSeaWhitecaps = smoothstep(50.0, 66.0, metresOffBeach) * smoothstep(1.0, 2.6, waterDepth);
-  float reefFlatWhitecaps = (1.0 - smoothstep(26.0, 38.0, metresOffBeach)) * smoothstep(0.5, 1.1, waterDepth);
+  float openSeaWhitecaps = smoothstep(FORE_REEF_BEGINS + 5.0, FORE_REEF_BEGINS + 21.0, reefDistance)
+    * smoothstep(1.0, 2.6, waterDepth);
+  float reefFlatWhitecaps = (1.0 - smoothstep(CREST_BEGINS - 20.0, CREST_BEGINS - 8.0, reefDistance))
+    * smoothstep(0.5, 1.1, waterDepth);
   float lagoonWhitecaps = smoothstep(1.6, 3.6, waterDepth);
   float shelteredWhitecaps = mix(reefFlatWhitecaps, lagoonWhitecaps, inLagoon);
   float whitecaps = smoothstep(WHITECAPS_FROM_WIND, 1.0, uWind) * (1.0 - uUnderWater)

@@ -13,8 +13,8 @@ import { waterConfig } from './water-config';
 import type { WaterSheet } from './water-materials';
 import { createWaterStrip, rowsThroughStretches, type WaterStrip } from './water-strip';
 
-// The wave mesh: a ring of water hugging the atoll, from 9 m up the ocean beach to 95 m offshore.
-// Rows are lines of equal distance from the shore; columns fan out round the atoll. Its vertex
+// The wave mesh: a ring of water hugging the atoll, from 9 m up the ocean beach out past the reef's
+// drop-off. Rows are lines of equal distance along the reef; columns fan out round the atoll. Its vertex
 // shader is the most expensive thing in the scene, so the ring is cut into sectors: a sector out
 // of view is not drawn at all, and each exists at three levels of detail, chosen by its distance
 // from the camera.
@@ -114,7 +114,7 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
         down: distances.length,
         pointAt(column, row) {
           const direction = directions[column];
-          const r = island.radius(direction) + distances[row];
+          const r = island.radius(direction) + island.offshoreOfReef(distances[row], direction);
           // Rounded as the strip will store them, so that a piece's middle (which picks its
           // level of detail) is measured from the points as they are drawn.
           return {
@@ -145,8 +145,8 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
     const lastColumn = directions.length - 1;
     for (let quarter = 0; quarter <= 4; quarter++) {
       const direction = directions[(quarter * lastColumn) / 4];
-      for (const offBeach of config.probesOffBeach) {
-        const r = island.radius(direction) + offBeach;
+      for (const along of config.probesAlongReef) {
+        const r = island.radius(direction) + island.offshoreOfReef(along, direction);
         probes.push(new Vector3(Math.cos(direction) * r, 0, Math.sin(direction) * r));
       }
     }

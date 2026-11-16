@@ -7,7 +7,7 @@ export const sprayConfig = {
   poolSize: 2600,
 
   /** Spray is thrown only while the camera is within this distance of the outer shoreline. */
-  nearShoreline: 110,
+  nearShoreline: 270,
   /** Spots on the reef sampled each frame for breaking water. */
   spotsSampled: 170,
   /** Half of them lie round the stretch of reef the camera faces, this far ahead of it. */
@@ -16,11 +16,12 @@ export const sprayConfig = {
   spreadAhead: 0.32,
   spreadBeside: 0.6,
   /**
-   * They lie from this far inside the line where the swell breaks to `breakingWidth` further out:
-   * where the swell breaks on the reef's edge, and the white water just inside it.
+   * They lie from this far inside the line where the swell breaks to `breakingWidth` further out,
+   * along the reef: where the swell breaks on the upper fore reef, and the white water crossing
+   * the crest.
    */
-  insideBreakLine: 11,
-  breakingWidth: 21,
+  insideBreakLine: 34,
+  breakingWidth: 56,
   /** The chances are for frames this many a second: a shorter frame has less, a longer no more. */
   chanceFrameRate: 30,
 

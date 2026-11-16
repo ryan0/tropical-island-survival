@@ -1,7 +1,5 @@
-import { seaConfig } from './sea-config';
-
-// Distances are metres. The wave mesh's rows are measured off the ocean beach (outwards from
-// island.radius, negative up the beach); the lagoon shore band's on the land side of the water's
+// Distances are metres. The wave mesh's rows are measured off the ocean beach, along the reef
+// (negative up the beach); the lagoon shore band's on the land side of the water's
 // edge (negative out into the lagoon).
 
 /** Rows `spacing` apart, from where the stretch before ended down to `to`. */
@@ -27,25 +25,31 @@ export const waterConfig = {
     southernColumns: { extra: 1.6, from: -0.4, to: 0.8 },
 
     /**
-     * The rows, from the open sea inwards. The falling lip is a thin sheet, so they are closest
-     * where the swell breaks on the reef edge; the reef flat only has to carry lines of white
+     * The rows, from the open sea inwards, by distance along the reef: metres off the ocean beach
+     * as the reef lies due south (island-shape/shore.glsl has its zones; round the north the same
+     * rows lie closer together). The falling lip is a thin sheet, so they are closest where the
+     * swell breaks, on the upper fore reef; the rest only has to carry swell and lines of white
      * water. water.frag.glsl cuts the matching hole in the far sea and waves.glsl fades the swell
-     * out by the outer edge: change them together.
+     * out over the last `swellFadesOver` metres before the outer edge.
      */
     rows: {
-      outerEdge: 95,
+      outerEdge: 262,
+      swellFadesOver: 33,
       /** Out at sea each gap is the one before divided by `shrinkFactor`, down to the least... */
       openSea: { firstSpacing: 4.8, shrinkFactor: 1.1, leastSpacing: 0.8 },
       /** ...as far as here, where the stretches begin. */
-      stretchesFrom: seaConfig.reefBreak + 13,
+      stretchesFrom: 166,
       stretches: [
-        // where the biggest waves start to stand up
-        { to: seaConfig.reefBreak + 10.2, spacing: 0.22 },
-        // the break on the reef edge
-        { to: seaConfig.reefBreak - 5, spacing: 0.18 },
-        { to: seaConfig.reefBreak - 7, spacing: 0.3 },
-        // the reef flat
-        { to: 7, spacing: 0.5 },
+        // where the biggest waves start to stand up, on the fore reef
+        { to: 160, spacing: 0.3 },
+        // the break, on the upper fore reef and the crest's outer edge
+        { to: 136, spacing: 0.2 },
+        // the crest: white water
+        { to: 118, spacing: 0.5 },
+        // the gardens
+        { to: 45, spacing: 0.8 },
+        // the shallows
+        { to: 7, spacing: 0.6 },
         { to: 1.6, spacing: 0.2 },
         // the waterline
         { to: -1.6, spacing: 0.1 },
@@ -58,13 +62,13 @@ export const waterConfig = {
     /** Each sector exists at three levels of detail: every point, every 2nd, every 4th each way. */
     detailStrides: [1, 2, 4],
     /** A sector shows the finest while its middle is this near the camera, the next this near. */
-    finestDetailWithin: 135,
-    middleDetailWithin: 300,
+    finestDetailWithin: 180,
+    middleDetailWithin: 380,
 
     /** A sector is drawn only if a ball this big round one of its probe points is in view... */
     probeRadius: 32,
-    /** ...which lie at these distances off the beach, from the ring's inner edge to its outer. */
-    probesOffBeach: [-9, 22, 58, 95],
+    /** ...which lie at these distances along the reef, from the ring's inner edge to its outer. */
+    probesAlongReef: [-9, 40, 100, 160, 262],
   },
 
   lagoonShoreBand: {

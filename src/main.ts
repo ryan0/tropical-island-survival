@@ -255,6 +255,7 @@ const spray = createSpray({
   random: randomStream('spray'),
   waves,
   islandRadius: island.radius,
+  offshoreOfReef: island.offshoreOfReef,
   obstacles: rocksInSurf,
   hearSurf: audio.setSurfBreaking,
 });

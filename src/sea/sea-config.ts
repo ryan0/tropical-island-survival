@@ -56,14 +56,14 @@ export const seaConfig = {
    */
   floorPicture: {
     /** Metres across, centred on the atoll: it reaches past the wave mesh on every side. */
-    span: 640,
-    /** Dots across: 1.25 m each. */
+    span: 1024,
+    /** Dots across: 2 m each. */
     size: 512,
     /**
-     * The depth is averaged over this many dots each way, 9 m in all: a wave feels the floor over
-     * some metres, not each spur and groove of the reef's edge, which would break it raggedly.
+     * The depth is averaged over this many dots each way, 10 m in all: a wave feels the floor over
+     * some metres, not each spur and groove of the fore reef, which would break it raggedly.
      */
-    smoothedOver: 3,
+    smoothedOver: 2,
     /** Times before and after a crossing are kept up to this many seconds. */
     longestKept: 30,
   },
@@ -79,11 +79,11 @@ export const seaConfig = {
   ] satisfies OpenSeaLines[],
 
   /**
-   * About where the reef's outer edge lies, in metres off the beach: the swell breaks a little
-   * outside it. The wave mesh is finest round it, and the spray looks for breaking waves there.
+   * About where the swell breaks, on the upper fore reef: metres off the beach, along the reef
+   * (island-shape/shore.glsl). The spray looks for breaking waves round it.
    * (Where a wave really breaks is the sea floor's to say: sea-floor-pictures.ts.)
    */
-  reefBreak: 40,
+  reefBreak: 150,
 
   /** Out at sea a longer, slower swell that the reef's wave model does not carry: its height. */
   longSwell: 0.5,

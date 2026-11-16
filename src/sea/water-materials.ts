@@ -95,10 +95,13 @@ function openSeaLinesDefine(): string {
 
 export function createWaterMaterials(dependencies: WaterMaterialsDependencies): WaterMaterials {
   const { uniforms, home, windDirection } = dependencies;
+  const meshRows = waterConfig.waveMesh.rows;
   const waveDefines = {
     SWELLS: swellsDefine(),
     SWELLS_FOAM: swellsFoamDefine(),
     SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
+    WAVE_MESH_FADES_FROM: glslFloat(meshRows.outerEdge - meshRows.swellFadesOver),
+    WAVE_MESH_ENDS: glslFloat(meshRows.outerEdge),
     OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
   };
   const band = waterConfig.lagoonShoreBand;

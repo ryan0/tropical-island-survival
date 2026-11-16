@@ -46,8 +46,8 @@ function sunFixedAt(elevation: number, waveTime = 20): Moment {
   return at({ waveTime, wind: 0.66, sun: { elevation } });
 }
 
-// A moment at which a wave of a set has stood up on the south-east reef and is about to throw its lip.
-const A_SET_WAVE_BREAKS = 49.6;
+// A moment at which a wave of a set has stood up on the south-east fore reef and is about to throw its lip.
+const A_SET_WAVE_BREAKS = 73;
 
 const DAWN = { dayPhase: 0.19 };
 const GOLDEN_HOUR = { dayPhase: 0.754 };
@@ -58,7 +58,7 @@ const wavesOnTheLagoonBeach = [20, 20.7, 21.4].flatMap((waveTime) => [
   at({ waveTime, wind: 0.66 }),
   at({ waveTime, wind: 1 }),
 ]);
-const aWaveBreakingOnTheOceanBeach = [28.3, 28.6, 28.9, 29.5].map((waveTime) =>
+const aWaveBreakingOnTheOceanBeach = [71.6, 71.9, 72.2, 72.8].map((waveTime) =>
   at({ waveTime, wind: 0.66 }),
 );
 const clearAndPartlyCloudy = (sun: Sun): Moment[] => [
@@ -214,7 +214,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'photo-barrel',
     shows: 'a breaking wave from beside it',
-    pose: [30, 1.3, 199, 4.86, -0.03],
+    pose: [50, 1.8, 316, 4.86, -0.03],
     fieldOfView: 32,
     moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },

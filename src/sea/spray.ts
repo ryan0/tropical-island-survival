@@ -28,6 +28,8 @@ export interface SprayDependencies {
   waves: WaveModel;
   /** The distance from the atoll's centre to the outer shoreline, in a direction. */
   islandRadius: (direction: number) => number;
+  /** How far off the beach, in a direction, a distance along the reef lies. */
+  offshoreOfReef: (along: number, direction: number) => number;
   /** Biggest first. Each draws from `random` in turn, so their order decides where spray flies. */
   obstacles: readonly SurfObstacle[];
   /** Told how much surf is breaking near the camera, 0 to 1, each frame it is near the shore. */
@@ -57,7 +59,8 @@ const config = sprayConfig;
 const SHORTEST_FRAME = 0.008;
 
 export function createSpray(dependencies: SprayDependencies): Spray {
-  const { scene, camera, random, waves, islandRadius, obstacles, hearSurf } = dependencies;
+  const { scene, camera, random, waves, islandRadius, offshoreOfReef, obstacles, hearSurf } =
+    dependencies;
   const facing = new Vector3();
   const droplets = createSprayDroplets(scene);
   const bursts = createSprayBursts(random, droplets);
@@ -82,7 +85,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
         (random() - 0.5) * (isBesideCamera ? config.spreadBeside : config.spreadAhead);
       const outsideShore =
         seaConfig.reefBreak - config.insideBreakLine + random() * config.breakingWidth;
-      const radius = islandRadius(direction) + outsideShore;
+      const radius = islandRadius(direction) + offshoreOfReef(outsideShore, direction);
       spot.x = Math.cos(direction) * radius;
       spot.z = Math.sin(direction) * radius;
       spot.surface = waves.heightAt(spot.x, spot.z, time);

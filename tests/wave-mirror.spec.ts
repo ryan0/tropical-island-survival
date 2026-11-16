@@ -98,7 +98,8 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
     }
     gl.uniform1i(uniform(unit === 0 ? 'uSeaFloor' : 'uBreakTimes'), unit);
   });
-  const metresBetweenSamples = 0.25;
+  // (a line reaches from up the beach out across the whole reef to the drop-off)
+  const metresBetweenSamples = 1;
   const metresUpTheBeach = 8;
   const breakingLipOff = 2;
   const pixels = new Uint8Array(samples * 4);

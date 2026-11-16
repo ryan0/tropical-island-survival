@@ -16,7 +16,7 @@ export const playerConfig = {
   },
 
   /** The player cannot go further than this from the atoll's centre. */
-  farthestFromCentre: 420,
+  farthestFromCentre: 620,
   /** How quickly the eye follows the ground and the water: the larger, the more closely. */
   eyeFollowRate: 7,
 

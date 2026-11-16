@@ -36,10 +36,10 @@ export const worldConfig = {
 
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */
-    size: 520,
-    squares: 260,
+    size: 960,
+    squares: 480,
     /** The sea floor beyond the reef: the lowest the island's shape goes. */
-    seaFloor: -9.49,
+    seaFloor: -30.49,
     /** Dots along each side of the grit picture, and how many times it repeats across the ground. */
     gritSize: 256,
     gritRepeats: 150,

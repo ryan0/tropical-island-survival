@@ -22,6 +22,7 @@ import {
   narrowingAt,
   offshoreHeightOf,
   plungingFor,
+  plungingHeading,
   runsAhead,
   runUpOf,
   secondsAStageAfter,
@@ -39,6 +40,7 @@ import { clamp, FULL_TURN, mix, smoothstep } from '../core/maths';
 import type { IslandShape } from '../world/island-shape';
 import { seaConfig, type Swell } from './sea-config';
 import type { SeaFloorPictures } from './sea-floor-pictures';
+import { waterConfig } from './water-config';
 
 /** What the wave model found at the spot it was last asked about. */
 export interface WaveSpot {
@@ -74,6 +76,9 @@ const { swells, level } = seaConfig;
 const HALF_TURN = FULL_TURN / 2;
 const QUARTER_TURN = FULL_TURN / 4;
 const FRONT_WAVE_NUMBER = frontWaveNumber();
+// The swell fades out over the last of the wave mesh (waves.glsl's swellReaching).
+const meshEnds = waterConfig.waveMesh.rows.outerEdge;
+const meshFadesFrom = meshEnds - waterConfig.waveMesh.rows.swellFadesOver;
 const CHANNELS = 4;
 
 // The wave mesh starts this far up the ocean beach. Inside it lie the land and the lagoon, whose
@@ -112,6 +117,8 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     depthAtBeach: 0,
     /** 1 in the water, fading to 0 up the beach. */
     gate: 0,
+    /** How nearly the main swell is heading for the atoll's centre: 1 straight in. */
+    headingInshore: 0,
     /** The breaks picture here: seconds since the swell crossed each of its four depths. */
     since0: 0,
     since1: 0,
@@ -167,6 +174,7 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     withoutBreaking: boolean,
   ): number {
     const { th, depth, slowness, depthAtBeach, gate, since0, since1, since2, since3 } = site;
+    const { headingInshore } = site;
     const { variety } = swell;
     const frequency = FULL_TURN / swell.period;
     const trainPhase = FULL_TURN * (turns - Math.floor(turns) - 0.25);
@@ -255,7 +263,9 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
 
     // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
     const plunging =
-      plungingFor(shoalingSeconds(since0, since1, since2, since3, breakingDepth)) * swell.canPlunge;
+      plungingFor(shoalingSeconds(since0, since1, since2, since3, breakingDepth)) *
+      plungingHeading(headingInshore) *
+      swell.canPlunge;
     const standingUp = withoutBreaking ? 0 : standingUpAt(crestStage) * plunging;
     const lipFall = clamp(crestStage, 0, 1);
     const aheadOfFace = fromCrest + 1.4;
@@ -333,6 +343,7 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
       const delay1 = read(floorValues, 1);
       site.th = th;
       site.depth = read(floorValues, 2);
+      site.headingInshore = read(floorValues, 3);
       site.slowness = 1 / swellSpeed(site.depth);
       site.depthAtBeach = clamp(-ground, 0.12, 6);
       site.gate = smoothstep(-1.5, 0.3, offBeach);
@@ -342,7 +353,7 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
       site.since3 = read(breakValues, 3);
 
       const swellStrength =
-        (1 - smoothstep(62, 95, offBeach)) *
+        (1 - smoothstep(meshFadesFrom, meshEnds, island.alongReef(offBeach, th))) *
         (0.68 + 0.32 * smoothstep(-0.4, 0.8, Math.sin(th))) *
         island.openSea(th);
 

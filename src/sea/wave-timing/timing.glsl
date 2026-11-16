@@ -153,6 +153,14 @@ float plungingFor(float shoaling) {
   return 1.0 - smoothstep(1.5, 4.0, shoaling);
 }
 
+// The wave mesh can move its water only towards the atoll's centre or away from it, so a wave throws a lip only
+// where it is heading that way, to within some 25 degrees: `headingInshore` is 1 straight in and 0 along the shore
+// (the floor picture). That is the island's southern two thirds. Round the north, and at the crescent's horns, the
+// swell comes in aslant and crumbles: a lip there would be dragged out across the mesh.
+float plungingHeading(float headingInshore) {
+  return smoothstep(0.84, 0.93, headingInshore);
+}
+
 // The front, the lip and the white water are shaped by how far a point is from the crest in metres, whatever the
 // swell's own length: FRONT_WAVE_NUMBER of their radians to a metre. (They were drawn for a swell of that many
 // radians a metre.) This turns a point's phase from the crest into them; `waveNumber` is the swell's own radians a

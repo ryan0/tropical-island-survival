@@ -7,7 +7,8 @@
 // five it learnt after this file was written, which is why smoothstep and clamp are written out here.) Names must be legal in JavaScript and in every GLSL version ("flat", "sample", "input", "output"
 // and "smooth" are reserved words).
 //
-// The atoll, from the outside in:   deep sea | drop-off | reef flat | ocean beach | land | lagoon beach | lagoon
+// The atoll, from the outside in:   deep sea | drop-off | fore reef | reef crest | gardens | shallows | ocean beach |
+// land | lagoon beach | lagoon
 // It is a crescent of land around the lagoon; the opening (north) is mostly closed by a sandbar with one channel.
 #include "shore"
 
@@ -19,14 +20,24 @@ const float PLATEAU_HEIGHT = 2.9;
 // The depth of the lagoon's floor, and how far the flat tops of the patch reefs stand above it.
 const float LAGOON_DEPTH = 6.5;
 const float PATCH_REEF_HEIGHT = 3.4;
-// The reef flat lies REEF_FLAT_DEPTH under still water off the ocean beach, deepening a little out to REEF_FLAT_WIDTH
-// from the shoreline. There it drops DROP_OFF_DEPTH further over DROP_OFF_WIDTH, and the ground goes no deeper than
-// SEA_FLOOR_DEPTH.
-const float REEF_FLAT_DEPTH = 1.15;
-const float REEF_FLAT_WIDTH = 46.0;
-const float DROP_OFF_DEPTH = 9.0;
-const float DROP_OFF_WIDTH = 18.0;
-const float SEA_FLOOR_DEPTH = 9.5;
+// The reef off the ocean beach, zone by zone (shore.glsl says where each begins). The shallows are sand under
+// SHALLOWS_DEPTH of water, to wade in. The gardens lie about GARDENS_DEPTH down and rise and fall GARDENS_RELIEF
+// either way: pools, and mounds that nearly reach the surface. The crest is the shallowest of the reef, CREST_DEPTH
+// down, where the white water runs out. The fore reef slopes from just under the crest to FORE_REEF_FOOT in spurs
+// and grooves SPURS_ROUND to the full turn (a whole number, or the ground has a seam due west), the grooves up to
+// GROOVE_DEPTH deep: the swell breaks on its upper part. The drop-off falls from there to the sea floor,
+// SEA_FLOOR_DEPTH down, and the ground goes no deeper.
+const float SHALLOWS_DEPTH = 0.95;
+const float GARDENS_DEPTH = 2.3;
+const float GARDENS_RELIEF = 1.7;
+const float CREST_DEPTH = 0.65;
+const float FORE_REEF_FOOT = 10.5;
+const float SPURS_ROUND = 150.0;
+const float GROOVE_DEPTH = 0.7;
+const float SEA_FLOOR_DEPTH = 30.5;
+// The channel through the sandbar runs on out through the reef, this much deeper than the reef beside it: the way
+// out to sea through the crest.
+const float CHANNEL_THROUGH_REEF = 3.5;
 // The sandbank in the lagoon rises SANDBANK_HEIGHT above still water and is SANDBANK_RADIUS across at the waterline, from its
 // middle.
 const float SANDBANK_HEIGHT = 2.2;
@@ -84,17 +95,32 @@ float hgt(float x, float z) {
   float oceanBeachToPlateau = smin(shoreH(x, z), plateau, 0.5);
   float land = smin(oceanBeachToPlateau, lagoon, 0.5);
 
-  // The ocean side: where the beach reaches REEF_FLAT_DEPTH of water the reef flat begins; REEF_FLAT_WIDTH out it
-  // drops away.
-  float t = min(max((offshore - REEF_FLAT_WIDTH) / DROP_OFF_WIDTH, 0.0), 1.0);
-  float dropOff = DROP_OFF_DEPTH * t * t * (3.0 - 2.0 * t);
-  float deepening = 0.012 * max(offshore, 0.0);
+  // The ocean side: the reef. Where the beach reaches SHALLOWS_DEPTH of water the shallows begin; each zone then
+  // runs into the next over a few metres. `along` is how far off the beach this is, as it would lie due south.
+  float along = alongReef(offshore, direction);
   float ripples = 0.1 * sin(x * 0.6 + z * 0.3) * sin(z * 0.7);
-  // More than 5 m inland the flat falls away steeply, so that it stays out of the lagoon.
+  float shallows = -SHALLOWS_DEPTH - 0.012 * min(max(offshore, 0.0), GARDENS_BEGIN) + ripples;
+  // (two egg-box patterns across each other, so that the pools and mounds do not lie in rows)
+  float pools = 0.62 * sin(x * 0.071 + 0.9) * sin(z * 0.066 + 2.1)
+    + 0.38 * sin(x * 0.153 + z * 0.047) * sin(z * 0.139 - x * 0.031 + 1.3);
+  float gardens = -GARDENS_DEPTH + GARDENS_RELIEF * pools + 0.5 * ripples;
+  float crest = -CREST_DEPTH + 0.15 * sin(x * 0.21 + 0.5) * sin(z * 0.19) + 0.5 * ripples;
+  float downTheForeReef = clamp((along - FORE_REEF_BEGINS) / (DROP_OFF_BEGINS - FORE_REEF_BEGINS), 0.0, 1.0);
+  // (the grooves are deepest half way down, and wander a little)
+  float grooves = GROOVE_DEPTH * sin(direction * SPURS_ROUND + 2.5 * sin(distanceFromCentre * 0.06))
+    * sin(3.1416 * downTheForeReef);
+  float foreReef = -CREST_DEPTH - 0.6 - (FORE_REEF_FOOT - CREST_DEPTH - 0.6) * pow(downTheForeReef, 1.3) + grooves;
+  float dropOff = -FORE_REEF_FOOT
+    - (SEA_FLOOR_DEPTH - FORE_REEF_FOOT) * smoothstep(DROP_OFF_BEGINS, DROP_OFF_ENDS, along);
+  float reef = mix(shallows, gardens, smoothstep(GARDENS_BEGIN - 3.0, GARDENS_BEGIN + 13.0, along));
+  reef = mix(reef, crest, smoothstep(CREST_BEGINS - 6.0, CREST_BEGINS + 6.0, along));
+  reef = mix(reef, foreReef, smoothstep(FORE_REEF_BEGINS - 5.0, FORE_REEF_BEGINS + 5.0, along));
+  reef = mix(reef, dropOff, smoothstep(DROP_OFF_BEGINS - 4.0, DROP_OFF_BEGINS + 4.0, along));
+  // More than 5 m inland the reef falls away steeply, so that it stays out of the lagoon.
   float inlandFall = 2.0 * max(-5.0 - offshore, 0.0);
-  // The channel through the sandbar runs on out across the reef flat, 3 m deeper than the flat.
-  float channel = 3.0 * passChannel(direction, distanceFromCentre, 0.0);
-  float reefFlat = -REEF_FLAT_DEPTH - deepening - dropOff + ripples - inlandFall - channel;
+  // The channel through the sandbar runs on out through the reef.
+  float channel = CHANNEL_THROUGH_REEF * passChannel(direction, distanceFromCentre, 0.0);
+  float reefFlat = reef - inlandFall - channel;
 
   // The sandbank: a low dome in the lagoon.
   float dx = x - sandbankX();
