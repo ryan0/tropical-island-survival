@@ -389,25 +389,33 @@ diffuseColor.rgb *= 1.0 + grit * (height < 1.6 ? 0.55 : 1.1);
 if (waterDepth > 0.0) {
   // ---- The reef flat ----
 
-  // Dark coral heads and sea-grass beds mottle the sand in the shallows (what makes a lagoon look like one from
-  // above).
-  if (waterDepth > 0.6) {
-    float coralDepths = smoothstep(0.6, 1.7, waterDepth) * (1.0 - smoothstep(5.5, 7.9, waterDepth));
+  // Coral under water. In the lagoon, dark coral heads and sea-grass beds mottle the sand (what makes a lagoon look
+  // like one from above). On the reef, coral and rock cover the high ground - the gardens' mounds, the crest, the
+  // fore reef's spurs - and sand lies in the pools, the grooves and the channel: dark and pale follow the shape of
+  // the floor, as they do on a real reef seen from the air. A few heads are scattered over the shallows' sand.
+  if (waterDepth > 0.3) {
     float coralPattern = fbm(xz * 0.17 + 31.0) + 0.30 * (fbm(xz * 0.95 + 7.0) - 0.5);
-    // coral is scattered heads near the beach and closes up towards the outer edge of the flat, where the swell
-    // breaks
-    float nearOuterEdge = smoothstep(18.0, 40.0, metresOffshore) * (1.0 - smoothstep(46.0, 53.0, metresOffshore));
-    float coralThreshold = mix(0.55, 0.64, step(0.0, metresOffshore)) - 0.21 * nearOuterEdge;
-    float coral = smoothstep(coralThreshold, coralThreshold + 0.08, coralPattern) * coralDepths;
-    // spur and groove: the seaward face of the reef is ribbed, dark coral ridges with sandy channels between,
-    // pointing out to sea
-    float ridges = 0.5 + 0.5 * sin(directionFromCentre * 280.0 + 3.0 * noise(xz * 0.06) + 1.6 * noise(xz * 0.33));
-    float reefFront = smoothstep(40.0, 47.0, metresOffshore) * (1.0 - smoothstep(56.0, 64.0, metresOffshore));
-    coral = max(coral, 0.62 * smoothstep(0.30, 0.55, ridges) * reefFront * (0.6 + 0.4 * noise(xz * 0.5 + 11.0)));
-    coral *= 1.0 - 0.8 * smoothstep(0.12, 0.0, ridges) * smoothstep(34.0, 44.0, metresOffshore);
+    float onTheReef = step(0.0, metresOffshore);
+    float lagoonCoral = smoothstep(0.55, 0.63, coralPattern) * smoothstep(0.6, 1.7, waterDepth)
+      * (1.0 - smoothstep(5.5, 7.9, waterDepth));
+    float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
+    // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
+    float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (noise(xz * 1.3 + 4.0) - 0.5);
+    float onHighGround = smoothstep(0.38, 0.62, reefHighGround(xz.x, xz.y) + ragged);
+    float scatteredHeads = 0.7 * smoothstep(0.68, 0.76, coralPattern) * smoothstep(REEF_BEGINS, GARDENS_BEGIN, alongTheReef);
+    // (none in the last of the shallows, where the swash runs, and it thins out down the drop-off)
+    float reefCoral = max(onHighGround, scatteredHeads) * smoothstep(0.3, 0.9, waterDepth)
+      * (1.0 - smoothstep(14.0, 22.0, waterDepth));
+    float coral = mix(lagoonCoral, reefCoral, onTheReef);
     float coralMottle = 0.6 + 0.8 * noise(xz * 2.3);
     float coralGrain = 0.75 + 0.5 * noise(xz * 7.0);
     vec3 coralColour = mix(BROWN_CORAL, OLIVE_CORAL, noise(xz * 0.45 + 3.0)) * coralMottle * coralGrain;
+    // The crest is pounded by the white water: less coral grows there than pale rock, crusted pink in places.
+    float onCrest = onTheReef * smoothstep(CREST_BEGINS - 8.0, CREST_BEGINS + 4.0, alongTheReef)
+      * (1.0 - smoothstep(FORE_REEF_BEGINS - 2.0, FORE_REEF_BEGINS + 14.0, alongTheReef));
+    vec3 crestRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, noise(xz * 2.3)) * (0.66 + 0.68 * noise(xz * 7.0));
+    crestRock = mix(crestRock, PINK_CRUST, smoothstep(0.5, 0.7, noise(xz * 1.1 + 9.0)) * 0.5);
+    coralColour = mix(coralColour, crestRock, 0.65 * onCrest);
     diffuseColor.rgb = mix(diffuseColor.rgb, coralColour, coral * (0.55 + 0.3 * smoothstep(1.0, 3.0, waterDepth)));
   }
 

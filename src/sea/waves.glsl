@@ -301,12 +301,13 @@ float foamLeftBySwell(float turns, float period, float fullSize, float variety, 
 #define SWELL_FOAM(DELAY, TOWARDS, PERIOD, SIZE, VARIETY) foamLeftBySwell((t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5, PERIOD, SIZE * swellStrength * alongShoreSwing(th, t, VARIETY), VARIETY, th, sinceCrossings)
 
 // How much of the swell reaches a spot: it dies away over the last of the wave mesh, out past the reef's drop-off
-// (WAVE_MESH_FADES_FROM to WAVE_MESH_ENDS along the reef); it is strongest on the south side, which it comes from; none of it enters the channel; and uDebugMode 1 switches it off.
+// (WAVE_MESH_FADES_FROM to WAVE_MESH_ENDS along the reef); it is strongest on the south side, which it comes from;
+// none of it enters the inlet through the sandbar; and uDebugMode 1 switches it off.
 float swellReaching(float th, float offBeach) {
   float towardsMeshEdge = 1.0 - smoothstep(WAVE_MESH_FADES_FROM, WAVE_MESH_ENDS, alongReef(offBeach, th));
   float southern = 0.68 + 0.32 * smoothstep(-0.4, 0.8, sin(th));
   float switchedOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
-  return towardsMeshEdge * southern * openSea(th) * switchedOn;
+  return towardsMeshEdge * southern * openSeaAt(th, offBeach) * switchedOn;
 }
 
 // One swell's part in the sea surface: its size here, the wave itself (kept in the variable NAME), and how far its

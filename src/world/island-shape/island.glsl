@@ -33,11 +33,24 @@ const float GARDENS_RELIEF = 1.7;
 const float CREST_DEPTH = 0.65;
 const float FORE_REEF_FOOT = 10.5;
 const float SPURS_ROUND = 150.0;
-const float GROOVE_DEPTH = 0.7;
+const float GROOVE_DEPTH = 1.4;
 const float SEA_FLOOR_DEPTH = 30.5;
-// The channel through the sandbar runs on out through the reef, this much deeper than the reef beside it: the way
-// out to sea through the crest.
-const float CHANNEL_THROUGH_REEF = 3.5;
+// Water comes in over the reef on the side the swell breaks on, and leaves on the sheltered side, the north. So
+// the north is the reef's open side: there the crest is no wall but a sill LEE_SILL_DEPTH down, with patches of
+// reef still standing on it.
+const float LEE_SILL_DEPTH = 2.2;
+// The inlet through the sandbar is a channel through sand, not through reef: it is INLET_DEPTH deeper than the
+// floor beside it where it leaves the sandbar, shoals away within 40 m, and ends in a fan of sand that spreads out
+// over the reef and down across the sill.
+const float INLET_DEPTH = 3.5;
+// The pass: one gap through the crest, in the west-north-west (PASS_DIRECTION, radians). Inside the reef its mouth
+// is a wide funnel in the gardens; it narrows to PASS_THROAT either side of its middle line at the crest. Its sandy
+// floor sinks from PASS_DEPTH_INSIDE to PASS_DEPTH_AT_CREST, where the fore reef falls away below it.
+const float PASS_DIRECTION = 3.55;
+const float PASS_THROAT = 22.0;
+const float PASS_MOUTH_WIDER = 30.0;
+const float PASS_DEPTH_INSIDE = 3.0;
+const float PASS_DEPTH_AT_CREST = 9.0;
 // The sandbank in the lagoon rises SANDBANK_HEIGHT above still water and is SANDBANK_RADIUS across at the waterline, from its
 // middle.
 const float SANDBANK_HEIGHT = 2.2;
@@ -69,6 +82,84 @@ float sandbankZ() {
   return -8.0;
 }
 
+// The gardens' pools and mounds: -1 in the deepest of a pool, +1 on the top of a mound. Two egg-box patterns across
+// each other, bent out of line (or the mounds would lie in rows, each like the next), and a broader swell under
+// them, so that here the mounds crowd together and there the pools run into one another.
+float gardenMounds(float x, float z) {
+  float bentX = x + 18.0 * sin(z * 0.023 + 1.1) + 7.0 * sin(z * 0.061 + x * 0.013);
+  float bentZ = z + 18.0 * sin(x * 0.019 + 2.3) + 7.0 * sin(x * 0.057 - z * 0.017);
+  return 0.5 * sin(bentX * 0.071 + 0.9) * sin(bentZ * 0.066 + 2.1)
+    + 0.3 * sin(bentX * 0.153 + bentZ * 0.047) * sin(bentZ * 0.139 - bentX * 0.031 + 1.3)
+    + 0.2 * sin(x * 0.027 + 0.5) * sin(z * 0.031 + 1.9);
+}
+
+// The fore reef's grooves: 1 in the bed of a groove, 0 on a spur. The grooves are narrow and the spurs between
+// them broad; no two are the same distance apart, some are deep and some faint, and they start and end at different
+// heights on the slope. `downTheForeReef` is 0 at its top and 1 at its foot. (Every number that multiplies the
+// direction is whole, or the ground would have a seam due west.)
+float foreReefGroove(float direction, float distanceFromCentre, float downTheForeReef) {
+  float across = direction * SPURS_ROUND + 1.8 * sin(direction * 23.0 + 0.7)
+    + 1.2 * sin(direction * 57.0 + distanceFromCentre * 0.021) + 0.9 * sin(distanceFromCentre * 0.05 + direction * 11.0);
+  float bed = pow(max(0.5 + 0.5 * sin(across), 1e-4), 2.5);
+  float deepHere = 0.55 + 0.45 * sin(direction * 31.0 + 1.3);
+  float reach = sin(3.1416 * clamp(downTheForeReef * (1.15 + 0.25 * sin(direction * 17.0)), 0.0, 1.0));
+  return bed * deepHere * reach;
+}
+
+// How far along the reef a spot lies for the purpose of its zones: a few metres more or less than its distance,
+// so that the zones' edges wander.
+float alongReefZones(float x, float z, float along) {
+  return along + 5.0 * sin(x * 0.045 + 1.7) * sin(z * 0.051 + 0.3) * smoothstep(20.0, 60.0, along);
+}
+
+// How far round to the sheltered side a direction lies: 0 round the south and the flanks, 1 round the north.
+float leeSide(float direction) {
+  return smoothstep(0.62, 0.85, 0.5 - 0.5 * sin(direction));
+}
+
+// The patches of reef still standing on the lee side's sill: 1 on a patch, 0 between.
+float leePatches(float x, float z) {
+  return smoothstep(0.1, 0.4, gardenMounds(x + 137.0, z + 59.0));
+}
+
+// The fan of sand outside the inlet: 1 on it, 0 off it. It widens as it runs out, and is gone by 80 m off the
+// sandbar.
+float inletFan(float direction, float distanceFromCentre, float offshore) {
+  return passChannel(direction, distanceFromCentre, 0.02) * smoothstep(-2.0, 8.0, offshore)
+    * (1.0 - smoothstep(35.0, 80.0, offshore));
+}
+
+// The pass through the crest: 1 along its bed, 0 beside it. `along` is the distance along the reef. Its edges
+// wander.
+float reefPass(float direction, float distanceFromCentre, float along) {
+  float toOneSide = distanceFromCentre * sin(direction - PASS_DIRECTION);
+  float halfWidth = PASS_THROAT + PASS_MOUTH_WIDER * (1.0 - smoothstep(60.0, 125.0, along))
+    + 4.0 * sin(along * 0.09 + 0.6) + 2.5 * sin(along * 0.23 + toOneSide * 0.15);
+  // (only on its own side of the atoll, and only from the gardens out)
+  float onItsSide = cos(direction - PASS_DIRECTION) > 0.0 ? 1.0 : 0.0;
+  return (1.0 - smoothstep(0.55 * halfWidth, halfWidth, abs(toOneSide))) * smoothstep(55.0, 85.0, along) * onItsSide;
+}
+
+// How much of the reef's floor at (x, z) is high ground, 0 to 1: the mounds of the gardens, the crest (on the lee
+// side, its patches) and the spurs of the fore reef down to about 18 m. Coral and rock grow on the high ground;
+// sand lies in the pools, the grooves, the pass and the inlet's fan, and over the shallows (terrain-colour.glsl).
+float reefHighGround(float x, float z) {
+  float distanceFromCentre = sqrt(x * x + z * z);
+  float direction = atan(z, x);
+  float offshore = distanceFromCentre - islandR(direction);
+  float along = alongReefZones(x, z, alongReef(offshore, direction));
+  float downTheForeReef = clamp((along - FORE_REEF_BEGINS) / (DROP_OFF_BEGINS - FORE_REEF_BEGINS), 0.0, 1.0);
+  float mounds = smoothstep(-0.15, 0.45, gardenMounds(x, z));
+  float onCrest = mix(1.0, leePatches(x, z), leeSide(direction));
+  float spurs = 1.0 - smoothstep(0.08, 0.5, foreReefGroove(direction, distanceFromCentre, downTheForeReef));
+  float high = mounds * smoothstep(GARDENS_BEGIN - 3.0, GARDENS_BEGIN + 13.0, along);
+  high = mix(high, onCrest, smoothstep(CREST_BEGINS - 6.0, CREST_BEGINS + 6.0, along));
+  high = mix(high, spurs, smoothstep(FORE_REEF_BEGINS - 5.0, FORE_REEF_BEGINS + 5.0, along));
+  high *= 1.0 - smoothstep(DROP_OFF_BEGINS, DROP_OFF_ENDS - 8.0, along);
+  return high * (1.0 - reefPass(direction, distanceFromCentre, along))
+    * (1.0 - inletFan(direction, distanceFromCentre, offshore));
+}
+
 // The height of the ground at (x, z).
 float hgt(float x, float z) {
   float distanceFromCentre = sqrt(x * x + z * z);
@@ -96,31 +187,36 @@ float hgt(float x, float z) {
   float land = smin(oceanBeachToPlateau, lagoon, 0.5);
 
   // The ocean side: the reef. Where the beach reaches SHALLOWS_DEPTH of water the shallows begin; each zone then
-  // runs into the next over a few metres. `along` is how far off the beach this is, as it would lie due south.
-  float along = alongReef(offshore, direction);
+  // runs into the next over a few metres. `along` is how far off the beach this is, as it would lie due south, a
+  // little more or less so that the zones' edges wander.
+  float along = alongReefZones(x, z, alongReef(offshore, direction));
   float ripples = 0.1 * sin(x * 0.6 + z * 0.3) * sin(z * 0.7);
   float shallows = -SHALLOWS_DEPTH - 0.012 * min(max(offshore, 0.0), GARDENS_BEGIN) + ripples;
-  // (two egg-box patterns across each other, so that the pools and mounds do not lie in rows)
-  float pools = 0.62 * sin(x * 0.071 + 0.9) * sin(z * 0.066 + 2.1)
-    + 0.38 * sin(x * 0.153 + z * 0.047) * sin(z * 0.139 - x * 0.031 + 1.3);
-  float gardens = -GARDENS_DEPTH + GARDENS_RELIEF * pools + 0.5 * ripples;
-  float crest = -CREST_DEPTH + 0.15 * sin(x * 0.21 + 0.5) * sin(z * 0.19) + 0.5 * ripples;
+  float gardens = -GARDENS_DEPTH + GARDENS_RELIEF * gardenMounds(x, z) + 0.5 * ripples;
+  // (the crest: on the sheltered side a sill, with patches of reef left standing on it)
+  float crestTop = -CREST_DEPTH + 0.15 * sin(x * 0.21 + 0.5) * sin(z * 0.19) + 0.5 * ripples;
+  float sill = -LEE_SILL_DEPTH + 0.3 * gardenMounds(x + 137.0, z + 59.0) + 0.5 * ripples;
+  float crest = mix(crestTop, sill, leeSide(direction) * (1.0 - leePatches(x, z)));
   float downTheForeReef = clamp((along - FORE_REEF_BEGINS) / (DROP_OFF_BEGINS - FORE_REEF_BEGINS), 0.0, 1.0);
-  // (the grooves are deepest half way down, and wander a little)
-  float grooves = GROOVE_DEPTH * sin(direction * SPURS_ROUND + 2.5 * sin(distanceFromCentre * 0.06))
-    * sin(3.1416 * downTheForeReef);
-  float foreReef = -CREST_DEPTH - 0.6 - (FORE_REEF_FOOT - CREST_DEPTH - 0.6) * pow(downTheForeReef, 1.3) + grooves;
+  float foreReef = -CREST_DEPTH - 0.6 - (FORE_REEF_FOOT - CREST_DEPTH - 0.6) * pow(downTheForeReef, 1.3)
+    - GROOVE_DEPTH * foreReefGroove(direction, distanceFromCentre, downTheForeReef);
   float dropOff = -FORE_REEF_FOOT
     - (SEA_FLOOR_DEPTH - FORE_REEF_FOOT) * smoothstep(DROP_OFF_BEGINS, DROP_OFF_ENDS, along);
   float reef = mix(shallows, gardens, smoothstep(GARDENS_BEGIN - 3.0, GARDENS_BEGIN + 13.0, along));
   reef = mix(reef, crest, smoothstep(CREST_BEGINS - 6.0, CREST_BEGINS + 6.0, along));
   reef = mix(reef, foreReef, smoothstep(FORE_REEF_BEGINS - 5.0, FORE_REEF_BEGINS + 5.0, along));
   reef = mix(reef, dropOff, smoothstep(DROP_OFF_BEGINS - 4.0, DROP_OFF_BEGINS + 4.0, along));
+  // The inlet's fan of sand lies smooth over whatever the reef is there, sloping down as it runs out; the inlet
+  // itself is cut into it by the sandbar and shoals away.
+  float fanLevel = -mix(1.2, 2.2, smoothstep(10.0, 80.0, offshore)) + ripples;
+  reef = mix(reef, fanLevel, inletFan(direction, distanceFromCentre, offshore));
+  reef -= INLET_DEPTH * passChannel(direction, distanceFromCentre, 0.0) * (1.0 - smoothstep(6.0, 40.0, offshore));
+  // The pass: a sandy floor of its own, wherever the reef stands above it.
+  float passFloor = -mix(PASS_DEPTH_INSIDE, PASS_DEPTH_AT_CREST, smoothstep(70.0, 135.0, along)) + 0.5 * ripples;
+  reef = mix(reef, min(reef, passFloor), reefPass(direction, distanceFromCentre, along));
   // More than 5 m inland the reef falls away steeply, so that it stays out of the lagoon.
   float inlandFall = 2.0 * max(-5.0 - offshore, 0.0);
-  // The channel through the sandbar runs on out through the reef.
-  float channel = CHANNEL_THROUGH_REEF * passChannel(direction, distanceFromCentre, 0.0);
-  float reefFlat = reef - inlandFall - channel;
+  float reefFlat = reef - inlandFall;
 
   // The sandbank: a low dome in the lagoon.
   float dx = x - sandbankX();

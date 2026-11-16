@@ -37,9 +37,13 @@ const float DROP_OFF_BEGINS = 200.0;
 const float DROP_OFF_ENDS = 232.0;
 const float REEF_NARROWEST = 0.55;
 
-// How wide the reef is in a direction, as a share of its width due south.
+// How wide the reef is in a direction, as a share of its width due south: narrowest round the north, and wider here
+// and narrower there all the way round, so that its outer edge is no copy of the shoreline.
 float reefShare(float direction) {
-  return REEF_NARROWEST + (1.0 - REEF_NARROWEST) * (0.5 + 0.5 * sin(direction));
+  float southness = 0.5 + 0.5 * sin(direction);
+  float unevenness = 0.13 * sin(2.0 * direction + 0.7) + 0.09 * sin(4.0 * direction + 2.3)
+    + 0.06 * sin(7.0 * direction + 4.1);
+  return (REEF_NARROWEST + (1.0 - REEF_NARROWEST) * southness) * (1.0 + unevenness);
 }
 
 // A distance off the beach in a direction, as the distance it would be due south: the reef's zones lie at the same
@@ -93,6 +97,12 @@ float openSea(float direction) {
   float alongChannel = 0.5 + 0.5 * cos(direction - CHANNEL_DIRECTION);
   float t = min(max((alongChannel - SHELTER_EDGE) / SHELTER_EDGE_WIDTH, 0.0), 1.0);
   return 1.0 - t * t * (3.0 - 2.0 * t);
+}
+
+// The same, a way off the beach: the swell is kept out only at the inlet through the sandbar itself. From 25 m off
+// the beach it comes back, and by 60 m it runs as it does everywhere.
+float openSeaAt(float direction, float offshore) {
+  return mix(openSea(direction), 1.0, smoothstep(25.0, 60.0, offshore));
 }
 
 // The ocean beach as the waves see it: a slope that deepens steadily offshore and levels off inland. The real ground

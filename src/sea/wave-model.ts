@@ -355,7 +355,7 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
       const swellStrength =
         (1 - smoothstep(meshFadesFrom, meshEnds, island.alongReef(offBeach, th))) *
         (0.68 + 0.32 * smoothstep(-0.4, 0.8, Math.sin(th))) *
-        island.openSea(th);
+        island.openSeaAt(th, offBeach);
 
       let surface = 0;
       let runUp = 0;

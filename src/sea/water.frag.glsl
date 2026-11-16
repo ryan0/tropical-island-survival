@@ -106,12 +106,10 @@ const float CRESTS_A_SPEED = 4.0;
 const float CRESTS_B_SPACING = 10.5;
 const float CRESTS_B_SPEED = 3.5;
 
-// The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue beyond the reef (deeper
-// blue in the ocean than in the lagoon).
+// The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue where it is deep.
 const vec3 OVER_SAND_AQUA = vec3(0.15, 0.74, 0.72);
 const vec3 TURQUOISE = vec3(0.03, 0.55, 0.70);
 const vec3 OCEAN_BLUE = vec3(0.006, 0.12, 0.34);
-const vec3 LAGOON_BLUE = vec3(0.015, 0.34, 0.53);
 // Added where the ripples face the sun.
 const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
 // The light through a wave standing up.
@@ -401,12 +399,12 @@ void main() {
   // Sheltered water (shallows, close to the beach, the lagoon) carries only small ripples.
   float deepEnough = 0.35 + 0.65 * smoothstep(0.0, 2.0, waterDepth);
   float offTheBeach = mix(0.55, 1.0, clamp(reefDistance / DROP_OFF_BEGINS, 0.0, 1.0));
-  float outOfLagoon = 1.0 - 0.5 * inLagoon;
+  float outOfLagoon = 1.0 - 0.3 * inLagoon;
   float rippleExposure = deepEnough * offTheBeach * outOfLagoon;
   // The wind does not ruffle the water evenly: gusts roughen and darken it in patches, and between them lie slicks,
   // glassy and paler, that mirror the sky - most of all on sheltered water. The slow reading, mixed with the 37 m
   // one.
-  float slick = smoothstep(0.42, 0.62, windPatches.b * 0.65 + ripplesLarge.b * 0.35) * (0.55 + 0.45 * inLagoon);
+  float slick = smoothstep(0.42, 0.62, windPatches.b * 0.65 + ripplesLarge.b * 0.35) * (0.55 + 0.3 * inLagoon);
   // (a light air leaves wide slicks, a calm is one great slick, a fresh breeze leaves few)
   float windOverUsual = uWind / USUAL_WIND;
   float lightAir = smoothstep(0.0, 0.5, windOverUsual);
@@ -447,7 +445,7 @@ void main() {
   // (strongest on the side the swell comes from, the south; faint in the atoll's lee)
   float facingSwell = 0.28 + 0.72 * smoothstep(-0.4, 0.8, sin(directionFromCentre));
   float wavesOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
-  float swellLines = pastModelledWaves * notFarOut * facingSwell * openSea(directionFromCentre) * (1.0 - inLagoon)
+  float swellLines = pastModelledWaves * notFarOut * facingSwell * (1.0 - inLagoon)
     * wavesOn;
   // +1 on a line's face, -1 on its back
   float swellLineSide = 0.0;
@@ -519,9 +517,9 @@ void main() {
 
   // ---- The colour of the water itself ----
 
-  vec3 deepBlue = mix(OCEAN_BLUE, LAGOON_BLUE, inLagoon);
+  // (The lagoon's water is coloured as any other water of its depth is: only the wind treats it differently.)
   vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, waterDepth));
-  vec3 waterColour = mix(shallows, deepBlue, smoothstep(3.0, 9.5, waterDepth));
+  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, waterDepth));
   float facingSun = clamp((surfaceSlope.x * uSunDirection.x + surfaceSlope.y * uSunDirection.z) * 4.0, 0.0, 1.0);
   waterColour += SUNLIT_RIPPLE_TINT * facingSun * uDaylight;
   waterColour *= 0.96 + 0.09 * slick;

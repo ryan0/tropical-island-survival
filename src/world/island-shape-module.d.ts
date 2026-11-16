@@ -9,7 +9,9 @@ declare module 'virtual:island-shape' {
   export function landW(th: number): number;
   export function passGap(th: number): number;
   export function openSea(th: number): number;
+  export function openSeaAt(th: number, offshore: number): number;
   export function shoreH(x: number, z: number): number;
+  export function reefHighGround(x: number, z: number): number;
   export function sandbankX(): number;
   export function sandbankZ(): number;
 }

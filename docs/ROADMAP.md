@@ -183,6 +183,42 @@ The channel through the sandbar runs on out through the reef, 3.5 m deeper than 
   shallows; the new ground is sand-coloured throughout (the crest and the fore reef want coral and rock, from
   Ryan's references); nothing lives out there yet.
 
+### The wider reef: Ryan's notes on the first batch, and what was done (16 November 2026)
+
+"Overall it is good." On the phone the frame rate fell to about 50 (43 to 60); the longer start-up is no concern.
+
+- *The channel from the lagoon looked unnatural.* It was a wedge that widened to a hundred metres across the
+  reef. Ryan then asked whether a channel is needed at all, and what a real crescent lagoon has. On a real reef
+  water comes in over the side the swell breaks on and leaves on the sheltered side, so that side is the reef's
+  open one; a lagoon's inlet is a channel through sand, and a pass through the reef is another thing. So now
+  (`island.glsl`): the inlet through the sandbar stays and ends in a fan of sand outside it; there is no trough
+  across the reef; round the north the crest is a sill 2.2 m down with patches of reef left on it; and there is
+  one pass through the crest in the west-north-west, a funnel in the gardens narrowing to about 45 m at the
+  crest, its sandy floor sinking to 9 m. The pass is the place for currents and big fish later.
+- *The lagoon should be drawn as other water of its depth is; only the wind treats it differently.* It had a
+  deep-water blue of its own. It now has the ocean's, and the water turns blue over 3 to 16 m of depth, not 3 to
+  9.5, now that the sea is 30 m deep. It is sheltered a little less than it was.
+- *The reef could be less regular in shape.* Its width now varies all round (`reefShare`), so its outer edge is
+  no copy of the shoreline; the zones' edges wander a few metres; and the gardens' mounds are bent out of their
+  rows.
+- *The patterning on the floor did not look natural.* The fore reef's grooves were evenly spaced stripes. They
+  are now narrow grooves between broad spurs, no two the same distance apart, some deep and some faint. And the
+  dark coral was painted by a pattern that knew nothing of the floor's shape: it now covers the high ground (the
+  mounds, the crest, the spurs) and leaves sand in the pools, the grooves and the channel
+  (`reefHighGround`), with pale rock on the crest.
+- *The frame rate.* The wave mesh's rows were thinned by about a sixth (from 315 to 274 thousand points).
+  To be measured again on the phone; the next things to thin are in the first batch's notes above.
+
+The swell used to be switched off for 15 to 23 degrees either side of the inlet's line, which was a few metres at
+the sandbar and had become a broad wedge of the reef with no waves. It is now switched off only at the inlet
+itself, and runs again from 25 to 60 m off the beach (`openSeaAt`).
+
+*Deeper water beside shallower looks too different* (Ryan, with a screenshot of a garden mound): the water over a
+mound is all but clear, so the mound shows as bare ground with the mesh's flat faces, and beside it the deeper
+water is opaque and rippled. Not for now, he says: the water's rendering has much room to improve in general. For
+that pass: one model of how water colours and hides what is under it, the same at every depth, and a surface whose
+ripples and sheen do not stop where it is shallow.
+
 ### The white water, first part (15 November 2026)
 
 Brought forward from pass 3, because it reads the pictures and so survives the wider reef.

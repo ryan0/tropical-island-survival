@@ -5,6 +5,7 @@ import {
   landW,
   offshoreOfReef,
   openSea,
+  openSeaAt,
   passGap,
   sandbankX,
   sandbankZ,
@@ -31,8 +32,12 @@ export interface IslandShape {
   landWidth: (direction: number) => number;
   /** How much of the pass through the reef lies in a direction: 0 where there is none. */
   passGap: (direction: number) => number;
-  /** How open a direction is to the swell: 1 on the open sea's side, less in the lee. */
+  /**
+   * How open a direction is to the swell at the beach: 1 everywhere but at the inlet through the
+   * sandbar; and the same a distance off the beach, where the swell soon runs again.
+   */
   openSea: (direction: number) => number;
+  openSeaAt: (direction: number, offshore: number) => number;
   /** The ground's height as the waves feel it: the island's shape without what stands in the lagoon. */
   shoreHeight: (x: number, z: number) => number;
   /** The middle of the sandbank in the lagoon. */
@@ -48,6 +53,7 @@ export function createIslandShape(): IslandShape {
     landWidth: landW,
     passGap,
     openSea,
+    openSeaAt,
     shoreHeight: shoreH,
     sandbank: { x: sandbankX(), z: sandbankZ() },
   };

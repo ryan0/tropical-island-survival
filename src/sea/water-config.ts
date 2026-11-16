@@ -38,18 +38,18 @@ export const waterConfig = {
       /** Out at sea each gap is the one before divided by `shrinkFactor`, down to the least... */
       openSea: { firstSpacing: 4.8, shrinkFactor: 1.1, leastSpacing: 0.8 },
       /** ...as far as here, where the stretches begin. */
-      stretchesFrom: 166,
+      stretchesFrom: 168,
       stretches: [
         // where the biggest waves start to stand up, on the fore reef
-        { to: 160, spacing: 0.3 },
+        { to: 162, spacing: 0.4 },
         // the break, on the upper fore reef and the crest's outer edge
-        { to: 136, spacing: 0.2 },
+        { to: 134, spacing: 0.24 },
         // the crest: white water
-        { to: 118, spacing: 0.5 },
+        { to: 118, spacing: 0.7 },
         // the gardens
-        { to: 45, spacing: 0.8 },
+        { to: 45, spacing: 1.1 },
         // the shallows
-        { to: 7, spacing: 0.6 },
+        { to: 7, spacing: 0.8 },
         { to: 1.6, spacing: 0.2 },
         // the waterline
         { to: -1.6, spacing: 0.1 },
