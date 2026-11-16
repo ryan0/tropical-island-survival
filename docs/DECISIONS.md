@@ -46,7 +46,7 @@ the git tag `build-78`.
     (swimming height, spray, footprints). Both read the same pictures, and the sizes and timing are written once
     for both (`wave-timing/timing.glsl`); the shapes are written in each, and a test compares them on the GPU.
 11. **Water is three meshes sharing one shader.** A flat far sea with holes cut in the shader; a ring of wave mesh
-    round the atoll in 16 sectors with three levels of detail; a strip along the lagoon shore that is lifted only
+    round the atoll in 16 sectors of three tiles with three levels of detail; a strip along the lagoon shore that is lifted only
     in a high wind [38_water.js].
 12. **Shade it if it is flat, model it if it has height.** Ripples, swell lines far out, whitecaps and the lagoon's
     medium-wind waves are shading. Anything that must occlude or show a silhouette is mesh.

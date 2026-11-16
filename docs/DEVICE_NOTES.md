@@ -35,7 +35,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - The build number (bottom centre) tells you whether a screenshot is from the current build.
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate and where
   the eye is, and has switches for flying, wireframe, hiding the wave mesh, hiding the far sea, freezing the
-  waves, and drawing the sea floor's pictures on the water. Flying: the stick moves the eye the way it looks
+  waves, drawing the sea floor's pictures on the water, and drawing the wave mesh no finer than its second level. Flying: the stick moves the eye the way it looks
   (push forward while looking up to climb), faster the higher it is; it can go under water but not through the
   ground.
 - The phone reads a picture in the water's vertex shader without trouble, bytes or half floats, smoothly
@@ -43,6 +43,10 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
   3 = plain water colour. Handy for narrowing down a bug from screenshots.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
+- What the Pixel 10 can afford (16 November 2026, by the debug panel's switches): the wave mesh's points are what
+  it pays for. 123 thousand of them in view held it to about 50 frames a second; 31 thousand, and it drew 60.
+  The coral painted on the sea floor, a pattern worked out for every pixel of it, cost nothing that could be
+  measured. To find where a slow frame goes, add a switch that leaves the suspect out and read the frame rate.
 - The phone in question takes 1080x2424 screenshots (shared scaled to 864x1939); its GPU model is not known. Since
   November 2026 Ryan's phone is a Pixel 10.
 - If the browser refuses WebGL, the page says why: three.js's error, the browser's own reason, and which kinds of

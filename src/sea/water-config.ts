@@ -13,7 +13,7 @@ export const waterConfig = {
   farSeaSize: 6500,
 
   waveMesh: {
-    /** The ring is cut into this many sectors; a sector out of view is not drawn. */
+    /** The ring is cut round the atoll into this many sectors... */
     sectors: 16,
     /** Columns round the ring: a multiple of four times the sectors, for the coarse levels. */
     columns: 640,
@@ -59,16 +59,26 @@ export const waterConfig = {
       innerEdge: -9,
     },
 
-    /** Each sector exists at three levels of detail: every point, every 2nd, every 4th each way. */
+    /**
+     * ...and each sector across into tiles, at these distances along the reef, from the open sea
+     * inwards: the crest and all outside it; the gardens; the shallows and the beach. A tile out of
+     * view is not drawn, and each is drawn as finely as its own distance from the eye calls for:
+     * from the beach the break, 150 m off, is not drawn at its finest, and from the reef the
+     * waterline is not. (The mesh's vertex shader is the dearest thing in the scene: on the phone,
+     * whole sectors at their finest cost ten frames a second of sixty.)
+     */
+    cutAcrossAt: [118, 45],
+    /** Each tile exists at three levels of detail: every point, every 2nd, every 4th each way. */
     detailStrides: [1, 2, 4],
-    /** A sector shows the finest while its middle is this near the camera, the next this near. */
-    finestDetailWithin: 180,
-    middleDetailWithin: 380,
+    /** A tile shows the finest while the nearest of its probe points is this near the camera... */
+    finestDetailWithin: 60,
+    /** ...and the next this near. */
+    middleDetailWithin: 220,
 
-    /** A sector is drawn only if a ball this big round one of its probe points is in view... */
+    /** A tile's probe points lie over it no further apart than this, along the reef. */
+    probesAtMostApart: 50,
+    /** It is drawn only if a ball this big round one of them is in view. */
     probeRadius: 32,
-    /** ...which lie at these distances along the reef, from the ring's inner edge to its outer. */
-    probesAlongReef: [-9, 40, 100, 160, 262],
   },
 
   lagoonShoreBand: {

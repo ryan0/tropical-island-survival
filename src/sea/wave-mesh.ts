@@ -14,10 +14,11 @@ import type { WaterSheet } from './water-materials';
 import { createWaterStrip, rowsThroughStretches, type WaterStrip } from './water-strip';
 
 // The wave mesh: a ring of water hugging the atoll, from 9 m up the ocean beach out past the reef's
-// drop-off. Rows are lines of equal distance along the reef; columns fan out round the atoll. Its vertex
-// shader is the most expensive thing in the scene, so the ring is cut into sectors: a sector out
-// of view is not drawn at all, and each exists at three levels of detail, chosen by its distance
-// from the camera.
+// drop-off. Rows are lines of equal distance along the reef; columns fan out round the atoll. Its
+// vertex shader is the most expensive thing in the scene, so the ring is cut into tiles: round the
+// atoll into sectors, and each sector across, where the reef's zones meet. A tile out of view is
+// not drawn at all, and each exists at three levels of detail, chosen by how near it is to the
+// camera.
 
 export interface WaveMeshDependencies {
   scene: Scene;
@@ -26,20 +27,21 @@ export interface WaveMeshDependencies {
 }
 
 export interface WaveMesh {
-  /** Every sector at every level of detail. */
+  /** Every tile at every level of detail. */
   group: Group;
   material: ShaderMaterial;
   /** Its size, for the debug panel. */
   description: string;
-  /** Shows each sector in view at the level of detail its distance calls for; hides the rest. */
-  showSectorsInView(view: Frustum, eye: Vector3): void;
+  /** Shows each tile in view at the level of detail its distance calls for; hides the rest. */
+  showTilesInView(view: Frustum, eye: Vector3): void;
+  /** A debug switch: while it is on no tile is drawn at its finest, to see what the finest costs. */
+  drawCoarsely: (isCoarse: boolean) => void;
 }
 
-interface Sector {
+interface Tile {
   /** The finest level of detail first. */
   levels: readonly Mesh[];
-  /** The middle of the finest level, at sea level: the sector's distance is measured from it. */
-  middle: Vector3;
+  /** Points spread over it at sea level: it is in view, and as near, as they are. */
   probes: readonly Vector3[];
 }
 
@@ -115,12 +117,7 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
         pointAt(column, row) {
           const direction = directions[column];
           const r = island.radius(direction) + island.offshoreOfReef(distances[row], direction);
-          // Rounded as the strip will store them, so that a piece's middle (which picks its
-          // level of detail) is measured from the points as they are drawn.
-          return {
-            x: Math.fround(Math.cos(direction) * r),
-            z: Math.fround(Math.sin(direction) * r),
-          };
+          return { x: Math.cos(direction) * r, z: Math.sin(direction) * r };
         },
         height: 0,
         roomForWaves: ROOM_FOR_WAVES,
@@ -134,18 +131,24 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
   }
 
   /**
-   * A sector is a long curved strip, so a sphere round it would be in view far more often than
-   * the sector itself. Instead it is drawn only if a ball round one of twenty points spread over
-   * it is in view: on its two edges and the three quarter lines between, at four distances off the
-   * beach. Sectors on the north side are up to 180 m long, so fewer points would leave gaps and the
-   * sea would vanish there.
+   * A tile is a curved strip, so a sphere round it would be in view far more often than the tile
+   * itself, and its middle can be far from the eye while its end is underfoot. Instead a spread of
+   * points stands for it: on its two edges and the three quarter lines between, at distances along
+   * the reef no further apart than the balls round them reach. Tiles on the north side are up to
+   * 180 m long, so fewer points would leave gaps and the sea would vanish there.
    */
-  function probePoints(directions: readonly number[]): Vector3[] {
+  function probePoints(
+    directions: readonly number[],
+    outerEdge: number,
+    innerEdge: number,
+  ): Vector3[] {
     const probes: Vector3[] = [];
     const lastColumn = directions.length - 1;
+    const steps = Math.ceil((outerEdge - innerEdge) / config.probesAtMostApart);
     for (let quarter = 0; quarter <= 4; quarter++) {
       const direction = directions[(quarter * lastColumn) / 4];
-      for (const along of config.probesAlongReef) {
+      for (let step = 0; step <= steps; step++) {
+        const along = innerEdge + ((outerEdge - innerEdge) * step) / steps;
         const r = island.radius(direction) + island.offshoreOfReef(along, direction);
         probes.push(new Vector3(Math.cos(direction) * r, 0, Math.sin(direction) * r));
       }
@@ -153,47 +156,67 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
     return probes;
   }
 
-  function isInView(sector: Sector, view: Frustum): boolean {
-    for (const probe of sector.probes) {
+  function isInView(tile: Tile, view: Frustum): boolean {
+    for (const probe of tile.probes) {
       probeBall.center.copy(probe);
       if (view.intersectsSphere(probeBall)) return true;
     }
     return false;
   }
 
+  function distanceFromNearestProbe(tile: Tile, eye: Vector3): number {
+    let nearest = Infinity;
+    for (const probe of tile.probes) {
+      nearest = Math.min(nearest, Math.hypot(eye.x - probe.x, eye.z - probe.z));
+    }
+    // (the probes are at sea level, so the eye's height is its height above them)
+    return Math.hypot(nearest, eye.y);
+  }
+
   const distances = rowDistances();
   const directions = columnDirections();
-  const rowsAtLevel = config.detailStrides.map((stride) => everyNth(distances, stride));
+  // The rows the tiles of a sector end at, from the open sea inwards. Neighbours share a row.
+  const firstRowWithin = (along: number) => distances.findIndex((distance) => distance <= along);
+  const cuts = [0, ...config.cutAcrossAt.map(firstRowWithin), distances.length - 1];
   const columnsPerSector = config.columns / config.sectors;
-  const sectors: Sector[] = [];
+  const tiles: Tile[] = [];
+  let isDrawnCoarsely = false;
   for (let sector = 0; sector < config.sectors; sector++) {
     const first = sector * columnsPerSector;
     const sectorDirections = Array.from(directions.subarray(first, first + columnsPerSector + 1));
-    const pieces = config.detailStrides.map((stride, level) =>
-      addPiece(everyNth(sectorDirections, stride), rowsAtLevel[level]),
-    );
-    sectors.push({
-      levels: pieces.map((piece) => piece.mesh),
-      middle: pieces[0].bounds.center,
-      probes: probePoints(sectorDirections),
-    });
+    for (let cut = 0; cut < cuts.length - 1; cut++) {
+      const tileDistances = distances.slice(cuts[cut], cuts[cut + 1] + 1);
+      const pieces = config.detailStrides.map((stride) =>
+        addPiece(everyNth(sectorDirections, stride), everyNth(tileDistances, stride)),
+      );
+      tiles.push({
+        levels: pieces.map((piece) => piece.mesh),
+        probes: probePoints(sectorDirections, tileDistances[0], tileDistances.at(-1) ?? 0),
+      });
+    }
   }
 
   return {
     group,
     material,
-    description: `${(config.columns + 1) * distances.length} vertices in ${config.sectors} sectors`,
+    description: `${(config.columns + 1) * distances.length} vertices in ${tiles.length} tiles`,
 
-    showSectorsInView(view, eye) {
-      for (const sector of sectors) {
-        const { middle, levels } = sector;
-        // (the middle is at sea level, so the eye's height is its height above it)
-        const distance = Math.hypot(eye.x - middle.x, eye.y, eye.z - middle.z);
-        const shownLevel = isInView(sector, view) ? detailLevel(distance) : NOT_SHOWN;
+    showTilesInView(view, eye) {
+      for (const tile of tiles) {
+        const { levels } = tile;
+        let shownLevel = NOT_SHOWN;
+        if (isInView(tile, view)) {
+          const level = detailLevel(distanceFromNearestProbe(tile, eye));
+          shownLevel = isDrawnCoarsely ? Math.max(level, 1) : level;
+        }
         for (let level = 0; level < levels.length; level++) {
           levels[level].visible = level === shownLevel;
         }
       }
+    },
+
+    drawCoarsely(isCoarse) {
+      isDrawnCoarsely = isCoarse;
     },
   };
 }

@@ -39,6 +39,8 @@ export interface Water {
   /** Every sector of the wave mesh. */
   waveMesh: Group;
   waveMaterial: ShaderMaterial;
+  /** A debug switch: the wave mesh drawn no finer than its middle level of detail. */
+  drawWaveMeshCoarsely: (isCoarse: boolean) => void;
   bandPieces: Mesh[];
   /** The sizes of the wave mesh and the lagoon shore band, for the debug panel. */
   waveMeshDescription: string;
@@ -84,6 +86,7 @@ export function createWater(dependencies: WaterDependencies): Water {
     farSea,
     waveMesh: waveMesh.group,
     waveMaterial: waveMesh.material,
+    drawWaveMeshCoarsely: waveMesh.drawCoarsely,
     bandPieces: band.pieces,
     waveMeshDescription: waveMesh.description,
     bandDescription: band.description,
@@ -97,7 +100,7 @@ export function createWater(dependencies: WaterDependencies): Water {
       camera.updateMatrixWorld();
       viewProjection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       view.setFromProjectionMatrix(viewProjection);
-      waveMesh.showSectorsInView(view, camera.position);
+      waveMesh.showTilesInView(view, camera.position);
 
       // The band only in a high wind, and not while the eye is under water.
       isBandShown = wind > waterConfig.lagoonShoreBand.shownAboveWind && !isCameraUnderWater;

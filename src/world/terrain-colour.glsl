@@ -398,6 +398,12 @@ if (waterDepth > 0.0) {
     float onTheReef = step(0.0, metresOffshore);
     float lagoonCoral = smoothstep(0.55, 0.63, coralPattern) * smoothstep(0.6, 1.7, waterDepth)
       * (1.0 - smoothstep(5.5, 7.9, waterDepth));
+    // (and coral covers the tops of the lagoon's patch reefs, which stand up out of its basin: shallow ground well
+    // out from the shore, its edge broken up by the pattern)
+    float outInLagoon = -(metresOffshore + landW(directionFromCentre));
+    float onPatchReef = (1.0 - smoothstep(1.5, 2.9, waterDepth + 1.2 * (coralPattern - 0.5)))
+      * smoothstep(26.0, 40.0, outInLagoon);
+    lagoonCoral = max(lagoonCoral, onPatchReef);
     float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
     // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
     float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (noise(xz * 1.3 + 4.0) - 0.5);

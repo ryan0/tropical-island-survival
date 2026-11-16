@@ -17,9 +17,18 @@ const float LAND_WIDTH_NORTH = 26.0;
 const float LAND_WIDTH_ADDED_SOUTH = 44.0;
 // The low plateau that the land rises to (atolls are flat).
 const float PLATEAU_HEIGHT = 2.9;
-// The depth of the lagoon's floor, and how far the flat tops of the patch reefs stand above it.
-const float LAGOON_DEPTH = 6.5;
-const float PATCH_REEF_HEIGHT = 3.4;
+// The lagoon. Its beach shelves down as steeply as a floor LAGOON_BEACH_FALLS_TO deep would make it, then levels
+// off into a shelf of sand LAGOON_SHELF_DEPTH down, to wade and swim over, about LAGOON_SHELF_WIDTH wide. Beyond the
+// shelf lies the basin, LAGOON_DEPTH down, with patch reefs standing up to PATCH_REEF_HEIGHT above it. In it there
+// is one deep hole, HOLE_DEPTH down and HOLE_RADIUS across from its middle. (A lagoon this small is shallow; the
+// hole is a rare thing, chosen for the diving.)
+const float LAGOON_BEACH_FALLS_TO = 6.5;
+const float LAGOON_SHELF_DEPTH = 1.6;
+const float LAGOON_SHELF_WIDTH = 22.0;
+const float LAGOON_DEPTH = 3.8;
+const float PATCH_REEF_HEIGHT = 3.0;
+const float HOLE_DEPTH = 13.0;
+const float HOLE_RADIUS = 20.0;
 // The reef off the ocean beach, zone by zone (shore.glsl says where each begins). The shallows are sand under
 // SHALLOWS_DEPTH of water, to wade in. The gardens lie about GARDENS_DEPTH down and rise and fall GARDENS_RELIEF
 // either way: pools, and mounds that nearly reach the surface. The crest is the shallowest of the reef, CREST_DEPTH
@@ -71,6 +80,15 @@ float landW(float direction) {
 float smin(float a, float b, float width) {
   float h = max(width - abs(a - b), 0.0) / width;
   return min(a, b) - h * h * width * 0.25;
+}
+
+// The middle of the deep hole in the lagoon, north-east of the sandbank.
+float holeX() {
+  return 40.0;
+}
+
+float holeZ() {
+  return -36.0;
 }
 
 // The middle of the sandbank in the lagoon (functions rather than constants, so that the program has them too).
@@ -169,15 +187,28 @@ float hgt(float x, float z) {
   // metres on the land side of the lagoon shoreline (negative in the lagoon)
   float fromLagoonShore = offshore + landW(direction);
 
-  // The lagoon: a beach that shelves down to a floor LAGOON_DEPTH deep, with flat-topped patch reefs rising from it.
-  // The reefs are the peaks of an egg-box pattern, cut off flat, and grow in over the first 25 m out from the beach.
-  float lagoonSide = min(fromLagoonShore, 0.0);
-  float reefsGrowIn = min(-lagoonSide / 25.0, 1.0);
-  float reefPattern = sin(x * 0.09 + 1.3) * sin(z * 0.085 + 0.4);
-  float patchReefs = min(7.0 * max(reefPattern - 0.4, 0.0), PATCH_REEF_HEIGHT) * reefsGrowIn;
-  float shelving = LAGOON_DEPTH * (1.0 - exp(lagoonSide / 24.0));
+  // The lagoon. `fromShore` is how far out from its shore this is. The beach shelves down and levels off into the shelf,
+  // whose edge wanders; beyond it the floor drops to the basin, which rises and falls a little.
+  float fromShore = -min(fromLagoonShore, 0.0);
+  float beach = LAGOON_BEACH_FALLS_TO * (1.0 - exp(-fromShore / 24.0));
+  float shelf = -smin(-beach, -(LAGOON_SHELF_DEPTH + 0.012 * fromShore), 0.5);
+  float shelfEnds = LAGOON_SHELF_WIDTH + 7.0 * gardenMounds(x + 71.0, z - 43.0);
+  float inBasin = smoothstep(shelfEnds, shelfEnds + 20.0, fromShore);
+  float lagoonDepth = shelf + (LAGOON_DEPTH - LAGOON_SHELF_DEPTH) * inBasin
+    - 0.5 * gardenMounds(x * 0.6 + 19.0, z * 0.6 - 7.0) * inBasin;
+  // The way in from the inlet: along the inlet's line the floor is as deep as the basin all the way to the sandbar.
+  lagoonDepth = mix(lagoonDepth, max(lagoonDepth, LAGOON_DEPTH), passChannel(direction, distanceFromCentre, 0.0));
+  // The patch reefs: the tops of an uneven pattern of mounds, in the basin only.
+  float patchReefs = PATCH_REEF_HEIGHT * smoothstep(0.1, 0.45, gardenMounds(x - 211.0, z + 97.0)) * inBasin;
+  // The deep hole: steep-sided, its rim a little fromShore of round.
+  float holeAcross = x - holeX();
+  float holeAlong = z - holeZ();
+  float fromHole = sqrt(holeAcross * holeAcross + holeAlong * holeAlong) + 3.0 * sin(atan(holeAlong, holeAcross) * 3.0 + 1.0);
+  float hole = (HOLE_DEPTH - LAGOON_DEPTH) * (1.0 - smoothstep(0.5 * HOLE_RADIUS, HOLE_RADIUS, fromHole));
+  // (no patch reef stands in the hole)
+  patchReefs *= smoothstep(HOLE_RADIUS, HOLE_RADIUS + 8.0, fromHole);
   // (on the land side the beach keeps rising, 1 in 5, until it meets the plateau)
-  float lagoon = 0.2 * max(fromLagoonShore, 0.0) - shelving + patchReefs;
+  float lagoon = 0.2 * max(fromLagoonShore, 0.0) - lagoonDepth - hole + patchReefs;
 
   // The land: the ocean beach rises to a low plateau (atolls are flat), which falls to the lagoon beach.
   float rolls = 0.5 * sin(x * 0.13 + 1.0) * sin(z * 0.11);

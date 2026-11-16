@@ -219,6 +219,25 @@ water is opaque and rippled. Not for now, he says: the water's rendering has muc
 that pass: one model of how water colours and hides what is under it, the same at every depth, and a surface whose
 ripples and sheen do not stop where it is shallow.
 
+### The wider reef, second batch: the lagoon's floor, and finding the lost frames (16 November 2026)
+
+- **The lagoon keeps its outline; its floor is new** (`island.glsl`). The beach shelves down as before, so the
+  lagoon's shore waves are untouched, then levels off into a shelf of sand 1.6 m down and about 22 m wide, its
+  edge wandering. Beyond it the basin lies 3.8 m down (it was 6.5 m everywhere: a lagoon this small is shallow),
+  with patch reefs of uneven size standing up to within 0.8 m of the surface, coral on their tops. There is one
+  deep hole, 13 m down and 40 m across, north-east of the sandbank, and the floor is as deep as the basin all
+  the way along the inlet's line to the sandbar. The coral heads placed themselves afresh on the new floor.
+- **The frame rate** on the phone fell from 60 to about 50 with the wider reef, and thinning the wave mesh by a
+  sixth brought little back. Two switches in the debug panel found where the time went. With the sea floor left
+  without its coral painting nothing changed; with no sector of the wave mesh drawn at its finest the phone was
+  back at 60. A sector was a strip from the beach to 262 m out, drawn at its finest whenever any of it was near:
+  from the home beach, 123 thousand points. So each sector is now cut across where the reef's zones meet, into
+  three tiles (the shallows, the gardens, the crest and outside), and each tile is drawn as finely as its own
+  nearest point calls for (`waterConfig.waveMesh`). From the beach the break is drawn at every second point,
+  which at 130 m and more cannot be told from the finest in stills; from the reef the waterline is. The same
+  view is 45 thousand points, and none of the places tried is over 63 thousand; all at the second level is 28
+  thousand, which the phone drew at 60. The `coarse wave mesh` switch stays, for the next time.
+
 ### The white water, first part (15 November 2026)
 
 Brought forward from pass 3, because it reads the pictures and so survives the wider reef.
@@ -276,8 +295,8 @@ and a cross-section with sizes); then the breaker's own mesh.
 - Shadows are redrawn on demand, not every frame. Anything that should cast a moving shadow needs thought first.
 - Plants and rocks are instanced in map squares that are skipped when out of view, hidden beyond a distance and
   drawn with a simpler shape beyond a nearer one.
-- The wave mesh is 16 sectors at three levels of detail. Its vertex shader evaluates the wave model three times
-  per vertex and is the dearest thing per vertex.
+- The wave mesh is 16 sectors, each cut across into three tiles, at three levels of detail. Its vertex shader
+  evaluates the wave model three times per vertex and is the dearest thing per vertex.
 - The terrain's colouring is the dearest thing per pixel (about forty noise evaluations on land). It is drawn
   last so hidden pixels are skipped.
 - Whitecaps cost up to four noise evaluations per water pixel, only above a medium wind. The lagoon's shore band

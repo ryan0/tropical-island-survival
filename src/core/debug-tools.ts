@@ -105,5 +105,7 @@ export function debugSwitches(
     { label: 'no falling lip', set: waterDebug(2) },
     { label: 'plain water colour', set: waterDebug(3) },
     { label: 'sea floor pictures', set: waterDebug(4) },
+    // For finding where a slow frame goes: read the frame rate with it on.
+    { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
   ];
 }
