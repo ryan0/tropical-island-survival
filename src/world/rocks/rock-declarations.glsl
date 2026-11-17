@@ -4,6 +4,8 @@
 
 // the height of the still sea surface
 uniform float uSeaLevel;
+// a debug switch: 5 drains the sea, to see its floor
+uniform float uDebugMode;
 // daylight: 0 at night, 1 by day
 uniform float uDaylight;
 // seconds on the clock the waves run by

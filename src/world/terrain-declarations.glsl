@@ -3,6 +3,7 @@
 // three.js's Lambert fragment shader. The chunks need the defines TERRAIN_FOOTPATHS (footpaths.glsl) and
 // LAGOON_WIND_DIRECTION (lagwave.glsl), which terrain.ts writes.
 
+uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
 uniform float uSeaLevel;      // the height of the still sea surface
 uniform float uDaylight;        // daylight, 0 at night to 1 by day

@@ -73,8 +73,22 @@ How items 1 to 6 came out, and the choices made in building them:
   ground, a placeholder.
 - **The lee's wall** falls from the sill to the sea floor within about 20 m, with broad lumps. A real one is
   vertical only below 30 m, which is under our sea floor.
-- **The pass's lobe** is a tongue of sand some 100 m wide that slopes from 9 m down to 12.5 m and then falls
-  away; the ridge across the pass is 1.8 m high.
+- **The pass's lobe** is a fan of sand that widens as it runs out, highest along its middle, sloping from 9 m
+  down to 12.5 m and then falling away; the ridge across the pass is 1.8 m high.
+
+Refined on 17 November 2026, after Ryan had flown over it with the sea drained and found its outlines angular:
+
+- **The ground's squares are cut into four wherever the shape bends sharply** (`terrain-shape.ts`): the walls of
+  grooves and channels, the edges of the notches and the pass, the lumps. A groove's wall is then drawn by 1 m
+  squares, not 2 m. The ground has 332 thousand triangles, from 173 thousand; `cutInFourWhereBendsOver` is the
+  dial.
+- **No two spurs end at the same place:** their ends, and the drop-off's lip with them, stand up to 13 m further
+  in or out. The deepest grooves run on across the terrace as shallow chutes of sand and notch the lip.
+- **Lumps stand for things to come** (one pattern, some 4 m across): coral heads in clusters on the terrace,
+  rounded masses on the drop-off's face and on the lee's wall, the notches' fallen blocks.
+- **The lee's wall** has three ledges on the way down, and its line wanders.
+- **The notches** have scalloped sides, bigger blocks in places, and the rubble that fell from them lies spread
+  on the terrace below.
 
 
 
@@ -362,7 +376,8 @@ For a setting from the Marshall Islands to Kiribati (and we are free to mix):
 - **The pass is 45 m wide.** Real ones are 90-200 m.
 - **The spurs' tops run from 0.75 m down to 4.6 m.** Real ones lie under 0.9-2.4 m. Ours slope more, so that the
   swell plunges at the crest's edge.
-- **Grooves 4 m wide.** Real ones are 1-3 m, and surge channels 1.5-3 m. The ground's squares are 2 m.
+- **Grooves 4 m wide.** Real ones are 1-3 m, and surge channels 1.5-3 m. The ground's squares are 2 m, or 1 m
+  where it bends sharply.
 - **Nothing overhangs.** The ground is one height for each spot, so roofed channels, caverns, caves and undercut
   knolls wait for things of their own set on the ground, or for another way of making ground. Ryan wants them in
   time.

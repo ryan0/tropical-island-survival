@@ -29,6 +29,13 @@ export const playerConfig = {
     lowestAboveGround: 0.4,
     highest: 400,
     farthestFromCentre: 1200,
+    /** How many times as fast it flies while Shift is held, or with the `fast` button on. */
+    hurry: 4,
+    /**
+     * The mouse wheel sets the pace, for a close look or a long way to go: each notch of the wheel
+     * multiplies it by `perWheelNotch`, between `slowest` and `fastest` times the usual speed.
+     */
+    pace: { perWheelNotch: 1.25, slowest: 0.1, fastest: 8 },
   },
 
   walking: {

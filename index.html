@@ -295,6 +295,34 @@
         color: #fff;
         background: #0a2a4a;
       }
+      .fly-buttons {
+        position: fixed;
+        right: 22px;
+        bottom: 34px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .fly-buttons[hidden] {
+        display: none;
+      }
+      .fly-button {
+        width: 58px;
+        height: 46px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        color: #fff;
+        font: 13px sans-serif;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .fly-button.on {
+        background: rgba(255, 255, 255, 0.55);
+        color: #123;
+      }
       .debug-panel {
         position: fixed;
         left: 10px;
@@ -321,6 +349,10 @@
       }
       .debug-switch.on {
         background: #2a7;
+      }
+      .debug-heading {
+        margin-top: 8px;
+        opacity: 0.7;
       }
       .build-label {
         position: fixed;

@@ -2,7 +2,6 @@ import {
   BufferAttribute,
   Mesh,
   MeshLambertMaterial,
-  PlaneGeometry,
   type BufferGeometry,
   type IUniform,
   type Scene,
@@ -15,10 +14,11 @@ import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { reefConfig } from './reef/reef-config';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
-import { worldConfig } from './world-config';
+import { createTerrainShape } from './terrain-shape';
 
 /** The shared uniforms the ground's colouring reads. */
 const SHARED_UNIFORMS = [
+  'uDebugMode',
   'uTime',
   'uSeaLevel',
   'uDaylight',
@@ -44,8 +44,6 @@ export interface TerrainDependencies {
   /** The side of the square the map of cloud shadows covers, in metres. */
   cloudShadeSpan: number;
 }
-
-const config = worldConfig.terrain;
 
 /** The colour of each corner of the ground: sand, darker where wet, grass higher up, rock at the top. */
 function cornerColours(heights: BufferAttribute, shape: BufferGeometry): Float32Array {
@@ -83,43 +81,6 @@ function cornerColours(heights: BufferAttribute, shape: BufferGeometry): Float32
   return colours;
 }
 
-/**
- * Nearly half of the square is the flat sea floor beyond the reef. Those grid squares are left
- * out and the whole floor is drawn as one big rectangle instead: the same picture, about
- * 60,000 fewer triangles every frame.
- */
-function cornerOrderWithoutSeaFloor(heights: BufferAttribute): number[] {
-  const cornersAcross = config.squares + 1;
-  const isAboveFloor = (corner: number) => heights.getY(corner) > config.seaFloor;
-  const cornerOrder: number[] = [];
-  for (let row = 0; row < config.squares; row++) {
-    for (let column = 0; column < config.squares; column++) {
-      const a = column + cornersAcross * row;
-      const b = a + cornersAcross;
-      if (isAboveFloor(a) || isAboveFloor(a + 1) || isAboveFloor(b) || isAboveFloor(b + 1)) {
-        cornerOrder.push(a, b, a + 1, b, b + 1, a + 1);
-      }
-    }
-  }
-  const lastRow = cornersAcross * (cornersAcross - 1);
-  const lastCorner = cornersAcross * cornersAcross - 1;
-  cornerOrder.push(0, lastRow, cornersAcross - 1, lastRow, lastCorner, cornersAcross - 1);
-  return cornerOrder;
-}
-
-function createShape(groundHeight: GroundHeight): BufferGeometry {
-  const shape = new PlaneGeometry(config.size, config.size, config.squares, config.squares);
-  shape.rotateX(-Math.PI / 2);
-  const position = shape.getAttribute('position') as BufferAttribute;
-  for (let i = 0; i < position.count; i++) {
-    position.setY(i, groundHeight(position.getX(i), position.getZ(i)));
-  }
-  shape.setAttribute('color', new BufferAttribute(cornerColours(position, shape), 3));
-  shape.setIndex(cornerOrderWithoutSeaFloor(position));
-  shape.computeVertexNormals();
-  return shape;
-}
-
 function asVec2({ x, z }: Point): string {
   return `vec2(${x.toFixed(2)},${z.toFixed(2)})`;
 }
@@ -137,7 +98,10 @@ function footpathStatements(landmarks: Landmarks): string {
 /** The ground and how it is coloured: sand, grass, rock, wet sand, the net of light on the sea floor. */
 export function createTerrain(dependencies: TerrainDependencies): void {
   const { scene, random, groundHeight, landmarks, uniforms, windDirection } = dependencies;
-  const shape = createShape(groundHeight);
+  const shape = createTerrainShape(groundHeight);
+  const corners = shape.getAttribute('position') as BufferAttribute;
+  shape.setAttribute('color', new BufferAttribute(cornerColours(corners, shape), 3));
+  shape.computeVertexNormals();
   const grit = createGroundGrit(random);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
@@ -151,9 +115,14 @@ export function createTerrain(dependencies: TerrainDependencies): void {
     DRY_TURF: glslVec3(...turfColours.dry),
   };
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
-  material.onBeforeCompile = (shader) => {
+  material.onBeforeCompile = (shader, renderer) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.uniforms.uGritAverage = { value: grit.mean };
+    // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
+    // changes across a pixel, which only WebGL 2 tells without asking.
+    const canMeasureAcrossPixel = renderer.capabilities.isWebGL2
+      ? '#define CAN_MEASURE_ACROSS_A_PIXEL\n'
+      : '';
     shader.vertexShader =
       'varying vec3 vGroundPosition;\n' +
       shader.vertexShader.replace(
@@ -161,6 +130,7 @@ export function createTerrain(dependencies: TerrainDependencies): void {
         '#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;',
       );
     shader.fragmentShader =
+      canMeasureAcrossPixel +
       declarations +
       shader.fragmentShader.replace(
         '#include <color_fragment>',

@@ -8,6 +8,8 @@ uniform float uTime;
 uniform float uDaylight;
 // the height of the still sea surface
 uniform float uSeaLevel;
+// a debug switch: 5 drains the sea, to see its floor
+uniform float uDebugMode;
 // wind strength, 0..1
 uniform float uWind;
 // the camera's position: three.js does not fill in cameraPosition for a Lambert material

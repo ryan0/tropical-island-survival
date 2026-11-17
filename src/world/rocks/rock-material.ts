@@ -5,7 +5,14 @@ import declarations from './rock-declarations.glsl';
 import type { RockSurface } from './rocks-config';
 
 /** The shared uniforms the rock colouring reads. */
-const SHARED_UNIFORMS = ['uSeaLevel', 'uTime', 'uWind', 'uDaylight', 'uDetail'] as const;
+const SHARED_UNIFORMS = [
+  'uSeaLevel',
+  'uDebugMode',
+  'uTime',
+  'uWind',
+  'uDaylight',
+  'uDetail',
+] as const;
 
 // Where the rock's surface is and which way it faces, in the world: the pattern is laid on from
 // three sides by those, so that it never stretches.

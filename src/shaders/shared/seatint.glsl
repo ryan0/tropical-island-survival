@@ -1,7 +1,8 @@
 // What the sea does to the colour of anything under it, as terrain-colour.glsl does to the sand: paler and greyer,
 // red lost with depth, the water's own blue-green glow, and the net of light the ripples throw (mostly on faces that
 // look up). Used by the rocks and the coral.
-// Needs the uniforms uSeaLevel, uDaylight, uTime, uWind and uDetail (the detail texture), declared by the file that includes it.
+// Needs the uniforms uSeaLevel, uDaylight, uTime, uWind, uDebugMode and uDetail (the detail texture), declared by the
+// file that includes it.
 
 // The tint begins this far below the still sea surface.
 const float SEA_TINT_START_DEPTH = 0.2;
@@ -14,7 +15,8 @@ const vec3 SEA_GLOW = vec3(0.0, 0.075, 0.13);
 // tintStrength: how much of the water's greying and loss of red to apply (1 for rock; less for living coral, whose
 // colour is the point of it).
 vec3 seaTint(vec3 colour, vec3 worldPosition, float facingUp, float tintStrength) {
-  float depthUnderWater = max(uSeaLevel - worldPosition.y - SEA_TINT_START_DEPTH, 0.0);
+  // (with the sea drained, uDebugMode 5, nothing is under water)
+  float depthUnderWater = max(uSeaLevel - worldPosition.y - SEA_TINT_START_DEPTH, 0.0) * step(uDebugMode, 4.5);
   float isUnderWater = step(0.0001, depthUnderWater);
 
   // Paler and greyer

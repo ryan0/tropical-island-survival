@@ -30,8 +30,11 @@ export interface UnderWater {
   /** The height of the water's surface at the camera, as of the last update. */
   readonly surfaceHeight: number;
   readonly isCameraUnder: boolean;
-  /** `daylight` is 0 at night to 1 in full day; `night` the other way about. */
-  update(time: number, daylight: number, night: number): void;
+  /**
+   * `daylight` is 0 at night to 1 in full day; `night` the other way about. With the sea drained
+   * (a debug switch) the camera is never under water.
+   */
+  update(time: number, daylight: number, night: number, isSeaDrained: boolean): void;
 }
 
 // The camera counts as under water from this far below the surface, where the water is at least so deep.
@@ -99,10 +102,11 @@ export function createUnderWater(dependencies: UnderWaterDependencies): UnderWat
       return isCameraUnder;
     },
 
-    update(time, daylight, night) {
+    update(time, daylight, night, isSeaDrained) {
       surfaceHeight = waves.heightAt(camera.position.x, camera.position.z, time);
       // Below the surface, and there is actually water here.
       isCameraUnder =
+        !isSeaDrained &&
         camera.position.y < surfaceHeight - JUST_UNDER &&
         surfaceHeight - waves.spot.groundHeight > SHALLOWEST;
       const light = (1 - 0.8 * night) * (0.55 + 0.45 * daylight);

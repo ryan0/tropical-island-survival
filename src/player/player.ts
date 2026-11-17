@@ -1,6 +1,7 @@
 import type { PerspectiveCamera } from 'three';
 import type { WaveModel } from '../sea/wave-model';
 import { createCaptions } from '../ui/captions';
+import { createFlyButtons } from '../ui/fly-buttons';
 import { createJoystick } from '../ui/joystick';
 import type { IslandShape } from '../world/island-shape';
 import type { Landmarks, Point } from '../world/landmarks';
@@ -21,6 +22,8 @@ export interface PlayerDependencies {
     joystickPad: HTMLElement;
     joystickKnob: HTMLElement;
     caption: HTMLElement;
+    /** Where the buttons that fly up, down and fast are put. */
+    flyButtonsParent: HTMLElement;
   };
   island: IslandShape;
   /** The sandbank in the lagoon. */
@@ -47,11 +50,15 @@ export interface Player {
   readonly isIntroRunning: boolean;
   /**
    * Flying: the stick moves the eye the way it looks, over land and sea alike, and nothing holds
-   * it to the ground. For looking at the scene from anywhere; the debug panel switches it. When
-   * it is switched off the player comes down where the eye was.
+   * it to the ground. Space and C (or the buttons, on a phone) take it straight up and down, Shift
+   * (or `fast`) hurries it, and the mouse wheel sets its pace. For looking at the scene from
+   * anywhere; the debug panel switches it. When it is switched off the player comes down where
+   * the eye was.
    */
   readonly isFlying: boolean;
   setFlying(isFlying: boolean): void;
+  /** Flies the eye to a place, looking a given way. */
+  flyTo(x: number, y: number, z: number, yaw: number, pitch: number): void;
   /** Walking, swimming and diving, or flying; the opening fly-in; and the camera. */
   update(frame: PlayerFrame): void;
   /** Shows a place's name as the player comes into it. Called later in the frame than `update`. */
@@ -92,6 +99,7 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     elements.hint.style.opacity = '0';
   });
   const controls = createLookAndKeys(canvas, hurryIntro);
+  const flyButtons = createFlyButtons(elements.flyButtonsParent);
   const placeNames = createPlaceNames({ captions, island, sandbank, landmarks, hasCamp, intro });
 
   let groundHeight = 0;
@@ -122,17 +130,27 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     }
   }
 
-  /** The stick moves the eye the way it looks, faster the higher it is. */
-  function fly(forward: number, sideways: number, dt: number): void {
+  /** The stick moves the eye the way it looks, faster the higher it is; `climb` moves it straight up or down. */
+  function fly(forward: number, sideways: number, climb: number, dt: number): void {
     const aboveSurface = Math.max(0, position.y - Math.max(groundHeight, 0));
-    const speed = flying.speed + flying.speedPerMetreOfHeight * aboveSurface;
+    const isHurrying = controls.isHurrying || flyButtons.isFast;
+    const speed =
+      (flying.speed + flying.speedPerMetreOfHeight * aboveSurface) *
+      controls.flyingPace *
+      (isHurrying ? flying.hurry : 1);
     move(forward * Math.cos(controls.pitch), sideways, speed, dt, flying.farthestFromCentre);
     groundHeight = island.groundHeight(position.x, position.z);
-    const climbed = position.y + Math.sin(controls.pitch) * forward * speed * dt;
+    const climbed = position.y + (Math.sin(controls.pitch) * forward + climb) * speed * dt;
     position.y = Math.max(
       groundHeight + flying.lowestAboveGround,
       Math.min(flying.highest, climbed),
     );
+  }
+
+  function setFlying(shouldFly: boolean): void {
+    isFlying = shouldFly;
+    flyButtons.show(shouldFly);
+    if (shouldFly) intro.end();
   }
 
   /** Pushing forward while looking down dives; looking up comes back up. */
@@ -190,9 +208,14 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
       return isFlying;
     },
 
-    setFlying(shouldFly) {
-      isFlying = shouldFly;
-      if (shouldFly) intro.end();
+    setFlying,
+
+    flyTo(x, y, z, yaw, pitch) {
+      setFlying(true);
+      position.x = x;
+      position.y = y;
+      position.z = z;
+      controls.face(yaw, pitch);
     },
 
     update({ time, dt, cameraOverride }) {
@@ -204,7 +227,7 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
         sideways = 0;
       }
 
-      if (isFlying) fly(forward, sideways, dt);
+      if (isFlying) fly(forward, sideways, controls.climb(flyButtons.climb), dt);
       else walkOrSwim(time, dt, forward, sideways);
 
       camera.position.set(position.x, position.y, position.z);

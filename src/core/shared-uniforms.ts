@@ -3,6 +3,12 @@ import type { CloudUniforms } from '../sky/clouds';
 import type { SkyLightUniforms } from '../sky/sky-light';
 
 /**
+ * The value of `uDebugMode` that drains the sea: no water is drawn, nothing under it is tinted by
+ * it, and the ground shows lines of equal depth. The shaders write it as 4.5 and above.
+ */
+export const SEA_DRAINED = 5;
+
+/**
  * The one set of uniforms that every hand-written shader shares. The sky's light and the
  * clouds own theirs; the rest are these.
  */
@@ -20,7 +26,7 @@ export type SharedUniforms = Record<string, IUniform> &
     uShoreBandShown: { value: number };
     /**
      * A debug switch: 0 normal, 1 waves off, 2 no falling lip, 3 plain water colour, 4 the sea
-     * floor's pictures drawn on the water.
+     * floor's pictures drawn on the water, 5 the sea drained (SEA_DRAINED), to see its floor.
      */
     uDebugMode: { value: number };
     /** The detail texture. */

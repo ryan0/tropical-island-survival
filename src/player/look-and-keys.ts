@@ -11,9 +11,23 @@ export interface LookAndKeys {
   sideways(stick: number): number;
   /** The left and right arrow keys turn the view while they are held. */
   turn(dt: number): void;
+  /**
+   * The push upwards while flying, from -1 (down) to 1: Space climbs, C or Control sinks;
+   * otherwise the buttons'. (Control with W closes the browser's tab, which no page can stop:
+   * C is the safe key.)
+   */
+  climb(buttons: number): number;
+  /** Whether Shift is held, to fly faster. */
+  readonly isHurrying: boolean;
+  /** How many times the usual speed to fly at, as the mouse wheel has set it. */
+  readonly flyingPace: number;
 }
 
 const config = playerConfig.look;
+const { pace } = playerConfig.flying;
+// The keys that fly, which the browser would otherwise act on: Space presses whichever button was
+// clicked last, and Control with S, D or A saves the page, bookmarks it or selects it all.
+const KEYS_KEPT_FROM_THE_BROWSER = new Set([' ', 's', 'd', 'a']);
 
 /** Dragging the picture looks round; W A S D or the arrows walk. Every press calls `onPress`. */
 export function createLookAndKeys(canvas: HTMLCanvasElement, onPress: () => void): LookAndKeys {
@@ -22,6 +36,7 @@ export function createLookAndKeys(canvas: HTMLCanvasElement, onPress: () => void
   // Where each finger dragging the picture was when it last moved.
   const drags = new Map<number, { x: number; y: number }>();
   const held = new Set<string>();
+  let flyingPace = 1;
 
   canvas.addEventListener('pointerdown', (event) => {
     onPress();
@@ -50,11 +65,29 @@ export function createLookAndKeys(canvas: HTMLCanvasElement, onPress: () => void
 
   window.addEventListener('keydown', (event) => {
     onPress();
-    held.add(event.key.toLowerCase());
+    const key = event.key.toLowerCase();
+    held.add(key);
+    if (KEYS_KEPT_FROM_THE_BROWSER.has(key) && (key === ' ' || event.ctrlKey))
+      event.preventDefault();
   });
   window.addEventListener('keyup', (event) => {
     held.delete(event.key.toLowerCase());
   });
+  // A key let go while the page is not looking would otherwise stay held.
+  window.addEventListener('blur', () => {
+    held.clear();
+  });
+  canvas.addEventListener(
+    'wheel',
+    (event) => {
+      const notches = -Math.sign(event.deltaY);
+      flyingPace = Math.max(
+        pace.slowest,
+        Math.min(pace.fastest, flyingPace * pace.perWheelNotch ** notches),
+      );
+    },
+    { passive: true },
+  );
 
   return {
     get yaw() {
@@ -84,6 +117,20 @@ export function createLookAndKeys(canvas: HTMLCanvasElement, onPress: () => void
     turn(dt) {
       if (held.has('arrowleft')) yaw += dt * config.arrowTurnRate;
       if (held.has('arrowright')) yaw -= dt * config.arrowTurnRate;
+    },
+
+    climb(buttons) {
+      if (held.has('c') || held.has('control')) return -1;
+      if (held.has(' ')) return 1;
+      return buttons;
+    },
+
+    get isHurrying() {
+      return held.has('shift');
+    },
+
+    get flyingPace() {
+      return flyingPace;
     },
   };
 }

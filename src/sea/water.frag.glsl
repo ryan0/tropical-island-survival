@@ -305,6 +305,9 @@ vec3 seenFromUnderWater(vec2 xz, vec3 towardsCamera, float cameraDistance) {
 }
 
 void main() {
+  // (uDebugMode 5: the sea is drained, to see its floor)
+  if (uDebugMode > 4.5) discard;
+
   // ---- Where this point is ----
 
   vec2 xz = vWaterPosition.xz;

@@ -263,7 +263,21 @@ further out, 0.4 s earlier.
 
 The ground's formula is longer: the program takes half as long again to work it out (the sea floor's pictures
 take 650 ms on the desktop, from 520), and the water's shader works it out for every pixel of the wave mesh,
-with about a twentieth more trigonometry than before. The phone's frame rate is to be read again.
+with about a twentieth more trigonometry than before. Ryan read the phone's frame rate again: no different.
+
+Ryan wants a few rounds of refining this shape before the waves go on, and asked for better means of judging it.
+Flying now has keys (Space and C for up and down, Shift for speed, the wheel for the pace; F switches it) and
+buttons for the same on a phone; `drain the sea` (G) draws the floor without its water, with lines of equal
+depth; the debug panel tells the depth under the eye and how far along the reef it is, and has buttons that fly
+to the ridge, the notches, the pass and the rest.
+
+The first round of refining (17 November 2026). With the sea drained Ryan found the grooves' outlines angular:
+the ground's 2 m squares could not follow their walls. The ground's squares are now cut into four wherever the
+shape bends sharply (`src/world/terrain-shape.ts`), which nearly doubles its triangles (332 thousand, from 173
+thousand; one number in `world-config.ts` sets how readily). And the shape has more in it: spurs that end at
+different places, chutes of sand across the terrace, coral heads on it, a drop-off whose lip wanders, rounded
+masses on the walls, ledges on the lee's wall, a fan for the pass's lobe where there was a ramp, and rubble
+below the notches (`REEF.md`). The swell breaks as it did. The phone is to say what the triangles cost.
 
 Still to do of the shape: a lower strip of flat-topped heads and pools behind the crest, and the lagoon's patch
 reefs made steep-sided. Then the coral, in `REEF.md`'s order.

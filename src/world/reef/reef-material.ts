@@ -8,6 +8,7 @@ const SHARED_UNIFORMS = [
   'uTime',
   'uDaylight',
   'uSeaLevel',
+  'uDebugMode',
   'uCameraPosition',
   'uWind',
 ] as const;

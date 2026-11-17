@@ -38,6 +38,13 @@ export const worldConfig = {
     /** The square of ground drawn, and the squares along each side of it. */
     size: 960,
     squares: 480,
+    /**
+     * A square is cut into four where the ground bends too sharply for it: where a corner stands
+     * more than this above or below the middle of its neighbours (metres). That is the walls of
+     * the reef's grooves and channels, the edges of its notches and of the pass, the foot of its
+     * walls. A lower number cuts more squares, each for six more triangles.
+     */
+    cutInFourWhereBendsOver: 0.5,
     /** The sea floor beyond the reef: the lowest the island's shape goes. */
     seaFloor: -30.49,
     /** Dots along each side of the grit picture, and how many times it repeats across the ground. */

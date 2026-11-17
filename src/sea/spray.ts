@@ -45,6 +45,8 @@ export interface SprayFrame {
   /** 0 by day to 1 at night. */
   night: number;
   isCameraUnderWater: boolean;
+  /** A debug switch: with the sea drained nothing is thrown. */
+  isSeaDrained: boolean;
   pixelRatio: number;
   /** The view's height in CSS pixels. */
   viewHeight: number;
@@ -150,7 +152,8 @@ export function createSpray(dependencies: SprayDependencies): Spray {
       );
       const fromShore = Math.abs(cameraDistance - islandRadius(cameraDirection));
 
-      if (fromShore < config.nearShoreline && !frame.isCameraUnderWater) {
+      const isSeaThere = !frame.isCameraUnderWater && !frame.isSeaDrained;
+      if (fromShore < config.nearShoreline && isSeaThere) {
         const breaking = throwFromTheReef(time, dt, cameraDirection, lookDirection);
         surfBreaking +=
           (Math.min(1, breaking / config.surfSound.loudestAt) - surfBreaking) *

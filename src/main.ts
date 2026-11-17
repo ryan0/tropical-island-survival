@@ -1,9 +1,16 @@
 import { createAudio } from './audio/audio';
 import { createAutomaticQuality } from './core/automatic-quality';
-import { debugSwitches, describeBuild, describeEye, describeSpeed } from './core/debug-tools';
+import {
+  debugSwitches,
+  describeBuild,
+  describeEye,
+  describeSpeed,
+  FLYING_KEYS,
+  placesToFlyTo,
+} from './core/debug-tools';
 import { createFrameMeter } from './core/frame-meter';
 import { createRandomStreams } from './core/random';
-import { createSharedUniforms } from './core/shared-uniforms';
+import { createSharedUniforms, SEA_DRAINED } from './core/shared-uniforms';
 import { createStage } from './core/stage';
 import { createTestHooks } from './core/test-hooks';
 import { createView } from './core/view';
@@ -222,6 +229,7 @@ const player = createPlayer({
     joystickPad: pageElement('joy'),
     joystickKnob: pageElement('knob'),
     caption: pageElement('cap'),
+    flyButtonsParent: document.body,
   },
   island,
   sandbank: island.sandbank,
@@ -285,9 +293,12 @@ const debugPanel = createDebugPanel(
   () => [
     ...describeBuild(renderer, build, water, quality, seaFloor),
     describeSpeed(renderer, frameMeter),
-    describeEye(camera.position),
+    describeEye(camera.position, island),
+    FLYING_KEYS,
   ],
   debugSwitches(water, uniforms, testHooks, player),
+  'fly to',
+  placesToFlyTo(player),
 );
 // The button in the corner names the time of day. A tap opens the menu; a long press, the debug panel.
 const timeButton = pageElement('tod');
@@ -353,6 +364,7 @@ const sprayFrame: SprayFrame = {
   daylight: 1,
   night: 0,
   isCameraUnderWater: false,
+  isSeaDrained: false,
   pixelRatio: 1,
   viewHeight: 0,
 };
@@ -411,7 +423,8 @@ function frame(now: number): void {
   cloudsFrame.night = light.night;
   clouds.update(cloudsFrame);
 
-  underWater.update(time, light.daylight, light.night);
+  const isSeaDrained = uniforms.uDebugMode.value === SEA_DRAINED;
+  underWater.update(time, light.daylight, light.night, isSeaDrained);
 
   lightsFrame.daylight = light.daylight;
   lightsFrame.night = light.night;
@@ -436,6 +449,7 @@ function frame(now: number): void {
   sprayFrame.daylight = light.daylight;
   sprayFrame.night = light.night;
   sprayFrame.isCameraUnderWater = underWater.isCameraUnder;
+  sprayFrame.isSeaDrained = isSeaDrained;
   sprayFrame.pixelRatio = renderer.getPixelRatio();
   sprayFrame.viewHeight = view.height;
   spray.update(sprayFrame);

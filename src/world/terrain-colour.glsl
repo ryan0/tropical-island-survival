@@ -55,6 +55,10 @@ const vec3 PINK_CRUST = vec3(0.76, 0.58, 0.60);
 float height = vGroundPosition.y;
 vec2 xz = vGroundPosition.xz;
 float waterDepth = max(uSeaLevel - height, 0.0);
+// (how much the depth changes across a pixel, for the lines of equal depth: worked out here, before any branch)
+#ifdef CAN_MEASURE_ACROSS_A_PIXEL
+float depthAcrossPixel = max(fwidth(waterDepth), 1e-5);
+#endif
 
 // (uCameraPosition, not three.js's cameraPosition: three.js does not fill that in for this kind of material, and for a long time
 // every close-up detail below was faded out as if the camera stood in the middle of the lagoon)
@@ -451,7 +455,8 @@ if (waterDepth > 0.0) {
 
   // The strip the waves run up and drain off (down to 20 cm below the still sea) is bare sand half the time, so the
   // underwater look starts below it: standingDepth is the depth of the water that is always there.
-  float standingDepth = max(waterDepth - 0.2, 0.0);
+  // (with the sea drained, uDebugMode 5, the ground is drawn as if no water stood over it)
+  float standingDepth = max(waterDepth - 0.2, 0.0) * step(uDebugMode, 4.5);
   // under water: sand reads paler, red is absorbed with depth, and the water column adds its own blue-green glow
   vec3 greyed = vec3(dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2))) * vec3(1.04, 1.04, 1.02);
   // (less so in the lagoon's glassy shallows)
@@ -483,4 +488,17 @@ if (waterDepth > 0.0) {
   float nearCentre = exp(-length(vGroundPosition) * 0.012);
   float netLight = netPattern * fadeIn * lagoonShallows * rippled * fadeWithDepth * notInSurf * uDaylight * nearCentre;
   diffuseColor.rgb *= 1.0 + netLight;
+}
+
+// ---- The sea drained (uDebugMode 5) ----
+
+// Lines of equal depth, a metre apart and every fifth bolder, to read the floor's shape by.
+if (uDebugMode > 4.5 && waterDepth > 0.0) {
+#ifdef CAN_MEASURE_ACROSS_A_PIXEL
+  float pixelsFromLine = abs(fract(waterDepth + 0.5) - 0.5) / depthAcrossPixel;
+  float pixelsFromBoldLine = abs(fract(waterDepth * 0.2 + 0.5) - 0.5) * 5.0 / depthAcrossPixel;
+  float line = max(0.4 * (1.0 - smoothstep(0.5, 1.3, pixelsFromLine)),
+    0.7 * (1.0 - smoothstep(1.0, 2.2, pixelsFromBoldLine)));
+  diffuseColor.rgb *= 1.0 - line;
+#endif
 }
