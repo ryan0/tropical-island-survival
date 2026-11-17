@@ -1,12 +1,16 @@
 // The colour of the sea: ripples, the sky, clouds, sun and moon mirrored in them, the colour of the water itself by
-// depth, the glow of a wave's face, foam and lace, white horses in a high wind, the small waves on the lagoon's
-// beaches, foam round rocks in the surf, the clouds' shadows, haze, and the surface seen from under water.
+// how much of it the eye looks through, the light through a wave's thin top, foam and lace, white horses in a high
+// wind, the small waves on the lagoon's beaches, foam round rocks in the surf, the clouds' shadows, haze, and the
+// surface seen from under water.
 //
-// One shader colours three sheets of water (water-materials.ts, water.ts):
+// One shader colours four sheets of water (water-materials.ts, water.ts, breaker.ts):
 //   the wave mesh             uIsFlatSheet 0, uIsShoreBand 0   the ring round the ocean beach, moved by water.vert.glsl
+//   the breaker's own mesh    uIsFlatSheet 0, uIsShoreBand 0   the front of a breaking wave, moved by breaker.vert.glsl
 //   the far sea               uIsFlatSheet 1, uIsShoreBand 0   flat out to the horizon, with a hole cut for the wave mesh; it is
 //                                               also the calm water of the lagoon
 //   the lagoon's shore band   uIsFlatSheet 1, uIsShoreBand 1   lifted into small waves in a high wind by lagoon-shore-band.vert.glsl
+// Each is compiled with only what it can show: WATER_STANDS_STEEP for the two meshes whose water can stand steep,
+// and WATER_HAS_TORN_EDGE for the breaker's (the materials' defines).
 //
 // Needs
 //   the uniforms and varyings below, and three.js's cameraPosition (given to every ShaderMaterial);
@@ -38,9 +42,6 @@ uniform float uUnderWater;
 uniform vec3 uUnderWaterColour;
 // A debug switch: 0 normal, 1 waves off, 2 no falling lip (the vertex shader's), 3 plain water colour.
 uniform float uDebugMode;
-// 1 to colour the water by how much of it the eye looks through, 0 by the rules that replaces (a debug switch,
-// while the new rule is judged: see "How much water the eye looks through").
-uniform float uColourByPath;
 // The unit vector towards the sun, and the sun's colour.
 uniform vec3 uSunDirection;
 uniform vec3 uSunColour;
@@ -83,6 +84,11 @@ varying vec3 vWaveState;
 // How much water lies behind the surface, level with it, in metres: the sea has no far side (100), but the front of
 // a breaking wave does, and its lip is a sheet (breaker.vert.glsl).
 varying float vWaterBehind;
+// How near the torn top of a breaking wave's white mass this point is, 0 to 1 (torn-edge.glsl).
+varying float vTornEdge;
+// The white mass that a landed lip throws up (breaker.vert.glsl): how far this point is part of it, 0 to 1, and
+// how far along the mesh's cross-section it lies, in metres.
+varying vec2 vWhiteMass;
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
@@ -91,6 +97,7 @@ varying float vWaterBehind;
 
 #include "../shaders/shared/lagwave"
 #include "wave-timing/timing"
+#include "torn-edge"
 
 // ---- Numbers to retune ----
 
@@ -118,14 +125,6 @@ const vec3 TURQUOISE = vec3(0.03, 0.55, 0.70);
 const vec3 OCEAN_BLUE = vec3(0.006, 0.12, 0.34);
 // Added where the ripples face the sun.
 const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
-// The light through a wave standing up.
-const vec3 WAVE_GLOW_GREEN = vec3(0.18, 0.78, 0.68);
-// The lagoon's shore waves: where they stand above still water, and on a steep face.
-const vec3 SHORE_WAVE_GREEN = vec3(0.16, 0.74, 0.66);
-const vec3 SHORE_WAVE_FACE_GREEN = vec3(0.05, 0.50, 0.47);
-// The steep face of a breaking wave: at its foot, and towards the lip.
-const vec3 WAVE_FACE_FOOT = vec3(0.0, 0.21, 0.29);
-const vec3 WAVE_FACE_LIP = vec3(0.10, 0.66, 0.62);
 // Water full of bubbles where waves have just broken.
 const vec3 AERATED_WATER = vec3(0.52, 0.87, 0.85);
 // The water's colour multiplied by this with the sun at the horizon.
@@ -146,16 +145,50 @@ const vec3 LOW_SUN_UNDER_WATER = vec3(0.6, 0.45, 0.5);
 // Debug switch 3.
 const vec3 PLAIN_WATER = vec3(0.03, 0.25, 0.50);
 
+// The lines that run up a wave's face: how many times the detail texture goes round the atoll for them (one line
+// to some 20 cm of the wave's length), and how far they tilt the face.
+const float FACE_LINES_ROUND = 816.0 / FULL_TURN;
+const float FACE_LINES_TILT = 1.6;
+const float FACE_LINES_SHADE = 0.55;
+// How much brighter the water is on a slope turned full to the sun than on one edge on to it.
+const float SUN_ON_SLOPES = 0.6;
+
+// Foam on steep water: how many times the detail texture goes round the atoll for it (about three metres of the
+// shore to one round of the texture); and for white water piled up, how far its lumps tilt it and how much
+// darker the hollows between them are.
+const float STEEP_FOAM_ROUND = 628.0 / FULL_TURN;
+const float STEEP_FOAM_FALLS = 1.4;
+const float PILED_LUMPS = 2.6;
+const float PILED_HOLLOWS = 0.22;
+
+// The mirrored sky begins to hide the floor where the eye looks this far along the surface, and hides all it can
+// from the second number on (1 less the cosine of the angle from straight down: 0.85 is 81 degrees, 0.97 is 88).
+const vec2 MIRROR_HIDES_FROM = vec2(0.85, 0.97);
+
+// The white mass a landed lip throws up: how many times the detail texture goes round the atoll for its lumps (a
+// round to some ten metres, so a lump is a metre or so across); how far the lumps tilt it, and how much the small
+// lumps on them count beside them; its colour where it is turned from the sun; and how much darker the hollows
+// between the lumps are.
+const float MASS_LUMPS_ROUND = 207.0 / FULL_TURN;
+const float MASS_LUMPS_TILT = 3.2;
+const float MASS_SMALL_LUMPS = 0.7;
+const vec3 MASS_IN_SHADE = vec3(0.81, 0.88, 0.95);
+const float MASS_HOLLOWS = 0.17;
+
 // Light bends as it enters water: the sine of its angle to the surface's normal shrinks by this (1 / 1.33).
 const float INTO_WATER = 0.75;
 // The floor is never far under a ray that runs along through shallow water, and lights it from below: such a ray
-// counts as going down at least this steeply, or a wave's foot over the reef would be as dark as the open sea.
-const float LEAST_WAY_DOWN = 0.2;
-// The light that comes through a wave from behind it: through a sheet of water, and through three metres and more.
-const vec3 LIGHT_THROUGH_THIN = vec3(0.42, 0.90, 0.88);
-const vec3 LIGHT_THROUGH_THICK = vec3(0.05, 0.52, 0.62);
-// No light comes through more water than this (metres).
-const float NO_LIGHT_THROUGH = 7.0;
+// counts as going down at least this steeply, or a wave over the reef would be as dark as the open sea.
+const float LEAST_WAY_DOWN = 0.33;
+// The light that comes through a wave from behind it: through a sheet of water, and through a metre and a half.
+const vec3 LIGHT_THROUGH_THIN = vec3(0.40, 0.88, 0.86);
+const vec3 LIGHT_THROUGH_THICK = vec3(0.06, 0.52, 0.64);
+// How bright that light is with the sun behind the eye, and looking straight towards the sun.
+const float LIGHT_THROUGH_DIM = 0.75;
+const float LIGHT_THROUGH_GLOW = 1.15;
+// Light comes through a wave's water freely up to the first of these thicknesses (metres), and not at all through
+// the second: through more than that the wave is a wall, as deep in colour as the sea behind it.
+const vec2 LIGHT_COMES_THROUGH = vec2(0.9, 3.4);
 
 // ---- Functions ----
 
@@ -322,8 +355,16 @@ vec3 seenFromUnderWater(vec2 xz, vec3 towardsCamera, float cameraDistance) {
 }
 
 void main() {
+  // The gaps in the torn edges of a breaking wave's white mass: only the breaker's mesh is compiled with them.
+  // Not from under water, where the mesh's foot would show as a net of dark threads. (The texture is read here,
+  // before any branch.)
+  #ifdef WATER_HAS_TORN_EDGE
+  float tornAway = isTornAway(vWaterPosition, vTornEdge) * (1.0 - uUnderWater);
+  #else
+  float tornAway = 0.0;
+  #endif
   // (uDebugMode 5: the sea is drained, to see its floor)
-  if (uDebugMode > 4.5) discard;
+  if (uDebugMode > 4.5 || tornAway > 0.5) discard;
 
   // ---- Where this point is ----
 
@@ -411,6 +452,42 @@ void main() {
   float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
   float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam * (1.0 - uIsFlatSheet));
 
+  // Two more readings for water that stands steep, which only the wave mesh and the breaker's mesh can: the flat
+  // sheets are compiled without them (WATER_STANDS_STEEP is the materials' define). Both are laid out along the
+  // shore, and have the same seam and the same fade.
+  #ifdef WATER_STANDS_STEEP
+  // Drawn out up the water's height and fine along the shore: the lines that run up a wave's face, where the water
+  // is drawn up it.
+  vec4 faceLines = texture2D(uDetail, vec2(directionFromCentre * FACE_LINES_ROUND,
+    (vWaterPosition.y - uSeaLevel) * 0.05 + metresOffBeach * 0.01 - uTime * 0.012));
+  float faceLine = (faceLines.r - 0.5) * awayFromSeam;
+  float fallingStreak = faceLines.a * 0.6 + faceLines.b * 0.4;
+  // Along the shore and up the water's height alike, for foam on steep water - the front of white water, the mass
+  // a landed lip throws up - where the readings laid on from above would be smeared down it.
+  // (It runs down the water as white water tumbles: STEEP_FOAM_FALLS metres a second.)
+  vec4 steepFoam = texture2D(uDetail, vec2(directionFromCentre * STEEP_FOAM_ROUND,
+    (vWaterPosition.y - uSeaLevel + uTime * STEEP_FOAM_FALLS) * 0.33));
+  #else
+  float faceLine = 0.0;
+  float fallingStreak = 0.5;
+  vec4 steepFoam = vec4(0.5);
+  #endif
+  // And one for the white mass a landed lip throws up, which only the breaker's mesh draws: round lumps a metre
+  // or so across, laid along the shore and along the mesh's own cross-section (by height they would be drawn out
+  // into streaks over the top of the mass, where it is level), which roll up and over as the mass tumbles.
+  #ifdef WATER_HAS_TORN_EDGE
+  // (And again four times as fine, for the small lumps on the big ones, which tumble faster.)
+  vec4 massLumps = texture2D(uDetail,
+    vec2(directionFromCentre * MASS_LUMPS_ROUND, vWhiteMass.y * 0.1 + uTime * 0.09));
+  vec4 massSmallLumps = texture2D(uDetail,
+    vec2(directionFromCentre * MASS_LUMPS_ROUND * 4.0 + 0.37, vWhiteMass.y * 0.4 + uTime * 0.31));
+  float whiteMass = vWhiteMass.x * awayFromSeam;
+  #else
+  vec4 massLumps = vec4(0.5);
+  vec4 massSmallLumps = vec4(0.5);
+  float whiteMass = 0.0;
+  #endif
+
   // One slow reading, 250 m across and drifting, for the wind's gusts and slicks (below).
   vec4 windPatches = texture2D(uDetail, xz * 0.004 + uTime * vec2(0.0015, 0.0009));
 
@@ -492,14 +569,22 @@ void main() {
   // ---- What the surface mirrors ----
 
   vec3 waveNormal = normalize(vWaterNormal);
-  vec3 normal = normalize(waveNormal + vec3(-surfaceSlope.x, 0.0, -surfaceSlope.y));
+  // On steep water - a wave's face, the lip - the ripples, which are laid on from above, would be smeared down it
+  // in broad bands: they give way there to fine lines running up the face, which tilt it to one side and the other
+  // along the wave's length.
+  float steep = clamp(1.0 - waveNormal.y, 0.0, 1.0);
+  vec2 alongWave = vec2(-waveNormal.z, waveNormal.x) / max(length(waveNormal.xz), 1e-3);
+  vec2 ripplesOnSlope = surfaceSlope * (1.0 - 0.8 * steep) - alongWave * faceLine * FACE_LINES_TILT * steep;
+  vec3 normal = normalize(waveNormal + vec3(-ripplesOnSlope.x, 0.0, -ripplesOnSlope.y));
   if (dot(normal, towardsCamera) < 0.0) normal = -normal;
   // How much sky the surface mirrors. A real sea is too rough to be a perfect mirror even at the horizon.
   float fresnel = 0.02 + 0.98 * pow(clamp(1.0 - dot(normal, towardsCamera), 0.001, 1.0), 5.0);
   // (a calm sea is a true mirror at a low angle)
   fresnel *= 1.0 - mix(0.40, 0.14, slick) * min(uWind * 2.3, 1.0) * fresnel;
-  // (a ray mirrored down into the water is turned back up to the sky)
+  // (A ray mirrored a little way down into the water, off a ripple, is turned back up to the sky. One mirrored well
+  // down - under a lip, or off a face seen from above - meets the sea: there the surface mirrors water like itself.)
   vec3 mirrored = reflect(-towardsCamera, normal);
+  float mirrorsTheSea = smoothstep(0.15, 0.5, -mirrored.y);
   mirrored.y = abs(mirrored.y) + 0.02;
   mirrored = normalize(mirrored);
   // (ruffled water mirrors the sky from higher up, where it is bluer: gust patches read darker than the slicks)
@@ -555,52 +640,43 @@ void main() {
   float wayDownIfFlat = sqrt(1.0 - INTO_WATER * INTO_WATER * (1.0 - eyeAbove * eyeAbove));
   // The water a wave has lifted above the sea around it, and the sea under that. (On the beach the swash is lifted
   // too, but it is a film on the sand: only as much water as there is counts as lifted.)
-  float liftedWater = min(max(vWaveState.z, 0.0), max(waterDepth, 0.0));
+  float liftedWater = min(max(vWaterPosition.y - uSeaLevel, 0.0), max(waterDepth, 0.0));
   float seaUnderLift = max(waterDepth - liftedWater, 0.0);
   // The ray goes down through the lifted water into the sea, unless it comes out of the far side first. If it
-  // does, and it is running level or upwards, the eye sees the light behind the wave: the sky, and the sun in the
-  // water. (A ray going down through a crest comes out only to go into the sea beyond: that is as much water as
-  // if the crest had no far side.)
+  // does, and it is running level through no great thickness of water, the eye sees the light behind the wave:
+  // the sky, and the sun in the water. Otherwise it goes on into the sea beyond, down to the floor.
   float pathToSea = liftedWater / wayDown;
   float pathToFarSide = vWaterBehind / wayAlong;
   float runsLevel = 1.0 - smoothstep(0.12, 0.55, wayDown);
-  float seesThrough = smoothstep(0.7, 1.5, pathToSea / max(pathToFarSide, 1e-3)) * runsLevel;
-  float pathInLift = mix(pathToSea, min(pathToSea, pathToFarSide), runsLevel);
+  float thinEnough = 1.0 - smoothstep(LIGHT_COMES_THROUGH.x, LIGHT_COMES_THROUGH.y, pathToFarSide);
+  float seesThrough = smoothstep(0.7, 1.5, pathToSea / max(pathToFarSide, 1e-3)) * runsLevel * thinEnough;
+  float pathInLift = min(liftedWater / max(wayDown, LEAST_WAY_DOWN), pathToFarSide);
   float pathSeen = pathInLift + (1.0 - seesThrough) * seaUnderLift / max(wayDown, LEAST_WAY_DOWN);
   float seenDepth = pathSeen * wayDownIfFlat;
-  // (the lagoon's shore band keeps its own rules for now; and the switch)
-  float byPath = uColourByPath * (1.0 - uIsShoreBand);
-  float colourDepth = mix(waterDepth, seenDepth, byPath);
-  float lightThrough = seesThrough * byPath
-    * (1.0 - smoothstep(0.4 * NO_LIGHT_THROUGH, NO_LIGHT_THROUGH, pathInLift));
+  float lightThrough = seesThrough;
 
   // ---- The colour of the water itself ----
 
   // (The lagoon's water is coloured as any other water of its depth is: only the wind treats it differently.)
-  vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, colourDepth));
-  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, colourDepth));
-  // (the light behind a wave, seen through it: pale through a sheet, green through a body of water)
-  vec3 throughWave = mix(LIGHT_THROUGH_THIN, LIGHT_THROUGH_THICK, smoothstep(0.1, 2.4, pathInLift));
+  vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, seenDepth));
+  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, seenDepth));
+  // (the light behind a wave, seen through it: pale through a sheet, cyan through a metre of water)
+  vec3 throughWave = mix(LIGHT_THROUGH_THIN, LIGHT_THROUGH_THICK, smoothstep(0.1, 1.5, pathInLift));
+  // (It is the sun's light: looked at towards the sun the wave glows with it, and with the sun behind the eye it
+  // is dimmer.)
+  float towardsTheSun = clamp(0.5 - 0.5 * dot(towardsCamera, uSunDirection), 0.0, 1.0);
+  throughWave *= mix(LIGHT_THROUGH_DIM, LIGHT_THROUGH_GLOW, towardsTheSun);
   waterColour = mix(waterColour, throughWave, lightThrough);
   float facingSun = clamp((surfaceSlope.x * uSunDirection.x + surfaceSlope.y * uSunDirection.z) * 4.0, 0.0, 1.0);
   waterColour += SUNLIT_RIPPLE_TINT * facingSun * uDaylight;
+  // The sun lights the water through its surface: a slope turned to the sun takes in more of it than flat water
+  // does and one turned away less, which is what shows a swell's shape from above. (Not a breaking wave's face:
+  // that is lit through its back as much as its front.)
+  float sunOnSlope = clamp(dot(waveNormal, uSunDirection) - uSunDirection.y, -0.45, 0.35);
+  waterColour *= 1.0 + SUN_ON_SLOPES * sunOnSlope * uDaylight * (1.0 - smoothstep(0.04, 0.3, steep));
+  // (the lines up a face are ridges of water: a little thicker and thinner, so a little darker and lighter)
+  waterColour *= 1.0 + FACE_LINES_SHADE * faceLine * steep;
   waterColour *= 0.96 + 0.09 * slick;
-  // A wave standing up lets the light through: its face glows green.
-  float inSurfZone = 1.0 - smoothstep(FORE_REEF_BEGINS + 25.0, DROP_OFF_BEGINS + 10.0, reefDistance);
-  waterColour = mix(waterColour, WAVE_GLOW_GREEN, clamp(waveHeight * 1.5, 0.0, 0.6) * inSurfZone * (1.0 - byPath));
-  // (The lagoon's shore waves, where they have real height: clear water, so their backs show little but the sky
-  // they mirror; a steep face is a small wall of water, and there you look into its green.)
-  float bandSteepness = clamp((1.0 - waveNormal.y) * 4.0, 0.0, 1.0) * uIsShoreBand;
-  waterColour = mix(waterColour, SHORE_WAVE_GREEN, clamp(bandLift * 2.0, 0.0, 0.35));
-  waterColour = mix(waterColour, SHORE_WAVE_FACE_GREEN, bandSteepness * 0.75);
-  // The steep face of a breaking wave is a wall of water: you look into it, not through it. Dark at the foot where
-  // it is thick, bright green towards the lip where it thins.
-  float steepFace = smoothstep(0.992, 0.80, abs(waveNormal.y)) * inSurfZone * (1.0 - uIsFlatSheet) * (1.0 - byPath);
-  float towardsLip = smoothstep(-0.3, 1.1, waveHeight);
-  // (a small wave in shallow water - the shore break - is never that dark: there is white sand close behind it)
-  float sandBehind = 0.9 * (1.0 - smoothstep(0.5, 1.9, waterDepth));
-  vec3 faceColour = mix(WAVE_FACE_FOOT, WAVE_FACE_LIP, max(towardsLip, sandBehind)) * (0.82 + 0.36 * shoreStreak);
-  waterColour = mix(waterColour, faceColour, steepFace * 0.92);
   // Aerated water: where waves have just broken the water is full of bubbles and turns pale and milky.
   waterColour = mix(waterColour, AERATED_WATER, clamp(waveFoam * 0.8, 0.0, 0.72));
   waterColour *= mix(LOW_SUN_WATER_TINT, vec3(1.0), uDaylight) * (1.0 - 0.82 * uNight);
@@ -608,14 +684,9 @@ void main() {
   // ---- How much the water hides what is under it ----
 
   // (a film of water a few centimetres deep on the sand is all but invisible: no tint, no dark edge)
-  float opacity = mix(0.07, 1.0, smoothstep(0.15, 5.6, colourDepth)) * smoothstep(0.0, 0.4, waterDepth);
+  float opacity = mix(0.07, 1.0, smoothstep(0.15, 5.6, seenDepth)) * smoothstep(0.0, 0.4, waterDepth);
   // (a wave the light comes through still hides what is behind it)
   opacity = max(opacity, lightThrough * 0.95);
-  opacity = max(opacity, (clamp(bandLift * 2.2, 0.0, 0.28) + bandSteepness * 0.5) * smoothstep(0.05, 0.25, waterDepth));
-  // (raised water is thick water - except the sheet running up the beach, which is raised but paper-thin)
-  float thickness = smoothstep(0.08, 0.5, waterDepth);
-  opacity = max(opacity, smoothstep(0.12, 0.45, waveHeight) * 0.82 * inSurfZone * thickness * (1.0 - byPath));
-  opacity = max(opacity, steepFace * 0.97 * thickness);
   // where the swell breaks the water is churned up and never quite clear
   float churnedUp = 0.5 * smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
     * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
@@ -632,7 +703,22 @@ void main() {
   glints *= cloudLight * cloudLight * mix(uSunThroughCloud, 1.0, smoothstep(0.04, 0.16, uSunDirection.y));
   // (a swell line's face is darker, its back lighter, from whatever angle it is seen: the tilt alone only shows at a
   // low angle)
-  vec3 colour = (mix(waterColour, skyMirrored, fresnel) + glints) * (1.0 - 0.13 * swellLineSide);
+  // What the surface mirrors, and what that hides. Looked along from far off, even clear shallow water shows the
+  // sky and not its floor: there the mirror lies over the water, and both over the floor. Looked down into from
+  // nearer, the light coming up from a bright floor drowns the mirror: there it only tints the water, and shallow
+  // water stays clear to its floor. `mirrorHides` goes from the one to the other between some 7 and 30 times the
+  // eye's height away; and a film of water on the sand mirrors nothing.
+  float lookedAlong = 1.0 - clamp(dot(facingNormal, towardsCamera), 0.0, 1.0);
+  float mirrorHides = smoothstep(MIRROR_HIDES_FROM.x, MIRROR_HIDES_FROM.y, lookedAlong)
+    * smoothstep(0.05, 0.5, waterDepth);
+  vec3 inMirror = mix(skyMirrored, waterColour, mirrorsTheSea);
+  glints *= 1.0 - mirrorsTheSea;
+  float mirrors = fresnel * mirrorHides;
+  vec3 tinted = mix(waterColour, inMirror, fresnel * (1.0 - mirrorHides));
+  float hides = 1.0 - (1.0 - opacity) * (1.0 - mirrors);
+  vec3 seen = (tinted * opacity * (1.0 - mirrors) + inMirror * mirrors) / max(hides, 1e-3);
+  opacity = hides;
+  vec3 colour = (seen + glints) * (1.0 - 0.13 * swellLineSide);
 
   // ---- White horses ----
 
@@ -725,6 +811,12 @@ void main() {
   float laceNear = max(ripplesSmall.a, ripplesFine.a * 0.9) * 0.6 + (ripplesSmall.b + ripplesFine.b) * 0.2;
   float laceFar = 0.22 + ripplesMedium.b * 0.36 + ripplesLarge.b * 0.30;
   float lace = mix(laceNear, laceFar, smoothstep(8.0, 30.0, cameraDistance)) * 0.62 + shoreStreak * 0.38;
+  // (on steep water the pattern is the reading laid along it, drawn out into streaks the way the water falls)
+  float steepLace = mix(steepFoam.a * 0.55 + steepFoam.b * 0.45, fallingStreak, 0.45) * awayFromSeam
+    + 0.5 * (1.0 - awayFromSeam);
+  lace = mix(lace, steepLace, steep);
+  // (The white mass is no lace at all, nor a falling sheet: it is thick white water, in lumps.)
+  lace = mix(lace, 0.6 + 0.4 * massLumps.b, whiteMass);
   float foam = 0.0;
   // (where the lace pattern is above this the foam is white, below it blue-grey)
   float whiteLaceThreshold = 0.3;
@@ -765,10 +857,17 @@ void main() {
   // Foam is white where it is thick and blue-grey where it thins; the ripples under it catch the sun, so it looks
   // frothy.
   float closeUp = 1.0 - smoothstep(5.0, 22.0, cameraDistance);
-  float froth = clamp(0.97 + dot(smallSlope + fineSlope, uSunDirection.xz) * 1.1 * closeUp, 0.84, 1.07);
+  // (The ripples are laid on from above: on steep water, and on the white mass a landed lip throws up, they would
+  // be smeared down it in streaks, so there the foam goes by the readings laid along the surface instead.)
+  float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
+  float frothTilt = dot(smallSlope + fineSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
+  float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
   vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
   // close up, even thick foam is a mass of bubbles with water showing between them
-  foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, ripplesFine.a)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance));
+  // (not the white mass: water showing through it in specks made it look like ice)
+  float bubbles = mix(ripplesFine.a, steepFoam.a, steep);
+  foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, bubbles)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance))
+    * (1.0 - whiteMass);
   // no foam at all on water a few centimetres deep unless the wave model put plenty there (the white edge of the swash)
   foam *= max(smoothstep(0.03, 0.10, waterDepth), smoothstep(0.2, 0.4, waveFoam));
   foam = min(foam, 0.94);
@@ -778,8 +877,23 @@ void main() {
   vec3 rippleTilt = vec3(-smallSlope.x - fineSlope.x, 0.0, -smallSlope.y - fineSlope.y)
     * (1.5 + 3.5 * (1.0 - smoothstep(4.0, 30.0, cameraDistance)));
   vec3 lumps = vec3(shoreStreak - 0.5, 0.0, lace - 0.5) * 0.9;
-  vec3 foamNormal = normalize(waveNormal + rippleTilt + lumps);
-  vec3 foamShade = mix(SHADED_FOAM, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
+  // (Piled-up white water - steep, or standing high - is a heap of lumps: on it the lumps are those of the reading
+  // laid along the surface, they tilt it more, and the hollows between them are in shade.)
+  float piledUp = max(steep, smoothstep(0.5, 1.4, vWaterPosition.y - uSeaLevel));
+  vec3 upTheSlope = cross(waveNormal, vec3(alongWave.x, 0.0, alongWave.y));
+  vec2 steepSlope = (steepFoam.rg - 0.5) * awayFromSeam;
+  vec3 steepLumps = (vec3(alongWave.x, 0.0, alongWave.y) * steepSlope.x + upTheSlope * steepSlope.y) * PILED_LUMPS;
+  // (The white mass is lit as a cloud is: round lumps a metre across, bright where they face the sun and softly
+  // shaded where they turn away and in the hollows between them - a pale shade, not the blue-grey of thin foam.)
+  vec2 massSlope = massLumps.rg - 0.5 + MASS_SMALL_LUMPS * (massSmallLumps.rg - 0.5);
+  float massHeight = mix(massLumps.b, massSmallLumps.b, 0.35);
+  vec3 massTilt = (vec3(alongWave.x, 0.0, alongWave.y) * massSlope.x + upTheSlope * massSlope.y) * MASS_LUMPS_TILT;
+  vec3 foamNormal = normalize(waveNormal + (rippleTilt + lumps) * laidFromAbove
+    + steepLumps * piledUp * (1.0 - 0.6 * whiteMass) + massTilt * whiteMass);
+  vec3 foamInShade = mix(SHADED_FOAM, MASS_IN_SHADE, whiteMass);
+  vec3 foamShade = mix(foamInShade, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
+  foamShade *= 1.0 - PILED_HOLLOWS * piledUp * (1.0 - smoothstep(0.25, 0.6, lace)) * (1.0 - whiteMass);
+  foamShade *= 1.0 - MASS_HOLLOWS * whiteMass * (1.0 - smoothstep(0.3, 0.62, massHeight));
   colour = mix(colour, foamColour * foamThickness * foamShade, foam);
   // water under a few cm deep is invisible unless it carries foam
   opacity = max(opacity * smoothstep(0.01, 0.12, waterDepth), foam * smoothstep(0.0, 0.045, waterDepth));

@@ -25,6 +25,33 @@ export const sprayConfig = {
   /** The chances are for frames this many a second: a shorter frame has less, a longer no more. */
   chanceFrameRate: 30,
 
+  /**
+   * Spray along the main swell's crest itself, where its lip falls and lands (the crest picture
+   * says where that is): the spots above, scattered over the reef, seldom fall on so narrow a line.
+   */
+  onCrest: {
+    /** Spots sampled along it each frame, spread round the reef as the others are. */
+    spotsSampled: 48,
+    /** They lie between these distances ahead of the crest, shorewards, where a lip lands. */
+    aheadOfCrest: [1, 3.5],
+    /** The chance of throwing on a frame, for each unit of lip landing, and of lip falling. */
+    landingChance: 0.7,
+    fallingChance: 0.5,
+    /**
+     * Where the lip has landed the white mass sheds this many droplets and this many small clouds
+     * of mist, so bright: the mist is what softens the mass's outline and shows it to be moving.
+     * They start between these heights above the water ahead of the wave, in wave heights: at the
+     * mass's top and over it (the breaker's own mesh draws it, higher than the wave), or they
+     * would be hidden inside it. And they are thrown on with the wave, between these speeds
+     * (metres a second), or it would leave them behind.
+     */
+    droplets: 4,
+    mists: 2,
+    mistBrightness: 0.13,
+    startAt: [1, 1.6],
+    thrownOnAt: [2.5, 5],
+  },
+
   landingLip: {
     throwsAbove: 0.12,
     /** Its chance of throwing on a frame, for each unit of lip landing. */
@@ -32,6 +59,12 @@ export const sprayConfig = {
     /** It throws at least this many droplets, and up to this many more for each metre of wave. */
     fewestDroplets: 3,
     dropletsPerMetre: 9,
+    /**
+     * Its droplets start between these heights above the water, in wave heights: in the white mass
+     * the landed lip throws up (the breaker's own mesh draws it, higher than the wave), up to its
+     * top, so that they fly off it and are not hidden inside it.
+     */
+    dropletsStartAt: [0.4, 1.1],
     /** The chance of a puff of mist with them. */
     puffChance: 0.5,
     /**

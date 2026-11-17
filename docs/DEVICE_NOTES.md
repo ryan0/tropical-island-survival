@@ -36,20 +36,27 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - The frame rate shows at the top left of the screen (a switch in the debug panel hides it). The panel scrolls
   within the screen: it had grown taller than the phone held sideways, and its lowest buttons could not be reached.
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate, where
-  the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe, hiding
-  the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a line
-  along the breaking crest, hiding the breaker's own mesh, the new rule for the water's colour, and drawing the
-  wave mesh no finer
-  than its second level; and a row of buttons that fly the eye to places on the
-  reef. Flying: the stick moves the eye the way it looks (push forward while looking up to climb), faster the
-  higher it is; buttons at the right take it straight up and down, and `fast` hurries it (a keyboard has Space,
-  C and Shift, and the wheel for the pace); it can go under water but not through the ground. With the sea
-  drained no water is drawn, nothing is tinted by it, and the ground carries lines of equal depth a metre apart,
-  every fifth bolder (they need WebGL 2).
+  the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe,
+  hiding the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a
+  line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
+  wave mesh no finer than its second level, and colouring it without what only steep water needs; and a row of
+  buttons that fly the eye to places on the reef. Flying: the stick moves the eye the way it looks (push forward
+  while looking up to climb), faster the higher it is; buttons at the right take it straight up and down, and
+  `fast` hurries it (a keyboard has Space, C and Shift, and the wheel for the pace); it can go under water but
+  not through the ground. With the sea drained no water is drawn, nothing is tinted by it, and the ground
+  carries lines of equal depth a metre apart, every fifth bolder (they need WebGL 2).
 - The phone reads a picture in the water's vertex shader without trouble, bytes or half floats, smoothly
   filtered (tried on 15 November 2026 with a picture of mounds in place of the waves).
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
   3 = plain water colour. Handy for narrowing down a bug from screenshots.
+- The breaker's own mesh is drawn twice (`breaker.ts`): first into the depth picture alone (a material with
+  `colorWrite` off, before the sea), then in colour after the sea, so that two see-through sheets of water are
+  never drawn one over the other. Its two fragment shaders throw away the gaps in the white water's torn edges by
+  a reading of the detail texture, made before the branch (`torn-edge.glsl`). The two drawings went to the phone
+  on 17 November 2026: Ryan found that build better and named no fault in it. The torn edges have not been on
+  the phone yet.
+- A sheet of water is compiled with only what it can show: the readings of the detail texture that steep water
+  needs are behind defines that only the wave mesh and the breaker's mesh are given (`water-materials.ts`).
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
 - What the Pixel 10 can afford (16 November 2026, by the debug panel's switches): the wave mesh's points are what
   it pays for. 123 thousand of them in view held it to about 50 frames a second; 31 thousand, and it drew 60.

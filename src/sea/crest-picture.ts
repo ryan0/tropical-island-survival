@@ -7,7 +7,7 @@ import {
   RepeatWrapping,
   RGBAFormat,
 } from 'three';
-import { FULL_TURN } from '../core/maths';
+import { FULL_TURN, wrap } from '../core/maths';
 import { seaConfig } from './sea-config';
 import type { SeaFloorPictures } from './sea-floor-pictures';
 
@@ -30,10 +30,17 @@ export interface CrestPicture {
   readonly shareOfDirectionsFound: number;
   /** The longest unbroken arc of such directions: its middle, and half its width (radians). */
   readonly arc: { readonly middle: number; readonly halfWidth: number };
+  /**
+   * The program's reading of the picture, as the breaker's mesh reads it: how far outside the line
+   * its waves break on the main swell's crest lies in a direction, at a time on the waves' clock.
+   * Metres, negative once the crest is inside the line; undefined where no crest can be found.
+   */
+  crestOutsideLine: (direction: number, time: number) => number | undefined;
 }
 
 const { directions, moments, secondsBefore, secondsAfter, lookedForWithin, lookedForEvery } =
   seaConfig.crestPicture;
+const { period } = seaConfig.swells[0];
 const CHANNELS = 4;
 // The swell's heading is its arrival's steepest way up, measured between points this far apart.
 const HEADING_MEASURED_OVER = 2;
@@ -95,6 +102,8 @@ export function createCrestPicture(
   const steps = Math.round((2 * lookedForWithin) / lookedForEvery);
   const sinceLine = new Float32Array(steps + 1);
   const isFound: boolean[] = [];
+  /** When the swell crosses the line its waves break on, in each of the picture's directions. */
+  const arrivalsAtLine = new Float32Array(directions);
 
   for (let column = 0; column < directions; column++) {
     const direction = directionOf(column);
@@ -102,6 +111,7 @@ export function createCrestPicture(
     const outZ = Math.sin(direction);
     const line = breakLineFromCentre(direction);
     const arrivalAtLine = arrivalAt(outX * line, outZ * line);
+    arrivalsAtLine[column] = arrivalAtLine;
 
     // The swell's arrival along this direction, from outside the line inwards: seconds after it
     // crosses the line. A crest can be found only if that never runs back, over the moments the
@@ -155,5 +165,17 @@ export function createCrestPicture(
     texture,
     shareOfDirectionsFound: isFound.filter(Boolean).length / directions,
     arc: longestArc(isFound),
+
+    crestOutsideLine(direction, time) {
+      // The dot for this direction and for the crest nearest the line now (breaker.vert.glsl).
+      const column = wrap(Math.floor((direction / FULL_TURN + 0.5) * directions), directions);
+      const sinceCrossing = wrap(time - arrivalsAtLine[column] + period / 2, period) - period / 2;
+      const row = Math.floor(
+        ((sinceCrossing + secondsBefore) / (secondsBefore + secondsAfter)) * moments,
+      );
+      if (row < 0 || row >= moments) return undefined;
+      const dot = (row * directions + column) * CHANNELS;
+      return values[dot + 3] > 0.5 ? values[dot] : undefined;
+    },
   };
 }

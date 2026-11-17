@@ -146,8 +146,11 @@ float narrowingAt(float stage) {
 
 // How far a wave that throws a lip has stood up into a steep hollow face, 0 to 1: over its last two seconds, and
 // down again once the lip has landed. `crestStage` is the stage at the wave's crest.
+float standsUpBy(float crestStage) {
+  return smoothstep(-1.3, -0.1, crestStage);
+}
 float standingUpAt(float crestStage) {
-  return smoothstep(-1.3, -0.1, crestStage) * (1.0 - smoothstep(1.0, 1.8, crestStage));
+  return standsUpBy(crestStage) * (1.0 - smoothstep(1.0, 1.8, crestStage));
 }
 
 // Whether a wave throws a lip (1) or crumbles (0), by the seconds its last shoaling takes (shoalingSeconds).

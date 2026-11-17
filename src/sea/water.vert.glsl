@@ -16,6 +16,8 @@ varying vec3 vWaterPosition;      // this point's position in the world
 varying vec3 vWaterNormal;      // the surface's normal
 varying vec3 vWaveState;   // the wave model here: (foam 0..1, metres off the beach, height above still water)
 varying float vWaterBehind;   // metres of water behind the surface, level with it (see water.frag.glsl)
+varying float vTornEdge;   // how near the torn top of a breaking wave's white mass: here never (torn-edge.glsl)
+varying vec2 vWhiteMass;   // the white mass a landed lip throws up: here never (water.frag.glsl)
 
 #include "waves"
 
@@ -35,8 +37,10 @@ void main() {
   vWaterNormal = vec3(0.0, 1.0, 0.0);
   // (the far sea counts as open water, far off the beach)
   vWaveState = vec3(0.0, 200.0, 0.0);
-  // (the sea has no far side to be seen through)
+  // (the flat sea has no far side to be seen through)
   vWaterBehind = 100.0;
+  vTornEdge = 0.0;
+  vWhiteMass = vec2(0.0);
   if (uIsFlatSheet < 0.5) {
     vec2 p = wp.xz;
     // (movedPoint's sums, written out again because vWaveState needs the rest of what the wave model returns, and a
@@ -57,6 +61,7 @@ void main() {
     float isWithinLimit = (excess.x + excess.y + excess.z < 1e-5) ? 1.0 : 0.0;
     wp.xyz = isWithinLimit > 0.5 ? rest + limited : rest;
     vWaterNormal = isWithinLimit > 0.5 ? normalize(cross(movedAlongZ - moved, movedAlongX - moved)) : vec3(0.0, 1.0, 0.0);
+    vWaterBehind = isWithinLimit > 0.5 ? waterBehindWave(wave.x) : 100.0;
     // (a vertex left at rest is drawn as plain water, out past the surf)
     float foam = min(wave.z + foamLeftBehind(p, uTime), 1.0);
     vWaveState = isWithinLimit > 0.5 ? vec3(foam, wave.w, wave.x) : vec3(0.0, 60.0, 0.0);

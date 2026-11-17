@@ -47,7 +47,7 @@ uniform sampler2D uBreakTimes;
 // BACK_UNDER_MESH of them. Under the mesh the sea falls away smoothly to the trough, inside the wave and out of
 // the mesh's way. (breaker-shapes.ts has the same two numbers and the same slope.)
 uniform vec2 uBreakerArc;
-const float BACK_LENGTH = 3.0;
+const float BACK_LENGTH = 5.5;
 const float BACK_UNDER_MESH = 0.8;
 
 // How far inside that arc a direction lies: 1 inside, 0 outside, fading over its last few degrees.
@@ -56,13 +56,37 @@ float inBreakerArc(float th) {
   return 1.0 - smoothstep(uBreakerArc.y - 0.12, uBreakerArc.y - 0.04, fromMiddle);
 }
 
+// How much water lies behind the surface of a wave, level with it, where the wave's shape is not known: for the
+// colouring, which lets the light through a wave's thin top (water.frag.glsl). A wave is thinner the nearer its
+// top, and the water stands higher there. So, roughly: so many metres where the water stands at the still sea's
+// level, less by so many for each metre it stands above that, and never less than a sheet. (At the still sea's
+// level it must be more than any thickness the light comes through - water.frag.glsl's LIGHT_COMES_THROUGH - or
+// the flat sea would glow.)
+const float WATER_BEHIND_AT_REST = 3.6;
+const float WATER_BEHIND_THINS = 2.4;
+float waterBehindWave(float aboveStillSea) {
+  return max(WATER_BEHIND_AT_REST - WATER_BEHIND_THINS * max(aboveStillSea, 0.0), 0.3);
+}
+
 // shore.glsl's beach: s metres off it the sea is BEACH_CURVE_DEPTH * ((1 + s / BEACH_CURVE_LENGTH)^2 - 1) deep. The
 // model reads the curve backwards, from the depth to how far off the beach a point is. (Both numbers are
 // shore.glsl's: keep them the same.)
 const float BEACH_CURVE_LENGTH = 55.0;
 const float BEACH_CURVE_DEPTH = 5.0;
 
-// One swell at one spot. Returns (height, push towards the shore, foam 0..1, crest height).
+// What waveOfTrain is asked for (`part`). The sea's own shader asks for the sea's surface; the breaker's mesh also
+// asks, of the same sums, when and how high the wave's front stands (breaker-state.glsl).
+const float THE_SURFACE = 0.0;
+const float THE_FRONTS_TIMING = 1.0;
+const float THE_FRONTS_HEIGHTS = 2.0;
+
+// One swell at one spot. Returns, as `part` asks:
+//   THE_SURFACE          (height, push towards the shore, foam 0..1, crest height)
+//   THE_FRONTS_TIMING    (the metres from here ahead, the way the swell travels, to the wave's crest; the stage of
+//                        its breaking at its crest; how much of a lip it throws, 0 to 1; how high it stands as it
+//                        breaks)
+//   THE_FRONTS_HEIGHTS   (the height its front stands, from its foot to its crest; the level of its foot, from the
+//                        still sea; nothing; nothing)
 //   trainPhase     the swell's phase here: a quarter turn where its crest is
 //   turns          its crests gone by here, whole and part
 //   fullSize       its size here, before sets
@@ -81,7 +105,8 @@ vec4 waveOfTrain(
   float th,
   float depth,
   vec4 sinceCrossings,
-  vec4 site
+  vec4 site,
+  float part
 ) {
   float slowness = site.x;
   float depthAtBeach = site.y;
@@ -189,15 +214,18 @@ vec4 waveOfTrain(
   float frontHeight = FRONT_STANDS * standingHeight;
   float frontBase = -0.22 * usualHeight - 0.10 * standingHeight;
   float behindCrest = max(fromCrest, 0.0) / (FRONT_WAVE_NUMBER * max(frontHeight, 0.05));
-  float backSlope = pow(max(1.0 - behindCrest / BACK_LENGTH, 1e-4), 1.4) * step(behindCrest, BACK_LENGTH);
+  // (the slope is steepest at the crest and runs out level at its foot, so that the back has no edge where it
+  // begins)
+  float downBack = max(1.0 - behindCrest / BACK_LENGTH, 0.0);
+  float backSlope = downBack * downBack;
   // (The mesh's own shader asks for the back as it would be if it did not sink, to lay its own back along it:
-  // SEA_NOT_SUNK_UNDER_MESH is its define.)
+  // SEA_NOT_SUNK_UNDER_MESH is its define. Ahead of the crest it is given the trough, as the sea has it.)
   #ifdef SEA_NOT_SUNK_UNDER_MESH
-  float backShows = 1.0;
+  float backShows = step(-0.03, fromCrest);
   #else
   float backShows = smoothstep(0.25 * BACK_UNDER_MESH, BACK_UNDER_MESH, behindCrest);
   #endif
-  float backFades = 1.0 - smoothstep(0.7 * BACK_LENGTH, BACK_LENGTH, behindCrest);
+  float backFades = 1.0 - smoothstep(0.75 * BACK_LENGTH, BACK_LENGTH, behindCrest);
   float drawnDown = smoothstep(-2.4, -0.35, fromCrest);
   float frontLift = (frontBase + frontHeight * backSlope * backShows - profileHeight) * backFades * drawnDown
     * standingUp;
@@ -231,7 +259,14 @@ vec4 waveOfTrain(
   float shoreBreakLean = 0.9 * height * boreShape * broken * shoreBreak * smoothstep(0.5, 0.75, depthAtBeach);
   float surface = profileHeight + frontLift + mound;
   float push = swellPush + shoreBreakLean;
-  return vec4(surface, push, foam, crestHeight);
+  // (the front's own answers: here behind the crest, fromCrest is above 0, and the crest is that far ahead; and no
+  // lip is thrown up the beach, nor with uDebugMode 2)
+  float lipThrown = plunging * gate * (abs(uDebugMode - 2.0) < 0.5 ? 0.0 : 1.0);
+  vec4 frontsTiming = vec4(fromCrest / FRONT_WAVE_NUMBER, crestStage, lipThrown, breakerHeight);
+  vec4 frontsHeights = vec4(frontHeight, frontBase, 0.0, 0.0);
+  vec4 theSurface = vec4(surface, push, foam, crestHeight);
+  // (chosen by arithmetic, not by branching: docs/DEVICE_NOTES.md)
+  return mix(mix(theSurface, frontsTiming, step(0.5, part)), frontsHeights, step(1.5, part));
 }
 
 // The foam one wave left lying here when it went by `secondsSince` ago: none if it went by unbroken, more behind a
@@ -288,7 +323,7 @@ float swellReaching(float th, float offBeach) {
 // travels. A crest is where the clock and the swell's arrival agree: there `turns` is a whole number and a half.
 // The run-up goes by the swell's arrival at the waterline. It is made of waveF's local names, so it belongs inside
 // waveF and nowhere else.
-#define SWELL(NAME, DELAY, TOWARDS, PERIOD, SIZE, VARIETY, CAN_PLUNGE, RUN_UP) fullSize = SIZE * swellStrength * alongShoreSwing(th, t, VARIETY); turns = (t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5; vec4 NAME = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / PERIOD, VARIETY, CAN_PLUNGE, th, depth, sinceCrossings, site); runUp += RUN_UP * runUpOf(fullSize, th, (t - dot(waterline, TOWARDS) / OPEN_SEA_SPEED - seaFloorAtWaterline.DELAY) / PERIOD, PERIOD, VARIETY);
+#define SWELL(NAME, DELAY, TOWARDS, PERIOD, SIZE, VARIETY, CAN_PLUNGE, RUN_UP) fullSize = SIZE * swellStrength * alongShoreSwing(th, t, VARIETY); turns = (t - dot(p, TOWARDS) / OPEN_SEA_SPEED - seaFloor.DELAY) / PERIOD + 0.5; vec4 NAME = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / PERIOD, VARIETY, CAN_PLUNGE, th, depth, sinceCrossings, site, THE_SURFACE); runUp += RUN_UP * runUpOf(fullSize, th, (t - dot(waterline, TOWARDS) / OPEN_SEA_SPEED - seaFloorAtWaterline.DELAY) / PERIOD, PERIOD, VARIETY);
 
 // The whole sea surface at p (x, z) at time t: (height above still water, push towards the shore, foam 0..1, metres
 // off the beach).

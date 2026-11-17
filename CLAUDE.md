@@ -16,7 +16,10 @@ Ryan directs it and judges it on his phone; Claude writes it.
   that care hold back what comes next.
 - The waves are being rebuilt in passes (`docs/ROADMAP.md`). They read the sea floor from two pictures made at
   start-up (`src/sea/sea-floor-pictures.ts`), not from a formula of their own, and their sizes and timing are
-  written once for shader and program (`src/sea/wave-timing/timing.glsl`).
+  written once for shader and program (`src/sea/wave-timing/timing.glsl`). The front of a breaking wave, with its
+  lip and the white water it throws up, is a mesh of its own that keeps to the crest (`src/sea/breaker.ts`); the
+  sea's mesh draws the rest. All water is coloured by one rule, how much of it the eye looks through
+  (`src/sea/water.frag.glsl`).
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
   `docs/ROADMAP.md`. Read it before starting work.
 - Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder

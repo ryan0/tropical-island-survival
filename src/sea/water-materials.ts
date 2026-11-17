@@ -145,6 +145,9 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     SHAPE_LAST_STAGE: glslFloat(seaConfig.breakerShapes.lastStage),
     SHAPE_FACE_ENDS: glslFloat(breakerPath.faceEnds),
     SHAPE_TOP_ENDS: glslFloat(breakerPath.topEnds),
+    SHAPE_PEAK_AT: glslFloat(breakerPath.peakAt),
+    SHAPE_BURST_FORMED_BY: glslFloat(breakerPath.burstFormedBy),
+    SHAPE_BURST_BREAKS_UP: glslVec2(...breakerPath.burstBreaksUp),
     SHAPE_LAST_OFF_BACK: glslFloat(breakerPath.lastPlaceOffBack),
     SHAPE_BACK_FROM: glslFloat(breakerPath.firstPlaceOnBack),
   };
@@ -164,7 +167,13 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
           uIsShoreBand: { value: isBand ? 1 : 0 },
           ...uniforms,
         },
-        defines: isBreakerDepth ? { ...defines, BREAKER_DEPTH_ONLY: '' } : defines,
+        // (Each sheet is compiled with only what it can show: water.frag.glsl says what these switch on.)
+        defines: {
+          ...defines,
+          ...(isWaveMesh || isBreaker ? { WATER_STANDS_STEEP: '' } : {}),
+          ...(isBreaker ? { WATER_HAS_TORN_EDGE: '' } : {}),
+          ...(isBreakerDepth ? { BREAKER_DEPTH_ONLY: '' } : {}),
+        },
         transparent: true,
         // (the breaker's first drawing writes its depth and no colour: breaker-depth.frag.glsl)
         colorWrite: !isBreakerDepth,

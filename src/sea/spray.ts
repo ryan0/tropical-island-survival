@@ -7,9 +7,9 @@ import { createSprayDroplets } from './spray-droplets';
 import type { WaveModel } from './wave-model';
 
 // Spray thrown up where waves break on the reef and where water hits rocks and posts standing in
-// the surf. Each frame the wave model is sampled along the reef near the camera, and spray is
-// thrown where a lip lands, where a lip is falling and from bores; then every droplet in the air
-// moves on.
+// the surf. Each frame the wave model is sampled over the reef near the camera, and along the main
+// swell's crest there, and spray is thrown where a lip lands, where a lip is falling and from
+// bores; then every droplet in the air moves on.
 
 /** A rock or post standing in the surf. */
 export interface SurfObstacle {
@@ -25,7 +25,14 @@ export interface SprayDependencies {
   camera: PerspectiveCamera;
   /** The stream the spray draws from as it runs. */
   random: Random;
+  /** A stream of its own for the spray along the crest, so that it moves none of the rest. */
+  randomOnCrest: Random;
   waves: WaveModel;
+  /**
+   * How far outside the line its waves break on the main swell's crest lies in a direction, at a
+   * time on the waves' clock; undefined where there is none to find (crest-picture.ts).
+   */
+  crestOutsideLine: (direction: number, time: number) => number | undefined;
   /** The distance from the atoll's centre to the outer shoreline, in a direction. */
   islandRadius: (direction: number) => number;
   /** How far off the beach, in a direction, a distance along the reef lies. */
@@ -54,6 +61,9 @@ export interface SprayFrame {
 
 export interface Spray {
   update(frame: SprayFrame): void;
+  /** A debug switch: whether spray is thrown along the crest too, to see what it costs. */
+  throwFromCrest: (isThrown: boolean) => void;
+  readonly isThrownFromCrest: boolean;
 }
 
 const config = sprayConfig;
@@ -63,12 +73,66 @@ const SHORTEST_FRAME = 0.008;
 export function createSpray(dependencies: SprayDependencies): Spray {
   const { scene, camera, random, waves, islandRadius, offshoreOfReef, obstacles, hearSurf } =
     dependencies;
+  const { randomOnCrest, crestOutsideLine } = dependencies;
   const facing = new Vector3();
   const droplets = createSprayDroplets(scene);
   const bursts = createSprayBursts(random, droplets);
+  const burstsOnCrest = createSprayBursts(randomOnCrest, droplets);
   const spot: BreakingSpot = { x: 0, z: 0, surface: 0, inwardX: 0, inwardZ: 0, breakerHeight: 0 };
   const surfaceBefore = obstacles.map(() => 0);
   let surfBreaking = 0;
+  let isThrownFromCrest = true;
+
+  /**
+   * Asks the wave model about the spot so far from the atoll's centre in a direction: what it
+   * finds goes into `spot` and `waves.spot`.
+   */
+  function lookAtSpot(direction: number, fromCentre: number, time: number): void {
+    spot.x = Math.cos(direction) * fromCentre;
+    spot.z = Math.sin(direction) * fromCentre;
+    spot.surface = waves.heightAt(spot.x, spot.z, time);
+    spot.inwardX = -Math.cos(direction);
+    spot.inwardZ = -Math.sin(direction);
+    spot.breakerHeight = waves.spot.breakerHeight;
+  }
+
+  /**
+   * Throws spray along the main swell's crest near the camera, where its lip is falling and
+   * where it has landed.
+   */
+  function throwFromTheCrest(
+    time: number,
+    dt: number,
+    cameraDirection: number,
+    lookDirection: number,
+  ): void {
+    const { onCrest, landingLip, fallingLip } = config;
+    const [behind, ahead] = onCrest.aheadOfCrest;
+    const frameShare = Math.min(1, dt * config.chanceFrameRate);
+    for (let i = 0; i < onCrest.spotsSampled; i++) {
+      const isBesideCamera = i % 2 === 1;
+      const direction =
+        (isBesideCamera ? cameraDirection : lookDirection) +
+        (randomOnCrest() - 0.5) * (isBesideCamera ? config.spreadBeside : config.spreadAhead);
+      const aheadOfCrest = behind + randomOnCrest() * (ahead - behind);
+      const outsideLine = crestOutsideLine(direction, time);
+      if (outsideLine === undefined) continue;
+      const breakLine = islandRadius(direction) + offshoreOfReef(seaConfig.reefBreak, direction);
+      lookAtSpot(direction, breakLine + outsideLine - aheadOfCrest, time);
+      const wave = waves.spot;
+      if (
+        wave.landingLip > landingLip.throwsAbove &&
+        randomOnCrest() < wave.landingLip * onCrest.landingChance * frameShare
+      ) {
+        burstsOnCrest.fromBurstingCrest(spot);
+      } else if (
+        wave.fallingLip > fallingLip.throwsAbove &&
+        randomOnCrest() < wave.fallingLip * onCrest.fallingChance * frameShare
+      ) {
+        burstsOnCrest.fromFallingLip(spot);
+      }
+    }
+  }
 
   /** Throws spray where waves break on the reef near the camera; returns how much is breaking. */
   function throwFromTheReef(
@@ -87,14 +151,12 @@ export function createSpray(dependencies: SprayDependencies): Spray {
         (random() - 0.5) * (isBesideCamera ? config.spreadBeside : config.spreadAhead);
       const outsideShore =
         seaConfig.reefBreak - config.insideBreakLine + random() * config.breakingWidth;
-      const radius = islandRadius(direction) + offshoreOfReef(outsideShore, direction);
-      spot.x = Math.cos(direction) * radius;
-      spot.z = Math.sin(direction) * radius;
-      spot.surface = waves.heightAt(spot.x, spot.z, time);
-      spot.inwardX = -Math.cos(direction);
-      spot.inwardZ = -Math.sin(direction);
+      lookAtSpot(
+        direction,
+        islandRadius(direction) + offshoreOfReef(outsideShore, direction),
+        time,
+      );
       const wave = waves.spot;
-      spot.breakerHeight = wave.breakerHeight;
       breaking += wave.landingLip * config.surfSound.landingLipWeight + wave.bore;
 
       if (
@@ -155,6 +217,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
       const isSeaThere = !frame.isCameraUnderWater && !frame.isSeaDrained;
       if (fromShore < config.nearShoreline && isSeaThere) {
         const breaking = throwFromTheReef(time, dt, cameraDirection, lookDirection);
+        if (isThrownFromCrest) throwFromTheCrest(time, dt, cameraDirection, lookDirection);
         surfBreaking +=
           (Math.min(1, breaking / config.surfSound.loudestAt) - surfBreaking) *
           Math.min(1, dt * config.surfSound.easing);
@@ -166,6 +229,13 @@ export function createSpray(dependencies: SprayDependencies): Spray {
       const focalLength =
         (frame.pixelRatio * frame.viewHeight * 0.5) / Math.tan((camera.fov * Math.PI) / 360);
       droplets.show(focalLength, frame.daylight, frame.night);
+    },
+
+    throwFromCrest(isThrown) {
+      isThrownFromCrest = isThrown;
+    },
+    get isThrownFromCrest() {
+      return isThrownFromCrest;
     },
   };
 }

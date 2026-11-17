@@ -436,9 +436,9 @@ is still a smooth white shape close to, like a snow bank: its look, the light th
 the face belong to pass 3. The phone is to say what the frame rate is now, and whether the mass reads as water
 in motion.
 
-Still to do in this pass: the model's sums for the main swell are still written twice in the shaders
-(`breaker-state.glsl` and `waveOfTrain`), to be made one; the join, which Ryan says could still be better; the
-ends of the mesh's arc.
+Still to do in this pass, as it stood then: the model's sums for the main swell written twice in the shaders,
+the join, and the ends of the mesh's arc. (The sums were made one and the join worked on in the passes at the
+water's look, below.)
 
 Ryan, 17 November 2026, from the phone: the frame rate is slightly better or the same, and the breaker mesh
 looks good. The most obvious fault is still the join between sea and wave, seen from above at a wave's shoulder,
@@ -469,8 +469,8 @@ Ryan wants the wave, the ocean and the water's look as a whole improved, and agr
 He asked that the references be used: the footage, and photos of water at real atolls (`LOOK.md`, "Water at real
 atolls").
 
-**Step 1, first pass** (`water.frag.glsl`, "How much water the eye looks through"; `new water colour` in the
-debug panel, or V; off, the old rules are as they were).
+**Step 1, first pass** (`water.frag.glsl`, "How much water the eye looks through"; behind a switch in the debug
+panel until Ryan had judged it).
 
 - *The rule.* The ray from the eye bends as it enters the water and runs on to the floor. How far it runs
   through water is turned into a depth: the depth of flat water that would show as much. On flat water that is
@@ -480,9 +480,8 @@ debug panel, or V; off, the old rules are as they were).
   breaking wave and its lip (`vWaterBehind`), a ray running level comes out of it again, and the eye sees the
   light behind the wave through that much water: pale through a sheet, cyan through a metre or two, nothing
   through seven.
-- *What it replaces*, while the switch is on: the green glow by how high the water is lifted, the dark wall
-  wherever the surface is steeper than seven degrees, and the opacity that went with each. The lagoon's shore
-  band keeps its own rules for now.
+- *What it replaces*: the green glow by how high the water is lifted, the dark wall wherever the surface is
+  steeper than seven degrees, and the opacity that went with each.
 - *On the desktop*: a wave's face goes from deep blue at its foot through turquoise to bright aqua at the top,
   as in the photos of Teahupo'o, where the old rules gave a flat green wall; seen from above and behind, the
   wave is a hump of the same water as the sea, with no dark blade.
@@ -504,12 +503,119 @@ rules too:
 - *The mesh had no foam but its own.* It now wears the foam the sea has where it stands: the patchy foam of the
   break and what waves gone by have left.
 
-Still to do in step 1: the lagoon's shore band under the same rule; the colours of light through a wave against
-more references; the old rules and the switch taken out once the new one is agreed. Seen but left for step 3: on
-its face side the mesh still comes out of the swell as a facet while the wave stands up.
+Ryan, 17 November 2026, from the phone: definitely better than before. He merged it, agreed that the new rule
+become the only one, and asked for the next steps and for more passes against the references while he was away
+for five hours.
 
-The phone is to say whether the frame rate has held: the mesh is drawn twice now, and its shader does two more
-of the wave model's sums and reads six more dots of the pictures for each point.
+**A pass at each of the five steps** (branch `water-look`, 17 November 2026). Judged on stills from a fixed set
+of views beside the references, and towards the end on films: the waves' clock stepped a thirtieth of a second a
+frame, each frame drawn by the software renderer and the frames put together at thirty a second. A film shows
+motion as it would be at a steady frame rate, which stills cannot; it says nothing of the frame rate the phone
+reaches. (The script that makes them is not in the repository yet.)
+
+*Step 1, finished.*
+
+- The rule is the only one. The old rules for a wave, the lagoon's shore band's own greens and the switch are
+  gone; the band is coloured as all water is.
+- Light comes through the upper part of a wave, where it is thin: freely through 0.9 m of water, not at all
+  through 3.4 m (`LIGHT_COMES_THROUGH`), which on a wave a metre and a half high is the top half glowing and the
+  lower third a wall, as deep in colour as the water it stands in. (In the first pass most of the face glowed
+  alike, with an edge where it stopped; a narrower band was tried too, and made the wave a dark wall with a
+  bright rim.) Looked at towards the sun the light is brighter, with the sun behind the eye dimmer. A wave over
+  the shallow reef is never as dark as the open sea (`LEAST_WAY_DOWN`).
+- The sea's own waves let the light through their tops too: the shore break, the white water's front, a swell
+  standing up. The sea's mesh does not know a wave's thickness, so it goes by a rough rule: the higher the water
+  stands, the thinner the wave (`waterBehindWave` in `waves.glsl`).
+- A ray mirrored well down, under a lip or off a face seen from above, meets the sea: there the surface mirrors
+  water like itself, not the sky. The underside of the lip had been streaked with sky.
+- *The mirror and the floor.* Looked along from far off, the mirrored sky now hides the floor: from some 7 to 30
+  times the eye's height away (`MIRROR_HIDES_FROM`). Nearer, it only tints the water, as it always did, and
+  clear shallows stay clear. It was tried everywhere first, which is the physics; it turned the reef flat and
+  the water's edge, both matched to Ryan's photos, busy and blue, so it was drawn back to the distance, where
+  the photos taken at water level show it.
+
+*Step 2, the surface.*
+
+- Fine lines run up a wave's face, tilting it and shading it, where the ripples laid on from above were smeared
+  down it in bands (`faceLine`).
+- The sun lights a slope turned towards it more than flat water and one turned away less, which shows a swell's
+  shape from above (`SUN_ON_SLOPES`); not a breaking wave's face, which is lit through its back.
+
+*Step 3, the join's shape.*
+
+- *The front grows out of the swell.* The shapes picture now holds only the front of a wave that has stood up. A
+  wave that has not, or that throws no lip, has no front: there the mesh lies just under the sea's own surface,
+  which its shader asks the wave model for, and each row goes from there to its place on the front as the wave
+  stands up (`standsUpBy`, shared with the sea's own standing up). Before, the mesh had a resting shape of its
+  own, which came out of the swell as a facet.
+- *The standing wave's back is longer and runs out level at its foot*: 5.5 front heights, where it was a ramp of
+  3 that began abruptly (`BACK_LENGTH`; the program's copy has the same).
+- *The sums are written once.* The mesh's shader asks the sea's own `waveOfTrain` for the front's timing and
+  heights (`part`), and `breaker-state.glsl` holds no sums of its own. No picture changed.
+- *The face has no edge at its foot.* It came up through the sea at an angle, which made a crease where the pale
+  trough ended and the face began. The path now runs in along the trough for a front height ahead of the foot
+  and curves up from there (`RUN_IN` in `breaker-shapes.ts`), and the mesh's low rows lie on the sea's own
+  surface, a little over it, as its back does (`frontOnTheSea` in `breaker.vert.glsl`): the trough curves up
+  into the face. The mesh measures its distance off the beach as the sea does and slopes its low rows as the sea
+  slopes, so its leading edge on the trough does not show. (The mesh had been asking for the sea as it would be
+  if it did not sink under the mesh, which ahead of the crest was a plateau as high as the crest; it is now
+  given the trough there.)
+- What is left of the join: nothing found on stills or films from the desktop. The phone is to say.
+
+*Step 4, white water.*
+
+- *The landing.* The landed lip becomes the white mass within a tenth of a stage (it was a third: on the way the
+  mesh folds through itself, which showed as a slab). The mass is thrown up, fast at first and slowing to its
+  highest, and whitens from where the lip landed back to the crest. As the lip lands it is torn a little, all of
+  it.
+- The billows of the mass are 7 m and 15 m long (they were 3 m and 1.5 m, which the mesh's columns drew as a row
+  of peaks), and it settles sooner.
+- Foam on steep water has a pattern of its own, laid along the shore and up the water's height and drawn out
+  into streaks the way the water falls; the patterns laid on from above were smeared down it. Piled-up white
+  water is lit as a heap of lumps, with the hollows between them in shade.
+- The top of the mass is torn into tufts, and its foot into lace where it runs out over the sea
+  (`torn-edge.glsl`): both of the mesh's drawings leave the gaps out. The top is torn only for an eye that sees
+  it from the side, against the sky; nothing is torn beyond 110 m, where the tufts would be smaller than a dot
+  of the screen and only glitter; nor from under water, where the gaps showed as a net of dark threads.
+- *At the last the mass breaks up* into tufts and lace and is gone, and only then sinks back under the sea.
+  Sinking while it still showed, it crossed the sea's surface at so shallow an angle that the two showed through
+  each other.
+- *The mass is lit as a cloud is* (`vWhiteMass`, and "The white mass" in `water.frag.glsl`). It had been lit as
+  foam on water is: the ripples laid on from above were smeared down it in streaks, water showed through it in
+  specks, and its shade was the blue-grey of thin foam, which together read as ice. It now has round lumps of
+  its own, a metre across with smaller ones on them, laid along the shore and along the mesh's own
+  cross-section; it is bright where they face the sun and a pale shade where they turn away and in the hollows
+  between; and no water shows through. The same smearing is gone from the sea's own steep foam.
+- The mass's foam thins from its highest place back to the wave's crest and back, where it is foam left lying
+  and not white water thrown up: seen from behind and above the mass ends in lace, not in an edge.
+- *Spray along the crest* (`spray.ts`, `throwFromTheCrest`). The spray looked for breaking water at 170 spots
+  scattered over the reef, few of which fell on the narrow line where a lip lands. It now also looks at 48 spots
+  along the crest itself, which the crest picture gives the program as it gives the mesh (`crestOutsideLine`),
+  and throws droplets and small clouds of mist from the top of the white mass, on with the wave. They draw from
+  a random stream of their own, so the spray there was, and the surf's sound, are as they were. `crest spray` in
+  the debug panel switches it off, to read what it costs: some hundreds of small sprites of mist beside a
+  breaking wave.
+
+*Step 5, the lip.* It whitens from its tip back towards the crest, where it stays a clear sheet until it lands;
+its edge frays as it falls, more the further it has fallen; its underside is glassy.
+
+*What it costs.* The three readings of the detail texture that steep water needs are compiled only into the wave
+mesh and the breaker's mesh (`WATER_STANDS_STEEP`, `WATER_HAS_TORN_EDGE`): the far sea and the lagoon, which
+fill most of the screen, read nothing more than before. The breaker's shader now runs `waveOfTrain` five times
+for each point (it was three, and two shorter sums). New to the phone: a fragment discarded by a texture, in the
+mesh's two drawings.
+
+For the phone: the frame rate at the reef's edge; if it has dropped, which of three switches in the debug panel
+brings it back (`crest spray` off, `plain steep water` on, `breaker mesh` off); whether the white mass reads as
+water in motion, and whether its torn edges shimmer; whether the fine lines on the face crawl; the join from the
+angle of Ryan's screenshots.
+
+Seen and left: close to, the white mass is a soft heap, more a cloud bank than tumbling water; from under water
+the mesh's foot shows as a ledge on the surface (as it did before these passes); the lip's underside, seen from
+inside the tube, is a flat bright sheet; where a trough bares the tops of the reef's spurs, foam and ground show
+through each other in stripes (the water's edge, where the water's formula and the ground's triangles disagree:
+a hard rule's own ground). At night the white mass is a dim warm brown, as all foam is at night: more of it
+shows now.
 
 ## Later
 
@@ -528,9 +634,14 @@ of the wave model's sums and reads six more dots of the pictures for each point.
 - Night without a fire is nearly black.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - Far palms and shrubs look thinner than near ones (leaf cut-outs blur together with distance).
-- The breaking wave: its front is now a mesh of its own, smooth and with a lip of two sides, but the white mass
-  where the lip lands is a smooth white shape close to, and the join with the sea can still be seen (above).
-  Spray has only been tuned on stills.
+- The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
+  tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
+  films from the desktop only. Spray has only been tuned on stills.
+- From low down inside the reef a pale hairline can show just under the horizon, where the wave mesh's outer
+  edge and the far sea overlap (seen on the desktop in a small picture, and in the build before these passes
+  too).
+- Close to the eye the ripples show as blotches a metre or so across, where the photos show fine ripples drawn
+  out level by the view. They are the wind's gusts and slicks, an approved look: to change with Ryan.
 - A whitecap's leading edge can look like a clean white blade close to the eye.
 - The lagoon's raised waves and the ocean's shore break are slightly stepped where the mesh is coarse.
 - Nothing can be picked up or moved yet.

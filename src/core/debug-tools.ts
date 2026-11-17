@@ -3,6 +3,7 @@ import type { Breaker } from '../sea/breaker';
 import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
+import type { Spray } from '../sea/spray';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
@@ -106,6 +107,7 @@ export function debugSwitches(
   frameRate: FrameRateLabel,
   crestLine: CrestLine,
   breaker: Breaker,
+  spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -140,21 +142,25 @@ export function debugSwitches(
     { label: 'waves off', ...waterDebug(1) },
     { label: 'no falling lip', ...waterDebug(2) },
     { label: 'plain water colour', ...waterDebug(3) },
-    {
-      // The water coloured by how much of it the eye looks through, in place of the rules for waves.
-      label: 'new water colour',
-      key: 'v',
-      set(on) {
-        uniforms.uColourByPath.value = on ? 1 : 0;
-      },
-      isOn: () => uniforms.uColourByPath.value === 1,
-    },
     { label: 'sea floor pictures', ...waterDebug(4) },
     { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
     // (without it the sea shows what it does under the breaking wave's front)
     { label: 'breaker mesh', key: 'b', set: breaker.show, isOn: () => breaker.isShown },
+    // (the spray along the breaking crest: read the frame rate beside a breaking wave with and without)
+    { label: 'crest spray', set: spray.throwFromCrest, isOn: () => spray.isThrownFromCrest },
     // For finding where a slow frame goes: read the frame rate with it on.
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
+    {
+      // The same: the wave mesh's colouring without what only steep water needs (two readings of
+      // the detail texture for every dot of it: water.frag.glsl's WATER_STANDS_STEEP).
+      label: 'plain steep water',
+      set(on) {
+        const { defines } = water.waveMaterial;
+        if (on) delete defines.WATER_STANDS_STEEP;
+        else defines.WATER_STANDS_STEEP = '';
+        water.waveMaterial.needsUpdate = true;
+      },
+    },
   ];
 }
 

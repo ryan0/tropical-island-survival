@@ -104,7 +104,7 @@ export interface BreakerArc {
 
 // A breaking wave's front, in front heights (waves.glsl and breaker-shapes.ts have the back's two
 // numbers): its back is a slope this long, and its face reaches this far ahead of the crest.
-const BACK_LENGTH = 3;
+const BACK_LENGTH = 5.5;
 const FACE_REACHES = 0.8;
 
 export function createWaveModel(
@@ -300,8 +300,9 @@ export function createWaveModel(
     const frontBase = -0.22 * usualHeight - 0.1 * standingHeight;
     const fromCrestInHeights = fromCrest / (FRONT_WAVE_NUMBER * Math.max(frontHeight, 0.05));
     const behindCrest = Math.max(fromCrestInHeights, 0);
-    const backSlope = Math.pow(Math.max(1 - behindCrest / BACK_LENGTH, 0), 1.4);
-    const backFades = 1 - smoothstep(0.7 * BACK_LENGTH, BACK_LENGTH, behindCrest);
+    const downBack = Math.max(1 - behindCrest / BACK_LENGTH, 0);
+    const backSlope = downBack * downBack;
+    const backFades = 1 - smoothstep(0.75 * BACK_LENGTH, BACK_LENGTH, behindCrest);
     const face = 1 - smoothstep(0, FACE_REACHES, -fromCrestInHeights);
     const frontLift =
       (frontBase + frontHeight * backSlope * face - profileHeight) *

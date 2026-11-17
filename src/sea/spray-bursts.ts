@@ -20,6 +20,7 @@ export interface BreakingSpot {
 }
 
 export interface SprayBursts {
+  fromBurstingCrest(spot: BreakingSpot): void;
   fromLandingLip(spot: BreakingSpot): void;
   fromFallingLip(spot: BreakingSpot): void;
   fromBore(spot: BreakingSpot): void;
@@ -31,16 +32,58 @@ const config = sprayConfig;
 
 export function createSprayBursts(random: Random, droplets: SprayDroplets): SprayBursts {
   return {
+    // The white mass a landed lip throws up sheds spray from its top, all along the crest:
+    // droplets thrown up and on ahead of the wave, and small clouds of mist that rise off it.
+    fromBurstingCrest({ x, z, surface, inwardX, inwardZ, breakerHeight }) {
+      const lift = Math.sqrt(breakerHeight + 0.08);
+      const { startAt, thrownOnAt } = config.onCrest;
+      const lowestStart = startAt[0] * breakerHeight;
+      const startsOver = (startAt[1] - startAt[0]) * breakerHeight;
+      const slowest = thrownOnAt[0];
+      const speedsOver = thrownOnAt[1] - thrownOnAt[0];
+      for (let i = 0; i < config.onCrest.droplets; i++) {
+        const speed = slowest + random() * speedsOver;
+        droplets.launch(
+          x + (random() - 0.5) * 1.6,
+          surface + lowestStart + random() * startsOver,
+          z + (random() - 0.5) * 1.6,
+          inwardX * speed + (random() - 0.5) * 1.6,
+          (1.2 + random() * 3.2) * lift,
+          inwardZ * speed + (random() - 0.5) * 1.6,
+          0.5 + random() * 0.7,
+          0.04 + random() * 0.07,
+          0.06,
+          0.85,
+        );
+      }
+      for (let i = 0; i < config.onCrest.mists; i++) {
+        const speed = slowest + random() * speedsOver;
+        droplets.launch(
+          x + (random() - 0.5) * 2,
+          surface + lowestStart + random() * startsOver,
+          z + (random() - 0.5) * 2,
+          inwardX * speed,
+          (0.8 + random() * 1.4) * lift,
+          inwardZ * speed,
+          1 + random() * 0.8,
+          0.7 + random() * 0.7,
+          1.3,
+          config.onCrest.mistBrightness,
+        );
+      }
+    },
+
     fromLandingLip({ x, z, surface, inwardX, inwardZ, breakerHeight }) {
       // Bigger waves throw higher, though not in proportion.
       const lift = Math.sqrt(breakerHeight + 0.08);
+      const [startLow, startHigh] = config.landingLip.dropletsStartAt;
       const count =
         config.landingLip.fewestDroplets +
         Math.floor(random() * config.landingLip.dropletsPerMetre * breakerHeight);
       for (let i = 0; i < count; i++) {
         droplets.launch(
           x + inwardX * 0.3 + (random() - 0.5) * 0.9,
-          surface + 0.1 + random() * 0.3 * breakerHeight,
+          surface + (startLow + random() * (startHigh - startLow)) * breakerHeight,
           z + inwardZ * 0.3 + (random() - 0.5) * 0.9,
           inwardX * (1 + random() * 2.4) + (random() - 0.5) * 1.4,
           (1.6 + random() * 3.4) * lift,

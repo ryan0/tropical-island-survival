@@ -280,7 +280,9 @@ const spray = createSpray({
   scene,
   camera,
   random: randomStream('spray'),
+  randomOnCrest: randomStream('spray on the crest'),
   waves,
+  crestOutsideLine: crests.crestOutsideLine,
   islandRadius: island.radius,
   offshoreOfReef: island.offshoreOfReef,
   obstacles: rocksInSurf,
@@ -316,7 +318,7 @@ const debugPanel = createDebugPanel(
     describeEye(camera.position, island),
     FLYING_KEYS,
   ],
-  debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine, breaker),
+  debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine, breaker, spray),
   'fly to',
   placesToFlyTo(player),
 );
