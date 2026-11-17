@@ -88,6 +88,31 @@ export const seaConfig = {
   },
 
   /**
+   * The picture of the breaking wave's front in cross-section, for the breaker's own mesh
+   * (breaker-shapes.ts): dots across, one for each place along the front from its foot to its
+   * back, and dots down, one for each stage of its breaking from `firstStage` to `lastStage`
+   * (wave-timing/timing.glsl says what a stage is).
+   */
+  breakerShapes: {
+    places: 64,
+    stages: 64,
+    firstStage: -1.4,
+    lastStage: 2.4,
+  },
+
+  /** The breaker's own mesh (breaker.ts). */
+  breaker: {
+    /** Rows across the wave's front, from the trough ahead of it to the end of its back. */
+    rows: 40,
+    /** Its columns are this far apart along the crest (metres). */
+    columnsApart: 1.2,
+    /** It is cut into pieces of this many columns; a piece out of view is not drawn. */
+    columnsInAPiece: 48,
+    /** The crest it draws is never further than this from the line the waves break on (metres). */
+    reachFromLine: 45,
+  },
+
+  /**
    * Shorter swell lines far out, beyond the wave mesh: shaded, not modelled (water.frag.glsl). They
    * give the open sea its variety of period and height.
    */

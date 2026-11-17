@@ -114,6 +114,7 @@ float shoalingSeconds(float since0, float since1, float since2, float since3, fl
 // before it lands: freely, so in the time gravity takes.
 const float FRONT_STANDS = 1.15;
 const float LIP_DROPS = 0.9;
+float lipDrops() { return LIP_DROPS; }
 float lipFallSeconds(float breakerHeight) {
   return sqrt(2.0 * LIP_DROPS * FRONT_STANDS * max(breakerHeight, 0.05) / GRAVITY);
 }

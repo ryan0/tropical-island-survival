@@ -39,6 +39,19 @@
 uniform sampler2D uSeaFloor;
 uniform sampler2D uBreakTimes;
 
+// The breaker's own mesh (breaker.ts). uBreakerDrawn: 1 while it is drawn, 0 while the sea throws its own lip.
+// uBreakerArc: the directions it can follow a crest in, as the middle of their arc and half its width (radians).
+// While it is drawn, a wave throws a lip wherever in that arc the floor makes it, whichever way the swell is
+// heading; the lip is the mesh's to draw; and the sea sinks its own crest out of the mesh's way.
+uniform float uBreakerDrawn;
+uniform vec2 uBreakerArc;
+
+// How far inside that arc a direction lies: 1 inside, 0 outside, fading over its last few degrees.
+float inBreakerArc(float th) {
+  float fromMiddle = abs(mod(th - uBreakerArc.x + HALF_TURN, FULL_TURN) - HALF_TURN);
+  return 1.0 - smoothstep(uBreakerArc.y - 0.12, uBreakerArc.y - 0.04, fromMiddle);
+}
+
 // shore.glsl's beach: s metres off it the sea is BEACH_CURVE_DEPTH * ((1 + s / BEACH_CURVE_LENGTH)^2 - 1) deep. The
 // model reads the curve backwards, from the depth to how far off the beach a point is. (Both numbers are
 // shore.glsl's: keep them the same.)
@@ -171,6 +184,18 @@ vec4 waveOfTrain(
   float height = mix(shoaledHeight, boreHeight, broken) * gate;
   float usualHeight = mix(usualShoaledHeight, usualBoreHeight, usualBroken) * gate;
 
+  // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
+  float shoalsIn =
+    shoalingSeconds(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
+  float plunging = plungingFor(shoalsIn) * canPlunge
+    * mix(plungingHeading(headingInshore), inBreakerArc(th), uBreakerDrawn);
+  // The wave stands up into a steep hollow face before its lip starts to fall (lipFall).
+  float standingUp = standingUpAt(crestStage) * plunging;
+  // (uDebugMode 2: no falling lip)
+  standingUp *= abs(uDebugMode - 2.0) < 0.5 ? 0.0 : 1.0;
+  // (how much of that the sea itself draws: none of it while the breaker's own mesh does)
+  float lipOnSea = standingUp * (1.0 - uBreakerDrawn);
+
   // Out at sea a swell is a long round back. In shallow water it stops being a sine: the crest narrows to a peak a
   // few metres wide, and the trough goes long and flat.
   float crestNarrowing = 1.0 + (max(0.55 / waveNumber, 1.0) - 1.0) * narrowingAt(stage);
@@ -187,17 +212,10 @@ vec4 waveOfTrain(
   // (white water is lumpy: its height varies along the front and keeps changing)
   boreShape *= 1.0 + 0.30 * sin(th * 190.0 + fromCrest * 3.0 + variety) * sin(th * 67.0 - trainPhase * 0.5);
   float shape = mix(swellShape, boreShape, broken);
-  float crestHeight = 0.62 * height * shape;
+  // (under the breaker's own mesh the crest sinks away: the mesh is the wave there)
+  float crestHeight = 0.62 * height * shape * (1.0 - 0.92 * standingUp * uBreakerDrawn);
   float profileHeight = crestHeight - 0.22 * usualHeight;
 
-  // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
-  float shoalsIn =
-    shoalingSeconds(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
-  float plunging = plungingFor(shoalsIn) * plungingHeading(headingInshore) * canPlunge;
-  // The wave stands up into a steep hollow face before its lip starts to fall (lipFall).
-  float standingUp = standingUpAt(crestStage) * plunging;
-  // (uDebugMode 2: no falling lip)
-  standingUp *= abs(uDebugMode - 2.0) < 0.5 ? 0.0 : 1.0;
   float frontHeight = FRONT_STANDS * height;
   float lipFall = clamp(crestStage, 0.0, 1.0);
 
@@ -217,13 +235,13 @@ vec4 waveOfTrain(
   // (The water is drawn in to the face early in the standing up, and lifted all through it: the front steepens
   // first and then grows. Drawn in only as it is lifted, the face would arrive as a ledge sliding in ahead of the
   // crest.)
-  float frontPush = (pushInFront + pushOnBack) * smoothstep(0.0, 0.35, standingUp);
+  float frontPush = (pushInFront + pushOnBack) * smoothstep(0.0, 0.35, lipOnSea);
   float liftInFront = (frontBase + frontHeight * frontPoint.y - profileHeight) * intoFace * inFront;
   float liftOnBack = (frontBase + frontHeight - profileHeight) * onBack;
-  float frontLift = (liftInFront + liftOnBack) * standingUp;
+  float frontLift = (liftInFront + liftOnBack) * lipOnSea;
   // The face draws up the water ahead of it: the trough there sinks.
   float aheadOfFace = fromCrest + 1.4;
-  float suck = -0.10 * height * standingUp * exp(-aheadOfFace * aheadOfFace / 0.35);
+  float suck = -0.10 * height * lipOnSea * exp(-aheadOfFace * aheadOfFace / 0.35);
   // The lip lands and throws up a mound.
   float lipLanding = smoothstep(0.9, 1.15, crestStage) * (1.0 - smoothstep(1.5, 2.4, crestStage)) * plunging;
   float fromLanding = fromCrest + 0.40;
@@ -235,7 +253,7 @@ vec4 waveOfTrain(
   float foamOnLip = inLip * (0.10 + smoothstep(0.25, 0.8, lipFall) * (0.25 + 0.75 * lipEdge));
   float foamOnFace = (inFront - inLip) * intoFace * clamp((fromCrest + 1.2) / 0.5, 0.0, 1.0)
     * smoothstep(0.7, 1.0, lipFall) * 0.6;
-  float lipFoam = standingUp * (foamOnLip + foamOnFace);
+  float lipFoam = lipOnSea * (foamOnLip + foamOnFace);
   // Thick behind the break, thinning out over the flat, a little again where the last of the wave meets the beach
   // (the shore break whitens from about knee depth in).
   float fadingOverFlat = exp(-max(stage - 1.6, 0.0) * breakingSpan * 0.13);

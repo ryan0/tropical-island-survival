@@ -354,6 +354,33 @@ The ribbon will spread its rows across that span and take its shape from the wav
 say whether it shows and rides the wave there too: it reads three pictures in a vertex shader, one of them
 wrapping round.
 
+Ryan, 17 November 2026: the line looks right on the phone and the desktop, and there is little or none of it
+round the lee, as the swell's direction would have it.
+
+**Built, the second step's first part: the ribbon itself**, behind a switch (`breaker mesh` in the debug panel,
+or B) while it is made good. Off, everything is as it was.
+
+- *The shapes* (`breaker-shapes.ts`): the front's cross-section as a path, from the trough ahead up the face,
+  out along the lip's underside, round its tip, back along its top and down the wave's back, at each stage from
+  the swell's own crest through standing up, the lip falling and landing, to white water; for a plain wave and a
+  hollow one, which the shader mixes. The lip is water that leaves the crest and falls freely.
+  `window.__scene.breakerFrontPoint` gives a point of it, to draw beside footage.
+- *The mesh* (`breaker.ts`, `breaker.vert.glsl`, `breaker-state.glsl`): 40 rows across the front, a column every
+  1.2 m along the crest, round the arc where the crest picture finds a crest (from the north-east round through
+  south to a little north of west): 38 thousand points in 20 pieces, a piece out of view not drawn. It finds the
+  crest as the line does, asks the wave model how far the wave's breaking has gone and how high it stands there
+  (the model's own sums, written again for the main swell alone: they must be kept the same until the two are
+  made one), and reads its row's place from the shapes. It is coloured as all water is.
+- *The sea under it* (`waves.glsl`, while `uBreakerDrawn` is 1): throws no lip of its own, sinks its crest out
+  of the mesh's way as the wave stands up, and lets a wave throw a lip anywhere in the mesh's arc, whichever way
+  the swell is heading, which the sea's own lip could not do.
+
+On the desktop the face is smooth where the sea's own was faceted, the lip is a sheet with two sides that peels
+along the crest, and it lands into white water. Still to do in this step: the look of the lip and the white
+water against the footage; the mesh's edges where it meets the sea; the sea's own lip taken out for good, and
+the program's copy with it; levels of detail. The phone is to say what 38 thousand more points cost, and whether
+the ribbon tears or flickers.
+
 
 
 ## Later

@@ -1,4 +1,4 @@
-import { Color, Vector3, type IUniform, type Texture } from 'three';
+import { Color, Vector2, Vector3, type IUniform, type Texture } from 'three';
 import type { CloudUniforms } from '../sky/clouds';
 import type { SkyLightUniforms } from '../sky/sky-light';
 
@@ -38,6 +38,12 @@ export type SharedUniforms = Record<string, IUniform> &
     uBreakTimes: { value: Texture | null };
     /** Where the main swell's crest lies, once it is made (sea/crest-picture.ts). */
     uCrests: { value: Texture | null };
+    /** The breaking front's cross-sections, once they are made (sea/breaker-shapes.ts). */
+    uBreakerShapes: { value: Texture | null };
+    /** 1 while the breaker's own mesh is drawn, and the sea leaves the lip to it (sea/breaker.ts). */
+    uBreakerDrawn: { value: number };
+    /** The directions that mesh can follow a crest in: the middle of their arc, and half its width. */
+    uBreakerArc: { value: Vector2 };
     /** The camera's position, for materials three.js does not give it to. */
     uCameraPosition: { value: Vector3 };
     /** The 16 biggest things standing in the surf: x, z, radius. The water draws foam round them. */
@@ -67,6 +73,9 @@ export function createSharedUniforms(
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },
     uCrests: { value: null },
+    uBreakerShapes: { value: null },
+    uBreakerDrawn: { value: 0 },
+    uBreakerArc: { value: new Vector2() },
     uCameraPosition: { value: new Vector3() },
     uSurfObstacles: { value: noObstacles },
     ...skyLight,

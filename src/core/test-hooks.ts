@@ -24,6 +24,11 @@ interface SceneHooks {
   islandRadius(direction: number): number;
   waveShaderSource(): string;
   seaFloor: SeaFloorPictures;
+  breakerFrontPoint(
+    partWay: number,
+    crestStage: number,
+    hollowness: number,
+  ): readonly [number, number];
 }
 
 declare global {
@@ -48,6 +53,12 @@ export interface HookedSystems {
   waveHeight: (x: number, z: number, time: number, withoutBreaking: boolean) => number;
   waveShaderSource: () => string;
   seaFloor: SeaFloorPictures;
+  /** The breaking front's cross-section (sea/breaker-shapes.ts), to draw beside footage. */
+  breakerFrontPoint: (
+    partWay: number,
+    crestStage: number,
+    hollowness: number,
+  ) => readonly [number, number];
   /** Sets the clock the waves run by. */
   setWaveTime: (time: number) => void;
   jumpToTimeOfDay: (phase: number) => void;
@@ -105,6 +116,7 @@ export function createTestHooks(): TestHooks {
         islandRadius: systems.islandRadius,
         waveShaderSource: systems.waveShaderSource,
         seaFloor: systems.seaFloor,
+        breakerFrontPoint: systems.breakerFrontPoint,
       };
     },
   };

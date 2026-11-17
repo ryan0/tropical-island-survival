@@ -1,4 +1,5 @@
 import type { WebGLRenderer } from 'three';
+import type { Breaker } from '../sea/breaker';
 import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
@@ -45,13 +46,14 @@ export function describeBuild(
   quality: AutomaticQuality,
   seaFloor: SeaFloorPictures,
   crests: CrestPicture,
+  breaker: Breaker,
 ): string[] {
   const context = renderer.getContext();
   const webGl = renderer.capabilities.isWebGL2 ? '2' : '1';
   return [
     `build v${build.version} · ${build.commit} · WebGL${webGl} · frag highp bits ${fragmentPrecisionBits(context)} · three precision ${renderer.capabilities.precision}`,
     `GPU: ${graphicsCardName(context)}`,
-    `water: ${water.waveMeshDescription} · quality stage ${quality.stage} · pixel ratio ${renderer.getPixelRatio()}`,
+    `water: ${water.waveMeshDescription} · breaker ${breaker.description} · quality stage ${quality.stage} · pixel ratio ${renderer.getPixelRatio()}`,
     `sea floor pictures: ${seaFloor.size} dots across, made in ${seaFloor.madeInMilliseconds.toFixed(0)} ms · a crest found in ${(crests.shareOfDirectionsFound * 100).toFixed(0)}% of directions`,
   ];
 }
@@ -103,6 +105,7 @@ export function debugSwitches(
   player: Pick<Player, 'setFlying' | 'isFlying'>,
   frameRate: FrameRateLabel,
   crestLine: CrestLine,
+  breaker: Breaker,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -139,6 +142,16 @@ export function debugSwitches(
     { label: 'plain water colour', ...waterDebug(3) },
     { label: 'sea floor pictures', ...waterDebug(4) },
     { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
+    {
+      // The breaker's own mesh in place of the sea's lip, while it is being built.
+      label: 'breaker mesh',
+      key: 'b',
+      set(on) {
+        breaker.show(on);
+        uniforms.uBreakerDrawn.value = on ? 1 : 0;
+      },
+      isOn: () => breaker.isShown,
+    },
     // For finding where a slow frame goes: read the frame rate with it on.
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
   ];

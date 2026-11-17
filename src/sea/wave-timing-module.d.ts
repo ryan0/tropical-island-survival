@@ -36,6 +36,7 @@ declare module 'virtual:wave-timing' {
   export function plungingFor(shoaling: number): number;
   export function plungingHeading(headingInshore: number): number;
   export function frontWaveNumber(): number;
+  export function lipDrops(): number;
   export function frontFromCrest(phaseFromCrest: number, waveNumber: number): number;
   export function leanOf(waveNumber: number): number;
   export function secondsFromCrest(fromCrest: number, slowness: number): number;

@@ -28,6 +28,8 @@ export interface CrestPicture {
   readonly texture: DataTexture;
   /** The share of the directions round the atoll in which a crest can be found. */
   readonly shareOfDirectionsFound: number;
+  /** The longest unbroken arc of such directions: its middle, and half its width (radians). */
+  readonly arc: { readonly middle: number; readonly halfWidth: number };
 }
 
 const { directions, moments, secondsBefore, secondsAfter, lookedForWithin, lookedForEvery } =
@@ -41,6 +43,26 @@ const RUNS_BACK = 0.02;
 /** The direction of a column of the picture, as the island's shape counts directions. */
 function directionOf(column: number): number {
   return ((column + 0.5) / directions - 0.5) * FULL_TURN;
+}
+
+/** The longest unbroken run of directions in which a crest is found, going round past the last column to the first. */
+function longestArc(isFound: readonly boolean[]): { middle: number; halfWidth: number } {
+  let longest = 0;
+  let endsAt = 0;
+  let run = 0;
+  // (twice round, so that a run across the join is counted whole)
+  for (let step = 0; step < 2 * directions; step++) {
+    run = isFound[step % directions] ? Math.min(run + 1, directions) : 0;
+    if (run > longest) {
+      longest = run;
+      endsAt = step;
+    }
+  }
+  const middleColumn = endsAt - (longest - 1) / 2;
+  return {
+    middle: directionOf(middleColumn % directions),
+    halfWidth: ((longest / directions) * FULL_TURN) / 2,
+  };
 }
 
 /** The main swell's arrival time anywhere, read between the dots of its picture. */
@@ -72,7 +94,7 @@ export function createCrestPicture(
   const values = new Float32Array(directions * moments * CHANNELS);
   const steps = Math.round((2 * lookedForWithin) / lookedForEvery);
   const sinceLine = new Float32Array(steps + 1);
-  let directionsFound = 0;
+  const isFound: boolean[] = [];
 
   for (let column = 0; column < directions; column++) {
     const direction = directionOf(column);
@@ -82,17 +104,19 @@ export function createCrestPicture(
     const arrivalAtLine = arrivalAt(outX * line, outZ * line);
 
     // The swell's arrival along this direction, from outside the line inwards: seconds after it
-    // crosses the line. A crest can be found only if that never runs back.
+    // crosses the line. A crest can be found only if that never runs back, over the moments the
+    // picture holds. (Further in, among the gardens' mounds, it may: that does not matter.)
     let latest = -Infinity;
     let runsBack = false;
     for (let step = 0; step <= steps; step++) {
       const fromCentre = line + lookedForWithin - step * lookedForEvery;
       const since = arrivalAt(outX * fromCentre, outZ * fromCentre) - arrivalAtLine;
-      if (since < latest - RUNS_BACK) runsBack = true;
+      const isInPicture = latest > -secondsBefore && latest < secondsAfter;
+      if (isInPicture && since < latest - RUNS_BACK) runsBack = true;
       latest = Math.max(latest, since);
       sinceLine[step] = latest;
     }
-    if (!runsBack) directionsFound++;
+    isFound.push(!runsBack);
 
     let step = 0;
     for (let row = 0; row < moments; row++) {
@@ -127,5 +151,9 @@ export function createCrestPicture(
   texture.wrapT = ClampToEdgeWrapping;
   texture.minFilter = texture.magFilter = LinearFilter;
   texture.needsUpdate = true;
-  return { texture, shareOfDirectionsFound: directionsFound / directions };
+  return {
+    texture,
+    shareOfDirectionsFound: isFound.filter(Boolean).length / directions,
+    arc: longestArc(isFound),
+  };
 }
