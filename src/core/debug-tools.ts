@@ -5,6 +5,7 @@ import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
 import type { BuildInfo } from '../ui/build-label';
 import type { DebugAction, DebugSwitch } from '../ui/debug-panel';
+import type { FrameRateLabel } from '../ui/frame-rate-label';
 import type { IslandShape } from '../world/island-shape';
 import type { AutomaticQuality } from './automatic-quality';
 import type { FrameMeter } from './frame-meter';
@@ -97,6 +98,7 @@ export function debugSwitches(
   uniforms: SharedUniforms,
   testHooks: TestHooks,
   player: Pick<Player, 'setFlying' | 'isFlying'>,
+  frameRate: FrameRateLabel,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -108,6 +110,7 @@ export function debugSwitches(
   return [
     { label: 'fly', key: 'f', set: player.setFlying, isOn: () => player.isFlying },
     { label: 'drain the sea', key: 'g', ...waterDebug(SEA_DRAINED) },
+    { label: 'frame rate', set: frameRate.show, isOn: () => frameRate.isShown },
     {
       label: 'wireframe',
       set(on) {

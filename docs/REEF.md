@@ -85,7 +85,8 @@ Refined on 17 November 2026, after Ryan had flown over it with the sea drained a
 - **No two spurs end at the same place:** their ends, and the drop-off's lip with them, stand up to 13 m further
   in or out. The deepest grooves run on across the terrace as shallow chutes of sand and notch the lip.
 - **Lumps stand for things to come** (one pattern, some 4 m across): coral heads in clusters on the terrace,
-  rounded masses on the drop-off's face and on the lee's wall, the notches' fallen blocks.
+  rounded masses on the drop-off's face and on the lee's wall, the notches' fallen blocks. On a steep wall the
+  masses stand as spires; Ryan finds them interesting, and wants how they are drawn refined later.
 - **The lee's wall** has three ledges on the way down, and its line wanders.
 - **The notches** have scalloped sides, bigger blocks in places, and the rubble that fell from them lies spread
   on the terrace below.

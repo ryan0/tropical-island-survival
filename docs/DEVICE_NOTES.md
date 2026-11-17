@@ -33,6 +33,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 
 - The software renderer cannot confirm a fix for a phone-only bug. Say so, ship a build number, ask for a screenshot.
 - The build number (bottom centre) tells you whether a screenshot is from the current build.
+- The frame rate shows at the top left of the screen (a switch in the debug panel hides it).
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate, where
   the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe, hiding
   the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, and

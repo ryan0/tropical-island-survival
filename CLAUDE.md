@@ -26,8 +26,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
 
 - **The phone is the judge.** The test renderer is software GL at under one frame a second. It can show a still
   picture and catch shader errors; it cannot show motion or frame rate. Say plainly what only the phone can confirm.
-  The debug panel (hold the corner button) reports the frame rate, the program's time for a frame, the draws and
-  triangles, where the eye is and how deep the floor is under it. Its `fly` switch (or F) lets the stick move the
+  The frame rate shows in the corner of the screen. The debug panel (hold the corner button) reports it too, with
+  the program's time for a frame, the draws and triangles, where the eye is and how deep the floor is under it. Its `fly` switch (or F) lets the stick move the
   eye the way it looks, over land and sea, to look at anything from anywhere: Space and C go up and down, Shift
   goes fast, the wheel sets the pace, and a phone gets buttons for the same. Switched off, the player comes down
   where the eye was. `drain the sea` (or G) draws no water and marks the floor with lines of equal depth, a metre

@@ -277,7 +277,14 @@ shape bends sharply (`src/world/terrain-shape.ts`), which nearly doubles its tri
 thousand; one number in `world-config.ts` sets how readily). And the shape has more in it: spurs that end at
 different places, chutes of sand across the terrace, coral heads on it, a drop-off whose lip wanders, rounded
 masses on the walls, ledges on the lee's wall, a fan for the pass's lobe where there was a ramp, and rubble
-below the notches (`REEF.md`). The swell breaks as it did. The phone is to say what the triangles cost.
+below the notches (`REEF.md`). The swell breaks as it did.
+
+Ryan, 17 November 2026: improved, and good enough to go on to the waves. The phone is slightly slower for the
+triangles, which is no concern for now. The rounded masses on the walls stand as spires where the wall is steep:
+interesting, but how they are drawn wants refining later. Two small things came with it: the frame rate now
+shows in the corner of the screen without the debug panel, which had grown to cover most of the phone's screen
+(a switch in the panel hides it); and the rock painted round a coral head was cut off in a straight line where
+the heads' map ended, so the map now reaches past every head.
 
 Still to do of the shape: a lower strip of flat-topped heads and pools behind the crest, and the lagoon's patch
 reefs made steep-sided. Then the coral, in `REEF.md`'s order.

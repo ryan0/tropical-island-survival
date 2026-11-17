@@ -178,7 +178,14 @@ export const reefConfig = {
   headsShownWithin: 140,
   coralsShownWithin: 65,
 
-  /** The map of how high the heads stand, for the water: dots a side, and the metres it covers about home. */
+  /** Coral heads are looked for within this distance of home, to east and west and to north and south. */
+  headsWithin: 150,
+  /**
+   * The map of how high the heads stand, for the water and the ground: dots a side, and the metres
+   * it covers about home. It reaches 26 m past the furthest head, which is as far as the rock
+   * painted round the widest head does: a map that stopped short cut that rock off in a straight
+   * line.
+   */
   mapSize: 256,
-  mapSpan: 300,
+  mapSpan: 352,
 } as const;

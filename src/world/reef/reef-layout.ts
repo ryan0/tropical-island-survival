@@ -66,7 +66,7 @@ const SUNK_SHARE = 0.12;
 /** The rock stands this many times the head's height above its sunken foot: the part sunk, too. */
 export const HEAD_ROCK_HEIGHT = 1.12;
 
-const HEAD_SEARCH = { tries: 60000, most: 70, reachFromHome: 150 };
+const HEAD_SEARCH = { tries: 60000, most: 70, reachFromHome: reefConfig.headsWithin };
 const HEAD_FLOOR = { shallowest: -1.3, deepest: -7 };
 /** Heads keep this far clear of rocks, and of the water along the pier. */
 const HEAD_CLEAR_OF_ROCKS = 1.5;

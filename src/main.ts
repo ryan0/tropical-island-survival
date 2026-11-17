@@ -38,6 +38,7 @@ import { createWeatherMap } from './sky/weather-map';
 import { showBuildLabel } from './ui/build-label';
 import { watchCornerButton } from './ui/corner-button';
 import { createDebugPanel } from './ui/debug-panel';
+import { createFrameRateLabel } from './ui/frame-rate-label';
 import { createSceneMenu } from './ui/scene-menu';
 import { watchSoundButton } from './ui/sound-button';
 import { createBeachFinds } from './world/beach/beach-finds';
@@ -277,6 +278,7 @@ const quality = createAutomaticQuality(
   testHooks.isAutomaticQualityOff,
 );
 const frameMeter = createFrameMeter();
+const frameRateLabel = createFrameRateLabel(document.body);
 const soundButton = pageElement('snd');
 watchSoundButton(soundButton, audio.toggle);
 const menu = createSceneMenu(document.body, {
@@ -296,7 +298,7 @@ const debugPanel = createDebugPanel(
     describeEye(camera.position, island),
     FLYING_KEYS,
   ],
-  debugSwitches(water, uniforms, testHooks, player),
+  debugSwitches(water, uniforms, testHooks, player, frameRateLabel),
   'fly to',
   placesToFlyTo(player),
 );
@@ -471,6 +473,7 @@ function frame(now: number): void {
 
   renderer.render(scene, camera);
   frameMeter.update(realSeconds, (performance.now() - begunAt) / 1000);
+  frameRateLabel.update(frameMeter.framesPerSecond);
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);

@@ -11,7 +11,7 @@ const FRAMES_TO_START = 2;
 // Everything is placed and drawn within one frame; the second is slack for anything a frame late.
 const FRAMES_PER_MOMENT = 2;
 
-const CONTROLS = '#title, #cap, #hint, #joy, #snd, #tod, #menu';
+const CONTROLS = '#title, #cap, #hint, #joy, #snd, #tod, #menu, .frame-rate';
 
 export interface ScenePage {
   page: Page;
