@@ -32,6 +32,8 @@ export interface WaterMaterialsDependencies {
 
 export interface WaterMaterials {
   create: (sheet: WaterSheet) => ShaderMaterial;
+  /** The wave model's defines, for another shader that includes it (crest-line.ts). */
+  waveDefines: Readonly<Record<string, string>>;
   /** The wave model as the shader has it, ready to compile on its own: the tests compare it with the program's copy. */
   waveShaderSource: () => string;
 }
@@ -125,6 +127,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
   };
 
   return {
+    waveDefines,
+
     create(sheet) {
       const isWaveMesh = sheet === 'wave mesh';
       const isBand = sheet === 'lagoon shore band';

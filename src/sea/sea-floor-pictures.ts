@@ -64,6 +64,8 @@ export interface SeaFloorPictures {
   /** The pictures' numbers for the program, exactly as the textures hold them. */
   readonly floorValues: Float32Array;
   readonly breakValues: Float32Array;
+  /** When the main swell reaches each dot, in seconds: the crest picture is made from it. */
+  readonly mainArrival: Float32Array;
   /** Metres a second in the open sea: a swell's delay is how far behind this it has fallen. */
   readonly openSeaSpeed: number;
   /** How long the pictures took to make, for the debug panel. */
@@ -441,6 +443,7 @@ export function createSeaFloorPictures(groundHeight: GroundHeight): SeaFloorPict
     breaks,
     floorValues,
     breakValues,
+    mainArrival,
     openSeaSpeed,
     madeInMilliseconds: performance.now() - startedAt,
   };

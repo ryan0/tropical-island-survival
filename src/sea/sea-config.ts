@@ -69,6 +69,25 @@ export const seaConfig = {
   },
 
   /**
+   * The picture of where the main swell's crest lies, for the breaker's own mesh (crest-picture.ts).
+   */
+  crestPicture: {
+    /** Dots across, one for each direction round the atoll: about a metre apart on the reef's edge. */
+    directions: 2048,
+    /**
+     * Dots down, one for each moment from `secondsBefore` the swell crosses the line its waves break
+     * on to `secondsAfter`. The two together must be longer than the main swell's period, so that
+     * there is always a crest in the picture.
+     */
+    moments: 128,
+    secondsBefore: 7,
+    secondsAfter: 7,
+    /** The crest is looked for this far either side of that line, at steps this long (metres). */
+    lookedForWithin: 60,
+    lookedForEvery: 0.5,
+  },
+
+  /**
    * Shorter swell lines far out, beyond the wave mesh: shaded, not modelled (water.frag.glsl). They
    * give the open sea its variety of period and height.
    */

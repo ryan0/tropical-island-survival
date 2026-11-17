@@ -22,6 +22,8 @@ import { createSpray, type SprayFrame } from './sea/spray';
 import { createUnderWater } from './sea/under-water';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
+import { createCrestLine } from './sea/crest-line';
+import { createCrestPicture } from './sea/crest-picture';
 import { createSeaFloorPictures } from './sea/sea-floor-pictures';
 import { createWaveModel } from './sea/wave-model';
 import { createDetailTexture } from './shaders/detail-texture';
@@ -120,6 +122,11 @@ const sunGlare = createSunGlare(pageElement('glare'), camera);
 const seaFloor = createSeaFloorPictures(island.groundHeight);
 uniforms.uSeaFloor.value = seaFloor.floor;
 uniforms.uBreakTimes.value = seaFloor.breaks;
+const crests = createCrestPicture(
+  seaFloor,
+  (direction) => island.radius(direction) + island.offshoreOfReef(seaConfig.reefBreak, direction),
+);
+uniforms.uCrests.value = crests.texture;
 const waves = createWaveModel(island, seaFloor);
 const waterMaterials = createWaterMaterials({
   uniforms,
@@ -135,6 +142,7 @@ const water = createWater({
   sandbank: island.sandbank,
   createMaterial: waterMaterials.create,
 });
+const crestLine = createCrestLine({ scene, uniforms, waveDefines: waterMaterials.waveDefines });
 
 // ---- what stands and grows on the island, and what lives there ----
 const rocks = createRocks({
@@ -293,12 +301,12 @@ const menu = createSceneMenu(document.body, {
 const debugPanel = createDebugPanel(
   document.body,
   () => [
-    ...describeBuild(renderer, build, water, quality, seaFloor),
+    ...describeBuild(renderer, build, water, quality, seaFloor, crests),
     describeSpeed(renderer, frameMeter),
     describeEye(camera.position, island),
     FLYING_KEYS,
   ],
-  debugSwitches(water, uniforms, testHooks, player, frameRateLabel),
+  debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine),
   'fly to',
   placesToFlyTo(player),
 );

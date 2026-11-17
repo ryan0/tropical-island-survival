@@ -33,11 +33,12 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 
 - The software renderer cannot confirm a fix for a phone-only bug. Say so, ship a build number, ask for a screenshot.
 - The build number (bottom centre) tells you whether a screenshot is from the current build.
-- The frame rate shows at the top left of the screen (a switch in the debug panel hides it).
+- The frame rate shows at the top left of the screen (a switch in the debug panel hides it). The panel scrolls
+  within the screen: it had grown taller than the phone held sideways, and its lowest buttons could not be reached.
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate, where
   the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe, hiding
-  the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, and
-  drawing the wave mesh no finer than its second level; and a row of buttons that fly the eye to places on the
+  the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a line
+  along the breaking crest, and drawing the wave mesh no finer than its second level; and a row of buttons that fly the eye to places on the
   reef. Flying: the stick moves the eye the way it looks (push forward while looking up to climb), faster the
   higher it is; buttons at the right take it straight up and down, and `fast` hurries it (a keyboard has Space,
   C and Shift, and the wheel for the pace); it can go under water but not through the ground. With the sea

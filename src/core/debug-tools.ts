@@ -1,4 +1,6 @@
 import type { WebGLRenderer } from 'three';
+import type { CrestLine } from '../sea/crest-line';
+import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
@@ -42,6 +44,7 @@ export function describeBuild(
   water: Water,
   quality: AutomaticQuality,
   seaFloor: SeaFloorPictures,
+  crests: CrestPicture,
 ): string[] {
   const context = renderer.getContext();
   const webGl = renderer.capabilities.isWebGL2 ? '2' : '1';
@@ -49,7 +52,7 @@ export function describeBuild(
     `build v${build.version} · ${build.commit} · WebGL${webGl} · frag highp bits ${fragmentPrecisionBits(context)} · three precision ${renderer.capabilities.precision}`,
     `GPU: ${graphicsCardName(context)}`,
     `water: ${water.waveMeshDescription} · quality stage ${quality.stage} · pixel ratio ${renderer.getPixelRatio()}`,
-    `sea floor pictures: ${seaFloor.size} dots across, made in ${seaFloor.madeInMilliseconds.toFixed(0)} ms`,
+    `sea floor pictures: ${seaFloor.size} dots across, made in ${seaFloor.madeInMilliseconds.toFixed(0)} ms · a crest found in ${(crests.shareOfDirectionsFound * 100).toFixed(0)}% of directions`,
   ];
 }
 
@@ -99,6 +102,7 @@ export function debugSwitches(
   testHooks: TestHooks,
   player: Pick<Player, 'setFlying' | 'isFlying'>,
   frameRate: FrameRateLabel,
+  crestLine: CrestLine,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -134,6 +138,7 @@ export function debugSwitches(
     { label: 'no falling lip', ...waterDebug(2) },
     { label: 'plain water colour', ...waterDebug(3) },
     { label: 'sea floor pictures', ...waterDebug(4) },
+    { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
     // For finding where a slow frame goes: read the frame rate with it on.
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
   ];

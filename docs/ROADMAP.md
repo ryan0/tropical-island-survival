@@ -318,6 +318,44 @@ Brought forward from pass 3, because it reads the pictures and so survives the w
 The order agreed: the white water's first part; then the wider reef, designed with Ryan from a proposal (a map
 and a cross-section with sizes); then the breaker's own mesh.
 
+### Pass 2: the breaker's own mesh (agreed 17 November 2026)
+
+The design Ryan agreed, with the reef's shape settled:
+
+1. **A ribbon round the reef, drawn only where a wave is breaking.** Its columns are directions round the atoll.
+   Its rows run across the wave's front: the trough ahead, up the face, over the crest, out along the lip and
+   back underneath it, so that the lip has thickness. It carries position and nothing else.
+2. **It finds its wave from a picture, with no searching in the shader** (`src/sea/crest-picture.ts`): for each
+   direction and each moment, how far out the main swell's crest lies, and the way the swell is heading there.
+   It is made once at start-up from the swell's arrival times. Round the south, east and west the arrival only
+   ever grows towards the shore along a line out from the centre, so there is one answer (two thirds of the
+   directions); round the north there is none, and there waves already crumble without a lip.
+3. **The lip is thrown along the swell's own heading**, which is the proper cure for the horns.
+4. **The shapes are made ahead of time, in a small picture**: the front's cross-section at each stage (standing
+   up, lip in the air, landing) for a few sizes. The program builds it from one rule, that the lip is water
+   which leaves the crest at the wave's speed and falls under gravity, fitted by eye to the footage. No fluid
+   simulation for now; if it is wanted later, a simple one or one worked out ahead of time can be talked over.
+   The shader only reads the picture.
+5. **The sea's own mesh becomes a plain surface**: swell and white water with no overhang. About a third of the
+   wave shader goes, and its fine rows at the break can be thinned to pay for the ribbon.
+6. **The program's copy drops the lip's shape**: it keeps where a wave is breaking, how big, and at what stage.
+
+Timing, sets, where waves break, the foam and the spray stay as they are.
+
+The order: the crest picture with a plain line drawn along the breaking crest, to prove on the phone that the
+tracking works; then the ribbon with its shapes, the sea made plain and the program's copy; then tuning against
+the footage, levels of detail, thinning the sea's rows, and the frame rate.
+
+**Built, the first step:** the crest picture (2048 directions by 128 moments, seven seconds either side of the
+swell's crossing of the line its waves break on) and the line (`crest-line.ts`; `breaking crests` in the debug
+panel). On the desktop the line rides the wave all round the south, east and west, about a metre behind the
+visible lip: it marks where the swell's arrival and the clock agree, and the breaking front leans ahead of that.
+The ribbon will spread its rows across that span and take its shape from the wave model at each. The phone is to
+say whether it shows and rides the wave there too: it reads three pictures in a vertex shader, one of them
+wrapping round.
+
+
+
 ## Later
 
 - More passes on the reef.

@@ -36,6 +36,8 @@ export type SharedUniforms = Record<string, IUniform> &
     /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
     uSeaFloor: { value: Texture | null };
     uBreakTimes: { value: Texture | null };
+    /** Where the main swell's crest lies, once it is made (sea/crest-picture.ts). */
+    uCrests: { value: Texture | null };
     /** The camera's position, for materials three.js does not give it to. */
     uCameraPosition: { value: Vector3 };
     /** The 16 biggest things standing in the surf: x, z, radius. The water draws foam round them. */
@@ -64,6 +66,7 @@ export function createSharedUniforms(
     uReefMap: { value: null },
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },
+    uCrests: { value: null },
     uCameraPosition: { value: new Vector3() },
     uSurfObstacles: { value: noObstacles },
     ...skyLight,
