@@ -140,18 +140,19 @@ export function debugSwitches(
     { label: 'waves off', ...waterDebug(1) },
     { label: 'no falling lip', ...waterDebug(2) },
     { label: 'plain water colour', ...waterDebug(3) },
+    {
+      // The water coloured by how much of it the eye looks through, in place of the rules for waves.
+      label: 'new water colour',
+      key: 'v',
+      set(on) {
+        uniforms.uColourByPath.value = on ? 1 : 0;
+      },
+      isOn: () => uniforms.uColourByPath.value === 1,
+    },
     { label: 'sea floor pictures', ...waterDebug(4) },
     { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
-    {
-      // The breaker's own mesh in place of the sea's lip, while it is being built.
-      label: 'breaker mesh',
-      key: 'b',
-      set(on) {
-        breaker.show(on);
-        uniforms.uBreakerDrawn.value = on ? 1 : 0;
-      },
-      isOn: () => breaker.isShown,
-    },
+    // (without it the sea shows what it does under the breaking wave's front)
+    { label: 'breaker mesh', key: 'b', set: breaker.show, isOn: () => breaker.isShown },
     // For finding where a slow frame goes: read the frame rate with it on.
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
   ];

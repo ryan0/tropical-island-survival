@@ -44,6 +44,27 @@ white sand under a net of light.
 *Rejected:* whitecaps as small flecks; foam as solid white shapes; anything pale and translucent lying on the
 water like a decal; hairline crests.
 
+## Water at real atolls (photos)
+
+*References,* in `reference-photos/atoll-water/`: eleven photos from Wikimedia Commons (`SOURCES.md` there lists
+them and their licences), gathered on 17 November 2026 for the water's colour. What they show:
+
+- **From the air** (`aitutaki-from-top`, `maina-island`): the lagoon is pale aqua over sand flats, a saturated
+  turquoise where it deepens to a few metres, and deep blue at once beyond the reef's white line of surf. The
+  edges between sand flat and deeper basin are sharp.
+- **From the water's level** (`aitutaki-lagune`, `rangiroa-lagoon`, `fakarava-blue-lagoon`,
+  `fakarava-lagon-vert`): close by, the floor shows through nearly clear water, coral as dark patches; further
+  off the water keeps its aqua for a long way over bright sand; furthest it mirrors the sky. Over dark coral the
+  same water is deep blue.
+- **At the beach** (`lagoon-swim`): a few centimetres of water has no colour of its own.
+- **The reef from outside** (`reef-outside-aitutaki`): the reef flat is red-brown under thin water, the surf is
+  white lines with pale milky water between, and outside it a narrow turquoise band goes quickly to deep blue.
+- **A wave's face** (`teahupoo1`, `vague-de-teahupoo`): there is no edge between the flat water ahead and the
+  face. The flat water is pale, mirroring the sky; as the surface tilts up towards the eye it mirrors less and
+  shows more of the water, a deep clear blue low on the face; towards the top, where the wave is thin and the
+  light comes through it, it brightens to cyan. Fine lines run up the face along its curve. The lip is a
+  translucent sheet that whitens as it falls.
+
 ## Waves breaking (videos)
 
 *References,* in `reference-photos/waves/`, each named by its YouTube id; Ryan's words on what each is for.

@@ -38,7 +38,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - Debug panel: hold the DAY button ~1.5 s. It shows build, WebGL version and GPU string, the frame rate, where
   the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe, hiding
   the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a line
-  along the breaking crest, the breaker's own mesh in place of the sea's lip, and drawing the wave mesh no finer
+  along the breaking crest, hiding the breaker's own mesh, the new rule for the water's colour, and drawing the
+  wave mesh no finer
   than its second level; and a row of buttons that fly the eye to places on the
   reef. Flying: the stick moves the eye the way it looks (push forward while looking up to climb), faster the
   higher it is; buttons at the right take it straight up and down, and `fast` hurries it (a keyboard has Space,

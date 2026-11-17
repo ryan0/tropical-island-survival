@@ -38,6 +38,9 @@ uniform float uUnderWater;
 uniform vec3 uUnderWaterColour;
 // A debug switch: 0 normal, 1 waves off, 2 no falling lip (the vertex shader's), 3 plain water colour.
 uniform float uDebugMode;
+// 1 to colour the water by how much of it the eye looks through, 0 by the rules that replaces (a debug switch,
+// while the new rule is judged: see "How much water the eye looks through").
+uniform float uColourByPath;
 // The unit vector towards the sun, and the sun's colour.
 uniform vec3 uSunDirection;
 uniform vec3 uSunColour;
@@ -77,6 +80,9 @@ varying vec3 vWaterNormal;
 // From the wave model (water.vert.glsl): x = how much foam it puts here (0..1), y = metres off the ocean beach,
 // z = how high the wave lifts the water. The flat sheets have (0, 200, 0).
 varying vec3 vWaveState;
+// How much water lies behind the surface, level with it, in metres: the sea has no far side (100), but the front of
+// a breaking wave does, and its lip is a sheet (breaker.vert.glsl).
+varying float vWaterBehind;
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
@@ -139,6 +145,17 @@ const vec3 UNDERSIDE_WINDOW = vec3(0.60, 0.92, 0.96);
 const vec3 LOW_SUN_UNDER_WATER = vec3(0.6, 0.45, 0.5);
 // Debug switch 3.
 const vec3 PLAIN_WATER = vec3(0.03, 0.25, 0.50);
+
+// Light bends as it enters water: the sine of its angle to the surface's normal shrinks by this (1 / 1.33).
+const float INTO_WATER = 0.75;
+// The floor is never far under a ray that runs along through shallow water, and lights it from below: such a ray
+// counts as going down at least this steeply, or a wave's foot over the reef would be as dark as the open sea.
+const float LEAST_WAY_DOWN = 0.2;
+// The light that comes through a wave from behind it: through a sheet of water, and through three metres and more.
+const vec3 LIGHT_THROUGH_THIN = vec3(0.42, 0.90, 0.88);
+const vec3 LIGHT_THROUGH_THICK = vec3(0.05, 0.52, 0.62);
+// No light comes through more water than this (metres).
+const float NO_LIGHT_THROUGH = 7.0;
 
 // ---- Functions ----
 
@@ -518,17 +535,59 @@ void main() {
   float towardsMoon = max(dot(mirrored, normalize(MOON_DIRECTION)), 0.0);
   glints += MOONLIGHT * (pow(towardsMoon, 180.0) * 1.6 + pow(towardsMoon, 20.0) * 0.10) * uNight;
 
+  // ---- How much water the eye looks through ----
+
+  // Water has one colour rule: its colour and how much it hides go by how much of it the eye looks through. Looking
+  // down through a flat sea that is the depth. Where a wave tilts the surface towards the eye, the ray runs on
+  // through the water more nearly level and through more of it, so the water there is deeper in colour and hides
+  // more: a swell's face is darker than its back, and the foot of a breaking wave is a wall. Where the water has a
+  // far side - the upper face of a breaking wave, its lip - a ray running level may come out again before it has
+  // gone down into the sea: then the eye sees the light behind the wave, through however much water that was.
+  //
+  // seenDepth is that path as a depth: the depth of flat water that the eye, looking the same way, would see as
+  // much of. On flat water it is the depth itself, whichever way the eye looks.
+  vec3 facingNormal = dot(waveNormal, towardsCamera) < 0.0 ? -waveNormal : waveNormal;
+  vec3 intoWater = refract(-towardsCamera, facingNormal, INTO_WATER);
+  float wayDown = max(-intoWater.y, 0.02);
+  float wayAlong = sqrt(max(1.0 - intoWater.y * intoWater.y, 0.0025));
+  // (how steeply the same ray would go down through a flat sea)
+  float eyeAbove = clamp(towardsCamera.y, 0.0, 1.0);
+  float wayDownIfFlat = sqrt(1.0 - INTO_WATER * INTO_WATER * (1.0 - eyeAbove * eyeAbove));
+  // The water a wave has lifted above the sea around it, and the sea under that. (On the beach the swash is lifted
+  // too, but it is a film on the sand: only as much water as there is counts as lifted.)
+  float liftedWater = min(max(vWaveState.z, 0.0), max(waterDepth, 0.0));
+  float seaUnderLift = max(waterDepth - liftedWater, 0.0);
+  // The ray goes down through the lifted water into the sea, unless it comes out of the far side first. If it
+  // does, and it is running level or upwards, the eye sees the light behind the wave: the sky, and the sun in the
+  // water. (A ray going down through a crest comes out only to go into the sea beyond: that is as much water as
+  // if the crest had no far side.)
+  float pathToSea = liftedWater / wayDown;
+  float pathToFarSide = vWaterBehind / wayAlong;
+  float runsLevel = 1.0 - smoothstep(0.12, 0.55, wayDown);
+  float seesThrough = smoothstep(0.7, 1.5, pathToSea / max(pathToFarSide, 1e-3)) * runsLevel;
+  float pathInLift = mix(pathToSea, min(pathToSea, pathToFarSide), runsLevel);
+  float pathSeen = pathInLift + (1.0 - seesThrough) * seaUnderLift / max(wayDown, LEAST_WAY_DOWN);
+  float seenDepth = pathSeen * wayDownIfFlat;
+  // (the lagoon's shore band keeps its own rules for now; and the switch)
+  float byPath = uColourByPath * (1.0 - uIsShoreBand);
+  float colourDepth = mix(waterDepth, seenDepth, byPath);
+  float lightThrough = seesThrough * byPath
+    * (1.0 - smoothstep(0.4 * NO_LIGHT_THROUGH, NO_LIGHT_THROUGH, pathInLift));
+
   // ---- The colour of the water itself ----
 
   // (The lagoon's water is coloured as any other water of its depth is: only the wind treats it differently.)
-  vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, waterDepth));
-  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, waterDepth));
+  vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, colourDepth));
+  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, colourDepth));
+  // (the light behind a wave, seen through it: pale through a sheet, green through a body of water)
+  vec3 throughWave = mix(LIGHT_THROUGH_THIN, LIGHT_THROUGH_THICK, smoothstep(0.1, 2.4, pathInLift));
+  waterColour = mix(waterColour, throughWave, lightThrough);
   float facingSun = clamp((surfaceSlope.x * uSunDirection.x + surfaceSlope.y * uSunDirection.z) * 4.0, 0.0, 1.0);
   waterColour += SUNLIT_RIPPLE_TINT * facingSun * uDaylight;
   waterColour *= 0.96 + 0.09 * slick;
   // A wave standing up lets the light through: its face glows green.
   float inSurfZone = 1.0 - smoothstep(FORE_REEF_BEGINS + 25.0, DROP_OFF_BEGINS + 10.0, reefDistance);
-  waterColour = mix(waterColour, WAVE_GLOW_GREEN, clamp(waveHeight * 1.5, 0.0, 0.6) * inSurfZone);
+  waterColour = mix(waterColour, WAVE_GLOW_GREEN, clamp(waveHeight * 1.5, 0.0, 0.6) * inSurfZone * (1.0 - byPath));
   // (The lagoon's shore waves, where they have real height: clear water, so their backs show little but the sky
   // they mirror; a steep face is a small wall of water, and there you look into its green.)
   float bandSteepness = clamp((1.0 - waveNormal.y) * 4.0, 0.0, 1.0) * uIsShoreBand;
@@ -536,7 +595,7 @@ void main() {
   waterColour = mix(waterColour, SHORE_WAVE_FACE_GREEN, bandSteepness * 0.75);
   // The steep face of a breaking wave is a wall of water: you look into it, not through it. Dark at the foot where
   // it is thick, bright green towards the lip where it thins.
-  float steepFace = smoothstep(0.992, 0.80, abs(waveNormal.y)) * inSurfZone * (1.0 - uIsFlatSheet);
+  float steepFace = smoothstep(0.992, 0.80, abs(waveNormal.y)) * inSurfZone * (1.0 - uIsFlatSheet) * (1.0 - byPath);
   float towardsLip = smoothstep(-0.3, 1.1, waveHeight);
   // (a small wave in shallow water - the shore break - is never that dark: there is white sand close behind it)
   float sandBehind = 0.9 * (1.0 - smoothstep(0.5, 1.9, waterDepth));
@@ -549,11 +608,13 @@ void main() {
   // ---- How much the water hides what is under it ----
 
   // (a film of water a few centimetres deep on the sand is all but invisible: no tint, no dark edge)
-  float opacity = mix(0.07, 1.0, smoothstep(0.15, 5.6, waterDepth)) * smoothstep(0.0, 0.4, waterDepth);
+  float opacity = mix(0.07, 1.0, smoothstep(0.15, 5.6, colourDepth)) * smoothstep(0.0, 0.4, waterDepth);
+  // (a wave the light comes through still hides what is behind it)
+  opacity = max(opacity, lightThrough * 0.95);
   opacity = max(opacity, (clamp(bandLift * 2.2, 0.0, 0.28) + bandSteepness * 0.5) * smoothstep(0.05, 0.25, waterDepth));
   // (raised water is thick water - except the sheet running up the beach, which is raised but paper-thin)
   float thickness = smoothstep(0.08, 0.5, waterDepth);
-  opacity = max(opacity, smoothstep(0.12, 0.45, waveHeight) * 0.82 * inSurfZone * thickness);
+  opacity = max(opacity, smoothstep(0.12, 0.45, waveHeight) * 0.82 * inSurfZone * thickness * (1.0 - byPath));
   opacity = max(opacity, steepFace * 0.97 * thickness);
   // where the swell breaks the water is churned up and never quite clear
   float churnedUp = 0.5 * smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)

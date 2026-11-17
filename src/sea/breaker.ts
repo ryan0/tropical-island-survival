@@ -14,8 +14,13 @@ import type { WaterSheet } from './water-materials';
 // The breaker's own mesh: a ribbon round the reef that keeps to the crest of the main swell's
 // breaking wave and draws its front, with a lip that has two sides (breaker.vert.glsl). It lies
 // only round the arc in which the crest picture can find a crest. It is cut into pieces, so that
-// those out of view are not drawn; for now each is at one level of detail, and a switch in the
-// debug panel draws the mesh in place of the sea's own lip.
+// those out of view are not drawn, and each piece exists at three levels of detail, chosen by how
+// near it is to the eye.
+//
+// Each piece is drawn twice. The sea and this mesh are both see-through, and where one lay over
+// the other the water was drawn twice and came out twice as deep in colour. So the mesh is drawn
+// first into the depth picture alone, which keeps the sea from being drawn where the mesh will
+// hide it; then the sea; then the mesh in colour, which the sea hides wherever it lies over it.
 
 export interface BreakerDependencies {
   scene: Scene;
@@ -29,18 +34,29 @@ export interface BreakerDependencies {
 export interface Breaker {
   readonly isShown: boolean;
   show: (isShown: boolean) => void;
+  /** Shows each piece at the level of detail its distance from the eye calls for. */
+  chooseDetail(eye: Vector3): void;
   /** Its size, for the debug panel. */
   readonly description: string;
+}
+
+interface Piece {
+  /** Its two drawings: into the depth picture before the sea, and in colour after it. */
+  depthOnly: Mesh;
+  mesh: Mesh;
+  /** Its shape at each level of detail, the finest first. */
+  shapes: readonly BufferGeometry[];
+  /** Points along its stretch of the line the waves break on: it is as near as the nearest. */
+  probes: readonly Vector3[];
 }
 
 const config = seaConfig.breaker;
 
 /**
- * The ribbon: each corner holds the unit vector out from the atoll's centre (x, z) and how far
- * along the front's cross-section its row lies (y, from 0 to 1).
+ * A ribbon of `rows` rows: each corner holds the unit vector out from the atoll's centre (x, z)
+ * and how far along the front's cross-section its row lies (y, from 0 to 1).
  */
-function ribbon(directions: readonly number[]): BufferGeometry {
-  const { rows } = config;
+function ribbon(directions: readonly number[], rows: number): BufferGeometry {
   const corners = new Float32Array(directions.length * rows * 3);
   const cornerOrder: number[] = [];
   directions.forEach((direction, column) => {
@@ -64,6 +80,16 @@ function ribbon(directions: readonly number[]): BufferGeometry {
   return shape;
 }
 
+/** Every `stride`-th item, and always the last, so that neighbouring pieces still meet. */
+function everyNth(items: readonly number[], stride: number): number[] {
+  return items.filter((_, i) => i % stride === 0 || i === items.length - 1);
+}
+
+function detailLevel(distance: number): number {
+  if (distance < config.finestWithin) return 0;
+  return distance < config.middleWithin ? 1 : 2;
+}
+
 export function createBreaker(dependencies: BreakerDependencies): Breaker {
   const { scene, createMaterial, arc, breakLineFromCentre } = dependencies;
   // The columns are `columnsApart` metres apart along the line the waves break on.
@@ -74,38 +100,52 @@ export function createBreaker(dependencies: BreakerDependencies): Breaker {
     direction += config.columnsApart / breakLineFromCentre(direction);
   }
 
+  const onLine = (towards: number) =>
+    new Vector3(Math.cos(towards), 0, Math.sin(towards)).multiplyScalar(
+      breakLineFromCentre(towards),
+    );
   const material = createMaterial('breaker');
-  const pieces = new Group();
-  pieces.visible = false;
-  scene.add(pieces);
+  const depthMaterial = createMaterial('breaker depth');
+  const group = new Group();
+  scene.add(group);
+  const pieces: Piece[] = [];
   for (let first = 0; first < directions.length - 1; first += config.columnsInAPiece) {
     // (a piece shares its last column with the next piece's first)
     const ofPiece = directions.slice(first, first + config.columnsInAPiece + 1);
-    const shape = ribbon(ofPiece);
+    const ends = [ofPiece[0], ofPiece[ofPiece.length - 1]].map(onLine);
+    const middle = onLine(ofPiece[Math.floor(ofPiece.length / 2)]);
     // The shader moves the piece's corners to the crest, which is never far from the line the
     // waves break on: the piece is in view if a ball round its stretch of that line is.
-    const onLine = (towards: number) =>
-      new Vector3(Math.cos(towards), 0, Math.sin(towards)).multiplyScalar(
-        breakLineFromCentre(towards),
-      );
-    const middle = onLine(ofPiece[Math.floor(ofPiece.length / 2)]);
-    shape.boundingSphere = new Sphere(
-      middle,
-      middle.distanceTo(onLine(ofPiece[0])) + config.reachFromLine,
-    );
-    const piece = new Mesh(shape, material);
-    // With the rest of the water.
-    piece.renderOrder = 5;
-    pieces.add(piece);
+    const bounds = new Sphere(middle, middle.distanceTo(ends[0]) + config.reachFromLine);
+    const shapes = config.levels.map(({ rows, everyColumn }) => {
+      const shape = ribbon(everyNth(ofPiece, everyColumn), rows);
+      shape.boundingSphere = bounds;
+      return shape;
+    });
+    // (the sea's own meshes are drawn at 5)
+    const depthOnly = new Mesh(shapes[0], depthMaterial);
+    depthOnly.renderOrder = 4.5;
+    const mesh = new Mesh(shapes[0], material);
+    mesh.renderOrder = 5.5;
+    group.add(depthOnly, mesh);
+    pieces.push({ depthOnly, mesh, shapes, probes: [ends[0], middle, ends[1]] });
   }
 
   return {
-    description: `${directions.length * config.rows} vertices in ${pieces.children.length} pieces`,
+    description: `${directions.length * config.levels[0].rows} vertices in ${pieces.length} pieces`,
     get isShown() {
-      return pieces.visible;
+      return group.visible;
     },
     show(isShown) {
-      pieces.visible = isShown;
+      group.visible = isShown;
+    },
+
+    chooseDetail(eye) {
+      for (const { depthOnly, mesh, shapes, probes } of pieces) {
+        let nearest = Infinity;
+        for (const probe of probes) nearest = Math.min(nearest, eye.distanceTo(probe));
+        mesh.geometry = depthOnly.geometry = shapes[detailLevel(nearest)];
+      }
     },
   };
 }

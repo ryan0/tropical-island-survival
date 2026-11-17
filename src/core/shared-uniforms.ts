@@ -40,8 +40,11 @@ export type SharedUniforms = Record<string, IUniform> &
     uCrests: { value: Texture | null };
     /** The breaking front's cross-sections, once they are made (sea/breaker-shapes.ts). */
     uBreakerShapes: { value: Texture | null };
-    /** 1 while the breaker's own mesh is drawn, and the sea leaves the lip to it (sea/breaker.ts). */
-    uBreakerDrawn: { value: number };
+    /**
+     * 1 to colour the water by how much of it the eye looks through (water.frag.glsl), 0 by the
+     * rules it replaces. A switch in the debug panel, while the new rule is being judged.
+     */
+    uColourByPath: { value: number };
     /** The directions that mesh can follow a crest in: the middle of their arc, and half its width. */
     uBreakerArc: { value: Vector2 };
     /** The camera's position, for materials three.js does not give it to. */
@@ -74,7 +77,7 @@ export function createSharedUniforms(
     uBreakTimes: { value: null },
     uCrests: { value: null },
     uBreakerShapes: { value: null },
-    uBreakerDrawn: { value: 0 },
+    uColourByPath: { value: 0 },
     uBreakerArc: { value: new Vector2() },
     uCameraPosition: { value: new Vector3() },
     uSurfObstacles: { value: noObstacles },

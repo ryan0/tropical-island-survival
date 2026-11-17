@@ -95,19 +95,30 @@ export const seaConfig = {
    */
   breakerShapes: {
     places: 64,
-    stages: 64,
+    stages: 96,
     firstStage: -1.4,
-    lastStage: 2.4,
+    lastStage: 3.4,
   },
 
   /** The breaker's own mesh (breaker.ts). */
   breaker: {
-    /** Rows across the wave's front, from the trough ahead of it to the end of its back. */
-    rows: 40,
     /** Its columns are this far apart along the crest (metres). */
     columnsApart: 1.2,
     /** It is cut into pieces of this many columns; a piece out of view is not drawn. */
     columnsInAPiece: 48,
+    /**
+     * Each piece exists at three levels of detail, the finest first: so many rows across the
+     * wave's front, from the trough ahead of it to the end of its back, and every so many of its
+     * columns.
+     */
+    levels: [
+      { rows: 40, everyColumn: 1 },
+      { rows: 28, everyColumn: 2 },
+      { rows: 18, everyColumn: 4 },
+    ],
+    /** A piece shows the finest while the eye is this near it (metres), and the next this near. */
+    finestWithin: 70,
+    middleWithin: 200,
     /** The crest it draws is never further than this from the line the waves break on (metres). */
     reachFromLine: 45,
   },

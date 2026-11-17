@@ -15,6 +15,7 @@ uniform float uWind;    // the wind's strength, 0 (none) to 1 (high)
 varying vec3 vWaterPosition;      // this point's position in the world
 varying vec3 vWaterNormal;      // the surface's normal
 varying vec3 vWaveState;   // what water.vert.glsl hands on from the wave model; here always open, still water
+varying float vWaterBehind;   // metres of water behind the surface, level with it: here always more than matters
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
@@ -73,6 +74,7 @@ void main() {
   wp.y = uSeaLevel + limited * isWithinLimit;
   vWaterNormal = normalize(vec3(rawNormal.x * isNormalWithinLimit, 1.0, rawNormal.z * isNormalWithinLimit));
   vWaveState = vec3(0.0, 200.0, 0.0);
+  vWaterBehind = 100.0;
   vWaterPosition = wp.xyz;
   gl_Position = projectionMatrix * viewMatrix * wp;
 }

@@ -6,9 +6,10 @@
 // both use. The shapes are written again here, name for name, so that the two can be read side by
 // side; a test draws the shader's wave heights and compares them with these.
 //
-// This copy leaves out the hollow face and the falling lip of a breaking wave, which overhang: a
-// spot has one height here, so it only lifts the crest. It also gathers what the spray needs to
-// know of a breaking wave, which the shader has no use for.
+// A breaking wave's front is not in the shader's wave model either: the breaker's own mesh draws
+// it (breaker.ts). A spot has one height here, so this copy knows that front by its crest and its
+// back, and by a plain face down to the trough in place of the hollow one and the lip, which
+// overhang. It also gathers what the spray needs to know of a breaking wave.
 //
 // Distances are metres, times seconds, angles radians.
 
@@ -16,13 +17,13 @@ import {
   alongShoreSwing,
   breakingDepthOf,
   frontFromCrest,
+  frontStands,
   frontWaveNumber,
   leanOf,
   lipFallSeconds,
   narrowingAt,
   offshoreHeightOf,
   plungingFor,
-  plungingHeading,
   runsAhead,
   runUpOf,
   secondsAStageAfter,
@@ -95,7 +96,22 @@ function mod(x: number, y: number): number {
   return x - y * Math.floor(x / y);
 }
 
-export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures): WaveModel {
+/** The directions the breaker's own mesh can follow a crest in (crest-picture.ts). */
+export interface BreakerArc {
+  readonly middle: number;
+  readonly halfWidth: number;
+}
+
+// A breaking wave's front, in front heights (waves.glsl and breaker-shapes.ts have the back's two
+// numbers): its back is a slope this long, and its face reaches this far ahead of the crest.
+const BACK_LENGTH = 3;
+const FACE_REACHES = 0.8;
+
+export function createWaveModel(
+  island: IslandShape,
+  seaFloor: SeaFloorPictures,
+  breakerArc: BreakerArc,
+): WaveModel {
   const spot: WaveSpot = {
     groundHeight: 0,
     runUp: 0,
@@ -117,8 +133,6 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     depthAtBeach: 0,
     /** 1 in the water, fading to 0 up the beach. */
     gate: 0,
-    /** How nearly the main swell is heading for the atoll's centre: 1 straight in. */
-    headingInshore: 0,
     /** The breaks picture here: seconds since the swell crossed each of its four depths. */
     since0: 0,
     since1: 0,
@@ -162,6 +176,13 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     );
   }
 
+  /** How far inside the breaker's arc a direction lies: 1 inside, 0 outside (waves.glsl's). */
+  function inBreakerArc(th: number): number {
+    const { middle, halfWidth } = breakerArc;
+    const fromMiddle = Math.abs(mod(th - middle + HALF_TURN, FULL_TURN) - HALF_TURN);
+    return 1 - smoothstep(halfWidth - 0.12, halfWidth - 0.04, fromMiddle);
+  }
+
   // Adds one swell's wave to the surface height `surface` and returns the sum; what it finds of
   // breaking goes into `spot`. `turns` is the swell's crests gone by here, `fullSize` its size
   // here before sets. (waves.glsl's waveOfTrain, without the push and the foam.)
@@ -174,7 +195,6 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     withoutBreaking: boolean,
   ): number {
     const { th, depth, slowness, depthAtBeach, gate, since0, since1, since2, since3 } = site;
-    const { headingInshore } = site;
     const { variety } = swell;
     const frequency = FULL_TURN / swell.period;
     const trainPhase = FULL_TURN * (turns - Math.floor(turns) - 0.25);
@@ -264,24 +284,30 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
     // A wave that meets a sudden shallow throws a lip; one that shoals gently crumbles.
     const plunging =
       plungingFor(shoalingSeconds(since0, since1, since2, since3, breakingDepth)) *
-      plungingHeading(headingInshore) *
-      swell.canPlunge;
+      swell.canPlunge *
+      inBreakerArc(th);
     const standingUp = withoutBreaking ? 0 : standingUpAt(crestStage) * plunging;
     const lipFall = clamp(crestStage, 0, 1);
-    const aheadOfFace = fromCrest + 1.4;
-    const suck = -0.1 * height * standingUp * Math.exp((-aheadOfFace * aheadOfFace) / 0.35);
     const lipLanding =
       smoothstep(0.9, 1.15, crestStage) * (1 - smoothstep(1.5, 2.4, crestStage)) * plunging;
     const fromLanding = fromCrest + 0.4;
     const mound = 0.45 * breakerHeight * lipLanding * Math.exp((-fromLanding * fromLanding) / 0.16);
-    // Standing up, its crest and its back (about 3.6 m long) are lifted: the shader's front
-    // without the face and the lip, which overhang.
+    // Standing up: the front as the breaker's own mesh and the sea draw it between them, seen
+    // from above. Its back slopes up to the crest (waves.glsl's slope, without the hollow the sea
+    // leaves under the mesh); ahead of the crest a plain face falls to the foot.
+    const standingHeight = shoaledHeight * gate;
+    const frontHeight = frontStands() * standingHeight;
+    const frontBase = -0.22 * usualHeight - 0.1 * standingHeight;
+    const fromCrestInHeights = fromCrest / (FRONT_WAVE_NUMBER * Math.max(frontHeight, 0.05));
+    const behindCrest = Math.max(fromCrestInHeights, 0);
+    const backSlope = Math.pow(Math.max(1 - behindCrest / BACK_LENGTH, 0), 1.4);
+    const backFades = 1 - smoothstep(0.7 * BACK_LENGTH, BACK_LENGTH, behindCrest);
+    const face = 1 - smoothstep(0, FACE_REACHES, -fromCrestInHeights);
     const frontLift =
-      (-0.22 * usualHeight - 0.1 * height + 1.15 * height - profileHeight) *
-      standingUp *
-      (fromCrest >= 0.1
-        ? 1 - smoothstep(0, 1, (fromCrest - 0.1) / Math.min(1.1, 3.6 * FRONT_WAVE_NUMBER))
-        : smoothstep(-0.5, -0.1, fromCrest));
+      (frontBase + frontHeight * backSlope * face - profileHeight) *
+      backFades *
+      smoothstep(-2.4, -0.35, fromCrest) *
+      standingUp;
 
     // What the spray wants to know.
     const bigEnough = smoothstep(0.03, 0.1, waveSize);
@@ -309,7 +335,7 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
         Math.max(nearTheLip * standingUp, lipLanding, boreShape * broken * fadingOverFlat),
     );
 
-    return surface + profileHeight + suck + mound + frontLift;
+    return surface + profileHeight + mound + frontLift;
   }
 
   return {
@@ -343,7 +369,6 @@ export function createWaveModel(island: IslandShape, seaFloor: SeaFloorPictures)
       const delay1 = read(floorValues, 1);
       site.th = th;
       site.depth = read(floorValues, 2);
-      site.headingInshore = read(floorValues, 3);
       site.slowness = 1 / swellSpeed(site.depth);
       site.depthAtBeach = clamp(-ground, 0.12, 6);
       site.gate = smoothstep(-1.5, 0.3, offBeach);

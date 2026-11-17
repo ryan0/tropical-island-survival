@@ -117,8 +117,7 @@ air for about half a second.
 of a second on the desktop; the debug panel says how long on the phone).
 
 - *The floor picture*, 512 dots across 640 m. The depth, averaged over 9 m so that the reef's spurs and grooves do
-  not break a wave raggedly; how nearly the main swell heads for the atoll's centre; and for each of two swells
-  its delay: how far it has fallen behind a swell crossing
+  not break a wave raggedly; and for each of two swells its delay: how far it has fallen behind a swell crossing
   open sea, from travelling at the speed its depth allows (`wave-timing/timing.glsl`, shared with the program).
   A crest lies wherever a swell's arrival time and the clock agree.
 - *The breaks picture.* For four depths (0.7, 1.2, 1.7, 2.4 m), the seconds since the main swell first crossed
@@ -381,7 +380,136 @@ water against the footage; the mesh's edges where it meets the sea; the sea's ow
 the program's copy with it; levels of detail. The phone is to say what 38 thousand more points cost, and whether
 the ribbon tears or flickers.
 
+Ryan, 17 November 2026, from the phone and the desktop: it looks good, with room to refine and no major fault in
+how it is drawn, and the phone's frame rate is the same. The main fault: the change from flat sea to wave was
+too sudden, as if the wave had an edge. It had: the sea sank its own crest under the mesh, so the mesh was the
+whole wave, a tube lying on flat water, and it ended in a crease on both sides and at each end along the crest.
 
+**The join, reworked.** The wave is now one surface drawn by two meshes that share it.
+
+- *The sea keeps the wave's back*: a slope three front heights long, rising towards the crest (`waves.glsl`,
+  while the mesh is drawn). The mesh's own back lies a hair over the first of it and then dips under, so there
+  is no line where one ends.
+- *Under the mesh the sea falls away smoothly* to the trough, with no step for its coarse rows to draw raggedly;
+  ahead of the crest it is the trough, which the face's foot runs into level.
+- *A wave that throws no lip leaves the mesh hidden in the sea*: its face flat under the trough, its lip folded
+  away at the crest. As the wave stands up the mesh comes out by the same share as the sea's back rises, so the
+  face grows out of the swell, and tapers away along the crest where the lip does. A lip that has landed sinks
+  into the trough where it fell and does not draw back up. Nothing is sunk out of sight any more except where
+  there is no crest to follow.
+- *The mesh stands on the second swell too*, as the sea's wave does; without that its crest stood a hand above
+  or below the sea's back.
+
+Ryan, 17 November 2026, on the reworked join: better; the join could still be improved, but the plan comes
+first.
+
+**Built, the second step's second part: the sea made plain, and the front fitted to the footage.** The mesh is
+now the only breaking front there is.
+
+- *The sea's own lip is gone* (`waves.glsl`): its hollow face, its lip, their push towards the shore and their
+  foam, some sixty lines of the shader. The sea draws swell, the back of a standing wave, the trough drawn down
+  to the face's foot, and white water. A wave throws a lip anywhere in the mesh's arc; the rule that it must be
+  heading inshore, and the floor picture's fourth number that it read, are gone with the lip that needed them.
+  `breaker mesh` in the debug panel (B) now hides the mesh, to see what the sea does under it.
+- *The program's copy* (`wave-model.ts`) knows the standing front from above: the back's slope up to the crest
+  and a plain face down to the trough. It is told the mesh's arc. The test that compares the two copies still
+  does so with the standing up switched off in both.
+- *The landing* (`burst` in `breaker-shapes.ts`): where the lip comes down it throws up a white mass, higher
+  than the wave within a second (1.05 to 1.3 front heights, the more for a hollow wave), which runs on ahead of
+  the crest, settles over the next second and a half and sinks into the sea's white water. The mesh's shader
+  makes it billow: its height and reach vary along the crest in lumps a few metres long that keep changing. It
+  is shape only, drawn by eye from the footage; there is no rule of falling water for it.
+- *The front stands as high as the wave was when it broke* until it has collapsed. It used to take the white
+  water's falling height from the moment of landing, which shrank the mass as it rose.
+- *Where mesh and sea cross, they cross at a clear angle.* The face now starts under the sea ahead of its foot
+  and comes up through the trough; the mesh's back runs a little over the sea's and then dives under it. Two
+  surfaces meeting at a shallow angle met in a ragged line, which the sea's coarser rows would have made worse.
+  The trough is drawn down to the foot over eight metres, not five.
+- *Levels of detail* (`breaker.ts`): each of the 20 pieces has three shapes, 40 rows by every column within 70 m
+  of the eye, 28 by every second within 200 m, 18 by every fourth beyond.
+- *The sea's rows at the break are thinned*, from 0.24 m apart to 0.57 m: 72 rows fewer of 427, which is 46
+  thousand points at the finest level, more than the whole ribbon adds. The rows further in lie where they did.
+
+On the desktop: from above, a green wall with a line of white bursting along it as the break runs down the
+crest, close to the drone footage; from the reef flat, the wall with white heaps rising over it. The white mass
+is still a smooth white shape close to, like a snow bank: its look, the light through the lip and the streaks on
+the face belong to pass 3. The phone is to say what the frame rate is now, and whether the mass reads as water
+in motion.
+
+Still to do in this pass: the model's sums for the main swell are still written twice in the shaders
+(`breaker-state.glsl` and `waveOfTrain`), to be made one; the join, which Ryan says could still be better; the
+ends of the mesh's arc.
+
+Ryan, 17 November 2026, from the phone: the frame rate is slightly better or the same, and the breaker mesh
+looks good. The most obvious fault is still the join between sea and wave, seen from above at a wave's shoulder,
+where the front stands out of pale flat water as a dark blade. The rest can be refined, and the water's shading
+as a whole could be much better, which would carry over to the wave.
+
+What makes the blade (tried on the desktop): `water.frag.glsl` colours water by its depth, and then by rules of
+its own for a wave: a glow by how high the water is lifted, and a dark wall wherever the surface is steeper than
+some seven degrees. The mesh's face falls under the wall rule and the sea beside it does not, so the colour
+jumps where the shape does not. With that one rule switched off the blade is gone; fainter bands remain from the
+rules that go by height, and creases from the shape itself.
+
+
+### The water's look: the order agreed (17 November 2026)
+
+Ryan wants the wave, the ocean and the water's look as a whole improved, and agreed this order:
+
+1. **One rule for the colour of water.** Colour and clearness by how much water the eye looks through, in place
+   of the separate rules for a wave. Behind a debug switch while it is judged.
+2. **The surface.** Ripples laid along a steep face, not smeared down it; the sky's mirror and the sun's sheen
+   showing the swell's hump.
+3. **The join's shape, judged again** once colour no longer exaggerates it; the wave model's sums, written twice
+   in the shaders, made one.
+4. **White water**: the burst, the white water running in and the lace as one treatment; spray off the burst and
+   the lip.
+5. **Light through the lip**, most of which should fall out of step 1. Then the weather pass.
+
+He asked that the references be used: the footage, and photos of water at real atolls (`LOOK.md`, "Water at real
+atolls").
+
+**Step 1, first pass** (`water.frag.glsl`, "How much water the eye looks through"; `new water colour` in the
+debug panel, or V; off, the old rules are as they were).
+
+- *The rule.* The ray from the eye bends as it enters the water and runs on to the floor. How far it runs
+  through water is turned into a depth: the depth of flat water that would show as much. On flat water that is
+  the depth itself, whichever way the eye looks, so the lagoon and the flat sea are coloured exactly as before.
+  Where a wave tilts the surface towards the eye the ray runs more nearly level, through more water: deeper
+  colour, less of the floor. Where the water has a far side, which the mesh's shader says for the front of a
+  breaking wave and its lip (`vWaterBehind`), a ray running level comes out of it again, and the eye sees the
+  light behind the wave through that much water: pale through a sheet, cyan through a metre or two, nothing
+  through seven.
+- *What it replaces*, while the switch is on: the green glow by how high the water is lifted, the dark wall
+  wherever the surface is steeper than seven degrees, and the opacity that went with each. The lagoon's shore
+  band keeps its own rules for now.
+- *On the desktop*: a wave's face goes from deep blue at its foot through turquoise to bright aqua at the top,
+  as in the photos of Teahupo'o, where the old rules gave a flat green wall; seen from above and behind, the
+  wave is a hump of the same water as the sea, with no dark blade.
+
+**What the join turned out to be, and what was done about it.** The colour rule alone did not remove the edge on
+the wave's back. Measuring showed three more causes, each now dealt with, and each of which holds for the old
+rules too:
+
+- *The water was drawn twice.* The sea and the mesh are both see-through, and where the mesh lay over the sea
+  the water came out twice as deep in colour. The mesh is now drawn first into the depth picture alone
+  (`breaker-depth.frag.glsl`), which keeps the sea from being drawn under it; then the sea; then the mesh in
+  colour.
+- *The mesh's back and the sea's back were different shapes while the wave stood up.* Each mixed its own resting
+  shape with the same standing shape, and the resting shapes differ, so for the two seconds of standing up the
+  mesh met the sea as a steeper facet. The mesh's back now rides on the sea's own surface: its shader asks the
+  wave model for the sea as it would be if it did not sink out of the mesh's way (`mainSwellNotSunk`,
+  `SEA_NOT_SUNK_UNDER_MESH`), and the shapes picture says only how far over that the back lies. It is shaded
+  with the sea's slope, not its own dive under the sea.
+- *The mesh had no foam but its own.* It now wears the foam the sea has where it stands: the patchy foam of the
+  break and what waves gone by have left.
+
+Still to do in step 1: the lagoon's shore band under the same rule; the colours of light through a wave against
+more references; the old rules and the switch taken out once the new one is agreed. Seen but left for step 3: on
+its face side the mesh still comes out of the swell as a facet while the wave stands up.
+
+The phone is to say whether the frame rate has held: the mesh is drawn twice now, and its shader does two more
+of the wave model's sums and reads six more dots of the pictures for each point.
 
 ## Later
 
@@ -400,8 +528,9 @@ the ribbon tears or flickers.
 - Night without a fire is nearly black.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - Far palms and shrubs look thinner than near ones (leaf cut-outs blur together with distance).
-- The breaking wave: its timing is off, and it is jagged and unnatural close to (the falling lip is a thin
-  faceted sheet). To be rebuilt, above. Spray has only been tuned on stills.
+- The breaking wave: its front is now a mesh of its own, smooth and with a lip of two sides, but the white mass
+  where the lip lands is a smooth white shape close to, and the join with the sea can still be seen (above).
+  Spray has only been tuned on stills.
 - A whitecap's leading edge can look like a clean white blade close to the eye.
 - The lagoon's raised waves and the ocean's shore break are slightly stepped where the mesh is coarse.
 - Nothing can be picked up or moved yet.
@@ -416,7 +545,8 @@ the ribbon tears or flickers.
 - Plants and rocks are instanced in map squares that are skipped when out of view, hidden beyond a distance and
   drawn with a simpler shape beyond a nearer one.
 - The wave mesh is 16 sectors, each cut across into three tiles, at three levels of detail. Its vertex shader
-  evaluates the wave model three times per vertex and is the dearest thing per vertex.
+  evaluates the wave model three times per vertex and is the dearest thing per vertex. The breaker's ribbon is 20
+  pieces at three levels of detail.
 - The terrain's colouring is the dearest thing per pixel (about forty noise evaluations on land). It is drawn
   last so hidden pixels are skipped.
 - Whitecaps cost up to four noise evaluations per water pixel, only above a medium wind. The lagoon's shore band

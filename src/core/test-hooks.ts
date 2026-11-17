@@ -1,5 +1,6 @@
 import type { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
+import type { BreakerArc } from '../sea/wave-model';
 import type { GroundHeight, IslandRadius } from '../world/landmarks';
 
 // The tests drive the page through a few names on `window`; tests/scene-hooks.d.ts says what
@@ -24,6 +25,7 @@ interface SceneHooks {
   islandRadius(direction: number): number;
   waveShaderSource(): string;
   seaFloor: SeaFloorPictures;
+  breakerArc: BreakerArc;
   breakerFrontPoint(
     partWay: number,
     crestStage: number,
@@ -53,6 +55,7 @@ export interface HookedSystems {
   waveHeight: (x: number, z: number, time: number, withoutBreaking: boolean) => number;
   waveShaderSource: () => string;
   seaFloor: SeaFloorPictures;
+  breakerArc: BreakerArc;
   /** The breaking front's cross-section (sea/breaker-shapes.ts), to draw beside footage. */
   breakerFrontPoint: (
     partWay: number,
@@ -116,6 +119,7 @@ export function createTestHooks(): TestHooks {
         islandRadius: systems.islandRadius,
         waveShaderSource: systems.waveShaderSource,
         seaFloor: systems.seaFloor,
+        breakerArc: systems.breakerArc,
         breakerFrontPoint: systems.breakerFrontPoint,
       };
     },

@@ -45,6 +45,8 @@ interface SceneDebugHooks {
     floor: { image: { data: Uint16Array } };
     breaks: { image: { data: Uint16Array } };
   };
+  /** The directions the breaker's own mesh covers, which the wave model reads too (radians). */
+  breakerArc: { middle: number; halfWidth: number };
   camera: { fov: number; updateProjectionMatrix(): void };
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {

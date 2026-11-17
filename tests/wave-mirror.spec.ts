@@ -98,6 +98,8 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
     }
     gl.uniform1i(uniform(unit === 0 ? 'uSeaFloor' : 'uBreakTimes'), unit);
   });
+  // (and the arc the breaker's own mesh covers, in which alone a wave throws a lip)
+  gl.uniform2f(uniform('uBreakerArc'), hooks.breakerArc.middle, hooks.breakerArc.halfWidth);
   // (a line reaches from up the beach out across the whole reef to the drop-off)
   const metresBetweenSamples = 1;
   const metresUpTheBeach = 8;
@@ -114,7 +116,8 @@ function differencesBetweenShaderAndProgram([lines, samples, programIsAhead]: re
     gl.uniform1f(uniform('uT'), waveTime);
     gl.uniform1f(uniform('uR0'), firstRadius);
     gl.uniform1f(uniform('uDr'), metresBetweenSamples);
-    // The program's copy does not model the falling lip, so the shader's is switched off too.
+    // A breaking wave's front is the breaker's own mesh's, and the program knows it only from
+    // above, so the standing up is switched off in both.
     gl.uniform1f(uniform('uDebugMode'), breakingLipOff);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     gl.readPixels(0, 0, samples, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);

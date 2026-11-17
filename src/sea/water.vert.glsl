@@ -15,6 +15,7 @@ uniform float uDebugMode;     // switches parts of the water off (docs/DEVICE_NO
 varying vec3 vWaterPosition;      // this point's position in the world
 varying vec3 vWaterNormal;      // the surface's normal
 varying vec3 vWaveState;   // the wave model here: (foam 0..1, metres off the beach, height above still water)
+varying float vWaterBehind;   // metres of water behind the surface, level with it (see water.frag.glsl)
 
 #include "waves"
 
@@ -34,6 +35,8 @@ void main() {
   vWaterNormal = vec3(0.0, 1.0, 0.0);
   // (the far sea counts as open water, far off the beach)
   vWaveState = vec3(0.0, 200.0, 0.0);
+  // (the sea has no far side to be seen through)
+  vWaterBehind = 100.0;
   if (uIsFlatSheet < 0.5) {
     vec2 p = wp.xz;
     // (movedPoint's sums, written out again because vWaveState needs the rest of what the wave model returns, and a

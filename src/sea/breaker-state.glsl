@@ -2,8 +2,9 @@
 // These are waveOfTrain's own sums (waves.glsl) for the main swell alone, and must stay the same as its: the mesh
 // and the sea have to agree where the crest is, how high the wave stands and how far its breaking has gone.
 //
-// Needs waves.glsl, and the defines MAIN_SWELL_TOWARDS, MAIN_SWELL_PERIOD, MAIN_SWELL_SIZE, MAIN_SWELL_VARIETY and
-// MAIN_SWELL_CAN_PLUNGE. `seaFloor` and `sinceCrossings` are the sea floor's two pictures at p.
+// Needs waves.glsl, and the defines MAIN_SWELL_TOWARDS, MAIN_SWELL_PERIOD, MAIN_SWELL_SIZE, MAIN_SWELL_VARIETY,
+// MAIN_SWELL_CAN_PLUNGE, and SWELL_1_TOWARDS, SWELL_1_PERIOD, SECOND_SWELL_SIZE and SECOND_SWELL_VARIETY.
+// `seaFloor` and `sinceCrossings` are the sea floor's two pictures at p.
 // RULES (docs/DEVICE_NOTES.md) as for waves.glsl.
 
 // When and where: (the metres from p ahead, the way the swell travels, to the wave's crest; the stage of its
@@ -39,13 +40,14 @@ vec4 breakerTiming(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings) {
   float shoalsIn =
     shoalingSeconds(sinceCrossings.x, sinceCrossings.y, sinceCrossings.z, sinceCrossings.w, breakingDepth);
   float plunging = plungingFor(shoalsIn) * MAIN_SWELL_CAN_PLUNGE * inBreakerArc(th) * gate;
+  // (uDebugMode 2: no falling lip)
+  plunging *= abs(uDebugMode - 2.0) < 0.5 ? 0.0 : 1.0;
   // (p is behind the crest where fromCrest is above 0: the crest is then that far ahead of it)
   return vec4(fromCrest / FRONT_WAVE_NUMBER, crestStage, plunging, breakerHeight);
 }
 
 // How high: (the height its front stands, from its foot to its crest; the level of its foot, from the still sea).
-// `crestStage` is breakerTiming's.
-vec2 breakerHeights(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings, float crestStage) {
+vec2 breakerHeights(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings) {
   float th = atan(p.y, p.x);
   float ground = shoreH(p.x, p.y);
   float offBeach = BEACH_CURVE_LENGTH * (sqrt(max(1.0 - ground / BEACH_CURVE_DEPTH, 0.04)) - 1.0);
@@ -62,11 +64,8 @@ vec2 breakerHeights(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings, float c
   float breakerHeight = 0.78 * breakingDepth;
   float usualBreakerHeight = 0.78 * usualBreakingDepth;
 
-  // This wave: shoaled until it breaks, then white water that loses height (out here, far from the shore break).
-  float broken = smoothstep(0.95, 1.6, crestStage);
-  float boreHeight = min(breakerHeight, 0.05 + 0.12 * breakerHeight + 0.55 * max(feltDepth - 0.6 * breakingDepth, 0.0)
-    + 0.66 * breakerHeight * (1.0 - smoothstep(1.5, 6.0, crestStage)));
-  float height = mix(min(offshoreHeight * shoaling, breakerHeight * 1.05), boreHeight, broken) * gate;
+  // This wave, as high as it was when it broke: its front stands that high until it has collapsed.
+  float standingHeight = min(offshoreHeight * shoaling, breakerHeight * 1.05) * gate;
 
   // The swell's usual wave, which sets how far the water draws down between crests.
   float usualSinceBroke =
@@ -78,5 +77,46 @@ vec2 breakerHeights(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings, float c
   float usualHeight = mix(min(usualOffshoreHeight * shoaling, usualBreakerHeight * 1.05), usualBoreHeight,
     smoothstep(0.95, 1.6, usualStage)) * gate;
 
-  return vec2(FRONT_STANDS * height, -0.22 * usualHeight - 0.10 * height);
+  return vec2(FRONT_STANDS * standingHeight, -0.22 * usualHeight - 0.10 * standingHeight);
+}
+
+// The main swell's own wave at p as the sea draws it, but not sunk out of the mesh's way where it stands up (this
+// shader is compiled with SEA_NOT_SUNK_UNDER_MESH): (its height from the still sea, its crest height, the foam
+// on the sea there). The mesh lays its back along this, so that its back and the sea's are one surface whatever
+// the wave is doing, and wears the sea's foam. (The foam is the swell's own and the patchy foam where waves break,
+// as waveF has them; what waves gone by have left is foamLeftBehind's.)
+vec3 mainSwellNotSunk(vec2 p, float t) {
+  vec4 seaFloor = texture2D(uSeaFloor, p / SEA_PICTURE_SPAN + 0.5);
+  vec4 sinceCrossings = texture2D(uBreakTimes, p / SEA_PICTURE_SPAN + 0.5);
+  float th = atan(p.y, p.x);
+  float ground = shoreH(p.x, p.y);
+  float offBeach = BEACH_CURVE_LENGTH * (sqrt(max(1.0 - ground / BEACH_CURVE_DEPTH, 0.04)) - 1.0);
+  float depth = seaFloor.z;
+  vec4 site = vec4(1.0 / swellSpeed(depth), clamp(-ground, 0.12, 6.0), smoothstep(-1.5, 0.3, offBeach),
+    smoothstep(-0.4, 0.9, offBeach));
+  float fullSize = MAIN_SWELL_SIZE * swellReaching(th, offBeach) * alongShoreSwing(th, t, MAIN_SWELL_VARIETY);
+  float turns = (t - dot(p, MAIN_SWELL_TOWARDS) / OPEN_SEA_SPEED - seaFloor.x) / MAIN_SWELL_PERIOD + 0.5;
+  vec4 wave = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / MAIN_SWELL_PERIOD,
+    MAIN_SWELL_VARIETY, MAIN_SWELL_CAN_PLUNGE, th, depth, sinceCrossings, site);
+  float whereWavesBreak = smoothstep(-2.0, -0.5, sinceCrossings.z) * (1.0 - smoothstep(1.0, 4.0, sinceCrossings.z));
+  float patchyFoam = 0.15 * swellReaching(th, offBeach) * whereWavesBreak;
+  return vec3(wave.x, wave.w, wave.z + patchyFoam);
+}
+
+// The sea's height at p besides the main swell's own wave: the second swell (x), and how much higher the water
+// stands where its crest crosses the main swell's, for each metre of that crest's height (y). These are waveF's
+// own sums. The breaker's mesh stands on them, as the sea's own wave does. (A third swell, if there ever is one,
+// belongs here too.)
+vec2 heightBesidesMainSwell(vec2 p, float t, vec4 seaFloor, vec4 sinceCrossings) {
+  float th = atan(p.y, p.x);
+  float ground = shoreH(p.x, p.y);
+  float offBeach = BEACH_CURVE_LENGTH * (sqrt(max(1.0 - ground / BEACH_CURVE_DEPTH, 0.04)) - 1.0);
+  float depth = seaFloor.z;
+  vec4 site = vec4(1.0 / swellSpeed(depth), clamp(-ground, 0.12, 6.0), smoothstep(-1.5, 0.3, offBeach),
+    smoothstep(-0.4, 0.9, offBeach));
+  float fullSize = SECOND_SWELL_SIZE * swellReaching(th, offBeach) * alongShoreSwing(th, t, SECOND_SWELL_VARIETY);
+  float turns = (t - dot(p, SWELL_1_TOWARDS) / OPEN_SEA_SPEED - seaFloor.y) / SWELL_1_PERIOD + 0.5;
+  vec4 second = waveOfTrain(FULL_TURN * (fract(turns) - 0.25), turns, fullSize, FULL_TURN / SWELL_1_PERIOD,
+    SECOND_SWELL_VARIETY, 0.0, th, depth, sinceCrossings, site);
+  return vec2(second.x, 0.9 * second.w);
 }

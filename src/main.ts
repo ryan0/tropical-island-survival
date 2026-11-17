@@ -131,7 +131,7 @@ const crests = createCrestPicture(seaFloor, breakLineFromCentre);
 uniforms.uCrests.value = crests.texture;
 uniforms.uBreakerArc.value.set(crests.arc.middle, crests.arc.halfWidth);
 uniforms.uBreakerShapes.value = createBreakerShapes().texture;
-const waves = createWaveModel(island, seaFloor);
+const waves = createWaveModel(island, seaFloor, crests.arc);
 const waterMaterials = createWaterMaterials({
   uniforms,
   home: landmarks.home,
@@ -333,6 +333,7 @@ testHooks.install({
   waveHeight: waves.heightAt,
   waveShaderSource: waterMaterials.waveShaderSource,
   seaFloor,
+  breakerArc: crests.arc,
   breakerFrontPoint: frontPoint,
   setWaveTime(time) {
     uniforms.uTime.value = time;
@@ -486,6 +487,7 @@ function frame(now: number): void {
   waterFrame.wind = uniforms.uWind.value;
   waterFrame.isCameraUnderWater = underWater.isCameraUnder;
   water.update(waterFrame);
+  breaker.chooseDetail(camera.position);
   uniforms.uShoreBandShown.value = water.isBandShown ? 1 : 0;
 
   instanceCells.update(camera.position);

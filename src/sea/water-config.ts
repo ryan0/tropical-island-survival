@@ -27,9 +27,10 @@ export const waterConfig = {
     /**
      * The rows, from the open sea inwards, by distance along the reef: metres off the ocean beach
      * as the reef lies due south (island-shape/shore.glsl has its zones; round the north the same
-     * rows lie closer together). The falling lip is a thin sheet, so they are closest where the
-     * swell breaks, on the upper fore reef; the rest only has to carry swell and lines of white
-     * water. water.frag.glsl cuts the matching hole in the far sea and waves.glsl fades the swell
+     * rows lie closer together). They carry swell, the back of a breaking wave and lines of white
+     * water; the breaking wave's front is not theirs but the breaker's own mesh's (breaker.ts), so
+     * they need be no closer where the swell breaks than a wave's narrowed crest asks. They are
+     * closest at the waterline. water.frag.glsl cuts the matching hole in the far sea and waves.glsl fades the swell
      * out over the last `swellFadesOver` metres before the outer edge.
      */
     rows: {
@@ -40,10 +41,9 @@ export const waterConfig = {
       /** ...as far as here, where the stretches begin. */
       stretchesFrom: 168,
       stretches: [
-        // where the biggest waves start to stand up, on the fore reef
-        { to: 162, spacing: 0.4 },
-        // the break, on the upper fore reef and the crest's outer edge
-        { to: 134, spacing: 0.24 },
+        // where the waves stand up and break, on the upper fore reef and the crest's outer edge
+        // (the rows further in are spaced on from its last row: 0.568 leaves them where they were tuned)
+        { to: 134, spacing: 0.568 },
         // the crest: white water
         { to: 118, spacing: 0.7 },
         // the gardens

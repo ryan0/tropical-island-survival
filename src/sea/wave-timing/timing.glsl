@@ -114,6 +114,7 @@ float shoalingSeconds(float since0, float since1, float since2, float since3, fl
 // before it lands: freely, so in the time gravity takes.
 const float FRONT_STANDS = 1.15;
 const float LIP_DROPS = 0.9;
+float frontStands() { return FRONT_STANDS; }
 float lipDrops() { return LIP_DROPS; }
 float lipFallSeconds(float breakerHeight) {
   return sqrt(2.0 * LIP_DROPS * FRONT_STANDS * max(breakerHeight, 0.05) / GRAVITY);
@@ -152,14 +153,6 @@ float standingUpAt(float crestStage) {
 // Whether a wave throws a lip (1) or crumbles (0), by the seconds its last shoaling takes (shoalingSeconds).
 float plungingFor(float shoaling) {
   return 1.0 - smoothstep(1.5, 4.0, shoaling);
-}
-
-// The wave mesh can move its water only towards the atoll's centre or away from it, so a wave throws a lip only
-// where it is heading that way, to within some 25 degrees: `headingInshore` is 1 straight in and 0 along the shore
-// (the floor picture). That is the island's southern two thirds. Round the north, and at the crescent's horns, the
-// swell comes in aslant and crumbles: a lip there would be dragged out across the mesh.
-float plungingHeading(float headingInshore) {
-  return smoothstep(0.84, 0.93, headingInshore);
 }
 
 // The front, the lip and the white water are shaped by how far a point is from the crest in metres, whatever the

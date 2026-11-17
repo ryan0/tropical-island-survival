@@ -3,6 +3,8 @@ import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
 import { cloudsConfig } from '../sky/clouds-config';
 import { skyConfig } from '../sky/sky-config';
 import { reefConfig } from '../world/reef/reef-config';
+import breakerDepthFragmentShader from './breaker-depth.frag.glsl';
+import { breakerPath } from './breaker-shapes';
 import breakerVertexShader from './breaker.vert.glsl';
 import bandVertexShader from './lagoon-shore-band.vert.glsl';
 import { seaConfig } from './sea-config';
@@ -17,7 +19,8 @@ import wavesShader from './waves.glsl';
  * shore that lifts into small waves in a high wind, and the breaker's own mesh, which draws the
  * front of a breaking wave.
  */
-export type WaterSheet = 'far sea' | 'wave mesh' | 'lagoon shore band' | 'breaker';
+export type WaterSheet =
+  'far sea' | 'wave mesh' | 'lagoon shore band' | 'breaker' | 'breaker depth';
 
 export interface WaterMaterialsDependencies {
   /** The uniforms every shader shares. */
@@ -132,12 +135,18 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     MAIN_SWELL_SIZE: glslFloat(seaConfig.swells[0].size),
     MAIN_SWELL_VARIETY: glslFloat(seaConfig.swells[0].variety),
     MAIN_SWELL_CAN_PLUNGE: glslFloat(seaConfig.swells[0].canPlunge),
+    SECOND_SWELL_SIZE: glslFloat(seaConfig.swells[1].size),
+    SECOND_SWELL_VARIETY: glslFloat(seaConfig.swells[1].variety),
     BREAK_LINE_ALONG: glslFloat(seaConfig.reefBreak),
     CREST_SECONDS_BEFORE: glslFloat(seaConfig.crestPicture.secondsBefore),
     CREST_SECONDS_AFTER: glslFloat(seaConfig.crestPicture.secondsAfter),
     SHAPE_PLACES: glslFloat(seaConfig.breakerShapes.places),
     SHAPE_FIRST_STAGE: glslFloat(seaConfig.breakerShapes.firstStage),
     SHAPE_LAST_STAGE: glslFloat(seaConfig.breakerShapes.lastStage),
+    SHAPE_FACE_ENDS: glslFloat(breakerPath.faceEnds),
+    SHAPE_TOP_ENDS: glslFloat(breakerPath.topEnds),
+    SHAPE_LAST_OFF_BACK: glslFloat(breakerPath.lastPlaceOffBack),
+    SHAPE_BACK_FROM: glslFloat(breakerPath.firstPlaceOnBack),
   };
 
   return {
@@ -146,7 +155,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     create(sheet) {
       const isWaveMesh = sheet === 'wave mesh';
       const isBand = sheet === 'lagoon shore band';
-      const isBreaker = sheet === 'breaker';
+      const isBreakerDepth = sheet === 'breaker depth';
+      const isBreaker = sheet === 'breaker' || isBreakerDepth;
       return new ShaderMaterial({
         // uIsFlatSheet: 1 leaves the sheet flat (the vertex shader moves only the wave mesh). uIsShoreBand: 1 for the band.
         uniforms: {
@@ -154,8 +164,10 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
           uIsShoreBand: { value: isBand ? 1 : 0 },
           ...uniforms,
         },
-        defines,
+        defines: isBreakerDepth ? { ...defines, BREAKER_DEPTH_ONLY: '' } : defines,
         transparent: true,
+        // (the breaker's first drawing writes its depth and no colour: breaker-depth.frag.glsl)
+        colorWrite: !isBreakerDepth,
         extensions: { derivatives: true },
         // The far sea lies under everything and must not hide what is drawn after it.
         depthWrite: sheet !== 'far sea',
@@ -165,7 +177,7 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
         polygonOffsetFactor: -1,
         polygonOffsetUnits: -4,
         vertexShader: isBreaker ? breakerVertexShader : isBand ? bandVertexShader : vertexShader,
-        fragmentShader,
+        fragmentShader: isBreakerDepth ? breakerDepthFragmentShader : fragmentShader,
       });
     },
 
