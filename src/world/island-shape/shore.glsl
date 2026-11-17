@@ -26,23 +26,31 @@ const float SHELTER_EDGE_WIDTH = 0.02271;
 
 // The reef, off the ocean beach, as it lies due south, where it is widest: metres off the beach at which each of
 // its zones begins. The beach's own shallows reach REEF_BEGINS out; then come the shallows, the gardens (pools and
-// coral heads), the crest, the fore reef and the drop-off, which reaches the sea floor at DROP_OFF_ENDS. Round the
-// north the reef is REEF_NARROWEST as wide. (island.glsl shapes the ground of each; the water's shaders and the
-// wave mesh go by the same zones.)
+// coral heads), the crest, the fore reef (its spurs, then a terrace) and the drop-off, which reaches the sea floor
+// at DROP_OFF_ENDS. Round the north the reef is REEF_NARROWEST as wide. (island.glsl shapes the ground of each; the
+// water's shaders and the wave mesh go by the same zones.)
 const float REEF_BEGINS = 12.0;
 const float GARDENS_BEGIN = 45.0;
 const float CREST_BEGINS = 118.0;
 const float FORE_REEF_BEGINS = 145.0;
-const float DROP_OFF_BEGINS = 200.0;
+const float DROP_OFF_BEGINS = 208.0;
 const float DROP_OFF_ENDS = 232.0;
 const float REEF_NARROWEST = 0.55;
+
+// The reef's headlands and bays: how much wider the reef is in a direction than on either side of it (above 0, a
+// headland that bulges towards the sea) or narrower (below 0, a bay), as a share of its width. The most is
+// REEF_HEADLAND either way. (island.glsl reads it too: a crest that bulges is another thing than one that curves
+// away.)
+const float REEF_HEADLAND = 0.15;
+float reefHeadlands(float direction) {
+  return 0.09 * sin(4.0 * direction + 2.3) + 0.06 * sin(7.0 * direction + 4.1);
+}
 
 // How wide the reef is in a direction, as a share of its width due south: narrowest round the north, and wider here
 // and narrower there all the way round, so that its outer edge is no copy of the shoreline.
 float reefShare(float direction) {
   float southness = 0.5 + 0.5 * sin(direction);
-  float unevenness = 0.13 * sin(2.0 * direction + 0.7) + 0.09 * sin(4.0 * direction + 2.3)
-    + 0.06 * sin(7.0 * direction + 4.1);
+  float unevenness = 0.13 * sin(2.0 * direction + 0.7) + reefHeadlands(direction);
   return (REEF_NARROWEST + (1.0 - REEF_NARROWEST) * southness) * (1.0 + unevenness);
 }
 

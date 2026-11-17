@@ -12,7 +12,10 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
    perhaps several breaks; a larger area between the shore and the deep ocean, with more varied depths, for
    exploring, foraging, spear fishing and diving; the lagoon with more varied depth, more interesting to explore,
    possibly larger. Agreed from a proposal, in three batches: the ocean floor (built, below), the lagoon's floor
-   (its outline kept, so nothing on land moves), then coral heads over the gardens, which Ryan means to rearrange.
+   (built: its outline kept, so nothing on land moves), then the coral. Ryan, 16 November 2026: the coral is to
+   be placed afresh and redesigned, from research into what a real reef holds in each region (`REEF.md`). What
+   changes the reef's shape and depth comes first, so that the waves can go on; the rest of `REEF.md`'s order
+   follows, with placeholders where they serve.
 3. **The breaking wave, passes 2 to 4**: the breaker's own mesh and shapes (what cures the jaggedness); the white
    water and the light through the lip; the weather driving it. After the wider reef, because the mesh depends
    on how far out waves break.
@@ -23,6 +26,7 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
    and wind systems: overcast sky, darker light, rings on the lagoon, wet sand and leaves, streaks in the air.
    It is also the weather a survival game leans on most: shelter, staying dry, collecting water.
 6. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
+   The moon is also the reef's clock: most of its food comes on known nights (`REEF.md`).
 7. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
    happen here.
 8. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
@@ -238,6 +242,32 @@ ripples and sheen do not stop where it is shallow.
   view is 45 thousand points, and none of the places tried is over 63 thousand; all at the second level is 28
   thousand, which the phone drew at 60. The `coarse wave mesh` switch stays, for the next time.
 
+### The wider reef, third batch: the reef's shape, from research (16 November 2026)
+
+Ryan asked what a real reef holds in each region before the coral is placed afresh; the answer is `REEF.md`. He
+then asked for what changes the reef's shape and depth first, so that the waves can go on, and agreed six items,
+which are built (`island.glsl`; `REEF.md` has the sizes and the choices):
+
+- **Two values shared round the rim**, the sea's exposure and whether the reef bulges or curves away, which the
+  rest reads.
+- **The south crest is a ridge:** high off the reef's bulge, which is where home is, with a bare flat behind it;
+  a low arch to east and west, with the gardens close behind. Surge channels cut the high ridge.
+- **The fore reef** has flat-floored grooves between spurs, then a step down to a terrace, then the drop.
+- **Three storm notches** break the south edge.
+- **The pass** has a flat floor, a ridge of coral across it, and a lobe of sand outside.
+- **The lee** falls in one wall below the sill, without spurs.
+
+The swell breaks where it did: the spurs' tops slope as the old fore reef did near its top, so the wave mesh's
+rows, the spray's look-out and `reefBreak` stand. A notch is a gap in the break. The barrel view is re-aimed 6 m
+further out, 0.4 s earlier.
+
+The ground's formula is longer: the program takes half as long again to work it out (the sea floor's pictures
+take 650 ms on the desktop, from 520), and the water's shader works it out for every pixel of the wave mesh,
+with about a twentieth more trigonometry than before. The phone's frame rate is to be read again.
+
+Still to do of the shape: a lower strip of flat-topped heads and pools behind the crest, and the lagoon's patch
+reefs made steep-sided. Then the coral, in `REEF.md`'s order.
+
 ### The white water, first part (15 November 2026)
 
 Brought forward from pass 3, because it reads the pictures and so survives the wider reef.
@@ -270,6 +300,10 @@ and a cross-section with sizes); then the breaker's own mesh.
 ## Later
 
 - More passes on the reef.
+- Overhangs, caves and roofed surge channels on the reef. Ryan wants them in time, perhaps as things of their own
+  set on the ground (`REEF.md`).
+- The tide. Interesting to Ryan (16 November 2026) but after the moon. What it would take, and what to keep to
+  meanwhile so that it stays possible, is the last section of `REEF.md`.
 - A newer three.js. A trial of 0.187 was shelved on 15 November 2026: cheap on the desktop, but its shadows lose
   the graphics context on Ryan's phone (`DEVICE_NOTES.md`). And a decision on WebGPU.
 - Sound beyond surf and crickets: wind, rain, the shore break.

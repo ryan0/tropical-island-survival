@@ -126,5 +126,6 @@ they catch only what is broken.
 | `docs/DECISIONS.md` | Why the project is built the way it is |
 | `docs/LOOK.md` | What it should look like, what was rejected and why |
 | `docs/ROADMAP.md` | What comes next, in order; the breaking wave's rebuild; known weak points |
+| `docs/REEF.md` | What belongs in each region of the reef and lagoon, from research; the order of the reef's redesign; what a tide would take |
 | `docs/DEVICE_NOTES.md` | What the phone taught us about shaders |
 | `docs/HISTORY.md` | Notes from builds 26-78: what changed and why |

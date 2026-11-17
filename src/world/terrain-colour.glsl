@@ -417,11 +417,17 @@ if (waterDepth > 0.0) {
     float coralGrain = 0.75 + 0.5 * noise(xz * 7.0);
     vec3 coralColour = mix(BROWN_CORAL, OLIVE_CORAL, noise(xz * 0.45 + 3.0)) * coralMottle * coralGrain;
     // The crest is pounded by the white water: less coral grows there than pale rock, crusted pink in places.
+    // Where it is a ridge, the pink alga that built it covers most of it; and the flat behind a high ridge is
+    // the same rock, bare. (Both show however shallow they lie, where coral would not.)
     float onCrest = onTheReef * smoothstep(CREST_BEGINS - 8.0, CREST_BEGINS + 4.0, alongTheReef)
       * (1.0 - smoothstep(FORE_REEF_BEGINS - 2.0, FORE_REEF_BEGINS + 14.0, alongTheReef));
+    float ridgeHere = ridgeAt(directionFromCentre);
+    float bareFlat = onTheReef * reefPavement(xz.x, xz.y) * smoothstep(-0.3, 0.05, ragged);
     vec3 crestRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, noise(xz * 2.3)) * (0.66 + 0.68 * noise(xz * 7.0));
-    crestRock = mix(crestRock, PINK_CRUST, smoothstep(0.5, 0.7, noise(xz * 1.1 + 9.0)) * 0.5);
-    coralColour = mix(coralColour, crestRock, 0.65 * onCrest);
+    crestRock = mix(crestRock, PINK_CRUST,
+      smoothstep(0.5 - 0.25 * ridgeHere, 0.7, noise(xz * 1.1 + 9.0)) * (0.5 + 0.3 * ridgeHere));
+    coral = max(coral, max(onCrest * ridgeHere * onHighGround, bareFlat));
+    coralColour = mix(coralColour, crestRock, max((0.65 + 0.3 * ridgeHere) * onCrest, 0.85 * bareFlat));
     diffuseColor.rgb = mix(diffuseColor.rgb, coralColour, coral * (0.55 + 0.3 * smoothstep(1.0, 3.0, waterDepth)));
   }
 

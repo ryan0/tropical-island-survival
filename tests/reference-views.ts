@@ -47,7 +47,7 @@ function sunFixedAt(elevation: number, waveTime = 20): Moment {
 }
 
 // A moment at which a wave of a set has stood up on the south-east fore reef and is about to throw its lip.
-const A_SET_WAVE_BREAKS = 73;
+const A_SET_WAVE_BREAKS = 72.6;
 
 const DAWN = { dayPhase: 0.19 };
 const GOLDEN_HOUR = { dayPhase: 0.754 };
@@ -214,7 +214,7 @@ export const referenceViews: ReferenceView[] = [
   {
     name: 'photo-barrel',
     shows: 'a breaking wave from beside it',
-    pose: [50, 1.8, 316, 4.86, -0.03],
+    pose: [50.9, 1.8, 321.9, 4.86, -0.03],
     fieldOfView: 32,
     moments: [sunFixedAt(0.72, A_SET_WAVE_BREAKS)],
   },

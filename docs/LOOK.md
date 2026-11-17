@@ -85,6 +85,9 @@ Ryan plans more reef passes later.
 
 *Rejected:* kelp (replaced by short sea grass); bare platform tops; heads that sat on the sand without blending in.
 
+*To come:* the coral placed afresh and redesigned, each kind where it grows on a real reef, and the reef made to
+differ along the shore. What belongs in each region is in `REEF.md`.
+
 ## Sand and beach
 
 *References:* white coral sand with rubble, shells and a line of wrack; footprints and hollows; palm shade on
