@@ -167,6 +167,9 @@ const float SPARKLE_DOTS_ACROSS = 3.5;
 // Sparkles are drawn within the first of these distances of the eye (metres), and none beyond the second.
 const vec2 SPARKLES_SEEN_WITHIN = vec2(90.0, 200.0);
 const float SPARKLE_BRIGHT = 2.5;
+// The sun's whole image on glassy water: the power its mirrored direction's closeness to the sun is raised to
+// (12000 is an image some two sun's widths across).
+const float SUNS_IMAGE_SHARP = 12000.0;
 // The moon's light mirrored in the water.
 const vec3 MOONLIGHT = vec3(0.55, 0.62, 0.80);
 // How bright its faint sheen is, and its glitter.
@@ -924,9 +927,9 @@ void main() {
     glints += uSunColour * SPARKLE_BRIGHT * smoothstep(sparkleFrom, sparkleFrom + 0.04, sparkle) * sunShows;
   }
   #endif
-  // (On glassy water the sun is mirrored whole, not scattered into glitter. Its image is small: drawn six times
-  // the sun's own width, it lay on clear water near the eye as white blots a pace across.)
-  glints += uSunColour * pow(towardsSun, 3000.0) * 4.0 * (1.0 - smoothstep(0.0, 0.4, uWind)) * sunShows;
+  // (On glassy water the sun is mirrored whole, not scattered into glitter. Its image is small: drawn several
+  // times the sun's own width, it lay on clear water near the eye as white blots a pace across.)
+  glints += uSunColour * pow(towardsSun, SUNS_IMAGE_SHARP) * 5.0 * (1.0 - smoothstep(0.0, 0.4, uWind)) * sunShows;
   // (The moon's light on the water is glitter too, round the moon's own small image, with a faint sheen about
   // it: as one broad patch of white it was a floodlight on ice.)
   float towardsMoon = max(dot(mirrored, normalize(MOON_DIRECTION)), 0.0);

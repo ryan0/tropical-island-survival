@@ -892,7 +892,9 @@ work that is skipped: a phone's graphics card does skip it. Its timings are fair
   water busy close to. The wave mesh reads the detail texture ten times for each dot, where it read it eleven.
 - *Gusts in broad patches.* The patches of sky-blue that gusts lay on clear water were broken up into blotches a
   few strides across; they are the size of the gusts themselves now.
-- *Sparser sparkle.* About two thirds as many points, kept nearer the sun's side.
+- *Sparser sparkle.* About two thirds as many points, kept nearer the sun's side. And the sun's whole image
+  on glassy water is half as wide again as the sun, where it was five times: beside the calm-water photo it
+  showed as white blots on the water near the eye.
 
 In the software renderer, against the build of two sittings ago (`4d4f145`, the last that held the phone near
 its old frame rate), a frame took this morning and takes now:
