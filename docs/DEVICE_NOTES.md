@@ -90,9 +90,10 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   with the sea drained 55 to 60; with the wave mesh hidden 55 to 60; with the far sea hidden 38 to 40. The wave
   mesh is what costs, and the rest of the scene is close to its own limit.
 - An experiment, not yet seen on the phone (18 November 2026): `skip unused readings` compiles the wave mesh
-  with `WATER_READS_WHERE_NEEDED`, which reads the mipmapped detail texture inside a branch with `textureGrad`,
-  given derivatives that were taken before the branch. By the rules of the shading language that is well
-  defined, where a plain reading inside a branch is not; whether the phone agrees is what the switch is for.
+  and the far sea with `WATER_READS_WHERE_NEEDED`, which reads the mipmapped detail texture inside a branch with
+  `textureGrad`, given derivatives that were taken before the branch. By the rules of the shading language that
+  is well defined, where a plain reading inside a branch is not; whether the phone agrees is what the switch is
+  for.
   Until Ryan has tried it and agreed, the rule stands as written and nothing else reads so.
 - Anisotropic filtering of a texture the water reads many times is dear: the detail texture, read eleven times
   for each dot of the wave mesh, nearly always at a low angle, was a fifth of a frame in the software renderer

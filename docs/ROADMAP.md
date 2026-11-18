@@ -921,14 +921,15 @@ readings` is the experiment below.
   7 in a hundred of a frame in the software renderer, likely more on the phone. A picture of the floor's height
   would replace it, or the formula could skip the reef's zones a dot is not in. Ryan: not yet, since the floor
   is about to change.
-- *Reading textures inside branches*: built as an experiment, off unless switched on. Five of the wave mesh's
-  sixteen readings for each dot are wanted only where there may be foam or steep water; they are all made
-  everywhere because of a hard rule (`DEVICE_NOTES.md`). `skip unused readings` in the debug panel compiles the
-  wave mesh to make them inside a branch, each told outright how fast its place changes across a dot, which is
-  worked out before the branch: the graphics card then has nothing to work out inside it, which is where some
-  phones go wrong. With it on the software renderer draws the same picture (45 views; in some a few dots differ
-  by one step in 255). Whether the phone draws it right, and faster, is Ryan's to try; whether it becomes the
-  rule is his to agree. (WebGL 2 only.)
+- *Reading textures inside branches*: built as an experiment, off unless switched on. Of the wave mesh's
+  sixteen readings for each dot, six are wanted only where there may be foam or steep water; of the lagoon's
+  twelve, two. They are all made everywhere because of a hard rule (`DEVICE_NOTES.md`). `skip unused readings`
+  in the debug panel compiles the sea and the lagoon to make them inside a branch, each told outright how fast
+  its place changes across a dot, which is worked out before the branch: the graphics card then has nothing to
+  work out inside it, which is where some phones go wrong. With it on, a dot of the wave mesh that has no foam
+  makes ten readings, and one of the lagoon ten. The software renderer draws the same picture with it on (50
+  views; in some a few dots differ by one step in 255). Whether the phone draws it right, and faster, is Ryan's
+  to try; whether it becomes the rule is his to agree. (WebGL 2 only.)
 - *Mirrored clouds as soft shapes.* The hard-edged pale shapes on a windy lagoon come from the test builds'
   coarse cloud pictures; the phone's are finer. Left as it is until seen there.
 - *The wave mesh's points.* Its levels of detail are as they were, until `coarse wave mesh` has been read on
