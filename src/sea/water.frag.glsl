@@ -161,8 +161,8 @@ const float FLAT_FOAM_LUMPS = 0.3;
 // in a high wind (the mean square of their slope: some two thirds of what is measured at sea, Cox and Munk's
 // figures, since the ripples that are drawn carry the rest); how many dots of the picture a sparkle's cell is
 // across; and how bright one is.
-const float SPARKLE_IN_A_CALM = 0.006;
-const float SPARKLE_BY_WIND = 0.03;
+const float SPARKLE_IN_A_CALM = 0.004;
+const float SPARKLE_BY_WIND = 0.02;
 const float SPARKLE_DOTS_ACROSS = 3.5;
 // Sparkles are drawn within the first of these distances of the eye (metres), and none beyond the second.
 const vec2 SPARKLES_SEEN_WITHIN = vec2(90.0, 200.0);
@@ -502,6 +502,14 @@ void main() {
     float inBand = step(-BAND_OUT_INTO_LAGOON, landward) * step(landward, BAND_UP_BEACH)
       * step(cameraDistance, BAND_SHOWN_WITHIN) * uShoreBandShown;
     if (abs(inBand - uIsShoreBand) > 0.5) discard;
+  }
+
+  // From under water none of what follows shows: the surface is its underside alone, drawn as the end of main
+  // draws it. (Not while a debug colour is asked for, which is laid over it there.)
+  if (uUnderWater > 0.5 && uDebugMode < 2.5) {
+    vec3 underside = seenFromUnderWater(xz, towardsCamera, cameraDistance);
+    gl_FragColor = vec4(underside + (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0), 1.0);
+    return;
   }
 
   // ---- How deep the water is ----
@@ -874,7 +882,7 @@ void main() {
     float sparkle = mix(noise(xz * finerSize + sparkleDrift), noise(xz * finerSize * 0.5 + sparkleDrift),
       ceil(sizeWanted) - sizeWanted);
     // (the noise is mostly near a half: above 0.58 lies a quarter of it, above 0.82 a few points in a thousand)
-    float sparkleFrom = 0.84 - 0.26 * sqrt(sparkleChance);
+    float sparkleFrom = 0.85 - 0.24 * sqrt(sparkleChance);
     glints += uSunColour * SPARKLE_BRIGHT * smoothstep(sparkleFrom, sparkleFrom + 0.04, sparkle) * sunShows;
   }
   #endif
@@ -1023,8 +1031,10 @@ void main() {
   // the far sides of its ripples are turned nearly edge on to the eye. So a gust shows as a patch of the sky's
   // deeper blue lying on clear water, and the slick beside it as a window to the floor. (Not looked along from far
   // off, where smooth water is the better mirror.)
-  // (in patches of two sizes, turned to each other, so that neither's repeat shows)
-  float ruffled = (1.0 - slick) * (0.2 + 1.6 * ripplesMedium.b * (0.4 + 1.2 * ripplesLarge.b))
+  // (In broad patches, the size of the gusts themselves: the 37 m reading and the slow one together, so that
+  // neither's repeat shows. Broken up by the 14 m reading as well, the patches were blotches a few strides
+  // across, and the water was busy with them.)
+  float ruffled = (1.0 - slick) * (0.2 + 1.5 * ripplesLarge.b * (0.5 + windPatches.b))
     * min(windOverUsual, 1.5);
   // (Nor on a wave's face: a gust's patch of sky across it read as a smear of cloud on the wave.)
   float ruffledMirrors = RUFFLED_MIRRORS * ruffled * (1.0 - smoothstep(0.9, 0.99, lookedAlong))
@@ -1188,58 +1198,61 @@ void main() {
     whiteLaceThreshold = min(whiteLaceThreshold, mix(0.3, -0.05, max(windFoam, whiteCrests)));
   }
 
-  // Foam is white where it is thick and blue-grey where it thins; the ripples under it catch the sun, so it looks
-  // frothy.
-  float closeUp = 1.0 - smoothstep(5.0, 22.0, cameraDistance);
-  // (The ripples are laid on from above: on steep water, and on the white mass a landed lip throws up, they would
-  // be smeared down it in streaks, so there the foam goes by the readings laid along the surface instead.)
-  float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
-  float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
-  float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
-  vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
-  // close up, even thick foam is a mass of bubbles with water showing between them
-  // (not the white mass: water showing through it in specks made it look like ice)
-  float bubbles = mix(foamFine.a, steepFoam.a, steep);
-  foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, bubbles)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance))
-    * (1.0 - whiteMass);
-  // no foam at all on water a few centimetres deep unless the wave model put plenty there (the white edge of the swash)
-  foam *= max(smoothstep(0.03, 0.10, waterDepth), smoothstep(0.2, 0.4, waveFoam));
-  foam = min(foam, 0.94);
-  // (Where a sheet of foam is thin - the hollows of its pattern - the water under it shows through: painted solid
-  // there, in thin foam's colour, a sheet of foam looked like snow with pools of meltwater in it. Not the white
-  // mass, which is thick all through.)
-  float thickFoam = smoothstep(whiteLaceThreshold, whiteLaceThreshold + 0.26, lace);
-  // (on the sand, less still: there the holes of the lace are wet sand, and it is their darkness against the
-  // white threads that makes it lace)
-  foam *= mix(mix(THIN_FOAM_HIDES, THIN_FOAM_HIDES_ON_SAND, onSand), 1.0, max(thickFoam, whiteMass));
-  vec3 foamThickness = mix(THIN_FOAM, vec3(1.08), thickFoam);
-  // (the foam is lit as a rougher surface than the water: the ripples' tilt counts for more close up, and the lace
-  // and the streaks give it lumps of its own)
-  vec3 rippleTilt = vec3(-foamSlope.x, 0.0, -foamSlope.y)
-    * (1.5 + 3.5 * (1.0 - smoothstep(4.0, 30.0, cameraDistance)));
-  // (Only a little: a sheet of foam lying on the water is nearly flat. Tilted more, half of it stood in its own
-  // blue-grey shade, and it looked like snow lying in drifts.)
-  vec3 lumps = vec3(shoreStreak - 0.5, 0.0, lace - 0.5) * FLAT_FOAM_LUMPS;
-  // (Piled-up white water - steep, or standing high - is a heap of lumps: on it the lumps are those of the reading
-  // laid along the surface, they tilt it more, and the hollows between them are in shade.)
-  float piledUp = max(steep, smoothstep(0.5, 1.4, vWaterPosition.y - uSeaLevel));
-  vec3 upTheSlope = cross(waveNormal, vec3(alongWave.x, 0.0, alongWave.y));
-  vec2 steepSlope = (steepFoam.rg - 0.5) * awayFromSeam;
-  vec3 steepLumps = (vec3(alongWave.x, 0.0, alongWave.y) * steepSlope.x + upTheSlope * steepSlope.y) * PILED_LUMPS;
-  // (The white mass is lit as a cloud is: round lumps a metre across, bright where they face the sun and softly
-  // shaded where they turn away and in the hollows between them - a pale shade, not the blue-grey of thin foam.)
-  vec2 massSlope = massLumps.rg - 0.5 + MASS_SMALL_LUMPS * (massSmallLumps.rg - 0.5);
-  float massHeight = mix(massLumps.b, massSmallLumps.b, 0.35);
-  vec3 massTilt = (vec3(alongWave.x, 0.0, alongWave.y) * massSlope.x + upTheSlope * massSlope.y) * MASS_LUMPS_TILT;
-  vec3 foamNormal = normalize(waveNormal + (rippleTilt + lumps) * laidFromAbove
-    + steepLumps * piledUp * (1.0 - 0.6 * whiteMass) + massTilt * whiteMass);
-  vec3 foamInShade = mix(SHADED_FOAM, MASS_IN_SHADE, whiteMass);
-  vec3 foamShade = mix(foamInShade, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
-  foamShade *= 1.0 - PILED_HOLLOWS * piledUp * (1.0 - smoothstep(0.25, 0.6, lace)) * (1.0 - whiteMass);
-  foamShade *= 1.0 - MASS_HOLLOWS * whiteMass * (1.0 - smoothstep(0.3, 0.62, massHeight));
-  // (thin foam is a film, with no lumps to stand in each other's shade)
-  foamShade = mix(vec3(1.0), foamShade, max(thickFoam, whiteMass));
-  colour = mix(colour, foamColour * foamThickness * foamShade, foam);
+  // (All of the foam's shading is worked out only where there is foam: over most of the sea there is none.)
+  if (foam > 0.0) {
+    // Foam is white where it is thick and blue-grey where it thins; the ripples under it catch the sun, so it looks
+    // frothy.
+    float closeUp = 1.0 - smoothstep(5.0, 22.0, cameraDistance);
+    // (The ripples are laid on from above: on steep water, and on the white mass a landed lip throws up, they would
+    // be smeared down it in streaks, so there the foam goes by the readings laid along the surface instead.)
+    float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
+    float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
+    float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
+    vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
+    // close up, even thick foam is a mass of bubbles with water showing between them
+    // (not the white mass: water showing through it in specks made it look like ice)
+    float bubbles = mix(foamFine.a, steepFoam.a, steep);
+    foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, bubbles)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance))
+      * (1.0 - whiteMass);
+    // no foam at all on water a few centimetres deep unless the wave model put plenty there (the white edge of the swash)
+    foam *= max(smoothstep(0.03, 0.10, waterDepth), smoothstep(0.2, 0.4, waveFoam));
+    foam = min(foam, 0.94);
+    // (Where a sheet of foam is thin - the hollows of its pattern - the water under it shows through: painted solid
+    // there, in thin foam's colour, a sheet of foam looked like snow with pools of meltwater in it. Not the white
+    // mass, which is thick all through.)
+    float thickFoam = smoothstep(whiteLaceThreshold, whiteLaceThreshold + 0.26, lace);
+    // (on the sand, less still: there the holes of the lace are wet sand, and it is their darkness against the
+    // white threads that makes it lace)
+    foam *= mix(mix(THIN_FOAM_HIDES, THIN_FOAM_HIDES_ON_SAND, onSand), 1.0, max(thickFoam, whiteMass));
+    vec3 foamThickness = mix(THIN_FOAM, vec3(1.08), thickFoam);
+    // (the foam is lit as a rougher surface than the water: the ripples' tilt counts for more close up, and the lace
+    // and the streaks give it lumps of its own)
+    vec3 rippleTilt = vec3(-foamSlope.x, 0.0, -foamSlope.y)
+      * (1.5 + 3.5 * (1.0 - smoothstep(4.0, 30.0, cameraDistance)));
+    // (Only a little: a sheet of foam lying on the water is nearly flat. Tilted more, half of it stood in its own
+    // blue-grey shade, and it looked like snow lying in drifts.)
+    vec3 lumps = vec3(shoreStreak - 0.5, 0.0, lace - 0.5) * FLAT_FOAM_LUMPS;
+    // (Piled-up white water - steep, or standing high - is a heap of lumps: on it the lumps are those of the reading
+    // laid along the surface, they tilt it more, and the hollows between them are in shade.)
+    float piledUp = max(steep, smoothstep(0.5, 1.4, vWaterPosition.y - uSeaLevel));
+    vec3 upTheSlope = cross(waveNormal, vec3(alongWave.x, 0.0, alongWave.y));
+    vec2 steepSlope = (steepFoam.rg - 0.5) * awayFromSeam;
+    vec3 steepLumps = (vec3(alongWave.x, 0.0, alongWave.y) * steepSlope.x + upTheSlope * steepSlope.y) * PILED_LUMPS;
+    // (The white mass is lit as a cloud is: round lumps a metre across, bright where they face the sun and softly
+    // shaded where they turn away and in the hollows between them - a pale shade, not the blue-grey of thin foam.)
+    vec2 massSlope = massLumps.rg - 0.5 + MASS_SMALL_LUMPS * (massSmallLumps.rg - 0.5);
+    float massHeight = mix(massLumps.b, massSmallLumps.b, 0.35);
+    vec3 massTilt = (vec3(alongWave.x, 0.0, alongWave.y) * massSlope.x + upTheSlope * massSlope.y) * MASS_LUMPS_TILT;
+    vec3 foamNormal = normalize(waveNormal + (rippleTilt + lumps) * laidFromAbove
+      + steepLumps * piledUp * (1.0 - 0.6 * whiteMass) + massTilt * whiteMass);
+    vec3 foamInShade = mix(SHADED_FOAM, MASS_IN_SHADE, whiteMass);
+    vec3 foamShade = mix(foamInShade, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
+    foamShade *= 1.0 - PILED_HOLLOWS * piledUp * (1.0 - smoothstep(0.25, 0.6, lace)) * (1.0 - whiteMass);
+    foamShade *= 1.0 - MASS_HOLLOWS * whiteMass * (1.0 - smoothstep(0.3, 0.62, massHeight));
+    // (thin foam is a film, with no lumps to stand in each other's shade)
+    foamShade = mix(vec3(1.0), foamShade, max(thickFoam, whiteMass));
+    colour = mix(colour, foamColour * foamThickness * foamShade, foam);
+  }
   // water under a few cm deep is invisible unless it carries foam
   opacity = max(opacity * smoothstep(0.01, 0.12, waterDepth), foam * smoothstep(0.0, 0.045, waterDepth));
   // (or unless there is no floor behind it to show: a film of water at the far edge of a bared reef top, with the

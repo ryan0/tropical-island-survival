@@ -39,9 +39,11 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe,
   hiding the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
-  wave mesh no finer than its second level, colouring it without what only steep water needs, colouring the sea
+  wave mesh no finer than its second level (`coarse wave mesh`), drawing it in one flat colour (`bare wave mesh`),
+  colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
-  the same without the sun's sparkle (`no sparkle`), running the water's ripples at a quarter of their pace
+  the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were
+  until 18 November 2026 (`sharper filtering`), running the water's ripples at a quarter of their pace
   (`slower ripples`), and holding still what sways under the water (`still under water`), the last two for
   judging motion; and a row of buttons that fly the eye to
   places on the reef. Flying: the stick moves the eye the way it looks (push forward
@@ -79,6 +81,16 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   alone, with noise inside and no texture: the sun's sparkle and the moon's glitter. The water's readings of
   the waves' picture of the floor, and its first reading of the reef's map, are inside branches now, so that the
   open sea can skip them (neither picture has mipmaps).
+- The software renderer works out both sides of an `if` that differs from dot to dot (it shades four dots at a
+  time and masks the results), so it shows no saving from work a branch skips; the phone's graphics card does
+  skip it. Its timings are fair only for what every dot pays. (Found on 18 November 2026: skipping some forty
+  noises for most dots of the ground changed its timings by nothing.)
+- What the Pixel 10 said on 18 November 2026, from the ocean beach looking out to sea: 30 to 45 frames a second;
+  with the sea drained 55 to 60; with the wave mesh hidden 55 to 60; with the far sea hidden 38 to 40. The wave
+  mesh is what costs, and the rest of the scene is close to its own limit.
+- Anisotropic filtering of a texture the water reads many times is dear: the detail texture, read eleven times
+  for each dot of the wave mesh, nearly always at a low angle, was a fifth of a frame in the software renderer
+  at anisotropy 4. It and the caustics texture are filtered plainly now.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
 - What the Pixel 10 can afford (16 November 2026, by the debug panel's switches): the wave mesh's points are what
   it pays for. 123 thousand of them in view held it to about 50 frames a second; 31 thousand, and it drew 60.

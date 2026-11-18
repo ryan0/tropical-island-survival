@@ -855,6 +855,82 @@ Seen and left:
 - A rock or a small coral is still tinted by the depth of the sand beside it; bending what is seen through the
   surface is still the largest step left (the first sitting's note).
 
+### The frame rate, and a calmer sea (18 November 2026)
+
+Ryan, on the phone, of the second sitting: "another big improvement", but 30 to 45 frames a second looking at the
+ocean, and the water "almost feels too busy". He asked for the frame rate back towards 60 by simplifying only
+where that is itself an improvement, for changes that alter no picture wherever they can be found, and for free
+gains towards the references. Branch `water-frame-rate`; at his asking it is committed and pushed at each
+milestone, for him to test from the Pages preview, and not merged.
+
+**What the phone said first** (the ocean beach, looking out to sea): with the sea drained, 55 to 60; with only the
+wave mesh hidden, 55 to 60; with only the far sea hidden, 38 to 40. So nearly all of the lost frames are the wave
+mesh, and the rest of the scene is itself close to its limit. Of the last sitting's switches `plain water depth`
+did most, and none did much: the cost is the sum of everything.
+
+**What the software renderer can and cannot say.** It times a frame, steadily enough when builds are timed in
+turns. But it works out both sides of an `if` that differs from dot to dot, so it cannot see the saving from
+work that is skipped: a phone's graphics card does skip it. Its timings are fair for what every dot pays
+(texture readings, filtering, the island's formula) and blind to the rest.
+
+**Done, in the order of what it is thought to save.**
+
+- *Plain texture filtering.* The detail and caustics textures were filtered to stay sharp across the view at a
+  low angle (anisotropy 4), and the water reads them eleven times for each dot, nearly always at a low angle.
+  That was the largest single cost found: 19 in a hundred of a frame from the beach, in the software renderer.
+  Filtered plainly, far water is a calmer blue with softer streaks, and the net of light fades with distance, as
+  it does in the photos; close to, nothing changes. `sharper filtering` in the debug panel brings the old
+  filtering back, to compare both the look and the frame rate.
+- *The ground skips what comes to nothing* (`terrain-colour.glsl`). Away from the water's edge the wet-sand band
+  (wet sand, the swash's lines, the lagoon's film and foam: some ten noises) multiplied out to exactly nothing,
+  for the sea floor and the land alike; so did the turf's colour where there is no turf (37 noises, on every dot
+  of beach), the beach's fringe under whole turf, the ocean reef's coral in the lagoon, and the coral's colour
+  over bare sand. None of it is worked out there now. The pictures are the same dot for dot (38 views).
+- *The water skips what comes to nothing* (`water.frag.glsl`): the foam's shading where there is no foam, and
+  from under water everything but the surface's underside. The same dot for dot (45 views).
+- *Three sizes of ripple, not four.* The finest, 1.3 m across, could hardly be told in the picture and made the
+  water busy close to. The wave mesh reads the detail texture ten times for each dot, where it read it eleven.
+- *Gusts in broad patches.* The patches of sky-blue that gusts lay on clear water were broken up into blotches a
+  few strides across; they are the size of the gusts themselves now.
+- *Sparser sparkle.* About two thirds as many points, kept nearer the sun's side.
+
+In the software renderer, against the build of two sittings ago (`4d4f145`, the last that held the phone near
+its old frame rate), a frame took this morning and takes now:
+
+| The view | This morning | Now |
+|---|---|---|
+| From the ocean beach, out to sea | 17% longer | 4% less |
+| The reef's edge | 16% longer | 1% less |
+| The wave mesh from straight above | 10% longer | 6% longer |
+| Wading in the lagoon | 11% longer | 6% less |
+| The reef flat | 16% longer | 5% less |
+| Under water, looking up | 15% longer | 8% less |
+
+What the skipped work saves comes on top of that, and only the phone can say how much.
+
+**Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
+is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
+was there, the three say whether the mesh's cost is its colouring, its filtering or its points.
+
+**Not done, and why.**
+
+- *The island's formula in the water's shader*, worked out for every dot of the wave mesh and the lagoon: about
+  7 in a hundred of a frame in the software renderer, likely more on the phone. A picture of the floor's height
+  would replace it, or the formula could skip the reef's zones a dot is not in. Ryan: not yet, since the floor
+  is about to change.
+- *Reading textures inside branches.* Five of the wave mesh's sixteen readings for each dot are wanted only where
+  there is foam or steep water. They are all made everywhere because of a hard rule (`DEVICE_NOTES.md`). A
+  reading that is told its own sharpness outright should be safe inside a branch; it is new ground on the phone,
+  and Ryan's to agree.
+- *Mirrored clouds as soft shapes.* The hard-edged pale shapes on a windy lagoon come from the test builds'
+  coarse cloud pictures; the phone's are finer. Left as it is until seen there.
+- *The wave mesh's points.* Its levels of detail are as they were, until `coarse wave mesh` has been read on
+  the phone.
+
+For the phone: the frame rate from the ocean beach as it is; with `sharper filtering`; with `bare wave mesh`;
+with `coarse wave mesh`; in the lagoon; and whether the calmer far water and the softer net of light far off
+read better or have lost too much.
+
 ## Later
 
 - More passes on the reef.
@@ -886,10 +962,12 @@ Seen and left:
 
 ## Performance: what is in place
 
-- On Ryan's phone (a Pixel 10) the scene holds 60 frames a second, 57 at the lowest: what its screen shows. So
-  no performance pass is planned. The debug panel (hold the corner button) reports the frame rate, the
-  program's time for a frame, and the draws and triangles: read them again when something heavy is added.
-  Still to read: the pixel ratio and the program's time in a high wind at the ocean's edge.
+- On Ryan's phone (a Pixel 10) the scene held 60 frames a second, 57 at the lowest, before the water's look was
+  reworked; after it, 30 to 45 looking at the ocean, nearly all of it the wave mesh ("The frame rate, and a
+  calmer sea", above, has what was done and what is left). So no performance pass was planned then. The debug
+  panel (hold the corner button) reports the frame rate, the program's time for a frame, and the draws and
+  triangles: read them again when something heavy is added. Still to read: the pixel ratio and the program's
+  time in a high wind at the ocean's edge.
 - Shadows are redrawn on demand, not every frame. Anything that should cast a moving shadow needs thought first.
 - Plants and rocks are instanced in map squares that are skipped when out of view, hidden beyond a distance and
   drawn with a simpler shape beyond a nearer one.
