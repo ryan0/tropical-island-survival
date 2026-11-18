@@ -17,6 +17,10 @@ export type SharedUniforms = Record<string, IUniform> &
   CloudUniforms & {
     /** Seconds on the clock the waves run by. */
     uTime: { value: number };
+    /** How fast the water's ripples run, against their usual pace: a debug switch slows them. */
+    uRipplePace: { value: number };
+    /** 1 while what lies under water sways as its ripples pass: a debug switch holds it still. */
+    uSwayUnderWater: { value: number };
     /** Height of the still sea surface. */
     uSeaLevel: { value: number };
     /** 1 when the camera is under water, and the water's own colour there. */
@@ -31,6 +35,8 @@ export type SharedUniforms = Record<string, IUniform> &
     uDebugMode: { value: number };
     /** The detail texture. */
     uDetail: { value: Texture };
+    /** The caustics texture: the net of light on whatever lies under the water. */
+    uCaustics: { value: Texture };
     /** The map of how high the coral heads stand, once the reef is built. */
     uReefMap: { value: Texture | null };
     /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
@@ -52,6 +58,7 @@ const OBSTACLES_SENT_TO_THE_WATER = 16;
 
 export function createSharedUniforms(
   detailTexture: Texture,
+  causticsTexture: Texture,
   skyLight: SkyLightUniforms,
   clouds: CloudUniforms,
 ): SharedUniforms {
@@ -61,12 +68,15 @@ export function createSharedUniforms(
   );
   return {
     uTime: { value: 0 },
+    uRipplePace: { value: 1 },
+    uSwayUnderWater: { value: 1 },
     uSeaLevel: { value: 0 },
     uUnderWater: { value: 0 },
     uShoreBandShown: { value: 0 },
     uDebugMode: { value: 0 },
     uUnderWaterColour: { value: new Color() },
     uDetail: { value: detailTexture },
+    uCaustics: { value: causticsTexture },
     uReefMap: { value: null },
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },

@@ -1,4 +1,4 @@
-import type { WebGLRenderer } from 'three';
+import type { ShaderMaterial, WebGLRenderer } from 'three';
 import type { Breaker } from '../sea/breaker';
 import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
@@ -74,6 +74,12 @@ export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): stri
     `${Math.round(triangles / 1000)} thousand triangles`,
   ].join(' · ');
 }
+
+/**
+ * The pace the `slower ripples` switch sets, against the usual 1: the pace they had until 18
+ * November 2026, a quarter of what real ripples run at.
+ */
+const SLOWER_RIPPLES = 0.25;
 
 /** The keys that fly, for whoever has a keyboard. */
 export const FLYING_KEYS =
@@ -160,6 +166,49 @@ export function debugSwitches(
         else defines.WATER_STANDS_STEEP = '';
         water.waveMaterial.needsUpdate = true;
       },
+    },
+    {
+      // The same, for the sea and the lagoon: their colouring without the readings that follow the eye's line
+      // on under the surface (water.frag.glsl's WATER_FOLLOWS_SIGHT: two for every dot of water, and four more
+      // near a coral head). With it on, coral heads show through the water beside where they stand, and the
+      // sky can show through clear water at the reef's edge.
+      label: 'plain water depth',
+      set(on) {
+        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+          if (on) delete material.defines.WATER_FOLLOWS_SIGHT;
+          else material.defines.WATER_FOLLOWS_SIGHT = '';
+          material.needsUpdate = true;
+        }
+      },
+    },
+    {
+      // The same again: the sea and the lagoon without the sun's sparkle (water.frag.glsl's WATER_SPARKLES:
+      // up to two noises for every dot of water towards the sun).
+      label: 'no sparkle',
+      set(on) {
+        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+          if (on) delete material.defines.WATER_SPARKLES;
+          else material.defines.WATER_SPARKLES = '';
+          material.needsUpdate = true;
+        }
+      },
+    },
+    {
+      // For judging motion, which only the phone shows: the water's ripples running at a quarter of their pace.
+      label: 'slower ripples',
+      set(on) {
+        uniforms.uRipplePace.value = on ? SLOWER_RIPPLES : 1;
+      },
+      isOn: () => uniforms.uRipplePace.value !== 1,
+    },
+    {
+      // For judging motion too: what lies under water held still, where it sways as the ripples pass
+      // (sway-under-water.glsl).
+      label: 'still under water',
+      set(on) {
+        uniforms.uSwayUnderWater.value = on ? 0 : 1;
+      },
+      isOn: () => uniforms.uSwayUnderWater.value === 0,
     },
   ];
 }

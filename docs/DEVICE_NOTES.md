@@ -39,8 +39,12 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   the eye is and how deep the floor is under it, and has switches for flying, draining the sea, wireframe,
   hiding the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
-  wave mesh no finer than its second level, and colouring it without what only steep water needs; and a row of
-  buttons that fly the eye to places on the reef. Flying: the stick moves the eye the way it looks (push forward
+  wave mesh no finer than its second level, colouring it without what only steep water needs, colouring the sea
+  and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
+  the same without the sun's sparkle (`no sparkle`), running the water's ripples at a quarter of their pace
+  (`slower ripples`), and holding still what sways under the water (`still under water`), the last two for
+  judging motion; and a row of buttons that fly the eye to
+  places on the reef. Flying: the stick moves the eye the way it looks (push forward
   while looking up to climb), faster the higher it is; buttons at the right take it straight up and down, and
   `fast` hurries it (a keyboard has Space, C and Shift, and the wheel for the pace); it can go under water but
   not through the ground. With the sea drained no water is drawn, nothing is tinted by it, and the ground
@@ -57,6 +61,24 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   the phone yet.
 - A sheet of water is compiled with only what it can show: the readings of the detail texture that steep water
   needs are behind defines that only the wave mesh and the breaker's mesh are given (`water-materials.ts`).
+- The water's fragment shader follows the eye's line on under the surface (`WATER_FOLLOWS_SIGHT`, on every
+  sheet): one reading of the waves' picture of the floor for the depth round about, one more of it 16 m on
+  along the line of sight, and near a coral head four of the reef's map, inside a branch (neither picture has
+  mipmaps); and for a film of water with no floor beyond it, the island's formula once more, in a branch of its
+  own. `plain water depth` compiles the sea and the lagoon without them. The ground's vertex shader now
+  tilts the normal of ground under water towards level before three.js lights it (`terrain.ts`). None of this
+  has been on the phone yet (17 November 2026).
+- New to the phone on 18 November 2026, none of it seen there yet. A second small repeating texture, the
+  caustics texture (`caustics-texture.ts`), read twice by the ground, the rocks and the coral, outside any
+  branch. The vertex shaders of those three move each vertex under the sea sideways by three sines
+  (`sway-under-water.glsl`): they are three.js's own Lambert shaders, patched after `<project_vertex>`, and they
+  use `uCameraPosition`. The line of three.js's Lambert fragment shader that works out the sun's light is
+  replaced in those three materials (`sunlight-under-water.ts`), which names that line as three.js 0.128 writes
+  it and stops with an error if it is not there. The water's ripples are read at places that move four times
+  as fast, from a clock wrapped every 1000 s. Two branches in the water's fragment shader are taken on arithmetic
+  alone, with noise inside and no texture: the sun's sparkle and the moon's glitter. The water's readings of
+  the waves' picture of the floor, and its first reading of the reef's map, are inside branches now, so that the
+  open sea can skip them (neither picture has mipmaps).
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
 - What the Pixel 10 can afford (16 November 2026, by the debug panel's switches): the wave mesh's points are what
   it pays for. 123 thousand of them in view held it to about 50 frames a second; 31 thousand, and it drew 60.

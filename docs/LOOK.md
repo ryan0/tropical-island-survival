@@ -65,6 +65,56 @@ them and their licences), gathered on 17 November 2026 for the water's colour. W
   light comes through it, it brightens to cyan. Fine lines run up the face along its curve. The lip is a
   translucent sheet that whitens as it falls.
 
+## The water's surface (photos)
+
+*References,* in `reference-photos/water-surface/`: five photos Ryan sent on 17 November 2026, with two
+screenshots of ours. He asked that the water feel "real", and less like "a thin pane of glass/ice", while still
+being seen through. What they show:
+
+- **Calm water over reef rock** (`calm-water-over-reef-rock`; "best ref for calmer water"): near the eye the
+  floor shows clear, under a bold net of light whose lines are bright and broad in some places and faint in
+  others. A few metres out the surface begins to show: streaks of the sky's blue lie on it, more and more of
+  them with distance, drawn out level by the view. Far off it is all a deep blue, deeper than the sky above the
+  horizon, and never the pale of the sky's foot.
+- **Clear shallows under palms** (`clear-shallows-under-palms`): the same, with the wind on it: where the water
+  is ruffled it is a band of dark blue, and between the bands it is clear to the sand.
+- **A shore break from above** (`shore-break-from-above`): foam is lace, with the water showing through it
+  everywhere but along the breaking line; its edge on the sand is scalloped; the water behind it is clouded.
+- **A shore break's face** (`shore-break-green-face`): a wave that stands in shallow water is green and cannot
+  be seen through; sand is stirred into its foot.
+- **A reef flat and its drop-off from above** (`reef-flat-to-drop-off-from-above`): pale over the flat, a
+  glowing turquoise where it deepens, deep blue beyond, the one running into the next over some metres.
+
+*Rejected:* a coral head showing through the water beside where it stands; the sky showing through clear water;
+a sheet of foam with pools of blue-grey in it, which reads as snow.
+
+## Water in weather (photos)
+
+*References,* in `reference-photos/water-weather/`: 27 photos from Wikimedia Commons (`SOURCES.md` there lists
+them and their licences), gathered on 18 November 2026 for how clear tropical water looks from a person's
+height in different wind and light. What they show:
+
+- **Calm and clear, near the eye** (`kaimbu-lagoon-calm-turquoise`, `bahamas-clear-shallows-ripples`,
+  `heron-island-clear-ripples-floor`): the net of light is long flowing lines that branch and join, bright in
+  places and faint in others, never a net of even cells; the floor between them is a little darker. Small
+  ripples each carry a streak of sky.
+- **A breeze on it** (`heron-island-ruffled-turquoise-glint`, `lagoon-ruffled-blue-motu`,
+  `miyako-reef-flat-from-cliff`): ruffled all over, from the eye to the horizon: near, the floor shows green
+  through crossing ripples; at mid distance blue streaks of sky and windows of green lie mixed; far off it is a
+  dark, finely ruffled blue. Over deep water it is dark blue chop in rows.
+- **Under cloud** (`mayotte-overcast-turquoise-bay`, `tarawa-lagoon-overcast-shallows`,
+  `gili-meno-storm-over-turquoise`, `cocos-keeling-stormy-sky-turquoise`): the shallows keep their turquoise
+  under a dark sky, duller; the surface mirrors grey cloud as pale streaks; no net of light, no sparkle.
+- **Low sun** (`maldives-sunset-lagoon-glitter`, `heron-island-sunset-sun-glitter`,
+  `maldives-dusk-jetty-calm-lagoon`, `cocos-keeling-morning-calm-reflection`): calm water is a pale mirror of
+  the sky with a bright path of glitter under the sun; ruffled sea at sunset is dark navy under an orange sky,
+  with faint lighter flecks; at dusk a calm lagoon is pale teal and glassy.
+- **The water's edge** (`heron-island-foam-lace-sand`, `heron-island-thin-sheet-wet-sand`,
+  `seychelles-beach-lapping-waves`): a thin clear sheet slides over the sand with a lace edge; the foam lines of
+  small waves are thin and broken; the sand under the sheet shows its own ripple marks.
+
+No photo was found of cloud shadows lying on a lagoon, nor of rain on the water.
+
 ## Waves breaking (videos)
 
 *References,* in `reference-photos/waves/`, each named by its YouTube id; Ryan's words on what each is for.

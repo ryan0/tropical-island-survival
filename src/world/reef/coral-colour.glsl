@@ -1,8 +1,9 @@
-// Coral colour: plain matt colour, mottled, with the sea's tint and the net of light the ripples throw (seaTint,
-// as terrain-colour.glsl draws it on the sand). Runs inside three.js's Lambert shader: reef-material.ts puts it in
+// Coral colour: plain matt colour, mottled, with the sea's tint and the net of light the ripples throw (seatint.glsl,
+// as terrain-colour.glsl draws them on the sand). Runs inside three.js's Lambert shader: reef-material.ts puts it in
 // place of <color_fragment>, wrapped in braces. It starts from the colour painted on the model (diffuseColor, already
-// multiplied by vColor) and leaves the result there for three.js to light. Needs uDetail, uCameraPosition, vSurfacePosition and seaTint from
-// coral-declarations.glsl.
+// multiplied by vColor) and leaves the result there for three.js to light, with the sun's light as netOfLight and
+// shadowFilledIn say (shaders/sunlight-under-water.ts). Needs uDetail, uCameraPosition, vSurfacePosition, seaTint,
+// netOfLightUnderSea and shadowFilledUnderSea from coral-declarations.glsl.
 
 // How much the coral is taken to look up, for the net of light: its facing is not passed to this shader.
 const float CORAL_FACING_UP = 0.6;
@@ -25,4 +26,6 @@ float grain = 0.30 * (grainDetail.b - 0.5);
 diffuseColor.rgb *= 1.0 + polypStrength * (pits + grain);
 
 // The sea's tint and its net of light
-diffuseColor.rgb = seaTint(diffuseColor.rgb, vSurfacePosition, CORAL_FACING_UP, CORAL_TINT_STRENGTH);
+diffuseColor.rgb = seaTint(diffuseColor.rgb, vSurfacePosition, CORAL_TINT_STRENGTH);
+netOfLight = netOfLightUnderSea(vSurfacePosition, CORAL_FACING_UP);
+shadowFilledIn = shadowFilledUnderSea(vSurfacePosition);

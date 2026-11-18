@@ -13,6 +13,7 @@ uniform vec3 uCameraPosition;         // the camera's position
 uniform vec3 uSunDirection;      // the unit vector towards the sun
 uniform vec3 uSkyHorizon;         // the sky's colour at the horizon
 uniform sampler2D uDetail;          // the detail texture (detail-texture.ts)
+uniform sampler2D uCaustics;        // the caustics texture (caustics-texture.ts)
 uniform sampler2D uCloudShadeMap;   // the map of the clouds' shadows
 uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
 
@@ -28,6 +29,8 @@ varying vec3 vGroundPosition;   // this point's position in the world
 #include "ground-patterns/turf"
 
 #include "../shaders/shared/lagwave"
+
+#include "../shaders/shared/light-net"
 
 // Bits of leaf litter and twig lying on sand: at most one short dark fleck in each square of p, at its own angle.
 // Returns how much of this spot the fleck covers, 0 to 1.

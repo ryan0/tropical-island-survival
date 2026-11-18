@@ -2,17 +2,18 @@
 // to its colour, and the net of light that ripples throw on the sea floor.
 //
 // terrain.ts puts this block, in braces, inside three.js's Lambert fragment shader just after <color_fragment>. It
-// replaces diffuseColor.rgb outright, so three.js's lighting and shadows still apply to it.
+// replaces diffuseColor.rgb outright, so three.js's lighting and shadows still apply to it; and it sets netOfLight
+// and shadowFilledIn, which say what the water does to the sun's light (shaders/sunlight-under-water.ts).
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; fleck, pebble and dimples; and from the
 //   chunks it includes: footpathDistance (footpaths.glsl); hash, noise and fbm (noise.glsl); islandR, openSea and
 //   landW (island-shape/shore.glsl and island.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
-//   (lagwave.glsl); turfLushness, turfDryness, soilPatches and layerEdgeWander (ground-patterns/turf.glsl), which the
-//   grass follows.
+//   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl); turfLushness, turfDryness,
+//   soilPatches and layerEdgeWander (ground-patterns/turf.glsl), which the grass follows.
 // Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
-//   reef's map covers), CLOUD_SHADE_SPAN_M, and THIN_TURF, LUSH_TURF and DRY_TURF (the turf's colours, which the grass
-//   shares: ground-patterns.ts), written by terrain.ts.
+//   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and THIN_TURF, LUSH_TURF and
+//   DRY_TURF (the turf's colours, which the grass shares: ground-patterns.ts), written by terrain.ts.
 
 // ---- Numbers to retune ----
 // (heights are metres above still sea level, depths metres of water, distances metres from the camera)
@@ -32,6 +33,12 @@ const float LAGOON_RUN_UP = 0.42;
 
 // The share of the light left where the clouds let no sunlight through.
 const float CLOUD_SHADOW_LIGHT = 0.45;
+
+// The sea floor seen through ripples: how far its markings swim under them (metres, in water over a metre deep);
+// and how much of the net of light they throw on it (light-net.glsl) there is out on the ocean's reef, against
+// the middle of the lagoon.
+const float FLOOR_SWIMS = 0.3;
+const float NET_ON_OUTER_REEF = 0.45;
 
 // The colours of the ground.
 // (The sand is kept well under 1: in full sun the lighting multiplies it by about 1.3, and sand that clips to pure
@@ -76,11 +83,17 @@ vec2 towardsSun = normalize(uSunDirection.xz + 1e-4);
 
 // ---- The net of light, and the grit ----
 
-// The net of light that ripples throw on the sea floor: the detail texture's net of lines, made to wander by its
-// small waves. It is also the lace of the foam on the lagoon's sand. (Read here, before any branch:
+// The net of light that ripples throw on the sea floor (light-net.glsl, which the rocks and the coral share). The
+// same readings give the lace of the foam on the lagoon's sand. (Read here, before any branch:
 // docs/DEVICE_NOTES.md.)
-vec2 lightNetUv = xz * 0.34 + vec2(uTime * 0.010, uTime * 0.006);
-vec2 lightNetWobble = (texture2D(uDetail, lightNetUv * 0.31 + vec2(uTime * 0.017, -uTime * 0.013)).rg - 0.5) * 0.16;
+vec2 lightNetUv = lightNetUvAt(xz, uTime);
+vec4 smallWaves = texture2D(uDetail, smallWavesUvAt(lightNetUv, uTime));
+vec2 lightNetWobble = netWobbleOf(smallWaves);
+// The floor is seen through those small waves, and each bends the eye's line a little as it passes: the floor's
+// markings swim under them, further the deeper the water. (Only its markings: the ground's shape, and the shadows
+// on it, stay where they are. And only for an eye above the water, with the sea not drained: uDebugMode 5.)
+float seenThroughSurface = step(uSeaLevel, uCameraPosition.y) * step(uDebugMode, 4.5);
+xz += (smallWaves.rg - 0.5) * FLOOR_SWIMS * smoothstep(0.1, 1.2, waterDepth) * seenThroughSurface;
 
 // Grit: the ground's speckle picture (the material's own map, which three.js has already read into texelColor).
 // Everything below replaces the colour outright, so the speckle is put back at the end; it fades out with distance.
@@ -91,9 +104,10 @@ float coarseGrit = (texture2D(map, vUv * 0.23 + 0.37).g - uGritAverage) * 0.10 *
 float grit = (fineGrit + coarseGrit) * (1.0 - 0.75 * smoothstep(0.0, 0.5, waterDepth));
 
 // the net itself, read twice - the second time turned and finer - so that no repeat shows
-vec2 turnedLightNetUv = vec2(lightNetUv.x * 0.6 + lightNetUv.y * 0.8, -lightNetUv.x * 0.8 + lightNetUv.y * 0.6);
-float lightNet = texture2D(uDetail, lightNetUv + lightNetWobble).a;
-float turnedLightNet = texture2D(uDetail, turnedLightNetUv * 1.63 - lightNetWobble * 1.4).a;
+vec4 lightNetRead = texture2D(uCaustics, lightNetUv + lightNetWobble);
+vec4 turnedLightNetRead = texture2D(uCaustics, turnedNetUvAt(lightNetUv, lightNetWobble));
+float lightNet = lightNetRead.a;
+float turnedLightNet = turnedLightNetRead.a;
 
 if (waterDepth > PLAIN_FLOOR_DEPTH) {
   diffuseColor.rgb = PLAIN_FLOOR_SAND;
@@ -384,7 +398,8 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
 // The sun lamp is already dimmed by however much cloud stands between the sun and the camera (lights.ts); this adds
 // the difference between here and there, so that a shadow's edge can be seen crossing the ground.
-float lightHere = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShadeMap, xz / CLOUD_SHADE_SPAN_M + 0.5).r);
+float sunThroughCloudHere = texture2D(uCloudShadeMap, xz / CLOUD_SHADE_SPAN_M + 0.5).r;
+float lightHere = mix(CLOUD_SHADOW_LIGHT, 1.0, sunThroughCloudHere);
 float lightAtCamera = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShadeMap, uCameraPosition.xz / CLOUD_SHADE_SPAN_M + 0.5).r);
 diffuseColor.rgb *= lightHere / lightAtCamera;
 // fine and faint on the beach, coarser on soil and turf
@@ -468,26 +483,24 @@ if (waterDepth > 0.0) {
   diffuseColor.rgb *= dimming * throughWater;
   diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDaylight;
 
-  // The net of light that ripples throw on the sea floor: the detail texture's lines, read twice and made to wander.
-  // Ankle-deep water is too thin to bend the light into a net, so it fades in between 10 and 80 cm; and where the
-  // swell breaks, the surface is too broken and foamy to focus anything (the water shader also clouds the floor under
-  // foam).
-  float net = lightNet * lightNet;
-  net *= net * lightNet;
-  float turnedNet = turnedLightNet * turnedLightNet;
-  turnedNet *= turnedNet;
-  float netPattern = net * 1.7 + turnedNet * 1.3 - 0.22;
+  // The net of light that ripples throw on the sea floor (light-net.glsl). Ankle-deep water is too thin to bend the
+  // light into a net, so it fades in between 10 and 80 cm; and where the swell breaks, the surface is too broken and
+  // foamy to focus anything (the water shader also clouds the floor under foam).
   float fadeIn = smoothstep(0.1, mix(0.8, 0.45, lagoonSide), standingDepth);
   float lagoonShallows = 1.0 + 0.35 * lagoonSide * (1.0 - smoothstep(0.5, 2.5, standingDepth));
-  float rippled = smoothstep(0.0, 0.45, uWind);
   float fadeWithDepth = exp(-waterDepth * 0.28);
   float surfBand = smoothstep(33.0, 40.0, metresOffshore) * (1.0 - smoothstep(50.0, 58.0, metresOffshore));
   float surfZone = surfBand * openSea(directionFromCentre);
   float notInSurf = 1.0 - 0.7 * surfZone;
   // strongest in the middle of the lagoon, gentler towards the outer reef
-  float nearCentre = exp(-length(vGroundPosition) * 0.012);
-  float netLight = netPattern * fadeIn * lagoonShallows * rippled * fadeWithDepth * notInSurf * uDaylight * nearCentre;
-  diffuseColor.rgb *= 1.0 + netLight;
+  float nearCentre = mix(NET_ON_OUTER_REEF, 1.0, exp(-length(vGroundPosition) * 0.012));
+  float netLight = lightOfNet(smallWaves, lightNetRead, turnedLightNetRead, standingDepth,
+    exp(-cameraDistance * 0.03))
+    * fadeIn * lagoonShallows * netInWind(uWind) * fadeWithDepth * notInSurf * uDaylight * nearCentre;
+  // (It is the sun's light: the sun alone is brightened by it, so that it is gone in a shadow, and under a cloud;
+  // and a shadow under water is filled in a little: sunlight-under-water.ts.)
+  netOfLight = netLight * sunThroughCloudHere;
+  shadowFilledIn = shadowFilledAt(standingDepth);
 }
 
 // ---- The sea drained (uDebugMode 5) ----

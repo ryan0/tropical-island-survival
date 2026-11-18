@@ -3,8 +3,10 @@
 // cracks and pits; tops are bleached by the sun; and the sea leaves its marks - a pale band of barnacles above a
 // dark wet band at the waterline, and the water's own tint below it.
 // rock-material.ts puts this inside three.js's Lambert fragment shader in place of <color_fragment>, wrapped in
-// braces; three.js lights the diffuseColor it leaves. Needs vColor from three.js, and from rock-declarations.glsl
-// uDetail, uSeaLevel, vSurfacePosition, vSurfaceNormal, seaTint and the ROCK_ defines.
+// braces; three.js lights the diffuseColor it leaves, with the sun's light as netOfLight and shadowFilledIn say
+// (shaders/sunlight-under-water.ts). Needs vColor from three.js, and from rock-declarations.glsl uDetail,
+// uSeaLevel, vSurfacePosition, vSurfaceNormal, seaTint, netOfLightUnderSea, shadowFilledUnderSea and the ROCK_
+// defines.
 
 // The fine size of the detail texture: this much smaller than the coarse one, and shifted, so that the two sizes'
 // patterns do not line up.
@@ -65,4 +67,6 @@ float wetness = smoothstep(0.30, 0.02, heightAboveSea) * (0.4 + 0.6 * smoothstep
 rockColour = mix(rockColour, rockColour * WET_ROCK, wetness);
 
 // The water's own tint below that, in full for rock
-diffuseColor.rgb = seaTint(rockColour, rockPoint, clamp(rockNormal.y, 0.0, 1.0), 1.0);
+diffuseColor.rgb = seaTint(rockColour, rockPoint, 1.0);
+netOfLight = netOfLightUnderSea(rockPoint, clamp(rockNormal.y, 0.0, 1.0));
+shadowFilledIn = shadowFilledUnderSea(rockPoint);

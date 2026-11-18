@@ -14,6 +14,8 @@ uniform float uTime;
 uniform float uWind;
 // the detail texture: red and green the slope of small waves, blue soft blotches, alpha a net of thin lines
 uniform sampler2D uDetail;
+// the caustics texture: the net of light on what lies under the water
+uniform sampler2D uCaustics;
 
 // where the point is in the world, and which way the surface faces there
 varying vec3 vSurfacePosition;

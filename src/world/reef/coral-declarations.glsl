@@ -2,6 +2,8 @@
 
 // the detail texture: red and green the slope of small waves, blue soft blotches, alpha a net of thin lines
 uniform sampler2D uDetail;
+// the caustics texture: the net of light on what lies under the water
+uniform sampler2D uCaustics;
 // seconds on the clock the waves run by
 uniform float uTime;
 // daylight: 0 at night, 1 by day

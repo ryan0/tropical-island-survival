@@ -170,6 +170,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
         // (Each sheet is compiled with only what it can show: water.frag.glsl says what these switch on.)
         defines: {
           ...defines,
+          WATER_FOLLOWS_SIGHT: '',
+          WATER_SPARKLES: '',
           ...(isWaveMesh || isBreaker ? { WATER_STANDS_STEEP: '' } : {}),
           ...(isBreaker ? { WATER_HAS_TORN_EDGE: '' } : {}),
           ...(isBreakerDepth ? { BREAKER_DEPTH_ONLY: '' } : {}),

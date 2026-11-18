@@ -7,7 +7,10 @@ import {
   type Scene,
 } from 'three';
 import type { Random } from '../core/random';
+import { CAUSTICS_BRIGHTEST } from '../shaders/caustics-texture';
 import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
+import { withColouring } from '../shaders/sunlight-under-water';
+import { SWAY_DECLARATIONS, swayOf } from '../shaders/sway-under-water';
 import { createGroundGrit } from './ground-grit';
 import { turfColours } from './ground-patterns';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
@@ -24,11 +27,13 @@ const SHARED_UNIFORMS = [
   'uDaylight',
   'uSkyHorizon',
   'uDetail',
+  'uCaustics',
   'uCloudShadeMap',
   'uReefMap',
   'uWind',
   'uCameraPosition',
   'uSunDirection',
+  'uSwayUnderWater',
 ] as const;
 
 export interface TerrainDependencies {
@@ -95,6 +100,21 @@ function footpathStatements(landmarks: Landmarks): string {
     .join('');
 }
 
+/** How far ground under water is lit as if level, and the depths between which that comes in. */
+const scatteredLight = { most: 0.7, fromDepth: 0.3, byDepth: 2.5 };
+
+/**
+ * Under water the sun's light comes scattered by the surface and by the water itself, from all
+ * round: a wall of the sea floor that faces away from the sun is not dark as it would be in air.
+ * So ground more than a little under water is lit as if it lay more nearly level. (It runs after
+ * three.js has the vertex's normal and before it lights it.)
+ */
+const LIGHT_UNDER_WATER = `
+  float lightScattered = ${glslFloat(scatteredLight.most)}
+    * smoothstep(${glslFloat(scatteredLight.fromDepth)}, ${glslFloat(scatteredLight.byDepth)}, uSeaLevel - vGroundPosition.y);
+  transformedNormal = normalize(mix(transformedNormal, (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz, lightScattered));
+`;
+
 /** The ground and how it is coloured: sand, grass, rock, wet sand, the net of light on the sea floor. */
 export function createTerrain(dependencies: TerrainDependencies): void {
   const { scene, random, groundHeight, landmarks, uniforms, windDirection } = dependencies;
@@ -110,6 +130,7 @@ export function createTerrain(dependencies: TerrainDependencies): void {
     REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
+    CAUSTICS_BRIGHTEST: glslFloat(CAUSTICS_BRIGHTEST),
     THIN_TURF: glslVec3(...turfColours.thin),
     LUSH_TURF: glslVec3(...turfColours.lush),
     DRY_TURF: glslVec3(...turfColours.dry),
@@ -124,18 +145,13 @@ export function createTerrain(dependencies: TerrainDependencies): void {
       ? '#define CAN_MEASURE_ACROSS_A_PIXEL\n'
       : '';
     shader.vertexShader =
-      'varying vec3 vGroundPosition;\n' +
+      `${SWAY_DECLARATIONS}\nvarying vec3 vGroundPosition;\n` +
       shader.vertexShader.replace(
         '#include <project_vertex>',
-        '#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;',
+        `#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;\n${swayOf('vGroundPosition')}\n${LIGHT_UNDER_WATER}`,
       );
     shader.fragmentShader =
-      canMeasureAcrossPixel +
-      declarations +
-      shader.fragmentShader.replace(
-        '#include <color_fragment>',
-        `#include <color_fragment>\n{${colourShader}}`,
-      );
+      canMeasureAcrossPixel + declarations + withColouring(shader.fragmentShader, colourShader);
   };
 
   const terrain = new Mesh(shape, material);

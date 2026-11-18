@@ -617,6 +617,244 @@ through each other in stripes (the water's edge, where the water's formula and t
 a hard rule's own ground). At night the white mass is a dim warm brown, as all foam is at night: more of it
 shows now.
 
+### The water's surface (17 November 2026)
+
+Ryan's verdict on the five steps, on the phone: "This is much better." What he asked for next, with five
+reference photos (`docs/LOOK.md`, "The water's surface"): the gaps above the reef's props; the skybox showing
+through the water; the surface looking wrong where the floor goes quickly from shallow to deep; water that
+feels real and less like "a thin pane of glass/ice", though still seen through; and more shared between the
+lagoon and the ocean, the lagoon's way of breaking carried over to the ocean's shore where it fits. Done in one
+sitting of two hours, on the branch `water-surface`, judged on stills beside the references and on three short
+films.
+
+**Three faults.**
+
+- *Gaps above coral heads.* The water turned clear in a patch straight above a head, from the reef's map. A
+  head is under the water, not on it: seen at a slant the patch lay beside the head, on the eye's far side of
+  it. The head is now looked for along the line of sight, at four depths, and the water is as deep as where the
+  line meets it (`water.frag.glsl`). The looks are never further apart along the line than a dot of the map,
+  so at a low angle they reach only the head's top, which is all of it that shows from there.
+- *The sky through the water.* It did show: drawing the sky magenta showed where. Everything under the water is
+  drawn straight on behind the surface, not bent down as water bends the eye's line. So where the eye looked
+  level over the reef's edge, or through a wave standing in the shallows, clear water had no floor behind it:
+  only the sky. Water now hides what is behind it wherever the line of sight, followed on 16 m, is still above
+  the floor the waves know. A film of water over a bared reef top still shows that top, except within a couple
+  of metres of the top's far edge, where the film was a window too.
+- *Shallow to deep.* The plan guessed that the surface itself stepped where the floor drops. It does not: the
+  waves already feel a floor averaged over 10 m. What Ryan's screenshot shows is the groove between two reef
+  tops that a trough has bared: clear water over the tops, and between them a pit with hard-edged walls. Three
+  things were wrong there. Ground under water was lit as ground in air is, so a wall that faced away from the
+  sun was a dark seam and one that faced it a bright facet; it is now lit as if it lay more nearly level, since
+  under water the light comes from all round (`terrain.ts`). Water was coloured by the depth straight under each
+  dot of it; it is now coloured by its depth averaged over some metres round, and, where the eye looks low, by
+  the depth further on along its line: so the deep water beside a bank is lit by the bank, and the shallow water
+  before a drop darkens towards it. And the clear water at a groove's edge had the sky behind it (above). The
+  same goes for the edges of the pass, the notches and the lagoon's hole. Tried close to the place of Ryan's
+  screenshot at three times of day: the pit showed in the merged build, and is a level band of water now. The
+  bright facet of his screenshot did not show in mine, where the same wall was dark, so the phone must confirm
+  it.
+
+**Water that reads as water.**
+
+- *The net of light* on the floor is half as bright again, its meshes half as large again, and uneven: bright
+  where the small waves gather the light, faint where they spread it. It was one even mesh of thin lines, a
+  crackle glaze, where the calm-water reference has a few bold ones. The small waves that move it cross the
+  floor at half a metre a second, three times as fast: slower, the net sat on the floor like a print. It is
+  fainter in a calm, not gone, and stronger than it was on the ocean's reef flat. It is written once now, for
+  the sand and for the rocks and coral (`shaders/shared/light-net.glsl`).
+- *The floor swims.* The sand's markings shift under the small waves, up to a hand's breadth in water over a
+  metre deep. It stands in for the bending of the eye's line by the ripples, for the floor only: props, the
+  ground's shape and shadows stay where they are.
+- *The mirror* begins nearer the eye, at 73 degrees from straight down where it was 81 (at 60 it hid the aqua of
+  the shallows from the beach, which the atoll photos keep for a long way out), and ruffled water mirrors more
+  than smooth at a middling angle: a gust is a patch of the sky's deeper blue lying on clear water, a slick a
+  window to the floor. Close to the eye, and far off, it goes by every ripple; between, by the broad ripples
+  alone, so the sky and its clouds lie on the water in soft shapes: going by every ripple there, it was a
+  speckle of sky and floor in a breeze. It mirrors the sky from a little higher than a true mirror would, so the
+  sea far off is a deeper blue than the sky's foot and not a pale sheet.
+- *Foam.* Where a sheet of foam is thin the water under it shows through; it was painted solid in thin foam's
+  colour. A sheet lying on the water is shaded as nearly flat; tilted by its pattern, half of it stood in its
+  own blue-grey shade. The two together read as snow with pools in it.
+
+**Lagoon and ocean.** One shader colours both, by one rule; ripples, mirror, foam and now the net of light are
+each written once. What is still written twice is how small waves come ashore: the lagoon's wind waves
+(`lagwave.glsl`: drawn by the sand, the water and the shore band) and the swell's swash on the ocean beach
+(`waves.glsl`, `timing.glsl`: drawn by the wave mesh). **Proposed, not begun:** where the swell does not reach,
+the ocean's shore takes the lagoon's small waves. That needs two things agreed first. There is no such place
+yet: the swell is never under two thirds of its size, even in the atoll's lee, and no day is flat (the weather
+pass). And `lagwave.glsl` takes every beach to face the lagoon.
+
+*What it costs.* Every dot of water reads the waves' picture of the floor twice more, and near a coral head the
+reef's map four times, and works out a second normal for the mirror; a film of water with no floor beyond it
+works out the island's formula once more; the ground reads nothing more. `plain water depth` in the debug panel
+compiles the sea and the lagoon without all of that. `quicker ripples` runs the surface's ripples nearly twice
+as fast: they drift at a tenth to a quarter of a metre a second, which may be part of what feels still, and only
+the phone can say.
+
+For the phone: whether the coral heads' gaps are gone from where Ryan saw them; the sky through the water, from
+his screenshot's place; the frame rate in the lagoon and at the reef's edge, with `plain water depth` on and
+off; whether the net of light and the swimming floor read as water moving or as a jitter; `quicker ripples`,
+on and off; whether a sheet of foam still reads as ice.
+
+To judge first: the net of light. It is much bolder than it was, in the lagoon above all, and the lace of the
+foam on the lagoon's sand shares its pattern, so that is coarser too. Its brightness and the size of its meshes
+are `NET_OF_LIGHT` and `NET_ROUNDS_A_METRE` in `light-net.glsl`. Coral heads' tops are paler: the water over
+them is now clear down to them.
+
+Seen and left: a table coral that reaches out past its head's top is still tinted as deep there, since the map
+knows only the head; a rock or a small coral standing up from the sand is tinted by the depth of the sand beside
+it, not its own, since the water cannot tell what lies behind it; from wading height a head some way off is a
+pale patch, the sky's mirror over its pale corals; the foam's shade is still blue-grey where white water is
+piled up; from an eye a metre above the sea, a hairline of sky can still show along the far edge of one
+bared reef top (found with the sky drawn magenta: against the real sky it is the water's own pale colour by
+day).
+
+**Left out, to agree:** bending what is seen through the surface. It is the largest step left towards the
+calm-water reference. It means drawing everything under the water to a picture first and having the water read
+that picture a little to one side, which changes how a frame is drawn: a second pass over the scene's pixels,
+and no smoothing of edges in that pass on the phone. It would also end the sky showing through, at its cause.
+
+### The water's surface, second sitting (18 November 2026)
+
+Ryan, on the phone, of the first sitting: "much better but still I think could use much improvement". He asked
+for many passes against his references and new ones, checks in different weather, and performance passes as
+needed (a simplification only where it improves the look), over eight hours away. Done on the same branch,
+`water-surface`, in some three and a half hours of work: the sitting stood still for four and a half hours in
+the middle, for a reason not known. Judged on stills at the phone's own size (1370 by 620 dots), on a board of eleven views
+in eight kinds of weather drawn again after each batch, on short films, and beside the photos: Ryan's five and
+27 more gathered from Wikimedia Commons for water in weather (`docs/LOOK.md`, "Water in weather").
+
+**The net of light is the real thing now.** It was the detail texture's net of lines, which is a pattern of
+cells: every line as bright as the next, every cell closed. It is now worked out once at start-up by following
+the sun's light down through a field of small waves to the floor (`shaders/caustics-texture.ts`): where the
+waves crowd the light together the floor is bright. The lines are long and flowing, since most of the waves run
+one way, as ripples do; they branch and join, swell and fade; and between them the floor is a little darker.
+The picture holds the light at three depths. In ankle-deep water the net is a soft dapple; from knee to waist
+deep it is thin bright lines; deeper, the lines double and broaden. In the shallows it is fine and in deeper
+water broad. A second reading, turned and finer, makes the first uneven without crossing it.
+
+- It is the sun's light, so it brightens only what the sun lights: there is none inside a shadow, and none under
+  a cloud. It was multiplied into the colour of the ground, and lay across the shadow of a palm
+  (`shaders/sunlight-under-water.ts`).
+- A shadow under water is a third lighter than one in air, since water scatters the light into it.
+
+**The mirror goes by every ripple.** A ripple's far side, turned from the eye, is a streak of sky; its near
+side, turned to the eye, is a window to the floor. The mirror used to begin at one angle of the eye's line to
+the flat sea, so clear water ended at a line across the lagoon, with blue beyond it. Now the streaks of sky
+begin a few metres out, few and thin, and crowd together with distance, as in the calm-water photo. Over bright
+sand a metre deep the floor's light still drowns the mirror for a long way out, as the atoll photos show; over
+a floor four metres down the mirror wins much sooner, and the lagoon's basin is a deep blue. Three things went
+with it:
+
+- The mirrored clouds go by the broad ripples alone. Each small ripple mirrors its own bit of sky, and where
+  that was now a white cloud and now blue, a breeze was a speckle of white dashes.
+- Ruffled water mirrors the sky from higher up, where it is deep blue: so a gust is a band of dark blue on clear
+  water, as in the photo of the shallows under palms. Mirroring the sky's pale foot, the streaks were there but
+  could not be told from the sunlit shallows they lay on. (Not on a wave's face, where a gust's patch of sky
+  read as a smear of cloud across the wave.)
+- The sea mirrors the sky's own colours at golden hour and in the evening: its warmth, its fire towards the sun
+  and its mauve away from it, and the sun's broad glow as a wide pale path. The sky's gradient is written once
+  for the sky and the sea (`sky/sky-gradient.glsl`); the sky is drawn dot for dot as it was.
+
+**The ripples run at the speed real ones do.** They drifted at a tenth to a quarter of a metre a second: over
+two seconds of film the surface hardly changed, which is a pane of glass. They now run at 0.4 to 1.1 metres a
+second, the longer the faster. Foam left lying by a wave keeps a slow pattern of its own, on the two meshes the
+waves move. A light air ruffles the water nearly as steeply as a breeze, in the same ripples (it left the lagoon
+a smooth sheet); a calm keeps a slow low swell of the broad ripples, so that the sky lies in it in long shapes;
+sheltered water keeps the stride-long ripples, which are what show ten metres out and beyond.
+
+**What lies under water sways.** Each broad ripple that passes bends the eye's line, so things on the floor
+shift a little: three centimetres for each metre of depth in the usual breeze, less in a calm. The scene is not
+drawn through the water, so the sway is given to the things themselves: the ground, the rocks and the coral
+move together in their vertex shaders (`shaders/shared/sway-under-water.glsl`). It replaces nothing: the
+floor's markings still swim as well.
+
+**The sun sparkles on it.** On the ripples that are drawn ride finer ones, and now and then one is tilted just
+so and flashes the sun: thick under the sun, thinning to a few points far to either side. Those few points are
+what show that clear water has a surface. A sparkle is a few dots of the picture across at any distance (at one
+size for all, the near ones were blots and the far ones a snow of specks). The sun's and the moon's glints are
+drawn at full strength over clear water; they were drawn as faintly as the water they lay on. On glassy water
+the sun's whole image is small and bright, where it was a white blot a pace across.
+
+**In weather.**
+
+- *Night.* The moon on the water was one broad patch of white, a floodlight on ice. It is glitter round the
+  moon's own small image now, with a faint sheen about it.
+- *A high wind on sheltered water.* The white horses of the lagoon and the reef flat were long white ribbons
+  lying on the water. The stretches of a crest that break are a third as long there, and their foam is lace.
+- *Low sun.* Above. In a breeze at sunset the sea is dark blue under an orange sky, as in the photo of Heron
+  Island's; in a calm it is a pale mirror.
+- *Cloud.* The game's fullest cloud is broken cloud with blue between, not a grey sky: a grey day, and rain, are
+  the weather pass's. Under a cloud's shadow the net of light and the sparkle go, and the mirror hides more.
+
+**Foam on the sand.** On the thin sheet of water that runs up the ocean beach foam was a white sheet with a few
+pools in it. It is lace there until it is thick, with the wet sand showing in every mesh of it, and its edge
+towards the beach is scalloped: it reaches the sand in tongues a stride or two across. (The shore-break photo
+from above.) Out on the reef, where white water lies on deep water, it is as it was.
+
+**What it costs.** Measured in the software renderer, as the time it takes over a frame; it says which way a
+change goes, not what the phone will do, and cannot tell two or three in a hundred apart. Against the merged
+build, after the first sitting and now:
+
+| The view | First sitting | Now |
+|---|---|---|
+| The open sea alone, from above | 6% longer | 8% |
+| The lagoon alone, from above | 3% | 5% |
+| The wave mesh alone, from above | 7% | 10% |
+| From the ocean beach, out to sea, towards the sun | 8% | 16% |
+| The open sea from the reef's edge, towards the sun | 9% | 16% |
+
+So looking down, or away from the sun, this sitting added little; looking out over the water towards the sun it
+added as much again as the first sitting did. Where that goes, by building with one thing left out at a time:
+
+- *The sparkle*, 2 to 4 in a hundred towards the sun (arithmetic, and two noises where a sparkle may be), and
+  nothing away from it or beyond 200 m. `no sparkle` in the debug panel compiles the sea without it.
+- *Foam's own two readings* on the wave mesh, some 4 in a hundred of a view the mesh fills. The open sea and the
+  lagoon are spared them, and the reading laid along the shore: they read the detail texture six times, where
+  they read it seven.
+- *The sky's evening colours* in the mirror, about 1 in a hundred, and only at low sun; a second mirrored
+  direction for the clouds.
+- Saved: the open sea no longer reads the waves' picture of the floor for its depth (it has no floor to ask
+  after), nor the reef's map outside the map's square: three readings fewer for every dot.
+- The ground under water reads as many textures as it did: two of the three are the new picture. New for each
+  vertex of the ground, the rocks and the coral: three sines, which could not be measured.
+- What would save most is the old item below: the island's formula, worked out for every dot of the lagoon and
+  of the wave mesh, is some 4 in a hundred of a frame here. A picture of the floor's height in its place changes
+  how the water knows the ground: to agree.
+
+If the phone has lost frames, the order to try is `no sparkle`, then `plain water depth`, then `plain steep
+water`.
+
+**Switches in the debug panel:** `slower ripples` (it was `quicker ripples`) runs them at a quarter of their
+pace, as they were; `still under water` holds what is under water still; `no sparkle` is above. `plain water
+depth` is as it was.
+
+For the phone: the frame rate in the lagoon and at the reef's edge; whether the ripples' pace reads as water
+(`slower ripples` on and off) and whether anything shimmers at that pace; whether the sway reads as water or as
+a wobble (`still under water`); whether the sparkle twinkles or flickers, in a high wind above all; the net of
+light, which is bolder again in the sun and gone in shade; the white horses on the lagoon in a high wind; the
+foam's lace and scallops on the ocean beach.
+
+Tried and taken back: the net worked out for each dot from the curvature of two wave fields (grainy, and no
+cheaper); the mirror with no limit by angle at all (the shallows lost their aqua from the beach); foam as thin
+lace everywhere (the white water on the reef lost its body); scallops cut by the water's depth (square
+notches); the water's own colour dimmer at low sun (no difference: what shows there is the floor); the detail
+texture read sharper at a low angle (no difference).
+
+Seen and left:
+
+- On the ocean beach the foam's scallops stand still on the sand while the foam comes and goes, and one can end
+  in a hooked tail of foam.
+- Thirty to a hundred metres out in a light wind our water is still smoother than the photos: its brightness
+  varies by 3 in a hundred where the photo of Heron Island's reef flat varies by 12. The ripples that would show
+  there are smaller than a dot of the picture, and blur. What would close it is longer waves with real shape,
+  on the lagoon as on the sea.
+- Mirrored clouds lie on a windy lagoon as pale shapes with hard edges (the test builds' cloud pictures are
+  coarse: the phone's are finer).
+- The floor's shadows and the lagoon's shelf edge show as hard shapes through a calm.
+- A rock or a small coral is still tinted by the depth of the sand beside it; bending what is seen through the
+  surface is still the largest step left (the first sitting's note).
+
 ## Later
 
 - More passes on the reef.

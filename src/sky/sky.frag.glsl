@@ -6,8 +6,8 @@
 //   SLIDE_HEIGHT     the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
 //   HALF_A_DOT       half a dot of a sky picture, across and up
 //   MOON_DIRECTION   towards the moon (normalised where it is used)
-// the varying vViewDirection from sky.vert.glsl, hash and fbm5 from the noise chunk, and distanceUpTo
-// (distance-up-to.glsl).
+// the varying vViewDirection from sky.vert.glsl, hash and fbm5 from the noise chunk, distanceUpTo
+// (distance-up-to.glsl), and skyGradient and sunsBroadGlow (sky-gradient.glsl).
 
 // Seconds on the clock.
 uniform float uTime;
@@ -39,13 +39,9 @@ varying vec3 vViewDirection;
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
 #include "distance-up-to"
+#include "sky-gradient"
 
-// The colours of the sky's parts.
-const vec3 DAY_HAZE_WARMTH = vec3(0.10, 0.08, 0.05);
-const vec3 GOLDEN_HOUR_COLOUR = vec3(1.0, 0.80, 0.52);
-const vec3 SUNSET_FIRE_COLOUR = vec3(0.95, 0.34, 0.10);
-const vec3 EARTHS_SHADOW_COLOUR = vec3(0.56, 0.40, 0.62);
-const vec3 EVENING_PINK_COLOUR = vec3(0.98, 0.60, 0.55);
+// The colours of the sky's parts (the gradient's are in sky-gradient.glsl).
 const vec3 MILKY_WAY_COLOUR = vec3(0.15, 0.17, 0.26);
 const vec3 SHOOTING_STAR_COLOUR = vec3(1.0, 0.95, 0.8);
 const vec3 MOON_COLOUR = vec3(0.92, 0.95, 1.0);
@@ -86,37 +82,13 @@ void main() {
   vec3 direction = normalize(vViewDirection);
   float aboveHorizon = clamp(direction.y, 0.0, 1.0);
 
-  // The gradient from the horizon to overhead.
-  vec3 sky = mix(uSkyHorizon, uSkyOverhead * (1.0 - 0.22 * aboveHorizon), pow(aboveHorizon, 0.5));
+  // The sky's own colour: the gradient, and the evening's colours (sky-gradient.glsl).
+  vec3 sky = skyGradient(normalize(direction.xz + 1e-5), aboveHorizon);
   float sunShows = 1.0 - uNight;
-
-  // Which way round the horizon this is, relative to the sun.
-  vec2 bearing = normalize(direction.xz + 1e-5);
-  float towardsSun = dot(bearing, normalize(uSunDirection.xz + 1e-5));
-
-  // By day the air near the horizon is paler and warmer towards the sun.
-  sky += DAY_HAZE_WARMTH * uDaylight * smoothstep(-0.2, 1.0, towardsSun) * exp(-aboveHorizon * 5.0);
-
-  float evening = smoothstep(0.40, 1.0, 1.0 - uDaylight) * sunShows;
-
-  // Golden hour, before evening: the whole sky warms, most of all low down and towards the sun.
-  float goldenHour = smoothstep(0.15, 0.5, 1.0 - uDaylight) * (1.0 - evening) * sunShows;
-  float warmth = goldenHour * (0.25 + 0.35 * smoothstep(-0.4, 1.0, towardsSun)) * exp(-aboveHorizon * 3.2);
-  sky = mix(sky, GOLDEN_HOUR_COLOUR, warmth);
-
-  // Towards evening: fire low down on the sun's side, a mauve band (the earth's shadow rising) on the other, and
-  // a wash of pink above both.
-  sky += SUNSET_FIRE_COLOUR * evening * smoothstep(-0.3, 1.0, towardsSun) * exp(-aboveHorizon * 6.0) * 0.55;
-  float earthsShadow = evening * smoothstep(0.3, -0.9, towardsSun) * exp(-aboveHorizon * 5.0) * 0.65;
-  sky = mix(sky, EARTHS_SHADOW_COLOUR, earthsShadow);
-  // (squared by multiplying: pow of a negative number is undefined, and below the band this is negative)
-  float fromBandMiddle = (aboveHorizon - 0.16) / 0.12;
-  float pinkBand = exp(-fromBandMiddle * fromBandMiddle);
-  sky = mix(sky, EVENING_PINK_COLOUR, evening * pinkBand * 0.28);
 
   // The sun: its glow and its disc.
   float fromSun = angleBetween(direction, uSunDirection);
-  float sunGlow = 0.28 * exp(-fromSun * 3.5) + 0.5 * exp(-fromSun * 16.0);
+  float sunGlow = sunsBroadGlow(fromSun) + 0.5 * exp(-fromSun * 16.0);
   sky += uSunColour * sunGlow * sunShows;
   sky = mix(sky, uSunColour * 1.5 + 0.3, smoothstep(0.034, 0.026, fromSun));
 

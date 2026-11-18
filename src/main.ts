@@ -28,6 +28,7 @@ import { createBreakerShapes, frontPoint } from './sea/breaker-shapes';
 import { createCrestPicture } from './sea/crest-picture';
 import { createSeaFloorPictures } from './sea/sea-floor-pictures';
 import { createWaveModel } from './sea/wave-model';
+import { createCausticsTexture } from './shaders/caustics-texture';
 import { createDetailTexture } from './shaders/detail-texture';
 import { createCloudNoise } from './sky/cloud-noise';
 import { createClouds, type CloudsFrame } from './sky/clouds';
@@ -84,6 +85,7 @@ const { hasCamp } = worldConfig;
 
 // ---- the sky's pictures, and the uniforms every shader shares ----
 const detailTexture = createDetailTexture(maxAnisotropy);
+const causticsTexture = createCausticsTexture(detailTexture.image.data, maxAnisotropy);
 const weather = createWeather();
 const cloudPictureWidth = testHooks.cloudPictureWidth ?? cloudsConfig.pictureWidth;
 const clouds = createClouds({
@@ -96,7 +98,12 @@ const clouds = createClouds({
 const instanceCells = createInstanceCells(scene);
 const dayCycle = createDayCycle();
 const skyLight = createSkyLight();
-const uniforms = createSharedUniforms(detailTexture, skyLight.uniforms, clouds.uniforms);
+const uniforms = createSharedUniforms(
+  detailTexture,
+  causticsTexture,
+  skyLight.uniforms,
+  clouds.uniforms,
+);
 const cloudShadeSpan = cloudsConfig.shadeMapSpan * 1000;
 
 // ---- the land, the lights and the sky ----
