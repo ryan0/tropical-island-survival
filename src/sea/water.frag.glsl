@@ -180,8 +180,8 @@ const vec3 LOW_SUN_UNDER_WATER = vec3(0.6, 0.45, 0.5);
 // Debug switch 3.
 const vec3 PLAIN_WATER = vec3(0.03, 0.25, 0.50);
 
-// How fast each of the four readings of the ripples runs, in rounds of the detail texture a second: 1.1, 1.0, 0.65
-// and 0.42 metres a second, the broadest first, mostly down the wind. That is about the speed of real ripples of
+// How fast each of the three readings of the ripples runs, in rounds of the detail texture a second: 1.1, 1.0 and
+// 0.65 metres a second, the broadest first, mostly down the wind. That is about the speed of real ripples of
 // their lengths (one a metre long runs at 1.25 m/s; the broad readings stand for the wind's gusts as much as for
 // waves, and a lagoon has no long waves). At a quarter of it the surface hardly changed in two seconds, and lay
 // on the lagoon like a pane of glass. (To the nearest thousandth of a round, so that after RIPPLES_REPEAT seconds
@@ -189,7 +189,6 @@ const vec3 PLAIN_WATER = vec3(0.03, 0.25, 0.50);
 const vec2 LARGE_RIPPLES_RUN = vec2(0.025, 0.016);
 const vec2 MEDIUM_RIPPLES_RUN = vec2(-0.046, 0.054);
 const vec2 SMALL_RIPPLES_RUN = vec2(0.131, 0.072);
-const vec2 FINE_RIPPLES_RUN = vec2(-0.207, -0.248);
 const float RIPPLES_REPEAT = 1000.0;
 
 // The lines that run up a wave's face: how many times the detail texture goes round the atoll for them (one line
@@ -604,8 +603,9 @@ void main() {
 
   // (All the readings of the detail texture are made here, outside any branch: docs/DEVICE_NOTES.md.)
 
-  // Ripples: the detail texture read four times, from 37 m across down to 1.3 m, each copy turned and running its
-  // own way, so the eye finds no repeat. Far away the GPU blends each copy smooth by itself.
+  // Ripples: the detail texture read three times, 37 m, 14 m and 4.3 m across, each copy turned and running its
+  // own way, so the eye finds no repeat. Far away the GPU blends each copy smooth by itself. (There was a fourth,
+  // 1.3 m across: it could hardly be told in the picture, and it made the water busy close to.)
   // (uRipplePace is 1 but for a debug switch that slows them. The clock is wrapped, so that the readings stay
   // exact however long the game has run: after RIPPLES_REPEAT seconds each is back where it began.)
   float rippleTime = mod(uTime, RIPPLES_REPEAT) * uRipplePace;
@@ -614,20 +614,18 @@ void main() {
   vec4 ripplesMedium = texture2D(uDetail, turnedForMedium * 0.071 + rippleTime * MEDIUM_RIPPLES_RUN);
   vec2 turnedForSmall = vec2(xz.x * 0.28 + xz.y * 0.96, -xz.x * 0.96 + xz.y * 0.28);
   vec4 ripplesSmall = texture2D(uDetail, turnedForSmall * 0.23 + rippleTime * SMALL_RIPPLES_RUN);
-  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
-  vec4 ripplesFine = texture2D(uDetail, turnedForFine * 0.77 + rippleTime * FINE_RIPPLES_RUN);
-  // Foam lies on the water and goes with it, slowly, while the ripples run through under it: so where waves leave
-  // foam lying - on the two meshes the waves move - its lace and its bubbles have two readings of their own, at
-  // the two finer sizes, that only drift. (The flat sheets carry only the wind's foam, which is torn and gone in
-  // a few seconds: there it goes by the ripples' own readings, and every dot of the open sea and the lagoon is
-  // spared two readings.)
+  // Foam lies on the water and goes with it, slowly, while the ripples run through under it: so its lace and its
+  // bubbles have readings of their own that only drift, one as fine as the small ripples and one finer, 1.3 m
+  // across. (The flat sheets carry only the wind's foam, which is torn and gone in a few seconds: there the
+  // coarser of the two is the small ripples' own reading, and every dot of the open sea and the lagoon is spared
+  // one.)
   #ifdef WATER_STANDS_STEEP
   vec4 foamSmall = texture2D(uDetail, turnedForSmall * 0.23 + uTime * vec2(0.031, 0.017));
-  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
   #else
   vec4 foamSmall = ripplesSmall;
-  vec4 foamFine = ripplesFine;
   #endif
+  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
+  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
 
   // Once more stretched twice along the wind, for the white horses' foam: read here and not inside their branch.
   vec2 windStreaksUv = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07);
@@ -707,17 +705,15 @@ void main() {
   vec2 largeSlope = ripplesLarge.rg - 0.5;
   vec2 g2 = ripplesMedium.rg - 0.5;
   vec2 g3 = ripplesSmall.rg - 0.5;
-  vec2 g4 = ripplesFine.rg - 0.5;
   vec2 mediumSlope = vec2(g2.x * 0.8 + g2.y * 0.6, -g2.x * 0.6 + g2.y * 0.8);
   vec2 smallSlope = vec2(g3.x * 0.28 - g3.y * 0.96, g3.x * 0.96 + g3.y * 0.28);
-  vec2 fineSlope = vec2(-g4.x - g4.y, g4.x - g4.y) * 0.71;
   // (Sheltered water has none of the long ripples, but most of the middling ones, a stride or two long: it is
   // those that show a few metres out and beyond, each drawn out level by the view into a streak of sky or a
   // window to the floor. The small ones are too fine to be made out there, and without the middling ones
   // sheltered water was a smooth sheet from ten metres out.)
   vec2 largeRipples = largeSlope * 0.40 * rippleExposure
     + mediumSlope * 0.50 * mix(MIDDLING_RIPPLES_IN_SHELTER, 1.0, rippleExposure);
-  vec2 smallRipples = (smallSlope * 1.0 + fineSlope * 0.85) * (0.70 + 0.30 * rippleExposure) * gust;
+  vec2 smallRipples = smallSlope * (0.70 + 0.30 * rippleExposure) * gust;
   // (the foam's own readings, turned back the same way: the small lumps of its surface)
   vec2 f3 = foamSmall.rg - 0.5;
   vec2 f4 = foamFine.rg - 0.5;

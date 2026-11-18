@@ -30,6 +30,14 @@ const float LITTER_WITHIN = 150.0;
 
 // The highest a lagoon wave can run up the sand, as a height.
 const float LAGOON_RUN_UP = 0.42;
+// The band of heights that the water's edge wets: from this far under the still sea (and as much lower again as
+// the lagoon's waves stand high) to this far above it. Below it nothing that the wet sand, the swash's lines and
+// the lagoon's film and foam add is anything but exactly nothing, and above it likewise: change these only with
+// the numbers in "Wet sand towards the water", which they bound.
+const float WETTED_FROM = -0.4;
+const float WETTED_TO = 1.0;
+// Loose dry sand, with its dimples and wind ripples, lies no higher than this.
+const float LOOSE_SAND_TO = 2.1;
 
 // The share of the light left where the clouds let no sunlight through.
 const float CLOUD_SHADOW_LIGHT = 0.45;
@@ -116,9 +124,15 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
   float broadPatches = fbm(xz * 0.11);
   vec2 sunAlongGround = towardsSun * (1.0 - 0.45 * uSunDirection.y);
+  // What the water's edge does to the sand - wet sand, the swash's lines, the lagoon's film and foam - reaches
+  // from WETTED_FROM (lower where the lagoon's waves are up) to WETTED_TO and no further: outside that band every
+  // part of it comes to exactly nothing, and none of it is worked out. (Most of the ground is outside it: the sea
+  // floor and the land.)
+  bool isByWatersEdge = height > WETTED_FROM - lagHi() && height < WETTED_TO;
   // The beach is in zones by height above the sea, each boundary wandering so that none is a contour line.
-  float zoneWander = noise(xz * 0.23 + 7.0) - 0.5;
-  float looseSand = smoothstep(0.30, 0.62, height + zoneWander * 0.2) * (1.0 - smoothstep(1.75, 2.1, height));
+  // (The zones lie between the wetted band's foot and the top of the loose sand: nowhere else is the wander used.)
+  float zoneWander = height > WETTED_FROM - lagHi() && height < LOOSE_SAND_TO ? noise(xz * 0.23 + 7.0) - 0.5 : 0.0;
+  float looseSand = smoothstep(0.30, 0.62, height + zoneWander * 0.2) * (1.0 - smoothstep(1.75, LOOSE_SAND_TO, height));
   // coral sand: near white, a touch warm; paler and greyer in broad patches. Most of the beach is clean.
   float broadShade = 0.94 + 0.12 * broadPatches;
   float fineShade = 0.97 + 0.06 * fbm(xz * 1.9);
@@ -128,9 +142,9 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   // further off it rolls in low hummocks (the detail texture's small-wave field read large). Both are shaded against
   // the sun: lit on one side, darker and a little bluer on the other. Some stretches are trodden, some nearly smooth.
   vec2 hummockSlope = texture2D(uDetail, xz * 0.06).rg;
-  float trodden = 0.35 + 0.65 * smoothstep(0.3, 0.6, noise(xz * 0.09 + 50.0));
   float relief = 0.0;
   if (looseSand > 0.001) {   // (the dry beach only: skipped for the sea floor and the land)
+    float trodden = 0.35 + 0.65 * smoothstep(0.3, 0.6, noise(xz * 0.09 + 50.0));
     float dimpled = 0.0;
     float windRipples = 0.0;
     if (cameraDistance < DIMPLES_WITHIN) {
@@ -154,122 +168,124 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
   // ---- Wet sand towards the water ----
 
-  // soaked: where the swash runs, the sand is dark, tan and packed flat. damp: above it a band that is still drying,
-  // in patches. Both fade out just below the waterline (under water, the sea's own colour takes over).
-  // (Wet sand is dark in the air; seen through water the same sand is bright again. Only the strip the small waves
-  // actually reach, up to about 45 cm above the sea, is wet, and only a shade darker.)
-  float aboveWaterline = smoothstep(-0.3, 0.0, height);
-  float dampPatches = noise(xz * 1.3) - 0.5;
-  float soaked = (1.0 - smoothstep(0.03, 0.30, height + zoneWander * 0.14)) * aboveWaterline;
-  float damp = (1.0 - smoothstep(0.22, 0.60, height + zoneWander * 0.28 + dampPatches * 0.16)) * aboveWaterline;
+  if (isByWatersEdge) {
+    // soaked: where the swash runs, the sand is dark, tan and packed flat. damp: above it a band that is still drying,
+    // in patches. Both fade out just below the waterline (under water, the sea's own colour takes over).
+    // (Wet sand is dark in the air; seen through water the same sand is bright again. Only the strip the small waves
+    // actually reach, up to about 45 cm above the sea, is wet, and only a shade darker.)
+    float aboveWaterline = smoothstep(-0.3, 0.0, height);
+    float dampPatches = noise(xz * 1.3) - 0.5;
+    float soaked = (1.0 - smoothstep(0.03, 0.30, height + zoneWander * 0.14)) * aboveWaterline;
+    float damp = (1.0 - smoothstep(0.22, 0.60, height + zoneWander * 0.28 + dampPatches * 0.16)) * aboveWaterline;
 
-  // The lagoon's edge has no swash: only a film of water that laps a hand's breadth up the sand and slides back.
-  // So there the wet sand is a narrow strip (and paler), and lapHeight is how high the film reaches at this moment.
-  float slowLap = 0.028 * sin(uTime * 1.25 + 6.0 * noise(xz * 0.13));
-  float quickLap = 0.012 * sin(uTime * 2.7 + xz.x * 0.9 + xz.y * 0.7);
-  float lapUnevenness = 0.02 * (noise(xz * 0.9) - 0.5);
-  float lapHeight = 0.035 + slowLap + quickLap + lapUnevenness;
+    // The lagoon's edge has no swash: only a film of water that laps a hand's breadth up the sand and slides back.
+    // So there the wet sand is a narrow strip (and paler), and lapHeight is how high the film reaches at this moment.
+    float slowLap = 0.028 * sin(uTime * 1.25 + 6.0 * noise(xz * 0.13));
+    float quickLap = 0.012 * sin(uTime * 2.7 + xz.x * 0.9 + xz.y * 0.7);
+    float lapUnevenness = 0.02 * (noise(xz * 0.9) - 0.5);
+    float lapHeight = 0.035 + slowLap + quickLap + lapUnevenness;
 
-  // From a medium wind up, small waves break on the lagoon's beaches (lagwave.glsl; water.frag.glsl draws them on
-  // the water) - in a high wind bigger ones. Each runs up the sand as a sheet with a foaming edge, a hand or two
-  // high, and slides back before the next: then lapHeight is that sheet's edge, and the sand is wet as high as the
-  // biggest of them reach.
-  float shoreWaves = lagoonSide > 0.01 ? lagExposure(xz) : 0.0;
-  float sheetRunningUp = 0.0;   // the sheet is still running up (its edge foams)
-  float waveFoam = 0.0;   // how much foam the wave that last came in has left
-  float waveLight = 0.0;   // the light the waves throw on the sand under them
-  if (shoreWaves > 0.003 && height > -0.4 - lagHi() && height < 0.5) {
-    vec3 wave = lagWave(xz, -height, uTime);
-    float sinceCrest = wave.x;
-    float waveSize = wave.y;
-    float nextWaveSize = wave.z;
-    float wavePhase = sinceCrest / LW_T;   // 0 as a crest comes in, 1 as the next one does
-    float crestJustIn = waveSize * (1.0 - smoothstep(0.0, 0.12, wavePhase));
+    // From a medium wind up, small waves break on the lagoon's beaches (lagwave.glsl; water.frag.glsl draws them on
+    // the water) - in a high wind bigger ones. Each runs up the sand as a sheet with a foaming edge, a hand or two
+    // high, and slides back before the next: then lapHeight is that sheet's edge, and the sand is wet as high as the
+    // biggest of them reach.
+    float shoreWaves = lagoonSide > 0.01 ? lagExposure(xz) : 0.0;
+    float sheetRunningUp = 0.0;   // the sheet is still running up (its edge foams)
+    float waveFoam = 0.0;   // how much foam the wave that last came in has left
+    float waveLight = 0.0;   // the light the waves throw on the sand under them
+    if (shoreWaves > 0.003 && height > WETTED_FROM - lagHi() && height < 0.5) {
+      vec3 wave = lagWave(xz, -height, uTime);
+      float sinceCrest = wave.x;
+      float waveSize = wave.y;
+      float nextWaveSize = wave.z;
+      float wavePhase = sinceCrest / LW_T;   // 0 as a crest comes in, 1 as the next one does
+      float crestJustIn = waveSize * (1.0 - smoothstep(0.0, 0.12, wavePhase));
 
-    // (in a high wind the waves stand up, and the sun through them falls on the sand as moving bands: bright under
-    // a crest, where the water gathers the light like a lens, dim under its face)
-    float nextCrest = smoothstep(0.93, 1.0, wavePhase) * 0.9;
-    float nextFace = smoothstep(0.72, 0.9, wavePhase) * (1.0 - smoothstep(0.9, 0.95, wavePhase)) * 0.55;
-    float bands = crestJustIn * 0.9 + nextWaveSize * (nextCrest - nextFace);
-    float shallowEnough = 1.0 - smoothstep(0.5, 1.4, -height);
-    float deepEnough = smoothstep(0.03, 0.2, -height);
-    waveLight = lagHi() * lagEx(xz) * shallowEnough * deepEnough * bands;
+      // (in a high wind the waves stand up, and the sun through them falls on the sand as moving bands: bright under
+      // a crest, where the water gathers the light like a lens, dim under its face)
+      float nextCrest = smoothstep(0.93, 1.0, wavePhase) * 0.9;
+      float nextFace = smoothstep(0.72, 0.9, wavePhase) * (1.0 - smoothstep(0.9, 0.95, wavePhase)) * 0.55;
+      float bands = crestJustIn * 0.9 + nextWaveSize * (nextCrest - nextFace);
+      float shallowEnough = 1.0 - smoothstep(0.5, 1.4, -height);
+      float deepEnough = smoothstep(0.03, 0.2, -height);
+      waveLight = lagHi() * lagEx(xz) * shallowEnough * deepEnough * bands;
 
-    // (how far a wave runs up differs along the beach - higher here, lower a few steps on - and its edge is never
-    // straight; in a high wind the big ones reach a foot up: a step and a half of sand)
-    float strength = min(shoreWaves, 1.0);
-    float alongBeach = 0.55 + 0.9 * noise(xz * 0.7 + 3.0);
-    float runUp = LAGOON_RUN_UP * (1.0 - exp(-0.2 * waveSize * alongBeach * shoreWaves / LAGOON_RUN_UP));
-    float sheetTop = runUp * smoothstep(0.0, 0.3, wavePhase);   // as far as the sheet has got
-    float sheetEdge = sheetTop * (1.0 - smoothstep(0.3, 0.95, wavePhase));
-    float edgeWobble = 0.02 * (noise(xz * 3.1) - 0.5);
-    float edgeDrop = 0.03 * (nextWaveSize * smoothstep(0.7, 1.0, wavePhase) + crestJustIn);
-    lapHeight = lapHeight * (1.0 - 0.6 * strength) + sheetEdge + strength * (edgeWobble - edgeDrop);
+      // (how far a wave runs up differs along the beach - higher here, lower a few steps on - and its edge is never
+      // straight; in a high wind the big ones reach a foot up: a step and a half of sand)
+      float strength = min(shoreWaves, 1.0);
+      float alongBeach = 0.55 + 0.9 * noise(xz * 0.7 + 3.0);
+      float runUp = LAGOON_RUN_UP * (1.0 - exp(-0.2 * waveSize * alongBeach * shoreWaves / LAGOON_RUN_UP));
+      float sheetTop = runUp * smoothstep(0.0, 0.3, wavePhase);   // as far as the sheet has got
+      float sheetEdge = sheetTop * (1.0 - smoothstep(0.3, 0.95, wavePhase));
+      float edgeWobble = 0.02 * (noise(xz * 3.1) - 0.5);
+      float edgeDrop = 0.03 * (nextWaveSize * smoothstep(0.7, 1.0, wavePhase) + crestJustIn);
+      lapHeight = lapHeight * (1.0 - 0.6 * strength) + sheetEdge + strength * (edgeWobble - edgeDrop);
 
-    // (the foam comes up the sand with the sheet's edge: none above where that has got to)
-    float reach = 1.0 - smoothstep(-0.004, 0.006, height - 0.01 - sheetTop);
-    float breakerSize = waveSize * shoreWaves;
-    float bigEnough = smoothstep(0.06, 0.28, breakerSize);
-    sheetRunningUp = bigEnough * smoothstep(0.0, 0.08, wavePhase) * (1.0 - smoothstep(0.25, 0.6, wavePhase));
-    waveFoam = lagFoam(sinceCrest, breakerSize) * reach;
-  }
-  float lagoonSoakedHeight = height + zoneWander * 0.03;
-  float lagoonSoaked = 1.0 - smoothstep(0.07 + 0.10 * shoreWaves, 0.14 + 0.13 * shoreWaves, lagoonSoakedHeight);
-  soaked = mix(soaked, lagoonSoaked * aboveWaterline, lagoonSide);
-  float lagoonDampHeight = height + zoneWander * 0.10 + dampPatches * 0.08;
-  float lagoonDamp = 1.0 - smoothstep(0.10 + 0.12 * shoreWaves, 0.28 + 0.14 * shoreWaves, lagoonDampHeight);
-  damp = mix(damp, lagoonDamp * aboveWaterline, lagoonSide);
-
-  float dampShows = damp * (0.6 + 0.4 * smoothstep(0.3, 0.7, noise(xz * 0.4 + 21.0)));
-  vec3 dampTint = mix(vec3(1.0), vec3(0.955, 0.94, 0.91), dampShows);
-  vec3 soakedColour = mix(vec3(0.92, 0.895, 0.85), vec3(0.945, 0.925, 0.89), lagoonSide);
-  vec3 soakedTint = mix(vec3(1.0), soakedColour, soaked);
-  sand *= dampTint * soakedTint;
-
-  // The lines each retreating wave leaves behind: thin scalloped arcs, a darker wet edge with a paler rim of dried
-  // foam and fine shell above it, closer together and fainter up the beach.
-  // (faint, unevenly spaced, and each one peters out along the beach: they must not read as contour lines)
-  float swashHeight = height + 0.16 * noise(xz * 0.33 + 3.0) + 0.03 * noise(xz * 1.7);
-  float betweenLines = fract(swashHeight * 5.0 + 0.35 * sin(swashHeight * 17.0));
-  float lineShows = smoothstep(0.35, 0.65, noise(vec2(xz.x * 0.5 + floor(swashHeight * 5.0) * 7.3, xz.y * 0.5)));
-  float paleRim = smoothstep(0.0, 0.12, betweenLines) * (1.0 - smoothstep(0.12, 0.35, betweenLines)) * 0.035;
-  float wetEdge = (1.0 - smoothstep(0.0, 0.06, betweenLines)) * 0.045;
-  float swashLines = (paleRim - wetEdge) * lineShows * damp * (1.0 - 0.6 * soaked) * aboveWaterline
-    * (1.0 - lagoonSide);
-  sand *= 1.0 + swashLines;
-
-  // soaked sand is glossy: at a low angle it mirrors the sky a little
-  float grazing = 1.0 - clamp(normalize(toCamera).y, 0.0, 1.0);
-  sand = mix(sand, uSkyHorizon * 0.80, soaked * smoothstep(-0.02, 0.06, height) * grazing * grazing * grazing * 0.38);
-
-  if (lagoonSide > 0.01) {
-    // Under the film the sand shows clear but a touch cooler, and glassier; at the film's leading edge a thin broken
-    // thread of white (broken along the shore and in time, so that it never reads as a drawn line).
-    // (the film is painted from the lapping edge down to where the water proper starts to show, 20-30 cm under the
-    // still level: without that the first metre of water looks like dry sand)
-    float belowLap = 1.0 - smoothstep(lapHeight - 0.004, lapHeight + 0.004, height);
-    float film = belowLap * smoothstep(-0.32, -0.2, height) * lagoonSide;
-    sand = mix(sand, sand * vec3(0.90, 0.94, 0.95), film * 0.8);
-    sand = mix(sand, uSkyHorizon * 0.85, film * grazing * grazing * 0.36);
-    float lace = max(lightNet, turnedLightNet);
-    float rimWidth = mix(0.009, 0.02, sheetRunningUp);
-    float onRim = exp(-pow((height - lapHeight) / rimWidth, 2.0));
-    float brokenThread = smoothstep(0.42, 0.66, noise(vec2(xz.x + xz.y, xz.x - xz.y) * 1.7 + uTime * 0.15));
-    float foamingEdge = 0.45 + 0.55 * smoothstep(0.2, 0.6, lace);
-    float rim = onRim * mix(brokenThread, foamingEdge, sheetRunningUp) * lagoonSide;
-    sand = mix(sand, vec3(0.96, 0.97, 0.97), rim * mix(0.26, 0.9, sheetRunningUp) * (0.35 + 0.65 * uDaylight));
-    // (the foam of a broken wave: on the sheet running up the sand, and in the last hand's depth of water, which is
-    // drawn here and not by water.frag.glsl: only this shader knows just where the ground meets the water. White
-    // where fresh, then lace.)
-    if (waveFoam > 0.01) {
-      float lacePattern = lace * 0.7 + 0.3 * noise(xz * 2.3 + uTime * 0.2);
-      float foamDepth = 1.0 - smoothstep(0.10, 0.2, -height);
-      float foam = smoothstep(0.9 - waveFoam, 1.1 - waveFoam, lacePattern) * film * foamDepth;
-      sand = mix(sand, vec3(0.90, 0.95, 0.95), film * waveFoam * 0.3);   // (the sheet itself is milky with bubbles)
-      sand = mix(sand, vec3(0.97, 0.98, 0.98), foam * 0.9 * (0.35 + 0.65 * uDaylight));
+      // (the foam comes up the sand with the sheet's edge: none above where that has got to)
+      float reach = 1.0 - smoothstep(-0.004, 0.006, height - 0.01 - sheetTop);
+      float breakerSize = waveSize * shoreWaves;
+      float bigEnough = smoothstep(0.06, 0.28, breakerSize);
+      sheetRunningUp = bigEnough * smoothstep(0.0, 0.08, wavePhase) * (1.0 - smoothstep(0.25, 0.6, wavePhase));
+      waveFoam = lagFoam(sinceCrest, breakerSize) * reach;
     }
+    float lagoonSoakedHeight = height + zoneWander * 0.03;
+    float lagoonSoaked = 1.0 - smoothstep(0.07 + 0.10 * shoreWaves, 0.14 + 0.13 * shoreWaves, lagoonSoakedHeight);
+    soaked = mix(soaked, lagoonSoaked * aboveWaterline, lagoonSide);
+    float lagoonDampHeight = height + zoneWander * 0.10 + dampPatches * 0.08;
+    float lagoonDamp = 1.0 - smoothstep(0.10 + 0.12 * shoreWaves, 0.28 + 0.14 * shoreWaves, lagoonDampHeight);
+    damp = mix(damp, lagoonDamp * aboveWaterline, lagoonSide);
+
+    float dampShows = damp * (0.6 + 0.4 * smoothstep(0.3, 0.7, noise(xz * 0.4 + 21.0)));
+    vec3 dampTint = mix(vec3(1.0), vec3(0.955, 0.94, 0.91), dampShows);
+    vec3 soakedColour = mix(vec3(0.92, 0.895, 0.85), vec3(0.945, 0.925, 0.89), lagoonSide);
+    vec3 soakedTint = mix(vec3(1.0), soakedColour, soaked);
+    sand *= dampTint * soakedTint;
+
+    // The lines each retreating wave leaves behind: thin scalloped arcs, a darker wet edge with a paler rim of dried
+    // foam and fine shell above it, closer together and fainter up the beach.
+    // (faint, unevenly spaced, and each one peters out along the beach: they must not read as contour lines)
+    float swashHeight = height + 0.16 * noise(xz * 0.33 + 3.0) + 0.03 * noise(xz * 1.7);
+    float betweenLines = fract(swashHeight * 5.0 + 0.35 * sin(swashHeight * 17.0));
+    float lineShows = smoothstep(0.35, 0.65, noise(vec2(xz.x * 0.5 + floor(swashHeight * 5.0) * 7.3, xz.y * 0.5)));
+    float paleRim = smoothstep(0.0, 0.12, betweenLines) * (1.0 - smoothstep(0.12, 0.35, betweenLines)) * 0.035;
+    float wetEdge = (1.0 - smoothstep(0.0, 0.06, betweenLines)) * 0.045;
+    float swashLines = (paleRim - wetEdge) * lineShows * damp * (1.0 - 0.6 * soaked) * aboveWaterline
+      * (1.0 - lagoonSide);
+    sand *= 1.0 + swashLines;
+
+    // soaked sand is glossy: at a low angle it mirrors the sky a little
+    float grazing = 1.0 - clamp(normalize(toCamera).y, 0.0, 1.0);
+    sand = mix(sand, uSkyHorizon * 0.80, soaked * smoothstep(-0.02, 0.06, height) * grazing * grazing * grazing * 0.38);
+
+    if (lagoonSide > 0.01) {
+      // Under the film the sand shows clear but a touch cooler, and glassier; at the film's leading edge a thin broken
+      // thread of white (broken along the shore and in time, so that it never reads as a drawn line).
+      // (the film is painted from the lapping edge down to where the water proper starts to show, 20-30 cm under the
+      // still level: without that the first metre of water looks like dry sand)
+      float belowLap = 1.0 - smoothstep(lapHeight - 0.004, lapHeight + 0.004, height);
+      float film = belowLap * smoothstep(-0.32, -0.2, height) * lagoonSide;
+      sand = mix(sand, sand * vec3(0.90, 0.94, 0.95), film * 0.8);
+      sand = mix(sand, uSkyHorizon * 0.85, film * grazing * grazing * 0.36);
+      float lace = max(lightNet, turnedLightNet);
+      float rimWidth = mix(0.009, 0.02, sheetRunningUp);
+      float onRim = exp(-pow((height - lapHeight) / rimWidth, 2.0));
+      float brokenThread = smoothstep(0.42, 0.66, noise(vec2(xz.x + xz.y, xz.x - xz.y) * 1.7 + uTime * 0.15));
+      float foamingEdge = 0.45 + 0.55 * smoothstep(0.2, 0.6, lace);
+      float rim = onRim * mix(brokenThread, foamingEdge, sheetRunningUp) * lagoonSide;
+      sand = mix(sand, vec3(0.96, 0.97, 0.97), rim * mix(0.26, 0.9, sheetRunningUp) * (0.35 + 0.65 * uDaylight));
+      // (the foam of a broken wave: on the sheet running up the sand, and in the last hand's depth of water, which is
+      // drawn here and not by water.frag.glsl: only this shader knows just where the ground meets the water. White
+      // where fresh, then lace.)
+      if (waveFoam > 0.01) {
+        float lacePattern = lace * 0.7 + 0.3 * noise(xz * 2.3 + uTime * 0.2);
+        float foamDepth = 1.0 - smoothstep(0.10, 0.2, -height);
+        float foam = smoothstep(0.9 - waveFoam, 1.1 - waveFoam, lacePattern) * film * foamDepth;
+        sand = mix(sand, vec3(0.90, 0.95, 0.95), film * waveFoam * 0.3);   // (the sheet itself is milky with bubbles)
+        sand = mix(sand, vec3(0.97, 0.98, 0.98), foam * 0.9 * (0.35 + 0.65 * uDaylight));
+      }
+    }
+    sand *= 1.0 + 0.3 * waveLight * uDaylight;   // (the light the lagoon's shore waves throw on the sand under them)
   }
-  sand *= 1.0 + 0.3 * waveLight * uDaylight;   // (the light the lagoon's shore waves throw on the sand under them)
 
   // ---- Shells, coral chips and pebbles ----
 
@@ -306,90 +322,103 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   if (height > -0.1) {
     // ---- Dry land, and the beach above the waterline ----
 
-    float lushness = turfLushness(xz.x, xz.y);
-    float dryness = turfDryness(xz.x, xz.y);
-    // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
-    vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
-    turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
-    float streakAngle = noise(xz * 0.13 + 4.0) * 12.566;
-    vec2 streakDirection = vec2(cos(streakAngle), sin(streakAngle));
-    vec2 streakUv = vec2(dot(xz, streakDirection) * 1.7, dot(xz, vec2(-streakDirection.y, streakDirection.x)) * 10.0);
-    float streaks = noise(streakUv + 3.0 * noise(xz * 0.7));
-    float greenerPatches = smoothstep(0.55, 0.68, fbm(xz * 0.8 + 21.0));
-    vec3 greener = turfTint * vec3(1.05, 1.18, 0.95) + 0.03;
-    float mottle = 0.80 + 0.40 * fbm(xz * 2.2);
-    float streaked = 1.0 + (streaks - 0.5) * 0.45 * nearness;
-    vec3 turf = mix(turfTint, greener, greenerPatches * 0.6) * vec3(0.90, 0.92, 0.82) * mottle * streaked;
-    turf *= 0.86 + 0.28 * noise(xz * 11.0) * nearness + 0.14 * (1.0 - nearness);
-    // mats of creeping vine: darker, glossier green, speckled with small round leaves
-    float vine = smoothstep(0.54, 0.66, fbm(xz * 0.21 + 90.0));
-    float leafSpeckle = 0.75 + 0.7 * hash(floor(xz * 7.0) + 2.0) * nearness + 0.35 * (1.0 - nearness);
-    turf = mix(turf, VINE_GREEN * leafSpeckle, vine * 0.8);
-    // bare patches where the sandy soil shows through the turf
-    float bare = smoothstep(0.56, 0.70, fbm(xz * 0.33 + 40.0) + 0.25 * (noise(xz * 2.7) - 0.5));
-    turf = mix(turf, BARE_SOIL * (0.85 + 0.3 * noise(xz * 5.0)), bare * 0.85);
+    // Towards the vegetation the ground changes in layers: sand, the back of the beach, and turf, which does not
+    // stop at a line but breaks up into islands and tongues with sand between them. How far this spot is turf
+    // (landCover) is worked out first: where it is none, the land's own colour is not worked out at all, and
+    // where it is all turf, the beach's fringe is not. (Most of the ground is wholly the one or the other.)
+    float edgeWander = layerEdgeWander(xz.x, xz.y);
+    float layerHeight = height + edgeWander + (fbm(xz * 1.7) - 0.5) * 0.5;
+    float turfEdge = layerHeight + (fbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (noise(xz * 3.3) - 0.5) * 0.30;
+    float landCover = smoothstep(1.74, 1.84, turfEdge);
 
-    vec3 soil = SOIL_BROWN * (0.75 + 0.5 * fbm(xz * 1.3));
-    float hasSpeck = step(0.975, hash(floor(xz * 18.0) + 9.0));
-    float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
-    soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
-    float dirtWaves = soilPatches(xz.x, xz.y);
-    float dirt = smoothstep(0.66, 0.80, dirtWaves + (fbm(xz * 0.6) - 0.5) * 0.5 + (noise(xz * 3.1) - 0.5) * 0.12);
-    // under the trees the ground is not lawn: fallen fronds and leaf litter, brown and olive, darker than the grass
-    float leafLitter = smoothstep(0.35, 0.7, fbm(xz * 0.35 + 70.0));
-    turf = mix(turf, LITTER_BROWN * (0.7 + 0.6 * noise(xz * 4.3)), leafLitter * 0.45);
-    vec3 land = mix(turf, soil, dirt * 0.85);
+    vec3 land = vec3(0.0);
+    if (landCover > 0.0) {
+      float lushness = turfLushness(xz.x, xz.y);
+      float dryness = turfDryness(xz.x, xz.y);
+      // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
+      vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
+      turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
+      float streakAngle = noise(xz * 0.13 + 4.0) * 12.566;
+      vec2 streakDirection = vec2(cos(streakAngle), sin(streakAngle));
+      vec2 streakUv = vec2(dot(xz, streakDirection) * 1.7, dot(xz, vec2(-streakDirection.y, streakDirection.x)) * 10.0);
+      float streaks = noise(streakUv + 3.0 * noise(xz * 0.7));
+      float greenerPatches = smoothstep(0.55, 0.68, fbm(xz * 0.8 + 21.0));
+      vec3 greener = turfTint * vec3(1.05, 1.18, 0.95) + 0.03;
+      float mottle = 0.80 + 0.40 * fbm(xz * 2.2);
+      float streaked = 1.0 + (streaks - 0.5) * 0.45 * nearness;
+      vec3 turf = mix(turfTint, greener, greenerPatches * 0.6) * vec3(0.90, 0.92, 0.82) * mottle * streaked;
+      turf *= 0.86 + 0.28 * noise(xz * 11.0) * nearness + 0.14 * (1.0 - nearness);
+      // mats of creeping vine: darker, glossier green, speckled with small round leaves
+      float vine = smoothstep(0.54, 0.66, fbm(xz * 0.21 + 90.0));
+      float leafSpeckle = 0.75 + 0.7 * hash(floor(xz * 7.0) + 2.0) * nearness + 0.35 * (1.0 - nearness);
+      turf = mix(turf, VINE_GREEN * leafSpeckle, vine * 0.8);
+      // bare patches where the sandy soil shows through the turf
+      float bare = smoothstep(0.56, 0.70, fbm(xz * 0.33 + 40.0) + 0.25 * (noise(xz * 2.7) - 0.5));
+      turf = mix(turf, BARE_SOIL * (0.85 + 0.3 * noise(xz * 5.0)), bare * 0.85);
 
-    float fromPath = footpathDistance(xz) + (noise(xz * 0.9) - 0.5) * 0.7 + (noise(xz * 4.0) - 0.5) * 0.25;
-    float onPath = smoothstep(1.05, 0.72, fromPath);
-    vec3 pathColour = mix(soil, PATH_SAND, 0.55) * (0.9 + 0.2 * noise(xz * 3.0));
-    land = mix(land, pathColour, onPath);
-    float rock = smoothstep(10.6, 12.6, height + (noise(xz * 0.5) - 0.5) * 2.0);
-    land = mix(land, ROCK_GREY * (0.7 + 0.6 * fbm(xz * 1.5)), rock);
+      vec3 soil = SOIL_BROWN * (0.75 + 0.5 * fbm(xz * 1.3));
+      float hasSpeck = step(0.975, hash(floor(xz * 18.0) + 9.0));
+      float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
+      soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
+      float dirtWaves = soilPatches(xz.x, xz.y);
+      float dirt = smoothstep(0.66, 0.80, dirtWaves + (fbm(xz * 0.6) - 0.5) * 0.5 + (noise(xz * 3.1) - 0.5) * 0.12);
+      // under the trees the ground is not lawn: fallen fronds and leaf litter, brown and olive, darker than the grass
+      float leafLitter = smoothstep(0.35, 0.7, fbm(xz * 0.35 + 70.0));
+      turf = mix(turf, LITTER_BROWN * (0.7 + 0.6 * noise(xz * 4.3)), leafLitter * 0.45);
+      land = mix(turf, soil, dirt * 0.85);
+
+      float fromPath = footpathDistance(xz) + (noise(xz * 0.9) - 0.5) * 0.7 + (noise(xz * 4.0) - 0.5) * 0.25;
+      float onPath = smoothstep(1.05, 0.72, fromPath);
+      vec3 pathColour = mix(soil, PATH_SAND, 0.55) * (0.9 + 0.2 * noise(xz * 3.0));
+      land = mix(land, pathColour, onPath);
+      // (bare rock on the highest ground, of which the atoll has little)
+      if (height > 9.5) {
+        float rock = smoothstep(10.6, 12.6, height + (noise(xz * 0.5) - 0.5) * 2.0);
+        land = mix(land, ROCK_GREY * (0.7 + 0.6 * fbm(xz * 1.5)), rock);
+      }
+    }
 
     // ---- Towards the vegetation, in layers ----
 
-    float edgeWander = layerEdgeWander(xz.x, xz.y);
-    float layerHeight = height + edgeWander + (fbm(xz * 1.7) - 0.5) * 0.5;
-    // 1. the back of the beach: sand a shade greyer and warmer (old leaf mould), strewn with bits of leaf and twig
-    float backOfBeach = smoothstep(1.15, 1.65, layerHeight);
-    float leafMould = backOfBeach * (0.55 + 0.45 * smoothstep(0.3, 0.7, noise(xz * 0.31 + 9.0)));
-    vec3 fringe = mix(sand, sand * vec3(0.86, 0.82, 0.74), leafMould);
-    float litter = 0.0;
-    if (backOfBeach > 0.001 && cameraDistance < LITTER_WITHIN) {
-      vec2 turned = vec2(xz.x * 0.8 + xz.y * 0.6, -xz.x * 0.6 + xz.y * 0.8);
-      float flecks = max(fleck(xz * 6.0), fleck(turned * 9.0 + 3.0));
-      litter = flecks * backOfBeach * smoothstep(0.2, 0.55, noise(xz * 0.6 + 17.0)) * exp(-cameraDistance * 0.025);
+    vec3 fringe = sand;
+    if (landCover < 1.0) {
+      // 1. the back of the beach: sand a shade greyer and warmer (old leaf mould), strewn with bits of leaf and twig
+      float backOfBeach = smoothstep(1.15, 1.65, layerHeight);
+      float leafMould = backOfBeach * (0.55 + 0.45 * smoothstep(0.3, 0.7, noise(xz * 0.31 + 9.0)));
+      fringe = mix(sand, sand * vec3(0.86, 0.82, 0.74), leafMould);
+      float litter = 0.0;
+      if (backOfBeach > 0.001 && cameraDistance < LITTER_WITHIN) {
+        vec2 turned = vec2(xz.x * 0.8 + xz.y * 0.6, -xz.x * 0.6 + xz.y * 0.8);
+        float flecks = max(fleck(xz * 6.0), fleck(turned * 9.0 + 3.0));
+        litter = flecks * backOfBeach * smoothstep(0.2, 0.55, noise(xz * 0.6 + 17.0)) * exp(-cameraDistance * 0.025);
+      }
+      fringe = mix(fringe, vec3(0.34, 0.25, 0.15) * (0.7 + 0.6 * hash(floor(xz * 6.0))), litter * 0.85);
+      // 3. round every patch of turf, a rim of sand stained dark by roots and humus
+      float stainedRim = smoothstep(1.45, 1.74, turfEdge) * 0.7;
+      fringe = mix(fringe, vec3(0.52, 0.45, 0.34) * (0.85 + 0.3 * noise(xz * 4.0)), stainedRim);
+      // coral rubble thrown up at the back of the beach: a band of small grey-white stones where the sand meets the
+      // scrub
+      float rubbleCover = smoothstep(0.95, 1.3, layerHeight) * smoothstep(0.42, 0.6, fbm(xz * 0.5 + 13.0));
+      // Three sizes of stone laid one over another (big ones on top), at three angles, so that no grid shows; grit
+      // between them. pebble() gives each (how much of this spot it covers, how it is lit, its tone).
+      vec3 rubble = vec3(0.74, 0.72, 0.67) * (0.9 + 0.2 * noise(xz * 9.0));
+      // (only where there is rubble, and near enough for single stones to show)
+      if (rubbleCover > 0.002 && nearness > 0.02) {
+        vec2 turnedSmall = vec2(xz.x * 0.5 + xz.y * 0.87, -xz.x * 0.87 + xz.y * 0.5);
+        vec3 smallStone = pebble(turnedSmall * 15.0 + 7.0, sunAlongGround, 0.55);
+        vec3 smallColour = mix(vec3(0.56, 0.55, 0.52), vec3(0.92, 0.90, 0.86), smallStone.z) * smallStone.y;
+        rubble = mix(rubble, smallColour, smallStone.x);
+        vec2 turnedMiddle = vec2(xz.x * 0.94 - xz.y * 0.34, xz.x * 0.34 + xz.y * 0.94);
+        vec3 middleStone = pebble(turnedMiddle * 8.3 + 3.0, sunAlongGround, 0.6);
+        vec3 middleColour = mix(vec3(0.60, 0.58, 0.54), vec3(0.95, 0.93, 0.89), middleStone.z) * middleStone.y;
+        rubble = mix(rubble * (1.0 - 0.25 * middleStone.x), middleColour, middleStone.x);
+        vec3 bigStone = pebble(xz * 4.1, sunAlongGround, 0.45);
+        vec3 bigGreyOrWhite = mix(vec3(0.66, 0.64, 0.60), vec3(0.90, 0.87, 0.80), bigStone.z);
+        vec3 bigColour = mix(bigGreyOrWhite, vec3(0.80, 0.66, 0.56), step(0.85, bigStone.z)) * bigStone.y;
+        rubble = mix(rubble, bigColour, bigStone.x);
+      }
+      fringe = mix(fringe, mix(vec3(0.74, 0.72, 0.68), rubble, nearness), rubbleCover * 0.75);
     }
-    fringe = mix(fringe, vec3(0.34, 0.25, 0.15) * (0.7 + 0.6 * hash(floor(xz * 6.0))), litter * 0.85);
-    // 2. the turf does not stop at a line: it breaks up into islands and tongues, with sand between them
-    float turfEdge = layerHeight + (fbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (noise(xz * 3.3) - 0.5) * 0.30;
-    float landCover = smoothstep(1.74, 1.84, turfEdge);
-    // 3. round every patch of turf, a rim of sand stained dark by roots and humus
-    float stainedRim = smoothstep(1.45, 1.74, turfEdge) * 0.7;
-    fringe = mix(fringe, vec3(0.52, 0.45, 0.34) * (0.85 + 0.3 * noise(xz * 4.0)), stainedRim);
-    // coral rubble thrown up at the back of the beach: a band of small grey-white stones where the sand meets the
-    // scrub
-    float rubbleCover = smoothstep(0.95, 1.3, layerHeight) * smoothstep(0.42, 0.6, fbm(xz * 0.5 + 13.0));
-    // Three sizes of stone laid one over another (big ones on top), at three angles, so that no grid shows; grit
-    // between them. pebble() gives each (how much of this spot it covers, how it is lit, its tone).
-    vec3 rubble = vec3(0.74, 0.72, 0.67) * (0.9 + 0.2 * noise(xz * 9.0));
-    // (only where there is rubble, and near enough for single stones to show)
-    if (rubbleCover > 0.002 && nearness > 0.02) {
-      vec2 turnedSmall = vec2(xz.x * 0.5 + xz.y * 0.87, -xz.x * 0.87 + xz.y * 0.5);
-      vec3 smallStone = pebble(turnedSmall * 15.0 + 7.0, sunAlongGround, 0.55);
-      vec3 smallColour = mix(vec3(0.56, 0.55, 0.52), vec3(0.92, 0.90, 0.86), smallStone.z) * smallStone.y;
-      rubble = mix(rubble, smallColour, smallStone.x);
-      vec2 turnedMiddle = vec2(xz.x * 0.94 - xz.y * 0.34, xz.x * 0.34 + xz.y * 0.94);
-      vec3 middleStone = pebble(turnedMiddle * 8.3 + 3.0, sunAlongGround, 0.6);
-      vec3 middleColour = mix(vec3(0.60, 0.58, 0.54), vec3(0.95, 0.93, 0.89), middleStone.z) * middleStone.y;
-      rubble = mix(rubble * (1.0 - 0.25 * middleStone.x), middleColour, middleStone.x);
-      vec3 bigStone = pebble(xz * 4.1, sunAlongGround, 0.45);
-      vec3 bigGreyOrWhite = mix(vec3(0.66, 0.64, 0.60), vec3(0.90, 0.87, 0.80), bigStone.z);
-      vec3 bigColour = mix(bigGreyOrWhite, vec3(0.80, 0.66, 0.56), step(0.85, bigStone.z)) * bigStone.y;
-      rubble = mix(rubble, bigColour, bigStone.x);
-    }
-    fringe = mix(fringe, mix(vec3(0.74, 0.72, 0.68), rubble, nearness), rubbleCover * 0.75);
     diffuseColor.rgb = mix(fringe, land, landCover);
   }
 }
@@ -423,31 +452,47 @@ if (waterDepth > 0.0) {
     float onPatchReef = (1.0 - smoothstep(1.5, 2.9, waterDepth + 1.2 * (coralPattern - 0.5)))
       * smoothstep(26.0, 40.0, outInLagoon);
     lagoonCoral = max(lagoonCoral, onPatchReef);
-    float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
-    // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
-    float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (noise(xz * 1.3 + 4.0) - 0.5);
-    float onHighGround = smoothstep(0.38, 0.62, reefHighGround(xz.x, xz.y) + ragged);
-    float scatteredHeads = 0.7 * smoothstep(0.68, 0.76, coralPattern) * smoothstep(REEF_BEGINS, GARDENS_BEGIN, alongTheReef);
-    // (none in the last of the shallows, where the swash runs, and it thins out down the drop-off)
-    float reefCoral = max(onHighGround, scatteredHeads) * smoothstep(0.3, 0.9, waterDepth)
-      * (1.0 - smoothstep(14.0, 22.0, waterDepth));
+    // (What follows down to the crest's rock is the ocean reef's alone: in the lagoon it all comes to nothing, and
+    // is not worked out.)
+    float reefCoral = 0.0;
+    float onCrestRidge = 0.0;
+    float bareFlat = 0.0;
+    float crestRockShows = 0.0;
+    float ridgeHere = 0.0;
+    if (onTheReef > 0.5) {
+      float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
+      // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
+      float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (noise(xz * 1.3 + 4.0) - 0.5);
+      float onHighGround = smoothstep(0.38, 0.62, reefHighGround(xz.x, xz.y) + ragged);
+      float scatteredHeads = 0.7 * smoothstep(0.68, 0.76, coralPattern) * smoothstep(REEF_BEGINS, GARDENS_BEGIN, alongTheReef);
+      // (none in the last of the shallows, where the swash runs, and it thins out down the drop-off)
+      reefCoral = max(onHighGround, scatteredHeads) * smoothstep(0.3, 0.9, waterDepth)
+        * (1.0 - smoothstep(14.0, 22.0, waterDepth));
+      // The crest is pounded by the white water: less coral grows there than pale rock, crusted pink in places.
+      // Where it is a ridge, the pink alga that built it covers most of it; and the flat behind a high ridge is
+      // the same rock, bare. (Both show however shallow they lie, where coral would not.)
+      float onCrest = smoothstep(CREST_BEGINS - 8.0, CREST_BEGINS + 4.0, alongTheReef)
+        * (1.0 - smoothstep(FORE_REEF_BEGINS - 2.0, FORE_REEF_BEGINS + 14.0, alongTheReef));
+      ridgeHere = ridgeAt(directionFromCentre);
+      bareFlat = reefPavement(xz.x, xz.y) * smoothstep(-0.3, 0.05, ragged);
+      onCrestRidge = onCrest * ridgeHere * onHighGround;
+      crestRockShows = max((0.65 + 0.3 * ridgeHere) * onCrest, 0.85 * bareFlat);
+    }
     float coral = mix(lagoonCoral, reefCoral, onTheReef);
-    float coralMottle = 0.6 + 0.8 * noise(xz * 2.3);
-    float coralGrain = 0.75 + 0.5 * noise(xz * 7.0);
-    vec3 coralColour = mix(BROWN_CORAL, OLIVE_CORAL, noise(xz * 0.45 + 3.0)) * coralMottle * coralGrain;
-    // The crest is pounded by the white water: less coral grows there than pale rock, crusted pink in places.
-    // Where it is a ridge, the pink alga that built it covers most of it; and the flat behind a high ridge is
-    // the same rock, bare. (Both show however shallow they lie, where coral would not.)
-    float onCrest = onTheReef * smoothstep(CREST_BEGINS - 8.0, CREST_BEGINS + 4.0, alongTheReef)
-      * (1.0 - smoothstep(FORE_REEF_BEGINS - 2.0, FORE_REEF_BEGINS + 14.0, alongTheReef));
-    float ridgeHere = ridgeAt(directionFromCentre);
-    float bareFlat = onTheReef * reefPavement(xz.x, xz.y) * smoothstep(-0.3, 0.05, ragged);
-    vec3 crestRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, noise(xz * 2.3)) * (0.66 + 0.68 * noise(xz * 7.0));
-    crestRock = mix(crestRock, PINK_CRUST,
-      smoothstep(0.5 - 0.25 * ridgeHere, 0.7, noise(xz * 1.1 + 9.0)) * (0.5 + 0.3 * ridgeHere));
-    coral = max(coral, max(onCrest * ridgeHere * onHighGround, bareFlat));
-    coralColour = mix(coralColour, crestRock, max((0.65 + 0.3 * ridgeHere) * onCrest, 0.85 * bareFlat));
-    diffuseColor.rgb = mix(diffuseColor.rgb, coralColour, coral * (0.55 + 0.3 * smoothstep(1.0, 3.0, waterDepth)));
+    coral = max(coral, max(onCrestRidge, bareFlat));
+    // (Its colour is worked out only where there is coral or the crest's rock: over bare sand, not.)
+    if (coral > 0.0) {
+      float coralMottle = 0.6 + 0.8 * noise(xz * 2.3);
+      float coralGrain = 0.75 + 0.5 * noise(xz * 7.0);
+      vec3 coralColour = mix(BROWN_CORAL, OLIVE_CORAL, noise(xz * 0.45 + 3.0)) * coralMottle * coralGrain;
+      if (crestRockShows > 0.0) {
+        vec3 crestRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, noise(xz * 2.3)) * (0.66 + 0.68 * noise(xz * 7.0));
+        crestRock = mix(crestRock, PINK_CRUST,
+          smoothstep(0.5 - 0.25 * ridgeHere, 0.7, noise(xz * 1.1 + 9.0)) * (0.5 + 0.3 * ridgeHere));
+        coralColour = mix(coralColour, crestRock, crestRockShows);
+      }
+      diffuseColor.rgb = mix(diffuseColor.rgb, coralColour, coral * (0.55 + 0.3 * smoothstep(1.0, 3.0, waterDepth)));
+    }
   }
 
   // Round the coral heads (reef-map.ts: its map's green channel) the floor is not sand but old reef: rough pale rock,
