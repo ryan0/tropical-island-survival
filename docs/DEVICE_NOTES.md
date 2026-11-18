@@ -40,6 +40,7 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   hiding the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
   wave mesh no finer than its second level (`coarse wave mesh`), drawing it in one flat colour (`bare wave mesh`),
+  an experiment that makes five of its readings only where they are wanted (`skip unused readings`, below),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
   the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were
@@ -88,6 +89,11 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - What the Pixel 10 said on 18 November 2026, from the ocean beach looking out to sea: 30 to 45 frames a second;
   with the sea drained 55 to 60; with the wave mesh hidden 55 to 60; with the far sea hidden 38 to 40. The wave
   mesh is what costs, and the rest of the scene is close to its own limit.
+- An experiment, not yet seen on the phone (18 November 2026): `skip unused readings` compiles the wave mesh
+  with `WATER_READS_WHERE_NEEDED`, which reads the mipmapped detail texture inside a branch with `textureGrad`,
+  given derivatives that were taken before the branch. By the rules of the shading language that is well
+  defined, where a plain reading inside a branch is not; whether the phone agrees is what the switch is for.
+  Until Ryan has tried it and agreed, the rule stands as written and nothing else reads so.
 - Anisotropic filtering of a texture the water reads many times is dear: the detail texture, read eleven times
   for each dot of the wave mesh, nearly always at a low angle, was a fifth of a frame in the software renderer
   at anisotropy 4. It and the caustics texture are filtered plainly now.

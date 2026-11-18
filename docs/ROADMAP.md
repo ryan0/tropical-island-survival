@@ -910,7 +910,8 @@ What the skipped work saves comes on top of that, and only the phone can say how
 
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
-was there, the three say whether the mesh's cost is its colouring, its filtering or its points.
+was there, the three say whether the mesh's cost is its colouring, its filtering or its points. `skip unused
+readings` is the experiment below.
 
 **Not done, and why.**
 
@@ -918,18 +919,23 @@ was there, the three say whether the mesh's cost is its colouring, its filtering
   7 in a hundred of a frame in the software renderer, likely more on the phone. A picture of the floor's height
   would replace it, or the formula could skip the reef's zones a dot is not in. Ryan: not yet, since the floor
   is about to change.
-- *Reading textures inside branches.* Five of the wave mesh's sixteen readings for each dot are wanted only where
-  there is foam or steep water. They are all made everywhere because of a hard rule (`DEVICE_NOTES.md`). A
-  reading that is told its own sharpness outright should be safe inside a branch; it is new ground on the phone,
-  and Ryan's to agree.
+- *Reading textures inside branches*: built as an experiment, off unless switched on. Five of the wave mesh's
+  sixteen readings for each dot are wanted only where there may be foam or steep water; they are all made
+  everywhere because of a hard rule (`DEVICE_NOTES.md`). `skip unused readings` in the debug panel compiles the
+  wave mesh to make them inside a branch, each told outright how fast its place changes across a dot, which is
+  worked out before the branch: the graphics card then has nothing to work out inside it, which is where some
+  phones go wrong. With it on the software renderer draws the same picture (45 views; in some a few dots differ
+  by one step in 255). Whether the phone draws it right, and faster, is Ryan's to try; whether it becomes the
+  rule is his to agree. (WebGL 2 only.)
 - *Mirrored clouds as soft shapes.* The hard-edged pale shapes on a windy lagoon come from the test builds'
   coarse cloud pictures; the phone's are finer. Left as it is until seen there.
 - *The wave mesh's points.* Its levels of detail are as they were, until `coarse wave mesh` has been read on
   the phone.
 
 For the phone: the frame rate from the ocean beach as it is; with `sharper filtering`; with `bare wave mesh`;
-with `coarse wave mesh`; in the lagoon; and whether the calmer far water and the softer net of light far off
-read better or have lost too much.
+with `coarse wave mesh`; with `skip unused readings`, and whether the water looks any different with it (seams,
+a shimmer, blocks); in the lagoon; and whether the calmer far water and the softer net of light far off read
+better or have lost too much.
 
 ## Later
 

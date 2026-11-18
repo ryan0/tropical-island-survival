@@ -191,6 +191,9 @@ const vec2 MEDIUM_RIPPLES_RUN = vec2(-0.046, 0.054);
 const vec2 SMALL_RIPPLES_RUN = vec2(0.131, 0.072);
 const float RIPPLES_REPEAT = 1000.0;
 
+// (In the experiment that reads textures only where they are wanted, the face's lines are read where the water
+// stands steeper than this: 1 less the cosine of its tilt, so 0.0 is any tilt at all.)
+const float FACE_LINES_FROM_STEEP = 0.002;
 // The lines that run up a wave's face: how many times the detail texture goes round the atoll for them (one line
 // to some 20 cm of the wave's length), and how far they tilt the face.
 const float FACE_LINES_ROUND = 816.0 / FULL_TURN;
@@ -627,46 +630,81 @@ void main() {
   // across. (The flat sheets carry only the wind's foam, which is torn and gone in a few seconds: there the
   // coarser of the two is the small ripples' own reading, and every dot of the open sea and the lagoon is spared
   // one.)
+  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
+  vec2 foamFineAt = turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06);
   #ifdef WATER_STANDS_STEEP
-  vec4 foamSmall = texture2D(uDetail, turnedForSmall * 0.23 + uTime * vec2(0.031, 0.017));
+  vec2 foamSmallAt = turnedForSmall * 0.23 + uTime * vec2(0.031, 0.017);
+  // A reading laid out along the shore and stretched 3.6 times across it: streaks that run the way the waves travel
+  // (foam drawn out behind white water, lines pulled up a wave's face). Its coordinates have a seam on the west side
+  // of the atoll (direction = +-pi), so it is faded out just there.
+  // (Only the two meshes the waves move have a shore to be laid along: the flat sheets are compiled without it.)
+  vec2 shoreStreaksAt = vec2(directionFromCentre * 25.4648, metresOffBeach * 0.035 - uTime * 0.004);
+  // Two more readings for water that stands steep, which only the wave mesh and the breaker's mesh can: the flat
+  // sheets are compiled without them (WATER_STANDS_STEEP is the materials' define). Both are laid out along the
+  // shore, and have the same seam and the same fade.
+  // Drawn out up the water's height and fine along the shore: the lines that run up a wave's face, where the water
+  // is drawn up it.
+  vec2 faceLinesAt = vec2(directionFromCentre * FACE_LINES_ROUND,
+    (vWaterPosition.y - uSeaLevel) * 0.05 + metresOffBeach * 0.01 - uTime * 0.012);
+  // Along the shore and up the water's height alike, for foam on steep water - the front of white water, the mass
+  // a landed lip throws up - where the readings laid on from above would be smeared down it.
+  // (It runs down the water as white water tumbles: STEEP_FOAM_FALLS metres a second.)
+  vec2 steepFoamAt = vec2(directionFromCentre * STEEP_FOAM_ROUND,
+    (vWaterPosition.y - uSeaLevel + uTime * STEEP_FOAM_FALLS) * 0.33);
+  #endif
+  float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
+
+  #if defined(WATER_READS_WHERE_NEEDED) && defined(WATER_STANDS_STEEP) && __VERSION__ >= 300
+  // AN EXPERIMENT, behind a debug switch and off unless it is switched on (docs/DEVICE_NOTES.md, "Read a mipmapped
+  // texture before a branch"). These five readings are wanted only where there may be foam, and the face's lines
+  // where the water stands at all steep: over most of the wave mesh, neither. Here they are made inside a branch,
+  // each told outright how fast its place changes across a dot, which was worked out before the branch: the
+  // graphics card has then nothing to work out inside it, which is where some phones go wrong. (WebGL 2 only.)
+  vec4 foamSmallAcross = vec4(dFdx(foamSmallAt), dFdy(foamSmallAt));
+  vec4 foamFineAcross = vec4(dFdx(foamFineAt), dFdy(foamFineAt));
+  vec4 shoreStreaksAcross = vec4(dFdx(shoreStreaksAt), dFdy(shoreStreaksAt));
+  vec4 faceLinesAcross = vec4(dFdx(faceLinesAt), dFdy(faceLinesAt));
+  vec4 steepFoamAcross = vec4(dFdx(steepFoamAt), dFdy(steepFoamAt));
+  vec4 foamSmall = vec4(0.5);
+  vec4 foamFine = vec4(0.5);
+  vec4 shoreStreaks = vec4(0.5);
+  vec4 faceLines = vec4(0.5);
+  vec4 steepFoam = vec4(0.5);
+  // (foam: where the wave model puts any, at the water's edge, near the beach - as "Foam" below asks - under a
+  // white mass, and anywhere once the wind is high enough for white horses)
+  bool mayCarryFoam = waveFoam > 0.003 || waterDepth < 0.09 || metresOffBeach < 16.0 || vWhiteMass.x > 0.0
+    || uWind > WHITECAPS_FROM_WIND;
+  if (mayCarryFoam) {
+    foamSmall = textureGrad(uDetail, foamSmallAt, foamSmallAcross.xy, foamSmallAcross.zw);
+    foamFine = textureGrad(uDetail, foamFineAt, foamFineAcross.xy, foamFineAcross.zw);
+    shoreStreaks = textureGrad(uDetail, shoreStreaksAt, shoreStreaksAcross.xy, shoreStreaksAcross.zw);
+    steepFoam = textureGrad(uDetail, steepFoamAt, steepFoamAcross.xy, steepFoamAcross.zw);
+  }
+  if (mayCarryFoam || 1.0 - normalize(vWaterNormal).y > FACE_LINES_FROM_STEEP) {
+    faceLines = textureGrad(uDetail, faceLinesAt, faceLinesAcross.xy, faceLinesAcross.zw);
+  }
+  #else
+  #ifdef WATER_STANDS_STEEP
+  vec4 foamSmall = texture2D(uDetail, foamSmallAt);
+  vec4 shoreStreaks = texture2D(uDetail, shoreStreaksAt);
+  vec4 faceLines = texture2D(uDetail, faceLinesAt);
+  vec4 steepFoam = texture2D(uDetail, steepFoamAt);
   #else
   vec4 foamSmall = ripplesSmall;
   #endif
-  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
-  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
+  vec4 foamFine = texture2D(uDetail, foamFineAt);
+  #endif
 
   // Once more stretched twice along the wind, for the white horses' foam: read here and not inside their branch.
   vec2 windStreaksUv = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07);
   vec4 windStreaks = texture2D(uDetail, windStreaksUv + uTime * vec2(0.008, 0.02));
 
-  // A reading laid out along the shore and stretched 3.6 times across it: streaks that run the way the waves travel
-  // (foam drawn out behind white water, lines pulled up a wave's face). Its coordinates have a seam on the west side
-  // of the atoll (direction = +-pi), so it is faded out just there.
-  // (Only the two meshes the waves move have a shore to be laid along: the flat sheets are compiled without it.)
-  float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
   #ifdef WATER_STANDS_STEEP
-  vec4 shoreStreaks = texture2D(uDetail, vec2(directionFromCentre * 25.4648, metresOffBeach * 0.035 - uTime * 0.004));
   float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam);
-  #else
-  float shoreStreak = 0.5;
-  #endif
-
-  // Two more readings for water that stands steep, which only the wave mesh and the breaker's mesh can: the flat
-  // sheets are compiled without them (WATER_STANDS_STEEP is the materials' define). Both are laid out along the
-  // shore, and have the same seam and the same fade.
-  #ifdef WATER_STANDS_STEEP
-  // Drawn out up the water's height and fine along the shore: the lines that run up a wave's face, where the water
-  // is drawn up it.
-  vec4 faceLines = texture2D(uDetail, vec2(directionFromCentre * FACE_LINES_ROUND,
-    (vWaterPosition.y - uSeaLevel) * 0.05 + metresOffBeach * 0.01 - uTime * 0.012));
   float faceLine = (faceLines.r - 0.5) * awayFromSeam;
   float fallingStreak = faceLines.a * 0.6 + faceLines.b * 0.4;
-  // Along the shore and up the water's height alike, for foam on steep water - the front of white water, the mass
-  // a landed lip throws up - where the readings laid on from above would be smeared down it.
-  // (It runs down the water as white water tumbles: STEEP_FOAM_FALLS metres a second.)
-  vec4 steepFoam = texture2D(uDetail, vec2(directionFromCentre * STEEP_FOAM_ROUND,
-    (vWaterPosition.y - uSeaLevel + uTime * STEEP_FOAM_FALLS) * 0.33));
   #else
+  float shoreStreak = 0.5;
   float faceLine = 0.0;
   float fallingStreak = 0.5;
   vec4 steepFoam = vec4(0.5);

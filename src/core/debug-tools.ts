@@ -175,6 +175,19 @@ export function debugSwitches(
       },
     },
     {
+      // An experiment, off unless switched on: the wave mesh makes five of its readings of the detail texture
+      // only where there may be foam or steep water, inside a branch, each told its own sharpness outright
+      // (water.frag.glsl's WATER_READS_WHERE_NEEDED; WebGL 2 only). The picture should not change; the frame
+      // rate may. It breaks a hard rule as written (docs/DEVICE_NOTES.md), which is why it is only a switch.
+      label: 'skip unused readings',
+      set(on) {
+        const { defines } = water.waveMaterial;
+        if (on) defines.WATER_READS_WHERE_NEEDED = '';
+        else delete defines.WATER_READS_WHERE_NEEDED;
+        water.waveMaterial.needsUpdate = true;
+      },
+    },
+    {
       // The same: the wave mesh's colouring without what only steep water needs (two readings of
       // the detail texture for every dot of it: water.frag.glsl's WATER_STANDS_STEEP).
       label: 'plain steep water',
