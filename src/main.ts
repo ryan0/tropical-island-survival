@@ -84,8 +84,8 @@ const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
 const { hasCamp } = worldConfig;
 
 // ---- the sky's pictures, and the uniforms every shader shares ----
-const detailTexture = createDetailTexture(maxAnisotropy);
-const causticsTexture = createCausticsTexture(detailTexture.image.data, maxAnisotropy);
+const detailTexture = createDetailTexture();
+const causticsTexture = createCausticsTexture(detailTexture.image.data);
 const weather = createWeather();
 const cloudPictureWidth = testHooks.cloudPictureWidth ?? cloudsConfig.pictureWidth;
 const clouds = createClouds({

@@ -76,6 +76,13 @@ export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): stri
 }
 
 /**
+ * The filtering the `sharper filtering` switch gives the detail and caustics textures: sharp
+ * across the view at a low angle, as they were until 18 November 2026 (three.js asks for no more
+ * than the graphics card offers).
+ */
+const SHARPER_FILTERING = 4;
+
+/**
  * The pace the `slower ripples` switch sets, against the usual 1: the pace they had until 18
  * November 2026, a quarter of what real ripples run at.
  */
@@ -157,6 +164,17 @@ export function debugSwitches(
     // For finding where a slow frame goes: read the frame rate with it on.
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
     {
+      // To see what the wave mesh's colouring costs, all of it: the mesh drawn in one flat colour
+      // (water.frag.glsl's WATER_BARE). What is left is its points and the filling of its triangles.
+      label: 'bare wave mesh',
+      set(on) {
+        const { defines } = water.waveMaterial;
+        if (on) defines.WATER_BARE = '';
+        else delete defines.WATER_BARE;
+        water.waveMaterial.needsUpdate = true;
+      },
+    },
+    {
       // The same: the wave mesh's colouring without what only steep water needs (two readings of
       // the detail texture for every dot of it: water.frag.glsl's WATER_STANDS_STEEP).
       label: 'plain steep water',
@@ -192,6 +210,18 @@ export function debugSwitches(
           material.needsUpdate = true;
         }
       },
+    },
+    {
+      // To see what plain filtering saves, and loses: the detail and caustics textures filtered to stay sharp
+      // across the view at a low angle, as they were.
+      label: 'sharper filtering',
+      set(on) {
+        for (const texture of [uniforms.uDetail.value, uniforms.uCaustics.value]) {
+          texture.anisotropy = on ? SHARPER_FILTERING : 1;
+          texture.needsUpdate = true;
+        }
+      },
+      isOn: () => uniforms.uDetail.value.anisotropy > 1,
     },
     {
       // For judging motion, which only the phone shows: the water's ripples running at a quarter of their pace.

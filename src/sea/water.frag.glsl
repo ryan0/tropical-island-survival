@@ -462,6 +462,12 @@ void main() {
   #endif
   // (uDebugMode 5: the sea is drained, to see its floor)
   if (uDebugMode > 4.5 || tornAway > 0.5) discard;
+  // (WATER_BARE: a debug switch draws the wave mesh in one colour and works out nothing more, to see what all of
+  // its colouring costs.)
+  #ifdef WATER_BARE
+  gl_FragColor = vec4(PLAIN_WATER, 0.95);
+  return;
+  #endif
 
   // ---- Where this point is ----
 

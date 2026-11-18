@@ -171,9 +171,12 @@ function toByte(value: number): number {
  *   blue         soft blotches (gusts on the water, foam thinning out): the height of those small waves
  *   alpha        a net of thin lines: foam lace on the surface, the net of light on the sea floor
  *
- * `maxAnisotropy` is the most anisotropic filtering the graphics card offers.
+ * It is filtered plainly: blurred with distance alike along the view and across it. Filtered
+ * to stay sharp across the view when it is seen at a low angle (anisotropy 4), it cost more than
+ * anything else in the water's colouring, which reads it eleven times for each dot; and far
+ * water, and the net of light far off, look calmer for the blur.
  */
-export function createDetailTexture(maxAnisotropy: number): DataTexture {
+export function createDetailTexture(): DataTexture {
   const random = createRandom();
   const waves = createSmallWaves(random);
   const { heightSpread, slopeScale } = sharpenCrests(waves);
@@ -216,7 +219,6 @@ export function createDetailTexture(maxAnisotropy: number): DataTexture {
   texture.magFilter = LinearFilter;
   texture.minFilter = LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
-  texture.anisotropy = Math.min(4, maxAnisotropy);
   texture.needsUpdate = true;
   return texture;
 }

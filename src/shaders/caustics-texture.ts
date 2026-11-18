@@ -160,12 +160,10 @@ function lightOnFloor(
  *   alpha              the detail texture's net of lines, so that the shaders which read both
  *                      at one place (the foam's lace on the lagoon's sand) read once
  *
- * `detailPixels` are the detail texture's, of the same size.
+ * `detailPixels` are the detail texture's, of the same size. It is filtered plainly, as that is
+ * (detail-texture.ts).
  */
-export function createCausticsTexture(
-  detailPixels: Uint8Array | Uint8ClampedArray,
-  maxAnisotropy: number,
-): DataTexture {
+export function createCausticsTexture(detailPixels: Uint8Array | Uint8ClampedArray): DataTexture {
   const slopes = createSlopes(createRandom());
   const curvature = typicalCurvature(slopes);
   const pixels = new Uint8Array(DOTS * 4);
@@ -183,7 +181,6 @@ export function createCausticsTexture(
   texture.magFilter = LinearFilter;
   texture.minFilter = LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
-  texture.anisotropy = Math.min(4, maxAnisotropy);
   texture.needsUpdate = true;
   return texture;
 }
