@@ -1,4 +1,4 @@
-import type { ShaderMaterial, Texture, WebGLRenderer } from 'three';
+import type { ShaderMaterial, WebGLRenderer } from 'three';
 import type { Breaker } from '../sea/breaker';
 import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
@@ -135,7 +135,7 @@ export function debugSwitches(
   crestLine: CrestLine,
   breaker: Breaker,
   spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
-  drawFloorHeightPicture: () => Texture | null,
+  quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -202,24 +202,28 @@ export function debugSwitches(
       isOn: () => water.waveMaterial.defines[stage.define] === '',
     })),
     {
-      // An experiment, off unless switched on: the sea and the lagoon read the ground's height from a picture
-      // made from the island's formula at start-up, and do not work the formula out for each dot
-      // (water.frag.glsl's WATER_FLOOR_FROM_PICTURE; sea/floor-height-picture.ts). The picture is drawn when the
-      // switch is first used, so that until then nothing of the experiment has run; the switch does nothing
-      // where the graphics card cannot draw it.
-      label: 'floor from a picture',
+      // The sea and the lagoon working the island's formula out for every dot, as they did until 19 November
+      // 2026, where they now read the ground's height from a picture made from it (water.frag.glsl's
+      // WATER_FLOOR_FROM_PICTURE; sea/floor-height-picture.ts): to compare the look and the frame rate. (The
+      // breaker's mesh and the lagoon's shore band keep to the picture.)
+      label: 'floor from the formula',
       set(on) {
-        if (on && uniforms.uFloorHeight.value === null) {
-          uniforms.uFloorHeight.value = drawFloorHeightPicture();
-        }
         if (uniforms.uFloorHeight.value === null) return;
         for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) material.defines.WATER_FLOOR_FROM_PICTURE = '';
-          else delete material.defines.WATER_FLOOR_FROM_PICTURE;
+          if (on) delete material.defines.WATER_FLOOR_FROM_PICTURE;
+          else material.defines.WATER_FLOOR_FROM_PICTURE = '';
           material.needsUpdate = true;
         }
       },
-      isOn: () => 'WATER_FLOOR_FROM_PICTURE' in water.waveMaterial.defines,
+      isOn: () => !('WATER_FLOOR_FROM_PICTURE' in water.waveMaterial.defines),
+    },
+    {
+      // For reading what each part of a frame costs once the frame rate is at the screen's own 60, which hides
+      // it: half as many dots again each way, so every dot's work counts two and a quarter times over and the
+      // frame rate falls where differences show. Automatic quality stands still meanwhile.
+      label: 'more dots',
+      set: quality.drawMoreDots,
+      isOn: () => quality.isDrawingMoreDots,
     },
     {
       // The sea and the lagoon coloured as if their floor lay level, with nothing of the island's formula

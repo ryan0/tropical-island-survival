@@ -43,7 +43,7 @@ export type SharedUniforms = Record<string, IUniform> &
     /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
     uSeaFloor: { value: Texture | null };
     uBreakTimes: { value: Texture | null };
-    /** The ground's height as a picture, once a debug switch has had it drawn (sea/floor-height-picture.ts). */
+    /** The ground's height as a picture, where the graphics card can draw one (sea/floor-height-picture.ts). */
     uFloorHeight: { value: Texture | null };
     /** Where the main swell's crest lies, once it is made (sea/crest-picture.ts). */
     uCrests: { value: Texture | null };

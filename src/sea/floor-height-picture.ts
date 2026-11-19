@@ -20,10 +20,11 @@ import { seaConfig } from './sea-config';
 // The ground's height as a picture, for the water's shader, which needs the depth of the water at
 // every dot it colours. Working the island's formula out for each of those dots is the dearest
 // arithmetic in the water's colouring on Ryan's phone, which finds a texture reading cheap. So the
-// graphics card works the formula out once for every dot of this picture, and the water reads the
-// picture (water.frag.glsl, WATER_FLOOR_FROM_PICTURE). It is made from the formula itself, so
-// whatever the island's shape becomes, the picture follows. (An experiment for now: a debug switch
-// has it drawn and turns the reading on.)
+// graphics card works the formula out once, at start-up, for every dot of this picture, and the
+// water reads the picture (water.frag.glsl, WATER_FLOOR_FROM_PICTURE): on that phone it gave back
+// ten frames a second of sixty. It is made from the formula itself, so whatever the island's shape
+// becomes, the picture follows. Where the graphics card cannot draw such a picture the water works
+// the formula out as it did.
 
 const config = seaConfig.floorHeightPicture;
 

@@ -934,15 +934,23 @@ are compiled out of the two meshes the waves move, which are never in the lagoon
 costs; and `water: to colour` with `no floor formula` together, 60, so the formula is the whole cost of that
 step. Two more stop-switches split the last part: `water: to white horses` and `water: to foam`.
 
-**The floor's height as a picture: built as an experiment, off unless switched on** (`floor from a picture`).
-The graphics card works the island's formula out once for every dot of a picture 2048 dots across, half a
-metre to a dot, and the water reads that in place of both workings-out of the formula
-(`sea/floor-height-picture.ts`; `WATER_FLOOR_FROM_PICTURE`). It is made from the formula itself, so whatever
-the island's shape becomes, the picture follows. The picture is drawn only when the switch is first used, so
-until then nothing of the experiment has run: drawing into a half-float picture is new to the phone. With it
-on, the software renderer's pictures differ from the formula's by less than the eye can tell (54 views, and
-the thin water over a bared reef top looked at closely). Whether it gives the phone its 3 ms, and whether it
-becomes the rule, with the picture drawn at start-up, is Ryan's to try and to agree.
+**The floor's height as a picture.** The graphics card works the island's formula out once, at start-up, for
+every dot of a picture 2048 dots across, half a metre to a dot, and the water reads that in place of both
+workings-out of the formula (`sea/floor-height-picture.ts`; `WATER_FLOOR_FROM_PICTURE`). It is made from the
+formula itself, so whatever the island's shape becomes, the picture follows. Built first as a switch, and read
+on the phone: 55 frames a second, where the formula gave 39 to 45. Ryan had said of it "not sure floor as a
+picture makes sense yet as we will be changing it, fine if quick"; it is the rule now, on this branch, for him
+to confirm. Where the graphics card cannot draw into a half-float picture the water works the formula out as
+it did, and `floor from the formula` in the debug panel does the same, to compare. The software renderer's
+pictures differ from the formula's by less than the eye can tell (54 views, and the thin water over a bared
+reef top looked at closely).
+
+**What is left** (the same day, with the picture): stopped after the white horses, 58 to 60; stopped after the
+foam, 50 to 60; all of it, 55. So the foam is about a millisecond and the haze nothing, and everything before
+the foam now fits a frame with little to spare. The screen shows no more than 60, which hides what each of the
+earlier parts costs: `more dots` in the debug panel draws half as many dots again each way, so that every
+dot's work counts two and a quarter times over and the frame rate falls to where the stop-switches can be told
+apart.
 
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
@@ -1022,5 +1030,8 @@ better or have lost too much.
 - Whitecaps cost up to four noise evaluations per water pixel, only above a medium wind. The lagoon's shore band
   (43,000 triangles) is drawn only in a high wind, in view and within 150 m.
 - Automatic quality lowers resolution, then switches shadows off, below about 28 frames a second.
-- Not done: a height picture to replace the terrain formula in the water shader; noise from a texture instead of
-  arithmetic in the terrain shader (it would change every pattern on the ground, so weigh that first).
+- The water's shader reads the ground's height from a picture made from the island's formula at start-up
+  (`sea/floor-height-picture.ts`): on the phone that gave back ten frames a second of sixty. On this phone
+  arithmetic is dear and a texture reading costs next to nothing.
+- Not done: noise from a texture instead of arithmetic in the terrain shader (it would change every pattern on
+  the ground, so weigh that first).

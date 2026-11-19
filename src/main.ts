@@ -133,6 +133,7 @@ const sunGlare = createSunGlare(pageElement('glare'), camera);
 const seaFloor = createSeaFloorPictures(island.groundHeight);
 uniforms.uSeaFloor.value = seaFloor.floor;
 uniforms.uBreakTimes.value = seaFloor.breaks;
+uniforms.uFloorHeight.value = createFloorHeightPicture(renderer);
 /** How far from the atoll's centre the line its waves break on lies, in a direction. */
 const breakLineFromCentre = (direction: number) =>
   island.radius(direction) + island.offshoreOfReef(seaConfig.reefBreak, direction);
@@ -334,8 +335,7 @@ const debugPanel = createDebugPanel(
     crestLine,
     breaker,
     spray,
-    // (the floor's height picture is drawn only when its switch is first used: it is an experiment)
-    () => createFloorHeightPicture(renderer),
+    quality,
   ),
   'fly to',
   placesToFlyTo(player),

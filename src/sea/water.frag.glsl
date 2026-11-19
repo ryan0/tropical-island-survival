@@ -73,7 +73,7 @@ uniform sampler2D uReefMap;
 uniform sampler2D uSeaFloor;      // the sea floor as the waves know it: (delay of swell 0, of swell 1, depth, unused)
 uniform sampler2D uBreakTimes;      // seconds since the main swell crossed each of four depths (sea-floor-pictures.ts)
 // The ground's height as a picture (floor-height-picture.ts): read in place of the island's formula while
-// WATER_FLOOR_FROM_PICTURE is defined, which for now only a debug switch does.
+// WATER_FLOOR_FROM_PICTURE is defined, which it is wherever the picture could be drawn.
 uniform sampler2D uFloorHeight;
 // The two sky pictures being blended, and how far from A to B (clouds.ts); the colours of cloud in the sun and in
 // shade.

@@ -174,6 +174,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
         defines: {
           ...defines,
           WATER_FOLLOWS_SIGHT: '',
+          // (the ground's height read from its picture, where the graphics card could draw one)
+          ...(uniforms.uFloorHeight.value === null ? {} : { WATER_FLOOR_FROM_PICTURE: '' }),
           WATER_SPARKLES: '',
           ...(isWaveMesh || isBreaker ? { WATER_STANDS_STEEP: '' } : {}),
           ...(isBreaker ? { WATER_HAS_TORN_EDGE: '' } : {}),

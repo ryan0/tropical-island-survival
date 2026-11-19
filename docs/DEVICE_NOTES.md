@@ -43,8 +43,9 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   an experiment that makes five of its readings only where they are wanted (`skip unused readings`, below),
   ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`, `to white
   horses`, `to foam`),
-  colouring it without the island's formula (`no floor formula`), or with the formula read from a picture
-  (`floor from a picture`: an experiment, which draws into a half-float picture when it is first switched on),
+  colouring it without the island's formula (`no floor formula`), or with the formula worked out for every dot
+  as it was until 19 November 2026 (`floor from the formula`), drawing half as many dots again each way so that
+  costs hidden by the screen's 60 frames a second can be read (`more dots`),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
   the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were
@@ -112,6 +113,10 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   of it, 41 to 46; all of it without the island's formula, 50. The formula, worked out for every dot (and a
   second time inside a branch), is about 3 ms of a frame: on this phone arithmetic is dear and a texture
   reading is cheap, so a formula that every dot works out wants to be a picture.
+- The water reads the ground's height from a picture the graphics card draws at start-up (a 2048-dot half-float
+  picture with one channel, drawn into as a render target, no mipmaps: `floor-height-picture.ts`). On the Pixel
+  10 that gave 55 frames a second where the formula gave 39 to 45 (19 November 2026), and Ryan named no fault in
+  the picture. Drawing into a half-float picture was new to the phone, and worked.
 - So the software renderer is a poor guide to this phone twice over: it overstates what texture filtering costs,
   and it cannot see what a branch saves. Add a switch and read the phone.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.

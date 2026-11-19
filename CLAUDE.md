@@ -66,8 +66,9 @@ These come from bugs that only appeared on Ryan's phone. Details: `docs/DEVICE_N
   three.js stays at 0.128. (Suspected, not proven.)
 - In a patched built-in material, use the shared camera uniform, not `cameraPosition`.
 - The shape of the island is defined once and shared by shaders and program. So is anything else both need.
-- The water shader knows the ground only as a formula; the ground is drawn as triangles. Within a hand's depth of
-  the water's edge the two disagree, so the sand shader draws everything there.
+- The water shader knows the ground only as a formula, or a picture made from it (`src/sea/floor-height-picture.ts`);
+  the ground is drawn as triangles. Within a hand's depth of the water's edge the two disagree, so the sand shader
+  draws everything there.
 
 ## Code standards (full text: `docs/CODE_STANDARDS.md`)
 
