@@ -633,7 +633,7 @@ void main() {
   float colouredAsDeep = 1.0;
   #endif
 
-  // (WATER_STOPS_AFTER_...: four debug switches end the colouring here and at three places further on, and draw
+  // (WATER_STOPS_AFTER_...: six debug switches end the colouring here and at five places further on, and draw
   // what has been worked out so far as a rough colour, so that nothing before the place is left out and nothing
   // after it is worked out. Read with the frame rate, they say which part of the colouring costs the frames.)
   #ifdef WATER_STOPS_AFTER_DEPTH
@@ -1248,6 +1248,11 @@ void main() {
   }
   #endif
 
+  #ifdef WATER_STOPS_AFTER_WHITE_HORSES
+  gl_FragColor = vec4(mix(colour, vec3(1.0), clamp(windFoam + whiteCrests, 0.0, 1.0)), opacity);
+  return;
+  #endif
+
   // ---- Foam ----
 
   // The wave model says how much (waveFoam); the detail texture turns that into lace where it is thin and a white
@@ -1373,6 +1378,11 @@ void main() {
   // (or unless there is no floor behind it to show: a film of water at the far edge of a bared reef top, with the
   // trough beyond it, was a window to the sky)
   opacity = max(opacity, noFloorBehind * smoothstep(0.0, 0.04, waterDepth));
+
+  #ifdef WATER_STOPS_AFTER_FOAM
+  gl_FragColor = vec4(colour, opacity);
+  return;
+  #endif
 
   // ---- Haze, the view from under water, and the debug colour ----
 

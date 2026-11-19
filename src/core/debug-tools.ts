@@ -85,6 +85,8 @@ const WATER_STAGES = [
   { label: 'water: to ripples', define: 'WATER_STOPS_AFTER_RIPPLES' },
   { label: 'water: to mirror', define: 'WATER_STOPS_AFTER_MIRROR' },
   { label: 'water: to colour', define: 'WATER_STOPS_AFTER_COLOUR' },
+  { label: 'water: to white horses', define: 'WATER_STOPS_AFTER_WHITE_HORSES' },
+  { label: 'water: to foam', define: 'WATER_STOPS_AFTER_FOAM' },
 ] as const;
 
 /**
