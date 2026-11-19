@@ -910,6 +910,15 @@ its old frame rate), a frame took this morning and takes now:
 
 What the skipped work saves comes on top of that, and only the phone can say how much.
 
+**What the phone said afterwards** (19 November 2026, the same place): 41 to 46 frames a second as it is, where it
+was 30 to 45. With `sharper filtering` 43 to 46: the plain filtering saves the phone nothing, and the software
+renderer was wrong about the largest thing it found. With `skip unused readings` 41 to 44: no gain either. With
+`coarse wave mesh` 44. With `bare wave mesh` 60. So the wave mesh's cost is all in the colouring of its dots,
+and none of it is texture readings, their filtering, or the mesh's points: it is arithmetic. Which arithmetic
+is what the switches below are for: `water: depth only`, `water: to ripples`, `water: to mirror` and `water: to
+colour` end the colouring at those places and draw what there is so far, and `no floor formula` colours the
+water as if its floor lay level. Plain or sharper filtering is now a choice of look alone, and Ryan's.
+
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
 was there, the three say whether the mesh's cost is its colouring, its filtering or its points. `skip unused

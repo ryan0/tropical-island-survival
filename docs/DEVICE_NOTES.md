@@ -41,6 +41,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
   wave mesh no finer than its second level (`coarse wave mesh`), drawing it in one flat colour (`bare wave mesh`),
   an experiment that makes five of its readings only where they are wanted (`skip unused readings`, below),
+  ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`),
+  colouring it without the island's formula (`no floor formula`),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
   the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were
@@ -95,9 +97,16 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   is well defined, where a plain reading inside a branch is not; whether the phone agrees is what the switch is
   for.
   Until Ryan has tried it and agreed, the rule stands as written and nothing else reads so.
-- Anisotropic filtering of a texture the water reads many times is dear: the detail texture, read eleven times
-  for each dot of the wave mesh, nearly always at a low angle, was a fifth of a frame in the software renderer
-  at anisotropy 4. It and the caustics texture are filtered plainly now.
+- Anisotropic filtering of a texture the water reads many times is dear in the software renderer (a fifth of a
+  frame at anisotropy 4, for the detail texture, which the wave mesh reads ten times for each dot) and costs the
+  Pixel 10 nothing that can be read: 41 to 46 frames a second filtered plainly, 43 to 46 at anisotropy 4 (19
+  November 2026). Nor did skipping six of the wave mesh's sixteen readings gain anything (`skip unused
+  readings`: 41 to 44). Texture readings are not what this phone is short of.
+- The wave mesh drawn in one flat colour (`bare wave mesh`) gave 60 frames a second, and drawn coarsely (`coarse
+  wave mesh`) 44: its cost is the arithmetic of its fragment shader, not its points. The switches `water: depth
+  only`, `to ripples`, `to mirror`, `to colour` and `no floor formula` are there to say which arithmetic.
+- So the software renderer is a poor guide to this phone twice over: it overstates what texture filtering costs,
+  and it cannot see what a branch saves. Add a switch and read the phone.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.
 - What the Pixel 10 can afford (16 November 2026, by the debug panel's switches): the wave mesh's points are what
   it pays for. 123 thousand of them in view held it to about 50 frames a second; 31 thousand, and it drew 60.
