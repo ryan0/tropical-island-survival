@@ -10,9 +10,11 @@
 //                                               also the calm water of the lagoon
 //   the lagoon's shore band   uIsFlatSheet 1, uIsShoreBand 1   lifted into small waves in a high wind by lagoon-shore-band.vert.glsl
 // Each is compiled with only what it can show: WATER_STANDS_STEEP for the two meshes whose water can stand steep,
-// and WATER_HAS_TORN_EDGE for the breaker's (the materials' defines). All four have WATER_FOLLOWS_SIGHT: the
-// readings that follow the eye's line on under the surface, to a coral head and to the floor behind; and
-// WATER_SPARKLES: the sun's sparkle. A debug switch takes each away, to see what it costs.
+// and WATER_HAS_TORN_EDGE for the breaker's (the materials' defines). All four read the ground's height and the
+// shore from pictures (WATER_FLOOR_FROM_PICTURE, WATER_SHORE_FROM_PICTURE), where the formulas were worked out
+// for every dot: a debug switch goes back to each formula, to compare. Other debug switches draw the wave mesh in
+// one colour (WATER_BARE) or end the colouring part-way (WATER_STOPS_AFTER_...), to read from the frame rate what
+// each part costs (docs/DEVICE_NOTES.md).
 //
 // Needs
 //   the uniforms and varyings below, and three.js's cameraPosition (given to every ShaderMaterial);
@@ -21,6 +23,8 @@
 //     HOME_ISLET, REEF_MAP_SPAN       the middle, and the side, of the square round home that the reef's map covers
 //     OBSTACLE_FOAM_REACH, OBSTACLE_FOAM_REACH_BY_RADIUS   how far beyond its edge a thing in the surf has foam
 //                                     (water-config.ts)
+//     FLOOR_HEIGHT_SPAN               the side of the square that the picture of the ground's height covers
+//     SHORE_ROUND_FROM                the radius the shore's picture measures the shoreline from (sea-config.ts)
 //     CLOUD_SHADE_SPAN_M              the side of the square that the map of the clouds' shadows covers
 //     USUAL_WIND                      the island's usual breeze (sky-config.ts): the ripples are as strong as they
 //                                     were tuned at this wind
@@ -29,14 +33,13 @@
 //     BAND_UP_BEACH                   how far up the beach the lagoon's shore band reaches (water-config.ts)
 //     BAND_SHOWN_WITHIN               the band is drawn within this distance of the eye (water-config.ts)
 //     LAGOON_WIND_DIRECTION           which lagwave.glsl uses;
-//   from the chunks it includes: hash, noise and fbm (noise.glsl); islandR, openSea, landW, hgt, sandbankX,
-//     sandbankZ and SEA_FLOOR_DEPTH (island-shape/island.glsl and shore.glsl); WIND_DIR, LW_T, lagExposure, lagWave
-//     and lagFoam (lagwave.glsl); skyGradient and sunsBroadGlow (sky/sky-gradient.glsl).
+//   from the chunks it includes: hash, noise and fbm (noise.glsl); islandR, reefShare, landW, hgt, sandbankX,
+//     sandbankZ, REEF_BEGINS and SEA_FLOOR_DEPTH (island-shape/island.glsl and shore.glsl); WIND_DIR, LW_T,
+//     LAGOON_WAVES_FROM_WIND, lagExposure, lagWave and lagFoam (lagwave.glsl); skyGradient and sunsBroadGlow
+//     (sky/sky-gradient.glsl).
 
 // Seconds on the clock.
 uniform float uTime;
-// How fast the ripples run, against their usual pace.
-uniform float uRipplePace;
 // 0 by day .. 1 at night.
 uniform float uNight;
 // Daylight: 0 with the sun at the horizon .. 1 in full day.
@@ -206,8 +209,6 @@ const vec2 MEDIUM_RIPPLES_RUN = vec2(-0.046, 0.054);
 const vec2 SMALL_RIPPLES_RUN = vec2(0.131, 0.072);
 const float RIPPLES_REPEAT = 1000.0;
 
-// The lagoon's shore waves, with their foam, come from this wind up (lagExposure in lagwave.glsl).
-const float LAGOON_WAVES_FROM_WIND = 0.4;
 // The lines that run up a wave's face: how many times the detail texture goes round the atoll for them (one line
 // to some 20 cm of the wave's length), and how far they tilt the face.
 const float FACE_LINES_ROUND = 816.0 / FULL_TURN;
@@ -442,8 +443,8 @@ float foamAsLace(float density, float threshold, float lacePattern, float camera
 // Foam round the things standing in the surf: 1 at a rock's edge, fading out over half a metre and more (more round
 // a bigger rock). The things are spread right round the atoll, so they come in groups of four neighbours, each
 // with a circle that holds all its foam (surf-obstacles.ts): only inside a group's circle are its four asked
-// after, and of those only the ones whose foam reaches here. (Asked after one by one, all sixteen, for every dot
-// of water near the beach, they cost more than all the foam besides.)
+// after, and of those only the ones whose foam reaches here, where every dot of water near the beach used to work
+// out its distance from all sixteen.
 float foamRoundObstacles(vec2 xz) {
   float foam = 0.0;
   for (int group = 0; group < 4; group++) {
@@ -581,13 +582,7 @@ void main() {
 
   // (under the far sea the floor lies as deep as the ground ever goes)
   float waterDepth = vWaterPosition.y + SEA_FLOOR_DEPTH;
-  // (WATER_FLOOR_IS_FLAT: a debug switch takes the floor to lie level, 1.6 m down, and works out nothing of the
-  // island's shape, to see what its formula costs.)
-  #ifdef WATER_FLOOR_IS_FLAT
-  if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y + 1.6;
-  #else
   if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - groundHeightAt(xz);
-  #endif
   // how far the lagoon's shore-wave band stands above still water here
   float bandLift = (vWaterPosition.y - uSeaLevel) * uIsShoreBand;
   // the depth of still water over the sand itself, coral heads apart
@@ -604,7 +599,6 @@ void main() {
   float nearCoralHead = reefHere.g;
   // (whether the line of sight meets a head, and not the sand)
   float headBehind = 0.0;
-  #ifdef WATER_FOLLOWS_SIGHT
   if (nearCoralHead > 0.0 && waterDepth > 0.05) {
     // (how far the line of sight runs along for each metre it goes down)
     vec2 sightRunsAlong = -towardsCamera.xz / max(towardsCamera.y, 1.0 / SIGHT_RUNS_ALONG);
@@ -634,19 +628,12 @@ void main() {
     headBehind = smoothstep(0.0, 0.3, waterDepth - headDepth);
     waterDepth = max(headDepth, 0.05);
   }
-  #else
-  // (without the looks along the line of sight: as deep as the head straight under the surface)
-  if (reefHere.r > 0.02) {
-    waterDepth = min(waterDepth, max(vWaterPosition.y + 8.0 - 8.0 * reefHere.r, 0.05));
-  }
-  #endif
 
   // Where the floor falls away suddenly the water's colour does not: light spreads sideways in water, so the deep
   // water beside a shallow bank is lit by the bank, and the bank's edge is tinted by the deep beside it. So water
   // more than a little deep is coloured by its depth averaged over some metres round (the waves' picture of the
   // floor, sea-floor-pictures.ts), and hides what is under it by whichever is the deeper. (Not the far sea, whose
   // floor is not drawn; nor over a coral head.)
-  #ifdef WATER_FOLLOWS_SIGHT
   float liftOverSea = vWaterPosition.y - uSeaLevel;
   float sightLevel = max(length(towardsCamera.xz), 1e-3);
   float hasFloor = uIsFlatSheet < 0.5 || inLagoon > 0.5 ? 1.0 : 0.0;
@@ -667,9 +654,6 @@ void main() {
     DEPTH_AHEAD_COUNTS * sightRunsOn);
   float lightSpreads = DEPTH_SPREADS * smoothstep(0.2, 1.0, waterDepth) * (1.0 - headBehind) * hasFloor;
   float colouredAsDeep = mix(1.0, max(depthSeenThrough, 0.2) / max(waterDepth, 0.2), lightSpreads);
-  #else
-  float colouredAsDeep = 1.0;
-  #endif
 
   // (WATER_STOPS_AFTER_...: six debug switches end the colouring here and at five places further on, and draw
   // what has been worked out so far as a rough colour, so that nothing before the place is left out and nothing
@@ -692,9 +676,9 @@ void main() {
   // Ripples: the detail texture read three times, 37 m, 14 m and 4.3 m across, each copy turned and running its
   // own way, so the eye finds no repeat. Far away the GPU blends each copy smooth by itself. (There was a fourth,
   // 1.3 m across: it could hardly be told in the picture, and it made the water busy close to.)
-  // (uRipplePace is 1 but for a debug switch that slows them. The clock is wrapped, so that the readings stay
+  // (The clock is wrapped, so that the readings stay
   // exact however long the game has run: after RIPPLES_REPEAT seconds each is back where it began.)
-  float rippleTime = mod(uTime, RIPPLES_REPEAT) * uRipplePace;
+  float rippleTime = mod(uTime, RIPPLES_REPEAT);
   vec4 ripplesLarge = texture2D(uDetail, xz * 0.027 + rippleTime * LARGE_RIPPLES_RUN);
   vec2 turnedForMedium = vec2(xz.x * 0.8 - xz.y * 0.6, xz.x * 0.6 + xz.y * 0.8);
   vec4 ripplesMedium = texture2D(uDetail, turnedForMedium * 0.071 + rippleTime * MEDIUM_RIPPLES_RUN);
@@ -705,52 +689,46 @@ void main() {
   // across. (The flat sheets carry only the wind's foam, which is torn and gone in a few seconds: there the
   // coarser of the two is the small ripples' own reading, and every dot of the open sea and the lagoon is spared
   // one.)
-  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
-  vec2 foamFineAt = turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06);
   #ifdef WATER_STANDS_STEEP
-  vec2 foamSmallAt = turnedForSmall * 0.23 + uTime * vec2(0.031, 0.017);
+  vec4 foamSmall = texture2D(uDetail, turnedForSmall * 0.23 + uTime * vec2(0.031, 0.017));
+  #else
+  vec4 foamSmall = ripplesSmall;
+  #endif
+  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
+  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
+
+  // Once more stretched twice along the wind, for the white horses' foam: read here and not inside their branch.
+  vec2 windStreaksUv = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07);
+  vec4 windStreaks = texture2D(uDetail, windStreaksUv + uTime * vec2(0.008, 0.02));
+
   // A reading laid out along the shore and stretched 3.6 times across it: streaks that run the way the waves travel
   // (foam drawn out behind white water, lines pulled up a wave's face). Its coordinates have a seam on the west side
   // of the atoll (direction = +-pi), so it is faded out just there.
   // (Only the two meshes the waves move have a shore to be laid along: the flat sheets are compiled without it.)
-  vec2 shoreStreaksAt = vec2(directionFromCentre * 25.4648, metresOffBeach * 0.035 - uTime * 0.004);
+  float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
+  #ifdef WATER_STANDS_STEEP
+  vec4 shoreStreaks = texture2D(uDetail, vec2(directionFromCentre * 25.4648, metresOffBeach * 0.035 - uTime * 0.004));
+  float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam);
+  #else
+  float shoreStreak = 0.5;
+  #endif
+
   // Two more readings for water that stands steep, which only the wave mesh and the breaker's mesh can: the flat
   // sheets are compiled without them (WATER_STANDS_STEEP is the materials' define). Both are laid out along the
   // shore, and have the same seam and the same fade.
+  #ifdef WATER_STANDS_STEEP
   // Drawn out up the water's height and fine along the shore: the lines that run up a wave's face, where the water
   // is drawn up it.
-  vec2 faceLinesAt = vec2(directionFromCentre * FACE_LINES_ROUND,
-    (vWaterPosition.y - uSeaLevel) * 0.05 + metresOffBeach * 0.01 - uTime * 0.012);
+  vec4 faceLines = texture2D(uDetail, vec2(directionFromCentre * FACE_LINES_ROUND,
+    (vWaterPosition.y - uSeaLevel) * 0.05 + metresOffBeach * 0.01 - uTime * 0.012));
+  float faceLine = (faceLines.r - 0.5) * awayFromSeam;
+  float fallingStreak = faceLines.a * 0.6 + faceLines.b * 0.4;
   // Along the shore and up the water's height alike, for foam on steep water - the front of white water, the mass
   // a landed lip throws up - where the readings laid on from above would be smeared down it.
   // (It runs down the water as white water tumbles: STEEP_FOAM_FALLS metres a second.)
-  vec2 steepFoamAt = vec2(directionFromCentre * STEEP_FOAM_ROUND,
-    (vWaterPosition.y - uSeaLevel + uTime * STEEP_FOAM_FALLS) * 0.33);
-  #endif
-  float awayFromSeam = smoothstep(0.0, 0.08, HALF_TURN - abs(directionFromCentre));
-
-  // Once more stretched twice along the wind, for the white horses' foam (and the foam of the lagoon's shore
-  // waves): read here and not inside their branch.
-  vec2 windStreaksAt = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07)
-    + uTime * vec2(0.008, 0.02);
-
-  #ifdef WATER_STANDS_STEEP
-  vec4 foamSmall = texture2D(uDetail, foamSmallAt);
-  vec4 shoreStreaks = texture2D(uDetail, shoreStreaksAt);
-  vec4 faceLines = texture2D(uDetail, faceLinesAt);
-  vec4 steepFoam = texture2D(uDetail, steepFoamAt);
+  vec4 steepFoam = texture2D(uDetail, vec2(directionFromCentre * STEEP_FOAM_ROUND,
+    (vWaterPosition.y - uSeaLevel + uTime * STEEP_FOAM_FALLS) * 0.33));
   #else
-  vec4 foamSmall = ripplesSmall;
-  #endif
-  vec4 foamFine = texture2D(uDetail, foamFineAt);
-  vec4 windStreaks = texture2D(uDetail, windStreaksAt);
-
-  #ifdef WATER_STANDS_STEEP
-  float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam);
-  float faceLine = (faceLines.r - 0.5) * awayFromSeam;
-  float fallingStreak = faceLines.a * 0.6 + faceLines.b * 0.4;
-  #else
-  float shoreStreak = 0.5;
   float faceLine = 0.0;
   float fallingStreak = 0.5;
   vec4 steepFoam = vec4(0.5);
@@ -958,9 +936,7 @@ void main() {
     // then one of those is tilted just so and flashes the sun at the eye. How often goes by how far a facet would
     // have to be tilted from the ripple it rides on, against how rough the wind has made the water: so the sparkle
     // is thick under the sun and thins out to a few points far to either side, and those few are what show that
-    // clear water has a surface. (The gate is on arithmetic, not on a texture. WATER_SPARKLES is on every sheet; a
-    // debug switch takes it away, to see what the sparkle costs.)
-    #ifdef WATER_SPARKLES
+    // clear water has a surface. (The gate is on arithmetic, not on a texture.)
     vec3 halfway = normalize(towardsCamera + uSunDirection);
     float facetFaces = max(dot(halfway, normal), 0.05);
     float tiltNeeded = 1.0 / (facetFaces * facetFaces) - 1.0;
@@ -982,7 +958,6 @@ void main() {
       float sparkleFrom = 0.85 - 0.24 * sqrt(sparkleChance);
       glints += uSunColour * SPARKLE_BRIGHT * smoothstep(sparkleFrom, sparkleFrom + 0.04, sparkle) * sunShows;
     }
-    #endif
     // (On glassy water the sun is mirrored whole, not scattered into glitter. Its image is small: drawn several
     // times the sun's own width, it lay on clear water near the eye as white blots a pace across.)
     if (uWind < GLASSY_BELOW_WIND) {
@@ -1093,7 +1068,6 @@ void main() {
   // floor, sea-floor-pictures.ts) the water hides what is behind it, in its own colour. (Not where a coral head
   // lies behind it, which that picture knows nothing of.)
   float noFloorBehind = 0.0;
-  #ifdef WATER_FOLLOWS_SIGHT
   float sightUnderSea = FLOOR_SOUGHT * towardsCamera.y / sightLevel - liftOverSea;
   noFloorBehind = smoothstep(FLOOR_WELL_BELOW.x, FLOOR_WELL_BELOW.y, floorOnAlongSight - sightUnderSea)
     * (1.0 - uUnderWater) * (1.0 - headBehind);
@@ -1106,18 +1080,13 @@ void main() {
   if (noFloorBehind > 0.01 && meetsFloorIn < FLOOR_MET_WITHIN) {
     float askedAt = meetsFloorIn + FLOOR_ASKED_PAST;
     vec2 groundAskedAt = xz - towardsCamera.xz / sightLevel * askedAt;
-    #ifdef WATER_FLOOR_IS_FLAT
-    float groundAsked = -1.6;
-    #else
     float groundAsked = groundHeightAt(groundAskedAt);
-    #endif
     float sightOverGround = vWaterPosition.y - askedAt * towardsCamera.y / sightLevel - groundAsked;
     float floorIsThere = (1.0 - smoothstep(0.0, 0.2, sightOverGround))
       * (1.0 - smoothstep(0.6 * FLOOR_MET_WITHIN, FLOOR_MET_WITHIN, meetsFloorIn));
     noFloorBehind *= 1.0 - floorIsThere;
   }
   opacity = max(opacity, noFloorBehind * smoothstep(0.0, 0.1, waterDepth));
-  #endif
 
   // ---- The clouds' shadows ----
 

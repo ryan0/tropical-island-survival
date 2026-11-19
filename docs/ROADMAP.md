@@ -979,9 +979,12 @@ within a step in 255 here and there):
 43: the shore's picture is part of it. Still to read: the lagoon, the reef's edge, a high wind (the white
 horses are worked out again from it) and low sun.
 
-**Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
-is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
-was there, the three say whether the mesh's cost is its colouring, its filtering or its points.
+**The debug panel, tidied at the end.** Its switches are in three groups under headings: for looking; what a
+frame costs (`more dots`, the hides, `coarse wave mesh`, `bare wave mesh`, `floor from the formula`, `shore from
+the formula`); and the six places the water's colouring can be ended at. Taken out, each with the code that
+only it used, because its question is answered: `sharper filtering` (Ryan saw no difference, and plain is the
+cheaper in theory), `no floor formula`, `slower ripples`, `still under water`, `no sparkle`, `plain water depth`
+and `plain steep water`. The panel has 25 switches, where it had grown to 34.
 
 **Not done, and why.**
 

@@ -6,7 +6,11 @@ import {
   describeEye,
   describeSpeed,
   FLYING_KEYS,
+  FRAME_COST_HEADING,
+  frameCostSwitches,
   placesToFlyTo,
+  WATER_STAGES_HEADING,
+  waterStageSwitches,
 } from './core/debug-tools';
 import { createFrameMeter } from './core/frame-meter';
 import { createRandomStreams } from './core/random';
@@ -328,19 +332,17 @@ const debugPanel = createDebugPanel(
     describeEye(camera.position, island),
     FLYING_KEYS,
   ],
-  debugSwitches(
-    water,
-    uniforms,
-    testHooks,
-    player,
-    frameRateLabel,
-    crestLine,
-    breaker,
-    spray,
-    quality,
-  ),
-  'fly to',
-  placesToFlyTo(player),
+  [
+    {
+      switches: debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine),
+    },
+    {
+      heading: FRAME_COST_HEADING,
+      switches: frameCostSwitches(water, uniforms, breaker, spray, quality),
+    },
+    { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
+    { heading: 'fly to', actions: placesToFlyTo(player) },
+  ],
 );
 // The button in the corner names the time of day. A tap opens the menu; a long press, the debug panel.
 const timeButton = pageElement('tod');

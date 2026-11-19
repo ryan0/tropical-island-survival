@@ -76,31 +76,17 @@ export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): stri
 }
 
 /**
- * Switches that end the water's colouring part-way and draw what has been worked out so far
- * (water.frag.glsl's WATER_STOPS_AFTER_...), in the order the shader works: read with the frame
- * rate, they say which part of the colouring costs the frames. Only one can be on at a time.
+ * The places the water's colouring can be ended at (water.frag.glsl's WATER_STOPS_AFTER_...), in the
+ * order the shader works.
  */
 const WATER_STAGES = [
-  { label: 'water: depth only', define: 'WATER_STOPS_AFTER_DEPTH' },
-  { label: 'water: to ripples', define: 'WATER_STOPS_AFTER_RIPPLES' },
-  { label: 'water: to mirror', define: 'WATER_STOPS_AFTER_MIRROR' },
-  { label: 'water: to colour', define: 'WATER_STOPS_AFTER_COLOUR' },
-  { label: 'water: to white horses', define: 'WATER_STOPS_AFTER_WHITE_HORSES' },
-  { label: 'water: to foam', define: 'WATER_STOPS_AFTER_FOAM' },
+  { label: 'the depth', define: 'WATER_STOPS_AFTER_DEPTH' },
+  { label: 'the ripples', define: 'WATER_STOPS_AFTER_RIPPLES' },
+  { label: 'the mirror', define: 'WATER_STOPS_AFTER_MIRROR' },
+  { label: 'the colour', define: 'WATER_STOPS_AFTER_COLOUR' },
+  { label: 'the white horses', define: 'WATER_STOPS_AFTER_WHITE_HORSES' },
+  { label: 'the foam', define: 'WATER_STOPS_AFTER_FOAM' },
 ] as const;
-
-/**
- * The filtering the `sharper filtering` switch gives the detail and caustics textures: sharp
- * across the view at a low angle, as they were until 18 November 2026 (three.js asks for no more
- * than the graphics card offers).
- */
-const SHARPER_FILTERING = 4;
-
-/**
- * The pace the `slower ripples` switch sets, against the usual 1: the pace they had until 18
- * November 2026, a quarter of what real ripples run at.
- */
-const SLOWER_RIPPLES = 0.25;
 
 /** The keys that fly, for whoever has a keyboard. */
 export const FLYING_KEYS =
@@ -126,6 +112,7 @@ export function describeEye(eye: { x: number; y: number; z: number }, island: Is
   ].join(' · ');
 }
 
+/** The everyday switches: for looking at the scene and at what the waves are doing. */
 export function debugSwitches(
   water: Water,
   uniforms: SharedUniforms,
@@ -133,9 +120,6 @@ export function debugSwitches(
   player: Pick<Player, 'setFlying' | 'isFlying'>,
   frameRate: FrameRateLabel,
   crestLine: CrestLine,
-  breaker: Breaker,
-  spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
-  quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
 ): DebugSwitch[] {
   // Only one of these can be on at a time: each button shows whether its own is.
   const waterDebug = (mode: number) => ({
@@ -154,6 +138,48 @@ export function debugSwitches(
         water.waveMaterial.wireframe = on;
       },
     },
+    { label: 'freeze waves', set: testHooks.stopClock },
+    { label: 'waves off', ...waterDebug(1) },
+    { label: 'no falling lip', ...waterDebug(2) },
+    { label: 'plain water colour', ...waterDebug(3) },
+    { label: 'sea floor pictures', ...waterDebug(4) },
+    { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
+  ];
+}
+
+/** Sets or clears a define on the sea's two great sheets, the wave mesh and the far sea (which is also the lagoon). */
+function defineOnTheSea(water: Water, define: string, isDefined: boolean): void {
+  for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+    // (three.js leaves out a define whose value is false)
+    material.defines[define] = isDefined ? '' : false;
+    material.needsUpdate = true;
+  }
+}
+
+/** The heading over `frameCostSwitches`. */
+export const FRAME_COST_HEADING = 'what a frame costs: read the frame rate with one on';
+
+/**
+ * Switches for finding where a slow frame goes on the phone, which nothing but the phone can say
+ * (docs/DEVICE_NOTES.md): each leaves something out or draws it more simply, and the frame rate
+ * with it on says what that thing costs.
+ */
+export function frameCostSwitches(
+  water: Water,
+  uniforms: SharedUniforms,
+  breaker: Breaker,
+  spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
+  quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
+): DebugSwitch[] {
+  return [
+    {
+      // Once the frame rate is at the screen's own 60, which hides what anything costs: half as many dots
+      // again each way, so that every dot's work counts two and a quarter times over and the frame rate falls
+      // to where the other switches can be told apart. Automatic quality stands still meanwhile.
+      label: 'more dots',
+      set: quality.drawMoreDots,
+      isOn: () => quality.isDrawingMoreDots,
+    },
     {
       label: 'hide wave mesh',
       set(on) {
@@ -166,41 +192,21 @@ export function debugSwitches(
         water.farSea.visible = !on;
       },
     },
-    { label: 'freeze waves', set: testHooks.stopClock },
-    { label: 'waves off', ...waterDebug(1) },
-    { label: 'no falling lip', ...waterDebug(2) },
-    { label: 'plain water colour', ...waterDebug(3) },
-    { label: 'sea floor pictures', ...waterDebug(4) },
-    { label: 'breaking crests', set: crestLine.show, isOn: () => crestLine.isShown },
     // (without it the sea shows what it does under the breaking wave's front)
     { label: 'breaker mesh', key: 'b', set: breaker.show, isOn: () => breaker.isShown },
     // (the spray along the breaking crest: read the frame rate beside a breaking wave with and without)
     { label: 'crest spray', set: spray.throwFromCrest, isOn: () => spray.isThrownFromCrest },
-    // For finding where a slow frame goes: read the frame rate with it on.
+    // (what the wave mesh's points cost: no tile of it at its finest)
     { label: 'coarse wave mesh', set: water.drawWaveMeshCoarsely },
     {
-      // To see what the wave mesh's colouring costs, all of it: the mesh drawn in one flat colour
-      // (water.frag.glsl's WATER_BARE). What is left is its points and the filling of its triangles.
+      // What the wave mesh's colouring costs, all of it: the mesh drawn in one flat colour (water.frag.glsl's
+      // WATER_BARE). What is left is its points and the filling of its triangles.
       label: 'bare wave mesh',
       set(on) {
-        const { defines } = water.waveMaterial;
-        if (on) defines.WATER_BARE = '';
-        else delete defines.WATER_BARE;
+        water.waveMaterial.defines.WATER_BARE = on ? '' : false;
         water.waveMaterial.needsUpdate = true;
       },
     },
-    ...WATER_STAGES.map((stage) => ({
-      label: stage.label,
-      set(on: boolean) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          // (three.js leaves out a define whose value is false)
-          for (const other of WATER_STAGES) material.defines[other.define] = false;
-          if (on) material.defines[stage.define] = '';
-          material.needsUpdate = true;
-        }
-      },
-      isOn: () => water.waveMaterial.defines[stage.define] === '',
-    })),
     {
       // The sea and the lagoon working the island's formula out for every dot, as they did until 19 November
       // 2026, where they now read the ground's height from a picture made from it (water.frag.glsl's
@@ -208,116 +214,39 @@ export function debugSwitches(
       // breaker's mesh and the lagoon's shore band keep to the picture.)
       label: 'floor from the formula',
       set(on) {
-        if (uniforms.uFloorHeight.value === null) return;
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) delete material.defines.WATER_FLOOR_FROM_PICTURE;
-          else material.defines.WATER_FLOOR_FROM_PICTURE = '';
-          material.needsUpdate = true;
-        }
+        if (uniforms.uFloorHeight.value !== null)
+          defineOnTheSea(water, 'WATER_FLOOR_FROM_PICTURE', !on);
       },
-      isOn: () => !('WATER_FLOOR_FROM_PICTURE' in water.waveMaterial.defines),
+      isOn: () => water.waveMaterial.defines.WATER_FLOOR_FROM_PICTURE !== '',
     },
     {
-      // The same for the shore: the sea and the lagoon working out the shore's formula for every dot, where they
-      // now read it from a picture of the shore round the atoll (water.frag.glsl's WATER_SHORE_FROM_PICTURE;
-      // sea/shore-round-picture.ts).
+      // The same for the shore: its formula worked out for every dot, where the sea and the lagoon now read it
+      // from a picture of the shore round the atoll (WATER_SHORE_FROM_PICTURE; sea/shore-round-picture.ts).
       label: 'shore from the formula',
       set(on) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) delete material.defines.WATER_SHORE_FROM_PICTURE;
-          else material.defines.WATER_SHORE_FROM_PICTURE = '';
-          material.needsUpdate = true;
-        }
+        defineOnTheSea(water, 'WATER_SHORE_FROM_PICTURE', !on);
       },
-      isOn: () => !('WATER_SHORE_FROM_PICTURE' in water.waveMaterial.defines),
-    },
-    {
-      // For reading what each part of a frame costs once the frame rate is at the screen's own 60, which hides
-      // it: half as many dots again each way, so every dot's work counts two and a quarter times over and the
-      // frame rate falls where differences show. Automatic quality stands still meanwhile.
-      label: 'more dots',
-      set: quality.drawMoreDots,
-      isOn: () => quality.isDrawingMoreDots,
-    },
-    {
-      // The sea and the lagoon coloured as if their floor lay level, with nothing of the island's formula
-      // worked out for each dot (water.frag.glsl's WATER_FLOOR_IS_FLAT): to see what the formula costs.
-      label: 'no floor formula',
-      set(on) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) material.defines.WATER_FLOOR_IS_FLAT = '';
-          else delete material.defines.WATER_FLOOR_IS_FLAT;
-          material.needsUpdate = true;
-        }
-      },
-    },
-    {
-      // The same: the wave mesh's colouring without what only steep water needs (two readings of
-      // the detail texture for every dot of it: water.frag.glsl's WATER_STANDS_STEEP).
-      label: 'plain steep water',
-      set(on) {
-        const { defines } = water.waveMaterial;
-        if (on) delete defines.WATER_STANDS_STEEP;
-        else defines.WATER_STANDS_STEEP = '';
-        water.waveMaterial.needsUpdate = true;
-      },
-    },
-    {
-      // The same, for the sea and the lagoon: their colouring without the readings that follow the eye's line
-      // on under the surface (water.frag.glsl's WATER_FOLLOWS_SIGHT: two for every dot of water, and four more
-      // near a coral head). With it on, coral heads show through the water beside where they stand, and the
-      // sky can show through clear water at the reef's edge.
-      label: 'plain water depth',
-      set(on) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) delete material.defines.WATER_FOLLOWS_SIGHT;
-          else material.defines.WATER_FOLLOWS_SIGHT = '';
-          material.needsUpdate = true;
-        }
-      },
-    },
-    {
-      // The same again: the sea and the lagoon without the sun's sparkle (water.frag.glsl's WATER_SPARKLES:
-      // up to two noises for every dot of water towards the sun).
-      label: 'no sparkle',
-      set(on) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) delete material.defines.WATER_SPARKLES;
-          else material.defines.WATER_SPARKLES = '';
-          material.needsUpdate = true;
-        }
-      },
-    },
-    {
-      // To see what plain filtering saves, and loses: the detail and caustics textures filtered to stay sharp
-      // across the view at a low angle, as they were.
-      label: 'sharper filtering',
-      set(on) {
-        for (const texture of [uniforms.uDetail.value, uniforms.uCaustics.value]) {
-          texture.anisotropy = on ? SHARPER_FILTERING : 1;
-          texture.needsUpdate = true;
-        }
-      },
-      isOn: () => uniforms.uDetail.value.anisotropy > 1,
-    },
-    {
-      // For judging motion, which only the phone shows: the water's ripples running at a quarter of their pace.
-      label: 'slower ripples',
-      set(on) {
-        uniforms.uRipplePace.value = on ? SLOWER_RIPPLES : 1;
-      },
-      isOn: () => uniforms.uRipplePace.value !== 1,
-    },
-    {
-      // For judging motion too: what lies under water held still, where it sways as the ripples pass
-      // (sway-under-water.glsl).
-      label: 'still under water',
-      set(on) {
-        uniforms.uSwayUnderWater.value = on ? 0 : 1;
-      },
-      isOn: () => uniforms.uSwayUnderWater.value === 0,
+      isOn: () => water.waveMaterial.defines.WATER_SHORE_FROM_PICTURE !== '',
     },
   ];
+}
+
+/** The heading over `waterStageSwitches`. */
+export const WATER_STAGES_HEADING = "end the water's colouring after";
+
+/**
+ * Switches that end the colouring of the sea and the lagoon part-way and draw what has been worked
+ * out so far, in the order the shader works: read with the frame rate, they say which part of the
+ * colouring costs the frames. Only one can be on at a time.
+ */
+export function waterStageSwitches(water: Water): DebugSwitch[] {
+  return WATER_STAGES.map((stage) => ({
+    label: stage.label,
+    set(on: boolean) {
+      for (const other of WATER_STAGES) defineOnTheSea(water, other.define, on && other === stage);
+    },
+    isOn: () => water.waveMaterial.defines[stage.define] === '',
+  }));
 }
 
 interface PlaceToFlyTo {

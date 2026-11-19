@@ -33,7 +33,6 @@ const SHARED_UNIFORMS = [
   'uWind',
   'uCameraPosition',
   'uSunDirection',
-  'uSwayUnderWater',
 ] as const;
 
 export interface TerrainDependencies {

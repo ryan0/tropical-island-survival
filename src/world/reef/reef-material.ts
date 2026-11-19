@@ -16,7 +16,6 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uCameraPosition',
   'uWind',
-  'uSwayUnderWater',
 ] as const;
 
 // Where the coral's surface is in the world: the mottling and the sea's tint go by that.

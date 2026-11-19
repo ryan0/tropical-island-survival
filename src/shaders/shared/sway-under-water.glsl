@@ -4,8 +4,7 @@
 // is moved sideways by three long ripples crossing, the same for the ground and for whatever stands on it, so that
 // nothing slides over anything else. Only for an eye above the water, and not with the sea drained (uDebugMode 5).
 //
-// Needs the uniforms uTime, uSeaLevel, uWind, uCameraPosition, uDebugMode and uSwayUnderWater (1, or 0 while a
-// debug switch holds everything still).
+// Needs the uniforms uTime, uSeaLevel, uWind, uCameraPosition and uDebugMode.
 
 // Metres of sway for each metre of depth in the usual breeze; the share of that left in a calm; and the depth past
 // which it grows no more.
@@ -28,6 +27,6 @@ vec3 swayUnderWater(vec3 worldPosition) {
     + SWAY_RUNS_B * SWAY_RIPPLE_B.z * sin(dot(worldPosition.xz, SWAY_RUNS_B) * SWAY_RIPPLE_B.x - uTime * SWAY_RIPPLE_B.y)
     + SWAY_RUNS_C * SWAY_RIPPLE_C.z * sin(dot(worldPosition.xz, SWAY_RUNS_C) * SWAY_RIPPLE_C.x + uTime * SWAY_RIPPLE_C.y);
   float inWind = mix(SWAY_IN_A_CALM, 1.0, smoothstep(0.0, 0.66, uWind));
-  sway *= SWAY_A_METRE_DOWN * depth * inWind * seenThroughSurface * uSwayUnderWater;
+  sway *= SWAY_A_METRE_DOWN * depth * inWind * seenThroughSurface;
   return vec3(sway.x, 0.0, sway.y);
 }

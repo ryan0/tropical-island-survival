@@ -10,7 +10,6 @@ export const SWAY_UNIFORMS = [
   'uWind',
   'uCameraPosition',
   'uDebugMode',
-  'uSwayUnderWater',
 ] as const;
 
 /** Goes in front of the vertex shader. */
@@ -18,7 +17,6 @@ export const SWAY_DECLARATIONS = `uniform float uTime;
 uniform float uSeaLevel;
 uniform float uWind;
 uniform float uDebugMode;
-uniform float uSwayUnderWater;
 uniform vec3 uCameraPosition;
 ${swayShader}`;
 

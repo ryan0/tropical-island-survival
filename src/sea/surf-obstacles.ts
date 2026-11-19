@@ -1,4 +1,5 @@
-import { Vector3 } from 'three';
+import type { Vector3 } from 'three';
+import type { SurfObstacle } from './spray';
 import { waterConfig } from './water-config';
 
 // The biggest things standing in the surf, as the water's shader is given them: it draws foam
@@ -6,12 +7,6 @@ import { waterConfig } from './water-config';
 // of them for every dot of water near the beach; so they are handed over in groups of
 // neighbours, each with a circle that holds all its foam, and a dot asks only after the groups
 // whose circle it is in (water.frag.glsl, foamRoundObstacles).
-
-export interface SurfObstacle {
-  x: number;
-  z: number;
-  radius: number;
-}
 
 const config = waterConfig.surfObstacles;
 

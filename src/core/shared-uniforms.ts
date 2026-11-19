@@ -18,10 +18,6 @@ export type SharedUniforms = Record<string, IUniform> &
   CloudUniforms & {
     /** Seconds on the clock the waves run by. */
     uTime: { value: number };
-    /** How fast the water's ripples run, against their usual pace: a debug switch slows them. */
-    uRipplePace: { value: number };
-    /** 1 while what lies under water sways as its ripples pass: a debug switch holds it still. */
-    uSwayUnderWater: { value: number };
     /** Height of the still sea surface. */
     uSeaLevel: { value: number };
     /** 1 when the camera is under water, and the water's own colour there. */
@@ -72,8 +68,6 @@ export function createSharedUniforms(
   const noGroups = Array.from({ length: groups }, () => new Vector3(0, 0, 0));
   return {
     uTime: { value: 0 },
-    uRipplePace: { value: 1 },
-    uSwayUnderWater: { value: 1 },
     uSeaLevel: { value: 0 },
     uUnderWater: { value: 0 },
     uShoreBandShown: { value: 0 },

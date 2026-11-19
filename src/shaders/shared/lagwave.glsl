@@ -6,13 +6,16 @@
 //   high wind: 2.3 times the size, with real height, coming in sets, running further up the sand
 //
 // Needs from outside: the chunk "noise" (shaders/shared/noise.glsl) and the uniform uWind (the wind's strength, 0 to
-// 1), both from the includer, and the define LAGOON_WIND_DIRECTION. Gives WIND_DIR, LW_T, lagHi, lagEx, lagExposure,
-// lagWave and lagFoam. It runs in a vertex shader too, so the vertex-shader rules apply (docs/DEVICE_NOTES.md).
+// 1), both from the includer, and the define LAGOON_WIND_DIRECTION. Gives WIND_DIR, LW_T, LAGOON_WAVES_FROM_WIND,
+// lagHi, lagEx, lagExposure, lagWave and lagFoam. It runs in a vertex shader too, so the vertex-shader rules apply (docs/DEVICE_NOTES.md).
 
 // the way the wind blows (level, unit length)
 const vec2 WIND_DIR = LAGOON_WIND_DIRECTION;
 // seconds between waves
 const float LW_T = 2.1;
+// The waves come from this wind up (and are as big as a medium wind's by 0.66): below it lagExposure is nothing,
+// and whoever draws them need work nothing out.
+const float LAGOON_WAVES_FROM_WIND = 0.4;
 
 // 0 up to a medium wind, 1 in a high one
 float lagHi() {
@@ -29,7 +32,7 @@ float lagEx(vec2 p) {
 
 // How strong the waves are on the shore near p: 0 in light airs, lagEx in a medium wind, 2.3 times that in a high one.
 float lagExposure(vec2 p) {
-  return lagEx(p) * (smoothstep(0.4, 0.66, uWind) + 1.3 * lagHi());
+  return lagEx(p) * (smoothstep(LAGOON_WAVES_FROM_WIND, 0.66, uWind) + 1.3 * lagHi());
 }
 
 // p = the place, depth = the depth of still water there (0 or less on the sand above the water's edge), t = the time.

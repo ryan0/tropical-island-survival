@@ -13,6 +13,14 @@ export interface DebugAction {
   run: () => void;
 }
 
+/** A group of the panel's buttons under a heading: switches, buttons that each do one thing, or both. */
+export interface DebugSection {
+  /** Left out for the first group, which needs none. */
+  heading?: string;
+  switches?: DebugSwitch[];
+  actions?: DebugAction[];
+}
+
 export interface DebugPanel {
   toggle: () => void;
 }
@@ -35,15 +43,14 @@ function button(className: string, label: string, onClick: () => void): HTMLButt
 
 /**
  * @param describe The lines of text at the top of the panel, asked for again and again while it is open.
- * @param actions A second row of buttons, under the heading `actionsHeading`.
+ * @param sections The panel's buttons, group by group.
  */
 export function createDebugPanel(
   parent: HTMLElement,
   describe: () => string[],
-  switches: DebugSwitch[],
-  actionsHeading: string,
-  actions: DebugAction[],
+  sections: DebugSection[],
 ): DebugPanel {
+  const switches = sections.flatMap((section) => section.switches ?? []);
   const report = document.createElement('div');
   report.className = 'debug-report';
   // Whether each switch is on, for those that do not say so themselves.
@@ -80,15 +87,20 @@ export function createDebugPanel(
         flip(index);
       }),
     );
-    const heading = document.createElement('div');
-    heading.className = 'debug-heading';
-    heading.textContent = actionsHeading;
-    element.append(
-      report,
-      ...switchButtons,
-      heading,
-      ...actions.map(({ label, run }) => button('debug-switch', label, run)),
-    );
+    element.append(report);
+    for (const section of sections) {
+      if (section.heading !== undefined) {
+        const heading = document.createElement('div');
+        heading.className = 'debug-heading';
+        heading.textContent = section.heading;
+        element.append(heading);
+      }
+      for (const one of section.switches ?? [])
+        element.append(switchButtons[switches.indexOf(one)]);
+      for (const { label, run } of section.actions ?? []) {
+        element.append(button('debug-switch', label, run));
+      }
+    }
     return element;
   }
 

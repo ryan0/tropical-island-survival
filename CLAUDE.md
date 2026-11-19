@@ -34,7 +34,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   eye the way it looks, over land and sea, to look at anything from anywhere: Space and C go up and down, Shift
   goes fast, the wheel sets the pace, and a phone gets buttons for the same. Switched off, the player comes down
   where the eye was. `drain the sea` (or G) draws no water and marks the floor with lines of equal depth, a metre
-  apart. A row of buttons flies the eye to the reef's places.
+  apart. A row of buttons flies the eye to the reef's places. To find where a slow frame goes, have Ryan read
+  the frame rate with the panel's cost switches on, one at a time (`docs/DEVICE_NOTES.md`): the test renderer's
+  timings have misled every time they were trusted.
 - **Review goes in three steps.** Claude compares every change with the last merged build (`npm run compare`),
   looks at the pictures itself, and says which views changed, wanted or not; for a small change, and between
   passes at one thing, that is the whole review. Ryan looks at the before and after on the desktop
