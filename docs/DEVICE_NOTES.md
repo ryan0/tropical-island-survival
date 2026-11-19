@@ -40,13 +40,11 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   hiding the wave mesh, hiding the far sea, freezing the waves, drawing the sea floor's pictures on the water, a
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
   wave mesh no finer than its second level (`coarse wave mesh`), drawing it in one flat colour (`bare wave mesh`),
-  an experiment that makes five of its readings only where they are wanted (`skip unused readings`, below),
   ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`, `to white
-  horses`, `to foam`),
-  colouring it without the island's formula (`no floor formula`), or with the formula worked out for every dot
-  as it was until 19 November 2026 (`floor from the formula`), the same for the shore's formula (`shore from
-  the formula`), drawing half as many dots again each way so that
-  costs hidden by the screen's 60 frames a second can be read (`more dots`),
+  horses`, `to foam`), colouring it without the island's formula (`no floor formula`), or with the formula
+  worked out for every dot as it was until 19 November 2026 (`floor from the formula`), the same for the
+  shore's formula (`shore from the formula`), drawing half as many dots again each way so that costs hidden by
+  the screen's 60 frames a second can be read (`more dots`),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
   the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were
@@ -95,17 +93,13 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - What the Pixel 10 said on 18 November 2026, from the ocean beach looking out to sea: 30 to 45 frames a second;
   with the sea drained 55 to 60; with the wave mesh hidden 55 to 60; with the far sea hidden 38 to 40. The wave
   mesh is what costs, and the rest of the scene is close to its own limit.
-- An experiment, not yet seen on the phone (18 November 2026): `skip unused readings` compiles the wave mesh
-  and the far sea with `WATER_READS_WHERE_NEEDED`, which reads the mipmapped detail texture inside a branch with
-  `textureGrad`, given derivatives that were taken before the branch. By the rules of the shading language that
-  is well defined, where a plain reading inside a branch is not; whether the phone agrees is what the switch is
-  for.
-  Until Ryan has tried it and agreed, the rule stands as written and nothing else reads so.
 - Anisotropic filtering of a texture the water reads many times is dear in the software renderer (a fifth of a
   frame at anisotropy 4, for the detail texture, which the wave mesh reads ten times for each dot) and costs the
   Pixel 10 nothing that can be read: 41 to 46 frames a second filtered plainly, 43 to 46 at anisotropy 4 (19
-  November 2026). Nor did skipping six of the wave mesh's sixteen readings gain anything (`skip unused
-  readings`: 41 to 44). Texture readings are not what this phone is short of.
+  November 2026). Nor did skipping six of the wave mesh's sixteen readings gain anything: an experiment read
+  them inside a branch with `textureGrad`, given derivatives taken before the branch, and the phone gave 41 to
+  44. It was taken out again, and the rule about reading before a branch stands. Texture readings are not what
+  this phone is short of.
 - The wave mesh drawn in one flat colour (`bare wave mesh`) gave 60 frames a second, and drawn coarsely (`coarse
   wave mesh`) 44: its cost is the arithmetic of its fragment shader, not its points. The switches `water: depth
   only`, `to ripples`, `to mirror`, `to colour` and `no floor formula` are there to say which arithmetic.
@@ -121,6 +115,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - The profile of the wave mesh's colouring with `more dots` (19 November 2026) showed no one dear part: the
   cost builds from the mirror on. And the frame rate the phone shows is a mix of frames that made the next
   refresh and frames that missed it: 55 is mostly sixties with some thirties, not 18 ms a frame.
+- With the floor and the shore read from pictures, and nothing worked out that cannot show, the Pixel 10 gave
+  60 frames a second from the ocean beach again (19 November 2026).
 - So the software renderer is a poor guide to this phone twice over: it overstates what texture filtering costs,
   and it cannot see what a branch saves. Add a switch and read the phone.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.

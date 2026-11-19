@@ -974,35 +974,34 @@ within a step in 255 here and there):
   the wave model puts foam, at the water's edge, or near the beach where foam lies round the rocks.
 - The fifth power in the mirror's strength is five multiplications, not a `pow`.
 
+**And the phone, after that** (the same day, the same place): 60 frames a second, where the day began at 39 to
+45 and the day before at 30 to 45. With `more dots`, 43 to 50, and with `shore from the formula` as well, 41 to
+43: the shore's picture is part of it. Still to read: the lagoon, the reef's edge, a high wind (the white
+horses are worked out again from it) and low sun.
+
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
-was there, the three say whether the mesh's cost is its colouring, its filtering or its points. `skip unused
-readings` is the experiment below.
+was there, the three say whether the mesh's cost is its colouring, its filtering or its points.
 
 **Not done, and why.**
 
-- *The island's formula in the water's shader*, worked out for every dot of the wave mesh and the lagoon: about
-  7 in a hundred of a frame in the software renderer, likely more on the phone. A picture of the floor's height
-  would replace it, or the formula could skip the reef's zones a dot is not in. Ryan: not yet, since the floor
-  is about to change.
-- *Reading textures inside branches*: built as an experiment, off unless switched on. Of the wave mesh's
-  sixteen readings for each dot, six are wanted only where there may be foam or steep water; of the lagoon's
-  twelve, two. They are all made everywhere because of a hard rule (`DEVICE_NOTES.md`). `skip unused readings`
-  in the debug panel compiles the sea and the lagoon to make them inside a branch, each told outright how fast
-  its place changes across a dot, which is worked out before the branch: the graphics card then has nothing to
-  work out inside it, which is where some phones go wrong. With it on, a dot of the wave mesh that has no foam
-  makes ten readings, and one of the lagoon ten. The software renderer draws the same picture with it on (50
-  views; in some a few dots differ by one step in 255). Whether the phone draws it right, and faster, is Ryan's
-  to try; whether it becomes the rule is his to agree. (WebGL 2 only.)
+- *The island's formula in the water's shader*: done after all, as a picture ("The floor's height as a
+  picture", above).
+- *Reading textures inside branches*: tried and taken out. Of the wave mesh's sixteen readings for each dot,
+  six are wanted only where there may be foam or steep water, and they are all made everywhere because of a
+  hard rule (`DEVICE_NOTES.md`). A debug switch, `skip unused readings`, compiled the sea to make them inside a
+  branch with `textureGrad`, given derivatives taken before the branch; the software renderer drew the same
+  picture. On the phone it gained nothing (41 to 44, against 41 to 46 without): texture readings are not what
+  that phone is short of. So the rule stands as written, and the switch and its code are gone.
 - *Mirrored clouds as soft shapes.* The hard-edged pale shapes on a windy lagoon come from the test builds'
   coarse cloud pictures; the phone's are finer. Left as it is until seen there.
 - *The wave mesh's points.* Its levels of detail are as they were, until `coarse wave mesh` has been read on
   the phone.
 
-For the phone: the frame rate from the ocean beach as it is; with `sharper filtering`; with `bare wave mesh`;
-with `coarse wave mesh`; with `skip unused readings`, and whether the water looks any different with it (seams,
-a shimmer, blocks); in the lagoon; and whether the calmer far water and the softer net of light far off read
-better or have lost too much.
+For the phone: the frame rate in the lagoon, at the reef's edge, in a high wind and at low sun; whether the
+water looks right read from the floor's picture (the waterline, the colour's bands); and whether the calmer
+far water and the softer net of light far off (`sharper filtering` brings the old back, at no cost in frames)
+read better or have lost too much.
 
 ## Later
 

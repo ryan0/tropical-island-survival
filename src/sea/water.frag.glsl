@@ -206,10 +206,7 @@ const vec2 MEDIUM_RIPPLES_RUN = vec2(-0.046, 0.054);
 const vec2 SMALL_RIPPLES_RUN = vec2(0.131, 0.072);
 const float RIPPLES_REPEAT = 1000.0;
 
-// (In the experiment that reads textures only where they are wanted, the face's lines are read where the water
-// stands steeper than this: 1 less the cosine of its tilt, so 0.0 is any tilt at all. And the lagoon's shore
-// waves, with their foam, come from this wind up: lagExposure in lagwave.glsl.)
-const float FACE_LINES_FROM_STEEP = 0.002;
+// The lagoon's shore waves, with their foam, come from this wind up (lagExposure in lagwave.glsl).
 const float LAGOON_WAVES_FROM_WIND = 0.4;
 // The lines that run up a wave's face: how many times the detail texture goes round the atoll for them (one line
 // to some 20 cm of the wave's length), and how far they tilt the face.
@@ -737,50 +734,6 @@ void main() {
   vec2 windStreaksAt = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07)
     + uTime * vec2(0.008, 0.02);
 
-  #if defined(WATER_READS_WHERE_NEEDED) && __VERSION__ >= 300
-  // AN EXPERIMENT, behind a debug switch and off unless it is switched on (docs/DEVICE_NOTES.md, "Read a mipmapped
-  // texture before a branch"). The readings for foam are wanted only where there may be foam, and the face's lines
-  // where the water stands at all steep: over most of the sea, neither. Here they are made inside a branch, each
-  // told outright how fast its place changes across a dot, which was worked out before the branch: the graphics
-  // card has then nothing to work out inside it, which is where some phones go wrong. (WebGL 2 only.)
-  vec4 foamFineAcross = vec4(dFdx(foamFineAt), dFdy(foamFineAt));
-  vec4 windStreaksAcross = vec4(dFdx(windStreaksAt), dFdy(windStreaksAt));
-  vec4 foamFine = vec4(0.5);
-  vec4 windStreaks = vec4(0.5);
-  // (the wind's foam: white horses from a high wind up; on the flat sheets also the foam of the lagoon's shore
-  // waves, which come from LAGOON_WAVES_FROM_WIND up, in its shallows)
-  bool mayCarryWindFoam = uWind > WHITECAPS_FROM_WIND;
-  #ifdef WATER_STANDS_STEEP
-  vec4 foamSmallAcross = vec4(dFdx(foamSmallAt), dFdy(foamSmallAt));
-  vec4 shoreStreaksAcross = vec4(dFdx(shoreStreaksAt), dFdy(shoreStreaksAt));
-  vec4 faceLinesAcross = vec4(dFdx(faceLinesAt), dFdy(faceLinesAt));
-  vec4 steepFoamAcross = vec4(dFdx(steepFoamAt), dFdy(steepFoamAt));
-  vec4 foamSmall = vec4(0.5);
-  vec4 shoreStreaks = vec4(0.5);
-  vec4 faceLines = vec4(0.5);
-  vec4 steepFoam = vec4(0.5);
-  // (the waves' foam: where the wave model puts any, at the water's edge, near the beach - as "Foam" below asks -
-  // and under a white mass)
-  bool mayCarryFoam = mayCarryWindFoam || waveFoam > 0.003 || waterDepth < 0.09 || metresOffBeach < 16.0
-    || vWhiteMass.x > 0.0;
-  if (mayCarryFoam) {
-    foamSmall = textureGrad(uDetail, foamSmallAt, foamSmallAcross.xy, foamSmallAcross.zw);
-    shoreStreaks = textureGrad(uDetail, shoreStreaksAt, shoreStreaksAcross.xy, shoreStreaksAcross.zw);
-    steepFoam = textureGrad(uDetail, steepFoamAt, steepFoamAcross.xy, steepFoamAcross.zw);
-  }
-  if (mayCarryFoam || 1.0 - normalize(vWaterNormal).y > FACE_LINES_FROM_STEEP) {
-    faceLines = textureGrad(uDetail, faceLinesAt, faceLinesAcross.xy, faceLinesAcross.zw);
-  }
-  #else
-  vec4 foamSmall = ripplesSmall;
-  mayCarryWindFoam = mayCarryWindFoam || (uWind > LAGOON_WAVES_FROM_WIND && inLagoon > 0.5 && depthOverSand < 1.6);
-  bool mayCarryFoam = mayCarryWindFoam;
-  #endif
-  if (mayCarryFoam) foamFine = textureGrad(uDetail, foamFineAt, foamFineAcross.xy, foamFineAcross.zw);
-  if (mayCarryWindFoam) {
-    windStreaks = textureGrad(uDetail, windStreaksAt, windStreaksAcross.xy, windStreaksAcross.zw);
-  }
-  #else
   #ifdef WATER_STANDS_STEEP
   vec4 foamSmall = texture2D(uDetail, foamSmallAt);
   vec4 shoreStreaks = texture2D(uDetail, shoreStreaksAt);
@@ -791,7 +744,6 @@ void main() {
   #endif
   vec4 foamFine = texture2D(uDetail, foamFineAt);
   vec4 windStreaks = texture2D(uDetail, windStreaksAt);
-  #endif
 
   #ifdef WATER_STANDS_STEEP
   float shoreStreak = mix(0.5, shoreStreaks.a * 0.6 + shoreStreaks.b * 0.4, awayFromSeam);

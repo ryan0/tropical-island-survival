@@ -252,20 +252,6 @@ export function debugSwitches(
       },
     },
     {
-      // An experiment, off unless switched on: the sea and the lagoon make their readings of the detail texture
-      // for foam and steep water only where there may be either, inside a branch, each told its own sharpness
-      // outright (water.frag.glsl's WATER_READS_WHERE_NEEDED; WebGL 2 only). The picture should not change; the
-      // frame rate may. It breaks a hard rule as written (docs/DEVICE_NOTES.md), which is why it is only a switch.
-      label: 'skip unused readings',
-      set(on) {
-        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
-          if (on) material.defines.WATER_READS_WHERE_NEEDED = '';
-          else delete material.defines.WATER_READS_WHERE_NEEDED;
-          material.needsUpdate = true;
-        }
-      },
-    },
-    {
       // The same: the wave mesh's colouring without what only steep water needs (two readings of
       // the detail texture for every dot of it: water.frag.glsl's WATER_STANDS_STEEP).
       label: 'plain steep water',
