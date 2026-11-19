@@ -107,6 +107,7 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     SWELLS: swellsDefine(),
     SWELLS_FOAM: swellsFoamDefine(),
     SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
+    FLOOR_HEIGHT_SPAN: glslFloat(seaConfig.floorHeightPicture.span),
     WAVE_MESH_FADES_FROM: glslFloat(meshRows.outerEdge - meshRows.swellFadesOver),
     WAVE_MESH_ENDS: glslFloat(meshRows.outerEdge),
     OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),

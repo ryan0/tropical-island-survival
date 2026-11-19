@@ -72,6 +72,9 @@ uniform sampler2D uDetail;
 uniform sampler2D uReefMap;
 uniform sampler2D uSeaFloor;      // the sea floor as the waves know it: (delay of swell 0, of swell 1, depth, unused)
 uniform sampler2D uBreakTimes;      // seconds since the main swell crossed each of four depths (sea-floor-pictures.ts)
+// The ground's height as a picture (floor-height-picture.ts): read in place of the island's formula while
+// WATER_FLOOR_FROM_PICTURE is defined, which for now only a debug switch does.
+uniform sampler2D uFloorHeight;
 // The two sky pictures being blended, and how far from A to B (clouds.ts); the colours of cloud in the sun and in
 // shade.
 uniform sampler2D uSkyPictureFrom;
@@ -460,6 +463,18 @@ float foamRoundObstacles(vec2 xz) {
   return foam;
 }
 
+// The ground's height at p (x, z), in metres above the still sea: the island's formula, or, with
+// WATER_FLOOR_FROM_PICTURE, a reading of the picture made from it. (On Ryan's phone the formula, worked out for
+// every dot of water, is the dearest arithmetic in all this colouring, and a reading costs next to nothing. The
+// picture has no mipmaps, so it may be read inside a branch.)
+float groundHeightAt(vec2 p) {
+  #ifdef WATER_FLOOR_FROM_PICTURE
+  return texture2D(uFloorHeight, p / FLOOR_HEIGHT_SPAN + 0.5).r;
+  #else
+  return hgt(p.x, p.y);
+  #endif
+}
+
 // The surface seen from under water, looking along -towardsCamera.
 vec3 seenFromUnderWater(vec2 xz, vec3 towardsCamera, float cameraDistance) {
   float lookingUp = clamp(-towardsCamera.y, 0.0, 1.0);
@@ -548,7 +563,7 @@ void main() {
   #ifdef WATER_FLOOR_IS_FLAT
   if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y + 1.6;
   #else
-  if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - hgt(xz.x, xz.y);
+  if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - groundHeightAt(xz);
   #endif
   // how far the lagoon's shore-wave band stands above still water here
   float bandLift = (vWaterPosition.y - uSeaLevel) * uIsShoreBand;
@@ -1102,7 +1117,7 @@ void main() {
     #ifdef WATER_FLOOR_IS_FLAT
     float groundAsked = -1.6;
     #else
-    float groundAsked = hgt(groundAskedAt.x, groundAskedAt.y);
+    float groundAsked = groundHeightAt(groundAskedAt);
     #endif
     float sightOverGround = vWaterPosition.y - askedAt * towardsCamera.y / sightLevel - groundAsked;
     float floorIsThere = (1.0 - smoothstep(0.0, 0.2, sightOverGround))

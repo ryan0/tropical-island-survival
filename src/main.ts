@@ -26,6 +26,7 @@ import { createCrestLine } from './sea/crest-line';
 import { createBreaker } from './sea/breaker';
 import { createBreakerShapes, frontPoint } from './sea/breaker-shapes';
 import { createCrestPicture } from './sea/crest-picture';
+import { createFloorHeightPicture } from './sea/floor-height-picture';
 import { createSeaFloorPictures } from './sea/sea-floor-pictures';
 import { writeSurfObstacles } from './sea/surf-obstacles';
 import { createWaveModel } from './sea/wave-model';
@@ -324,7 +325,18 @@ const debugPanel = createDebugPanel(
     describeEye(camera.position, island),
     FLYING_KEYS,
   ],
-  debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine, breaker, spray),
+  debugSwitches(
+    water,
+    uniforms,
+    testHooks,
+    player,
+    frameRateLabel,
+    crestLine,
+    breaker,
+    spray,
+    // (the floor's height picture is drawn only when its switch is first used: it is an experiment)
+    () => createFloorHeightPicture(renderer),
+  ),
   'fly to',
   placesToFlyTo(player),
 );

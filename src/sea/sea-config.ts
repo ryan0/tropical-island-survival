@@ -51,6 +51,13 @@ export const seaConfig = {
   ] satisfies Swell[],
 
   /**
+   * The ground's height as a picture, which the water's shader can read in place of the island's
+   * formula (floor-height-picture.ts): the square it covers, centred on the atoll and reaching past
+   * the wave mesh on every side, and its dots across, half a metre each.
+   */
+  floorHeightPicture: { span: 1024, size: 2048 },
+
+  /**
    * The sea floor as the waves know it: a picture of its depth, and of how long each swell takes to
    * reach every spot of it (sea-floor-pictures.ts).
    */

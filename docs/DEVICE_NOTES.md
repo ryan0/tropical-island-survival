@@ -41,8 +41,10 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   line along the breaking crest, hiding the breaker's own mesh, the spray along the breaking crest, drawing the
   wave mesh no finer than its second level (`coarse wave mesh`), drawing it in one flat colour (`bare wave mesh`),
   an experiment that makes five of its readings only where they are wanted (`skip unused readings`, below),
-  ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`),
-  colouring it without the island's formula (`no floor formula`),
+  ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`, `to white
+  horses`, `to foam`),
+  colouring it without the island's formula (`no floor formula`), or with the formula read from a picture
+  (`floor from a picture`: an experiment, which draws into a half-float picture when it is first switched on),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
   the same without the sun's sparkle (`no sparkle`), filtering the detail and caustics textures as they were

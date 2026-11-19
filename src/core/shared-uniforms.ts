@@ -43,6 +43,8 @@ export type SharedUniforms = Record<string, IUniform> &
     /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
     uSeaFloor: { value: Texture | null };
     uBreakTimes: { value: Texture | null };
+    /** The ground's height as a picture, once a debug switch has had it drawn (sea/floor-height-picture.ts). */
+    uFloorHeight: { value: Texture | null };
     /** Where the main swell's crest lies, once it is made (sea/crest-picture.ts). */
     uCrests: { value: Texture | null };
     /** The breaking front's cross-sections, once they are made (sea/breaker-shapes.ts). */
@@ -80,6 +82,7 @@ export function createSharedUniforms(
     uReefMap: { value: null },
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },
+    uFloorHeight: { value: null },
     uCrests: { value: null },
     uBreakerShapes: { value: null },
     uBreakerArc: { value: new Vector2() },

@@ -928,9 +928,21 @@ formula's second working-out (the check for clear water with no floor behind it)
 rocks in the surf, which every dot of water within 24 m of the beach asked after one by one, all sixteen, are
 handed to the shader in four groups of neighbours with a circle round each, and a dot asks only after the
 groups whose circle it is in (`sea/surf-obstacles.ts`); and the lagoon's shore waves and the far sea's hole
-are compiled out of the two meshes the waves move, which are never in the lagoon. Proposed, for Ryan to agree:
-the floor's height as a picture made from the formula at start-up, which the water reads in place of both
-workings-out of the formula; texture readings cost this phone nothing that can be read.
+are compiled out of the two meshes the waves move, which are never in the lagoon.
+
+**After that** (the same day): 39 to 45 as it is, so the rocks were not what the last part of the colouring
+costs; and `water: to colour` with `no floor formula` together, 60, so the formula is the whole cost of that
+step. Two more stop-switches split the last part: `water: to white horses` and `water: to foam`.
+
+**The floor's height as a picture: built as an experiment, off unless switched on** (`floor from a picture`).
+The graphics card works the island's formula out once for every dot of a picture 2048 dots across, half a
+metre to a dot, and the water reads that in place of both workings-out of the formula
+(`sea/floor-height-picture.ts`; `WATER_FLOOR_FROM_PICTURE`). It is made from the formula itself, so whatever
+the island's shape becomes, the picture follows. The picture is drawn only when the switch is first used, so
+until then nothing of the experiment has run: drawing into a half-float picture is new to the phone. With it
+on, the software renderer's pictures differ from the formula's by less than the eye can tell (54 views, and
+the thin water over a bared reef top looked at closely). Whether it gives the phone its 3 ms, and whether it
+becomes the rule, with the picture drawn at start-up, is Ryan's to try and to agree.
 
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
