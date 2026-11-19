@@ -524,7 +524,13 @@ void main() {
 
   // (under the far sea the floor lies as deep as the ground ever goes)
   float waterDepth = vWaterPosition.y + SEA_FLOOR_DEPTH;
+  // (WATER_FLOOR_IS_FLAT: a debug switch takes the floor to lie level, 1.6 m down, and works out nothing of the
+  // island's shape, to see what its formula costs.)
+  #ifdef WATER_FLOOR_IS_FLAT
+  if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y + 1.6;
+  #else
   if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - hgt(xz.x, xz.y);
+  #endif
   // how far the lagoon's shore-wave band stands above still water here
   float bandLift = (vWaterPosition.y - uSeaLevel) * uIsShoreBand;
   // the depth of still water over the sand itself, coral heads apart
@@ -608,6 +614,13 @@ void main() {
   float colouredAsDeep = 1.0;
   #endif
 
+  // (WATER_STOPS_AFTER_...: four debug switches end the colouring here and at three places further on, and draw
+  // what has been worked out so far as a rough colour, so that nothing before the place is left out and nothing
+  // after it is worked out. Read with the frame rate, they say which part of the colouring costs the frames.)
+  #ifdef WATER_STOPS_AFTER_DEPTH
+  gl_FragColor = vec4(mix(OVER_SAND_AQUA, OCEAN_BLUE, smoothstep(0.0, 16.0, waterDepth * colouredAsDeep)), 0.9);
+  return;
+  #endif
   float sunShows = 1.0 - uNight;
   float waveFoam = vWaveState.x;
   float metresOffBeach = vWaveState.y;
@@ -839,6 +852,12 @@ void main() {
     swellLineSide = clamp(dot(swellTilt, normalize(xz)) * 4.5, -1.0, 1.0);
   }
 
+  #ifdef WATER_STOPS_AFTER_RIPPLES
+  gl_FragColor = vec4(mix(OVER_SAND_AQUA, OCEAN_BLUE, smoothstep(0.0, 16.0, waterDepth * colouredAsDeep))
+    + vec3(surfaceSlope, slick * 0.2 + swellLineSide * 0.1) * 0.5, 0.9);
+  return;
+  #endif
+
   // ---- What the surface mirrors ----
 
   vec3 waveNormal = normalize(vWaterNormal);
@@ -958,6 +977,12 @@ void main() {
   }
   glints += moonGlints * uNight;
 
+  #ifdef WATER_STOPS_AFTER_MIRROR
+  gl_FragColor = vec4(mix(mix(OVER_SAND_AQUA, OCEAN_BLUE, smoothstep(0.0, 16.0, waterDepth * colouredAsDeep)),
+    skyMirrored, fresnel) + glints, 0.9);
+  return;
+  #endif
+
   // ---- How much water the eye looks through ----
 
   // Water has one colour rule: its colour and how much it hides go by how much of it the eye looks through. Looking
@@ -1055,8 +1080,12 @@ void main() {
   if (noFloorBehind > 0.01 && meetsFloorIn < FLOOR_MET_WITHIN) {
     float askedAt = meetsFloorIn + FLOOR_ASKED_PAST;
     vec2 groundAskedAt = xz - towardsCamera.xz / sightLevel * askedAt;
-    float sightOverGround = vWaterPosition.y - askedAt * towardsCamera.y / sightLevel
-      - hgt(groundAskedAt.x, groundAskedAt.y);
+    #ifdef WATER_FLOOR_IS_FLAT
+    float groundAsked = -1.6;
+    #else
+    float groundAsked = hgt(groundAskedAt.x, groundAskedAt.y);
+    #endif
+    float sightOverGround = vWaterPosition.y - askedAt * towardsCamera.y / sightLevel - groundAsked;
     float floorIsThere = (1.0 - smoothstep(0.0, 0.2, sightOverGround))
       * (1.0 - smoothstep(0.6 * FLOOR_MET_WITHIN, FLOOR_MET_WITHIN, meetsFloorIn));
     noFloorBehind *= 1.0 - floorIsThere;
@@ -1107,6 +1136,11 @@ void main() {
   float glintShows = min(max(glints.r, max(glints.g, glints.b)), 1.0);
   opacity = max(hides, glintShows);
   vec3 colour = (seen * hides + glints) / max(opacity, 1e-3) * (1.0 - 0.13 * swellLineSide);
+
+  #ifdef WATER_STOPS_AFTER_COLOUR
+  gl_FragColor = vec4(colour, opacity);
+  return;
+  #endif
 
   // ---- White horses ----
 

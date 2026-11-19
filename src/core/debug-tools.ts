@@ -76,6 +76,18 @@ export function describeSpeed(renderer: WebGLRenderer, frames: FrameMeter): stri
 }
 
 /**
+ * Switches that end the water's colouring part-way and draw what has been worked out so far
+ * (water.frag.glsl's WATER_STOPS_AFTER_...), in the order the shader works: read with the frame
+ * rate, they say which part of the colouring costs the frames. Only one can be on at a time.
+ */
+const WATER_STAGES = [
+  { label: 'water: depth only', define: 'WATER_STOPS_AFTER_DEPTH' },
+  { label: 'water: to ripples', define: 'WATER_STOPS_AFTER_RIPPLES' },
+  { label: 'water: to mirror', define: 'WATER_STOPS_AFTER_MIRROR' },
+  { label: 'water: to colour', define: 'WATER_STOPS_AFTER_COLOUR' },
+] as const;
+
+/**
  * The filtering the `sharper filtering` switch gives the detail and caustics textures: sharp
  * across the view at a low angle, as they were until 18 November 2026 (three.js asks for no more
  * than the graphics card offers).
@@ -172,6 +184,30 @@ export function debugSwitches(
         if (on) defines.WATER_BARE = '';
         else delete defines.WATER_BARE;
         water.waveMaterial.needsUpdate = true;
+      },
+    },
+    ...WATER_STAGES.map((stage) => ({
+      label: stage.label,
+      set(on: boolean) {
+        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+          // (three.js leaves out a define whose value is false)
+          for (const other of WATER_STAGES) material.defines[other.define] = false;
+          if (on) material.defines[stage.define] = '';
+          material.needsUpdate = true;
+        }
+      },
+      isOn: () => water.waveMaterial.defines[stage.define] === '',
+    })),
+    {
+      // The sea and the lagoon coloured as if their floor lay level, with nothing of the island's formula
+      // worked out for each dot (water.frag.glsl's WATER_FLOOR_IS_FLAT): to see what the formula costs.
+      label: 'no floor formula',
+      set(on) {
+        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+          if (on) material.defines.WATER_FLOOR_IS_FLAT = '';
+          else delete material.defines.WATER_FLOOR_IS_FLAT;
+          material.needsUpdate = true;
+        }
       },
     },
     {
