@@ -19,6 +19,8 @@
 //   these defines, which water-materials.ts writes from the configs:
 //     WATER_SWELL, LONG_SWELL_SLOPE   the swell's trains (sea-config.ts)
 //     HOME_ISLET, REEF_MAP_SPAN       the middle, and the side, of the square round home that the reef's map covers
+//     OBSTACLE_FOAM_REACH, OBSTACLE_FOAM_REACH_BY_RADIUS   how far beyond its edge a thing in the surf has foam
+//                                     (water-config.ts)
 //     CLOUD_SHADE_SPAN_M              the side of the square that the map of the clouds' shadows covers
 //     USUAL_WIND                      the island's usual breeze (sky-config.ts): the ripples are as strong as they
 //                                     were tuned at this wind
@@ -59,8 +61,10 @@ uniform float uIsShoreBand;
 uniform float uShoreBandShown;
 // The wind's strength: 0 none, 0.33 low, 0.66 medium, 1 high.
 uniform float uWind;
-// The 16 biggest things standing in the surf: x, z, radius. An empty place has a negative radius.
+// The 16 biggest things standing in the surf: x, z, radius. An empty place has a negative radius. They lie in four
+// groups of four neighbours, and round each group a circle (x, z, radius) that holds all its foam.
 uniform vec3 uSurfObstacles[16];
+uniform vec3 uSurfObstacleGroups[4];
 // The detail texture (detail-texture.ts): red and green the slope of a field of small waves, blue their height, alpha
 // a net of lines.
 uniform sampler2D uDetail;
@@ -431,14 +435,26 @@ float foamAsLace(float density, float threshold, float lacePattern, float camera
 }
 
 // Foam round the things standing in the surf: 1 at a rock's edge, fading out over half a metre and more (more round
-// a bigger rock).
+// a bigger rock). The things are spread right round the atoll, so they come in groups of four neighbours, each
+// with a circle that holds all its foam (surf-obstacles.ts): only inside a group's circle are its four asked
+// after, and of those only the ones whose foam reaches here. (Asked after one by one, all sixteen, for every dot
+// of water near the beach, they cost more than all the foam besides.)
 float foamRoundObstacles(vec2 xz) {
   float foam = 0.0;
-  for (int i = 0; i < 16; i++) {
-    vec3 obstacle = uSurfObstacles[i];
-    if (obstacle.z > 0.0) {
-      float fromEdge = length(xz - obstacle.xy) - obstacle.z;
-      foam = max(foam, 1.0 - smoothstep(0.02, 0.5 + 0.35 * obstacle.z, fromEdge));
+  for (int group = 0; group < 4; group++) {
+    vec3 circle = uSurfObstacleGroups[group];
+    vec2 fromCircle = xz - circle.xy;
+    if (dot(fromCircle, fromCircle) < circle.z * circle.z) {
+      for (int i = 0; i < 4; i++) {
+        vec3 obstacle = uSurfObstacles[group * 4 + i];
+        vec2 fromObstacle = xz - obstacle.xy;
+        float reach = obstacle.z + OBSTACLE_FOAM_REACH + OBSTACLE_FOAM_REACH_BY_RADIUS * obstacle.z;
+        if (obstacle.z > 0.0 && dot(fromObstacle, fromObstacle) < reach * reach) {
+          float fromEdge = length(fromObstacle) - obstacle.z;
+          foam = max(foam, 1.0 - smoothstep(0.02, OBSTACLE_FOAM_REACH + OBSTACLE_FOAM_REACH_BY_RADIUS * obstacle.z,
+            fromEdge));
+        }
+      }
     }
   }
   return foam;
@@ -492,6 +508,8 @@ void main() {
   // ---- The far sea's holes, and the lagoon ----
 
   float inLagoon = 0.0;
+  // (The two meshes the waves move are neither: they are compiled without this.)
+  #ifndef WATER_STANDS_STEEP
   if (uIsFlatSheet > 0.5) {
     float holeOutside = oceanShoreRadius
       + offshoreOfReef(WAVE_MESH_ENDS - FAR_SEA_HOLE_SHORT_OF_EDGE, directionFromCentre);
@@ -511,6 +529,7 @@ void main() {
       * step(cameraDistance, BAND_SHOWN_WITHIN) * uShoreBandShown;
     if (abs(inBand - uIsShoreBand) > 0.5) discard;
   }
+  #endif
 
   // From under water none of what follows shows: the surface is its underside alone, drawn as the end of main
   // draws it. (Not while a debug colour is asked for, which is laid over it there.)
@@ -1201,6 +1220,8 @@ void main() {
   // what they do on the sand; in a high wind the band mesh gives them height). The water there is too clear and thin
   // to show much: ahead of each crest its face is a faint darker band (there you look into the water, not at the
   // sky), its back a thin line of sky; from where it breaks - the bigger the wave, the further out - it is white.
+  // (Only the flat sheets lie in the lagoon: the two meshes the waves move are compiled without this.)
+  #ifndef WATER_STANDS_STEEP
   if (inLagoon > 0.5 && depthOverSand < 1.6) {
     float shoreWaves = lagExposure(xz) * (1.0 - uUnderWater);
     if (shoreWaves > 0.003) {
@@ -1225,6 +1246,7 @@ void main() {
       windFoam = max(windFoam, lagFoam(secondsSinceCrest, waveSize) * broken * smoothstep(0.10, 0.2, depthOverSand));
     }
   }
+  #endif
 
   // ---- Foam ----
 

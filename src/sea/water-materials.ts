@@ -119,6 +119,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     LONG_SWELL_SLOPE: glslFloat((seaConfig.longSwell * 0.7) / OPEN_SEA_LINES_SPEED),
     HOME_ISLET: glslVec2(home.x, home.z),
     REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
+    OBSTACLE_FOAM_REACH: glslFloat(waterConfig.surfObstacles.foamReach),
+    OBSTACLE_FOAM_REACH_BY_RADIUS: glslFloat(waterConfig.surfObstacles.foamReachByRadius),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
     USUAL_WIND: glslFloat(skyConfig.wind.usualBreeze),
     MOON_DIRECTION: glslVec3(...cloudsConfig.moonDirection),

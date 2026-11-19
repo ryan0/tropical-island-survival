@@ -919,6 +919,19 @@ is what the switches below are for: `water: depth only`, `water: to ripples`, `w
 colour` end the colouring at those places and draw what there is so far, and `no floor formula` colours the
 water as if its floor lay level. Plain or sharper filtering is now a choice of look alone, and Ryan's.
 
+**And of the stages** (the same day): `water: depth only`, `to ripples` and `to mirror` each 60; `to colour` 50;
+the whole colouring 41 to 46; the whole colouring with `no floor formula` 50. A frame has 16.7 ms and the whole
+view takes some 23. So the island's formula costs about 3 ms, half of what is missing; the step from the
+mirror to the finished colour costs 3 ms or more, which is far more than its own arithmetic, and holds the
+formula's second working-out (the check for clear water with no floor behind it); and what follows the colour
+(white horses, the foam, the haze) costs about 3 ms more. Done since, changing no picture (54 views): the
+rocks in the surf, which every dot of water within 24 m of the beach asked after one by one, all sixteen, are
+handed to the shader in four groups of neighbours with a circle round each, and a dot asks only after the
+groups whose circle it is in (`sea/surf-obstacles.ts`); and the lagoon's shore waves and the far sea's hole
+are compiled out of the two meshes the waves move, which are never in the lagoon. Proposed, for Ryan to agree:
+the floor's height as a picture made from the formula at start-up, which the water reads in place of both
+workings-out of the formula; texture readings cost this phone nothing that can be read.
+
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
 was there, the three say whether the mesh's cost is its colouring, its filtering or its points. `skip unused

@@ -1,4 +1,5 @@
 import { Color, Vector2, Vector3, type IUniform, type Texture } from 'three';
+import { waterConfig } from '../sea/water-config';
 import type { CloudUniforms } from '../sky/clouds';
 import type { SkyLightUniforms } from '../sky/sky-light';
 
@@ -50,11 +51,11 @@ export type SharedUniforms = Record<string, IUniform> &
     uBreakerArc: { value: Vector2 };
     /** The camera's position, for materials three.js does not give it to. */
     uCameraPosition: { value: Vector3 };
-    /** The 16 biggest things standing in the surf: x, z, radius. The water draws foam round them. */
+    /** The biggest things standing in the surf: x, z, radius. The water draws foam round them. */
     uSurfObstacles: { value: Vector3[] };
+    /** A circle round each group of them that holds all its foam: x, z, radius (sea/surf-obstacles.ts). */
+    uSurfObstacleGroups: { value: Vector3[] };
   };
-
-const OBSTACLES_SENT_TO_THE_WATER = 16;
 
 export function createSharedUniforms(
   detailTexture: Texture,
@@ -62,10 +63,9 @@ export function createSharedUniforms(
   skyLight: SkyLightUniforms,
   clouds: CloudUniforms,
 ): SharedUniforms {
-  const noObstacles = Array.from(
-    { length: OBSTACLES_SENT_TO_THE_WATER },
-    () => new Vector3(0, 0, -1),
-  );
+  const { sentToWater, groups } = waterConfig.surfObstacles;
+  const noObstacles = Array.from({ length: sentToWater }, () => new Vector3(0, 0, -1));
+  const noGroups = Array.from({ length: groups }, () => new Vector3(0, 0, 0));
   return {
     uTime: { value: 0 },
     uRipplePace: { value: 1 },
@@ -85,6 +85,7 @@ export function createSharedUniforms(
     uBreakerArc: { value: new Vector2() },
     uCameraPosition: { value: new Vector3() },
     uSurfObstacles: { value: noObstacles },
+    uSurfObstacleGroups: { value: noGroups },
     ...skyLight,
     ...clouds,
   };

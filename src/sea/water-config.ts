@@ -9,6 +9,13 @@ export interface RowStretch {
 }
 
 export const waterConfig = {
+  /**
+   * The things standing in the surf that the water draws foam round: how many of the biggest
+   * (water.frag.glsl declares as many), in how many groups of neighbours, and how far beyond a
+   * thing's edge its foam reaches: so many metres, and so much more for each metre of its radius.
+   */
+  surfObstacles: { sentToWater: 16, groups: 4, foamReach: 0.5, foamReachByRadius: 0.35 },
+
   /** The side of the flat sheet of sea that follows the player out to the horizon. */
   farSeaSize: 6500,
 

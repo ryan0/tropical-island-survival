@@ -105,6 +105,11 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - The wave mesh drawn in one flat colour (`bare wave mesh`) gave 60 frames a second, and drawn coarsely (`coarse
   wave mesh`) 44: its cost is the arithmetic of its fragment shader, not its points. The switches `water: depth
   only`, `to ripples`, `to mirror`, `to colour` and `no floor formula` are there to say which arithmetic.
+- The stages of the wave mesh's colouring on the Pixel 10 (19 November 2026, ocean beach, out to sea): stopped
+  after the depth, after the ripples or after the mirror, 60 frames a second; stopped after the colour, 50; all
+  of it, 41 to 46; all of it without the island's formula, 50. The formula, worked out for every dot (and a
+  second time inside a branch), is about 3 ms of a frame: on this phone arithmetic is dear and a texture
+  reading is cheap, so a formula that every dot works out wants to be a picture.
 - So the software renderer is a poor guide to this phone twice over: it overstates what texture filtering costs,
   and it cannot see what a branch saves. Add a switch and read the phone.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.

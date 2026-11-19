@@ -27,6 +27,7 @@ import { createBreaker } from './sea/breaker';
 import { createBreakerShapes, frontPoint } from './sea/breaker-shapes';
 import { createCrestPicture } from './sea/crest-picture';
 import { createSeaFloorPictures } from './sea/sea-floor-pictures';
+import { writeSurfObstacles } from './sea/surf-obstacles';
 import { createWaveModel } from './sea/wave-model';
 import { createCausticsTexture } from './shaders/caustics-texture';
 import { createDetailTexture } from './shaders/detail-texture';
@@ -280,9 +281,7 @@ const underWater = createUnderWater({
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);
-rocksInSurf.slice(0, uniforms.uSurfObstacles.value.length).forEach((rock, index) => {
-  uniforms.uSurfObstacles.value[index].set(rock.x, rock.z, rock.radius);
-});
+writeSurfObstacles(rocksInSurf, uniforms.uSurfObstacles.value, uniforms.uSurfObstacleGroups.value);
 const spray = createSpray({
   scene,
   camera,
