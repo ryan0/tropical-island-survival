@@ -28,6 +28,7 @@ import { createBreakerShapes, frontPoint } from './sea/breaker-shapes';
 import { createCrestPicture } from './sea/crest-picture';
 import { createFloorHeightPicture } from './sea/floor-height-picture';
 import { createSeaFloorPictures } from './sea/sea-floor-pictures';
+import { createShoreRoundPicture } from './sea/shore-round-picture';
 import { writeSurfObstacles } from './sea/surf-obstacles';
 import { createWaveModel } from './sea/wave-model';
 import { createCausticsTexture } from './shaders/caustics-texture';
@@ -134,6 +135,7 @@ const seaFloor = createSeaFloorPictures(island.groundHeight);
 uniforms.uSeaFloor.value = seaFloor.floor;
 uniforms.uBreakTimes.value = seaFloor.breaks;
 uniforms.uFloorHeight.value = createFloorHeightPicture(renderer);
+uniforms.uShoreRound.value = createShoreRoundPicture();
 /** How far from the atoll's centre the line its waves break on lies, in a direction. */
 const breakLineFromCentre = (direction: number) =>
   island.radius(direction) + island.offshoreOfReef(seaConfig.reefBreak, direction);

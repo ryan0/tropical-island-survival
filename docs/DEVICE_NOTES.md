@@ -44,7 +44,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   ending the water's colouring part-way (`water: depth only`, `to ripples`, `to mirror`, `to colour`, `to white
   horses`, `to foam`),
   colouring it without the island's formula (`no floor formula`), or with the formula worked out for every dot
-  as it was until 19 November 2026 (`floor from the formula`), drawing half as many dots again each way so that
+  as it was until 19 November 2026 (`floor from the formula`), the same for the shore's formula (`shore from
+  the formula`), drawing half as many dots again each way so that
   costs hidden by the screen's 60 frames a second can be read (`more dots`),
   colouring it without what only steep water needs, colouring the sea
   and the lagoon without the readings that follow the eye's line on under the surface (`plain water depth`),
@@ -117,6 +118,9 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   picture with one channel, drawn into as a render target, no mipmaps: `floor-height-picture.ts`). On the Pixel
   10 that gave 55 frames a second where the formula gave 39 to 45 (19 November 2026), and Ryan named no fault in
   the picture. Drawing into a half-float picture was new to the phone, and worked.
+- The profile of the wave mesh's colouring with `more dots` (19 November 2026) showed no one dear part: the
+  cost builds from the mirror on. And the frame rate the phone shows is a mix of frames that made the next
+  refresh and frames that missed it: 55 is mostly sixties with some thirties, not 18 ms a frame.
 - So the software renderer is a poor guide to this phone twice over: it overstates what texture filtering costs,
   and it cannot see what a branch saves. Add a switch and read the phone.
 - Performance can only be judged on the phone. `90_main.js` lowers resolution, then shadows, if the frame rate is poor.

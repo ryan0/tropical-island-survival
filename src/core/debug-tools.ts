@@ -218,6 +218,20 @@ export function debugSwitches(
       isOn: () => !('WATER_FLOOR_FROM_PICTURE' in water.waveMaterial.defines),
     },
     {
+      // The same for the shore: the sea and the lagoon working out the shore's formula for every dot, where they
+      // now read it from a picture of the shore round the atoll (water.frag.glsl's WATER_SHORE_FROM_PICTURE;
+      // sea/shore-round-picture.ts).
+      label: 'shore from the formula',
+      set(on) {
+        for (const material of [water.waveMaterial, water.farSea.material as ShaderMaterial]) {
+          if (on) delete material.defines.WATER_SHORE_FROM_PICTURE;
+          else material.defines.WATER_SHORE_FROM_PICTURE = '';
+          material.needsUpdate = true;
+        }
+      },
+      isOn: () => !('WATER_SHORE_FROM_PICTURE' in water.waveMaterial.defines),
+    },
+    {
       // For reading what each part of a frame costs once the frame rate is at the screen's own 60, which hides
       // it: half as many dots again each way, so every dot's work counts two and a quarter times over and the
       // frame rate falls where differences show. Automatic quality stands still meanwhile.

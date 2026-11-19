@@ -45,6 +45,8 @@ export type SharedUniforms = Record<string, IUniform> &
     uBreakTimes: { value: Texture | null };
     /** The ground's height as a picture, where the graphics card can draw one (sea/floor-height-picture.ts). */
     uFloorHeight: { value: Texture | null };
+    /** The shore in each direction from the centre, once it is made (sea/shore-round-picture.ts). */
+    uShoreRound: { value: Texture | null };
     /** Where the main swell's crest lies, once it is made (sea/crest-picture.ts). */
     uCrests: { value: Texture | null };
     /** The breaking front's cross-sections, once they are made (sea/breaker-shapes.ts). */
@@ -83,6 +85,7 @@ export function createSharedUniforms(
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },
     uFloorHeight: { value: null },
+    uShoreRound: { value: null },
     uCrests: { value: null },
     uBreakerShapes: { value: null },
     uBreakerArc: { value: new Vector2() },

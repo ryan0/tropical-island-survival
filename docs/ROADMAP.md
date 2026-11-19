@@ -952,6 +952,28 @@ earlier parts costs: `more dots` in the debug panel draws half as many dots agai
 dot's work counts two and a quarter times over and the frame rate falls to where the stop-switches can be told
 apart.
 
+**The profile, with `more dots`** (the same day): the whole colouring 43; the mesh bare 60; stopped after the
+depth 60, after the ripples 57 to 60, after the mirror 49 to 60, after the colour 44 to 50, after the white
+horses 43 to 45, after the foam 38 to 42. No one part costs the frames: each from the mirror on adds a little,
+and all before the mirror fits a frame even at two and a quarter times the dots. (The frame rate is a mix of
+frames that made the screen's next refresh and frames that missed it, so it does not turn into milliseconds
+by plain division.) The program's own time for a frame is 2.5 ms on the desktop from the same place: not
+what holds the phone back.
+
+**So, arithmetic taken out all along the colouring, changing no picture** (62 views, the worst the same to
+within a step in 255 here and there):
+
+- *The shore from a picture.* Every dot of water worked out eight sines for the shore in its direction: how
+  far out the shoreline lies, the reef's share of its width, the land's width. They are read from a picture
+  one dot high and 4096 across, made from the same formulas at start-up (`sea/shore-round-picture.ts`;
+  `WATER_SHORE_FROM_PICTURE`; `shore from the formula` in the debug panel works them out as before).
+- *What is not in the sky is not worked out*: the moon's sheen by day, the sun's glints at night, the sun's
+  whole image from the wind at which it is all glitter. Nor the white horses below the wind that raises them,
+  nor the lagoon's shore waves below theirs. Each test is on a uniform.
+- *No foam, no foam's sums.* The lace pattern, the waves' foam and its shading are worked out only where
+  the wave model puts foam, at the water's edge, or near the beach where foam lies round the rocks.
+- The fifth power in the mirror's strength is five multiplications, not a `pow`.
+
 **Switches added:** `bare wave mesh` draws the mesh in one flat colour and works out nothing more: what is left
 is its points and the filling of its triangles. `sharper filtering` is above. With `coarse wave mesh`, which
 was there, the three say whether the mesh's cost is its colouring, its filtering or its points. `skip unused

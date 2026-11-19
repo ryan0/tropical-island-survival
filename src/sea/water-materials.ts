@@ -108,6 +108,7 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     SWELLS_FOAM: swellsFoamDefine(),
     SEA_PICTURE_SPAN: glslFloat(seaConfig.floorPicture.span),
     FLOOR_HEIGHT_SPAN: glslFloat(seaConfig.floorHeightPicture.span),
+    SHORE_ROUND_FROM: glslFloat(seaConfig.shoreRoundPicture.radiusKeptFrom),
     WAVE_MESH_FADES_FROM: glslFloat(meshRows.outerEdge - meshRows.swellFadesOver),
     WAVE_MESH_ENDS: glslFloat(meshRows.outerEdge),
     OPEN_SEA_SPEED: glslFloat(dependencies.openSeaSpeed),
@@ -176,6 +177,7 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
           WATER_FOLLOWS_SIGHT: '',
           // (the ground's height read from its picture, where the graphics card could draw one)
           ...(uniforms.uFloorHeight.value === null ? {} : { WATER_FLOOR_FROM_PICTURE: '' }),
+          WATER_SHORE_FROM_PICTURE: '',
           WATER_SPARKLES: '',
           ...(isWaveMesh || isBreaker ? { WATER_STANDS_STEEP: '' } : {}),
           ...(isBreaker ? { WATER_HAS_TORN_EDGE: '' } : {}),

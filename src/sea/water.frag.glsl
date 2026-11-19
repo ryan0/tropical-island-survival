@@ -72,6 +72,9 @@ uniform sampler2D uDetail;
 uniform sampler2D uReefMap;
 uniform sampler2D uSeaFloor;      // the sea floor as the waves know it: (delay of swell 0, of swell 1, depth, unused)
 uniform sampler2D uBreakTimes;      // seconds since the main swell crossed each of four depths (sea-floor-pictures.ts)
+// The shore in each direction from the centre, as a picture one dot high (shore-round-picture.ts): read in place
+// of the shore's formula while WATER_SHORE_FROM_PICTURE is defined, which it is but for a debug switch.
+uniform sampler2D uShoreRound;
 // The ground's height as a picture (floor-height-picture.ts): read in place of the island's formula while
 // WATER_FLOOR_FROM_PICTURE is defined, which it is wherever the picture could be drawn.
 uniform sampler2D uFloorHeight;
@@ -177,6 +180,8 @@ const float SPARKLE_BRIGHT = 2.5;
 // The sun's whole image on glassy water: the power its mirrored direction's closeness to the sun is raised to
 // (12000 is an image some two sun's widths across).
 const float SUNS_IMAGE_SHARP = 12000.0;
+// It shows only below this wind: from it on the sun is all glitter.
+const float GLASSY_BELOW_WIND = 0.4;
 // The moon's light mirrored in the water.
 const vec3 MOONLIGHT = vec3(0.55, 0.62, 0.80);
 // How bright its faint sheen is, and its glitter.
@@ -463,6 +468,15 @@ float foamRoundObstacles(vec2 xz) {
   return foam;
 }
 
+// A distance off the beach as the distance it would be due south, and back (alongReef and offshoreOfReef in
+// island-shape/shore.glsl), for a direction in which the reef has `share` of its full width.
+float alongReefBy(float offshore, float share) {
+  return min(offshore, REEF_BEGINS) + max(offshore - REEF_BEGINS, 0.0) / share;
+}
+float offshoreOfReefBy(float along, float share) {
+  return min(along, REEF_BEGINS) + max(along - REEF_BEGINS, 0.0) * share;
+}
+
 // The ground's height at p (x, z), in metres above the still sea: the island's formula, or, with
 // WATER_FLOOR_FROM_PICTURE, a reading of the picture made from it. (On Ryan's phone the formula, worked out for
 // every dot of water, is the dearest arithmetic in all this colouring, and a reading costs next to nothing. The
@@ -518,7 +532,19 @@ void main() {
   vec3 towardsCamera = toCamera / cameraDistance;
   float directionFromCentre = atan(xz.y, xz.x);
   float distanceFromCentre = length(xz);
+  // The shore in this direction: how far from the centre the ocean's shoreline lies, the reef's share of its full
+  // width, and the land's width. Read from a picture of them round the atoll, where every dot of water used to
+  // work out their eight sines. (The picture has no mipmaps: it may be read anywhere.)
+  #ifdef WATER_SHORE_FROM_PICTURE
+  vec4 shoreRound = texture2D(uShoreRound, vec2(directionFromCentre / FULL_TURN + 0.5, 0.5));
+  float oceanShoreRadius = shoreRound.r + SHORE_ROUND_FROM;
+  float reefsShare = shoreRound.g;
+  float landsWidth = shoreRound.b;
+  #else
   float oceanShoreRadius = islandR(directionFromCentre);
+  float reefsShare = reefShare(directionFromCentre);
+  float landsWidth = landW(directionFromCentre);
+  #endif
 
   // ---- The far sea's holes, and the lagoon ----
 
@@ -527,7 +553,7 @@ void main() {
   #ifndef WATER_STANDS_STEEP
   if (uIsFlatSheet > 0.5) {
     float holeOutside = oceanShoreRadius
-      + offshoreOfReef(WAVE_MESH_ENDS - FAR_SEA_HOLE_SHORT_OF_EDGE, directionFromCentre);
+      + offshoreOfReefBy(WAVE_MESH_ENDS - FAR_SEA_HOLE_SHORT_OF_EDGE, reefsShare);
     float holeInside = oceanShoreRadius - FAR_SEA_HOLE_UP_BEACH;
     if (distanceFromCentre < holeOutside && distanceFromCentre > holeInside) discard;
     inLagoon = step(distanceFromCentre, oceanShoreRadius);
@@ -537,7 +563,7 @@ void main() {
     // draws nothing outside that.
     // (landward: metres on the land side of the water's edge, of the lagoon's own shore or of the sandbank's,
     // whichever is nearer)
-    float landwardOfLagoonShore = distanceFromCentre - oceanShoreRadius + landW(directionFromCentre);
+    float landwardOfLagoonShore = distanceFromCentre - oceanShoreRadius + landsWidth;
     float landwardOfSandbankShore = SANDBANK_RADIUS - length(xz - vec2(sandbankX(), sandbankZ()));
     float landward = max(landwardOfLagoonShore, landwardOfSandbankShore);
     float inBand = step(-BAND_OUT_INTO_LAGOON, landward) * step(landward, BAND_UP_BEACH)
@@ -659,7 +685,7 @@ void main() {
   float waveFoam = vWaveState.x;
   float metresOffBeach = vWaveState.y;
   // (the same as a distance along the reef, whose zones lie at the same such distances all round: shore.glsl)
-  float reefDistance = alongReef(metresOffBeach, directionFromCentre);
+  float reefDistance = alongReefBy(metresOffBeach, reefsShare);
   float waveHeight = vWaveState.z;
 
   // ---- The detail texture ----
@@ -856,11 +882,12 @@ void main() {
   // own clock; then, further out, shorter lines of the open sea's own, as rings round the island. All are wobbled a
   // little far out so that the lines are not ruled.
   float swellMetresOffshore = mix(metresOffBeach, distanceFromCentre - oceanShoreRadius, uIsFlatSheet);
-  float swellAlongReef = alongReef(swellMetresOffshore, directionFromCentre);
+  float swellAlongReef = alongReefBy(swellMetresOffshore, reefsShare);
   float pastModelledWaves = smoothstep(WAVE_MESH_FADES_FROM, WAVE_MESH_ENDS, swellAlongReef);
   float notFarOut = 1.0 - smoothstep(WAVE_MESH_ENDS + 150.0, WAVE_MESH_ENDS + 470.0, swellAlongReef);
   // (strongest on the side the swell comes from, the south; faint in the atoll's lee)
-  float facingSwell = 0.28 + 0.72 * smoothstep(-0.4, 0.8, sin(directionFromCentre));
+  // (the sine of the direction from the centre is how far south this lies, over how far out)
+  float facingSwell = 0.28 + 0.72 * smoothstep(-0.4, 0.8, xz.y / max(distanceFromCentre, 1e-3));
   float wavesOn = abs(uDebugMode - 1.0) < 0.5 ? 0.0 : 1.0;
   float swellLines = pastModelledWaves * notFarOut * facingSwell * (1.0 - inLagoon)
     * wavesOn;
@@ -915,7 +942,10 @@ void main() {
   float flatFacesEye = 1.0 - lookedAlong;
   float rippleFacesEye = clamp(dot(normal, towardsCamera), 0.0, 1.0);
   float facesEye = mix(flatFacesEye, rippleFacesEye, clamp(rippleFacesEye / max(flatFacesEye, 1e-3), 0.0, 1.0));
-  float fresnel = 0.02 + 0.98 * pow(clamp(1.0 - facesEye, 0.001, 1.0), 5.0);
+  float turnedAway = clamp(1.0 - facesEye, 0.001, 1.0);
+  float turnedAwaySquared = turnedAway * turnedAway;
+  // (the fifth power, by multiplying: Schlick's rule)
+  float fresnel = 0.02 + 0.98 * turnedAwaySquared * turnedAwaySquared * turnedAway;
   // (a calm sea is a true mirror at a low angle)
   fresnel *= 1.0 - mix(0.40, 0.14, slick) * min(uWind * 2.3, 1.0) * fresnel;
   // (A ray mirrored a little way down into the water, off a ripple, is turned back up to the sky. One mirrored well
@@ -962,54 +992,64 @@ void main() {
     skyMirrored = skyMirrored * skyShows + sunlitCloud + shadedCloud;
   }
 
-  // The sun and the moon mirrored: a broad sheen, and the sun's glitter on the ripples.
-  float towardsSun = max(dot(mirrored, uSunDirection), 0.0);
-  vec3 glints = uSunColour * pow(towardsSun, 60.0) * 0.06 * sunShows;
-  if (towardsSun > 0.985) {
-    float glitter = smoothstep(0.56, 0.86, noise(xz * 17.0 + vec2(uTime * 3.0, -uTime * 2.4)));
-    glints += uSunColour * pow(towardsSun, 340.0) * 7.0 * glitter * sunShows * min(uWind * 2.3, 1.3);
+  // The sun and the moon mirrored: a broad sheen, and the sun's glitter on the ripples. (Each is worked out only
+  // while it is in the sky: the tests are on uniforms, which cost nothing to skip by.)
+  vec3 glints = vec3(0.0);
+  if (uNight < 1.0) {
+    float towardsSun = max(dot(mirrored, uSunDirection), 0.0);
+    glints = uSunColour * pow(towardsSun, 60.0) * 0.06 * sunShows;
+    if (towardsSun > 0.985) {
+      float glitter = smoothstep(0.56, 0.86, noise(xz * 17.0 + vec2(uTime * 3.0, -uTime * 2.4)));
+      glints += uSunColour * pow(towardsSun, 340.0) * 7.0 * glitter * sunShows * min(uWind * 2.3, 1.3);
+    }
+    // Sparkle. The ripples drawn here are the larger ones; on them ride finer ones, too small to draw, and now and
+    // then one of those is tilted just so and flashes the sun at the eye. How often goes by how far a facet would
+    // have to be tilted from the ripple it rides on, against how rough the wind has made the water: so the sparkle
+    // is thick under the sun and thins out to a few points far to either side, and those few are what show that
+    // clear water has a surface. (The gate is on arithmetic, not on a texture. WATER_SPARKLES is on every sheet; a
+    // debug switch takes it away, to see what the sparkle costs.)
+    #ifdef WATER_SPARKLES
+    vec3 halfway = normalize(towardsCamera + uSunDirection);
+    float facetFaces = max(dot(halfway, normal), 0.05);
+    float tiltNeeded = 1.0 / (facetFaces * facetFaces) - 1.0;
+    // (Not far off, where the glitter above is all that could be told apart: the open sea is spared the work.)
+    float sparkleChance = exp(-tiltNeeded / (SPARKLE_IN_A_CALM + SPARKLE_BY_WIND * uWind))
+      * (1.0 - smoothstep(SPARKLES_SEEN_WITHIN.x, SPARKLES_SEEN_WITHIN.y, cameraDistance));
+    if (sparkleChance > 0.01) {
+      // (A sparkle is a few dots of the picture across, near the eye and far off: the pattern is laid at the two
+      // sizes, each twice the other, that the size of a dot here falls between, and the two are blended. At one
+      // size for all distances the near sparkles were white blots a finger long, and the far ones a snow of
+      // specks.)
+      float dotHere = max(max(length(pixelStepX), length(pixelStepY)), 1e-4);
+      float sizeWanted = log2(1.0 / (SPARKLE_DOTS_ACROSS * dotHere));
+      float finerSize = exp2(ceil(sizeWanted));
+      vec2 sparkleDrift = vec2(uTime * 2.3, -uTime * 1.9);
+      float sparkle = mix(noise(xz * finerSize + sparkleDrift), noise(xz * finerSize * 0.5 + sparkleDrift),
+        ceil(sizeWanted) - sizeWanted);
+      // (the noise is mostly near a half: above 0.58 lies a quarter of it, above 0.82 a few points in a thousand)
+      float sparkleFrom = 0.85 - 0.24 * sqrt(sparkleChance);
+      glints += uSunColour * SPARKLE_BRIGHT * smoothstep(sparkleFrom, sparkleFrom + 0.04, sparkle) * sunShows;
+    }
+    #endif
+    // (On glassy water the sun is mirrored whole, not scattered into glitter. Its image is small: drawn several
+    // times the sun's own width, it lay on clear water near the eye as white blots a pace across.)
+    if (uWind < GLASSY_BELOW_WIND) {
+      glints += uSunColour * pow(towardsSun, SUNS_IMAGE_SHARP) * 5.0 * (1.0 - smoothstep(0.0, GLASSY_BELOW_WIND, uWind))
+        * sunShows;
+    }
   }
-  // Sparkle. The ripples drawn here are the larger ones; on them ride finer ones, too small to draw, and now and
-  // then one of those is tilted just so and flashes the sun at the eye. How often goes by how far a facet would
-  // have to be tilted from the ripple it rides on, against how rough the wind has made the water: so the sparkle
-  // is thick under the sun and thins out to a few points far to either side, and those few are what show that
-  // clear water has a surface. (The gate is on arithmetic, not on a texture. WATER_SPARKLES is on every sheet; a
-  // debug switch takes it away, to see what the sparkle costs.)
-  #ifdef WATER_SPARKLES
-  vec3 halfway = normalize(towardsCamera + uSunDirection);
-  float facetFaces = max(dot(halfway, normal), 0.05);
-  float tiltNeeded = 1.0 / (facetFaces * facetFaces) - 1.0;
-  // (Not far off, where the glitter above is all that could be told apart: the open sea is spared the work.)
-  float sparkleChance = exp(-tiltNeeded / (SPARKLE_IN_A_CALM + SPARKLE_BY_WIND * uWind))
-    * (1.0 - smoothstep(SPARKLES_SEEN_WITHIN.x, SPARKLES_SEEN_WITHIN.y, cameraDistance));
-  if (sparkleChance > 0.01) {
-    // (A sparkle is a few dots of the picture across, near the eye and far off: the pattern is laid at the two
-    // sizes, each twice the other, that the size of a dot here falls between, and the two are blended. At one
-    // size for all distances the near sparkles were white blots a finger long, and the far ones a snow of
-    // specks.)
-    float dotHere = max(max(length(pixelStepX), length(pixelStepY)), 1e-4);
-    float sizeWanted = log2(1.0 / (SPARKLE_DOTS_ACROSS * dotHere));
-    float finerSize = exp2(ceil(sizeWanted));
-    vec2 sparkleDrift = vec2(uTime * 2.3, -uTime * 1.9);
-    float sparkle = mix(noise(xz * finerSize + sparkleDrift), noise(xz * finerSize * 0.5 + sparkleDrift),
-      ceil(sizeWanted) - sizeWanted);
-    // (the noise is mostly near a half: above 0.58 lies a quarter of it, above 0.82 a few points in a thousand)
-    float sparkleFrom = 0.85 - 0.24 * sqrt(sparkleChance);
-    glints += uSunColour * SPARKLE_BRIGHT * smoothstep(sparkleFrom, sparkleFrom + 0.04, sparkle) * sunShows;
-  }
-  #endif
-  // (On glassy water the sun is mirrored whole, not scattered into glitter. Its image is small: drawn several
-  // times the sun's own width, it lay on clear water near the eye as white blots a pace across.)
-  glints += uSunColour * pow(towardsSun, SUNS_IMAGE_SHARP) * 5.0 * (1.0 - smoothstep(0.0, 0.4, uWind)) * sunShows;
   // (The moon's light on the water is glitter too, round the moon's own small image, with a faint sheen about
   // it: as one broad patch of white it was a floodlight on ice.)
-  float towardsMoon = max(dot(mirrored, normalize(MOON_DIRECTION)), 0.0);
-  vec3 moonGlints = MOONLIGHT * pow(towardsMoon, 20.0) * MOON_SHEEN;
-  if (towardsMoon > 0.97 && uNight > 0.01) {
-    float glitter = smoothstep(0.5, 0.8, noise(xz * 11.0 + vec2(uTime * 2.0, -uTime * 1.6)));
-    moonGlints += MOONLIGHT * (pow(towardsMoon, 200.0) * MOON_GLITTER * glitter + pow(towardsMoon, 1500.0) * MOON_GLITTER);
+  if (uNight > 0.0) {
+    float towardsMoon = max(dot(mirrored, normalize(MOON_DIRECTION)), 0.0);
+    vec3 moonGlints = MOONLIGHT * pow(towardsMoon, 20.0) * MOON_SHEEN;
+    if (towardsMoon > 0.97 && uNight > 0.01) {
+      float glitter = smoothstep(0.5, 0.8, noise(xz * 11.0 + vec2(uTime * 2.0, -uTime * 1.6)));
+      moonGlints += MOONLIGHT
+        * (pow(towardsMoon, 200.0) * MOON_GLITTER * glitter + pow(towardsMoon, 1500.0) * MOON_GLITTER);
+    }
+    glints += moonGlints * uNight;
   }
-  glints += moonGlints * uNight;
 
   #ifdef WATER_STOPS_AFTER_MIRROR
   gl_FragColor = vec4(mix(mix(OVER_SAND_AQUA, OCEAN_BLUE, smoothstep(0.0, 16.0, waterDepth * colouredAsDeep)),
@@ -1185,48 +1225,51 @@ void main() {
   // beach and the breakers - they are a third the size, lower and fewer, and leave little foam (on the reef flat
   // less still); in the lagoon only where it is deep, and none among the breakers themselves.
   // windFoam: foam lying on the water (the lagoon's shore waves add theirs below); whiteCrests: crests standing up.
-  float sheltered = max(inLagoon, step(reefDistance, FORE_REEF_BEGINS - 2.0));
   float windFoam = 0.0;
   float whiteCrests = 0.0;
-  float openSeaWhitecaps = smoothstep(FORE_REEF_BEGINS + 5.0, FORE_REEF_BEGINS + 21.0, reefDistance)
-    * smoothstep(1.0, 2.6, waterDepth);
-  float reefFlatWhitecaps = (1.0 - smoothstep(CREST_BEGINS - 20.0, CREST_BEGINS - 8.0, reefDistance))
-    * smoothstep(0.5, 1.1, waterDepth);
-  float lagoonWhitecaps = smoothstep(1.6, 3.6, waterDepth);
-  float shelteredWhitecaps = mix(reefFlatWhitecaps, lagoonWhitecaps, inLagoon);
-  float whitecaps = smoothstep(WHITECAPS_FROM_WIND, 1.0, uWind) * (1.0 - uUnderWater)
-    * mix(openSeaWhitecaps, shelteredWhitecaps, sheltered);
-  if (whitecaps > 0.003) {
-    // (in sheltered water everything is measured three times larger, so the crests come out a third the size)
-    float scale = 1.0 + 2.0 * sheltered;
-    float crestBend = ((ripplesMedium.b - 0.5) * 2.5 + (ripplesLarge.b - 0.5) * 5.0 + (windPatches.b - 0.5) * 30.0)
-      * scale;
-    vec2 scaledXz = xz * scale;
-    vec2 fromCamera = xz - cameraPosition.xz;
-    float levelDistance = max(length(fromCamera), 1.0);
-    fromCamera /= levelDistance;
-    float ragged = (ripplesMedium.b - 0.5) * 0.2 + (foamSmall.b - 0.5) * 0.12;
-    float crestHeight = mix(0.6, mix(0.15, 0.2, inLagoon), sheltered) * whitecaps * scale;
-    float eyeHeight = max(cameraPosition.y - vWaterPosition.y, 0.4);
-    float rise = crestHeight * levelDistance / eyeHeight;
-    float rarity = mix(0.75, 0.59, whitecaps) + mix(0.09, 0.06, inLagoon) * sheltered;
-    float pixelSize = max(length(pixelStepX), length(pixelStepY)) * scale;
-    float lyingFoamShows = (1.0 - smoothstep(1.5, 5.0, pixelSize)) * smoothstep(0.0, 0.3, whitecaps);
-    float bandDepth = 1.0 + 1.5 * sheltered;
-    vec2 wind = WIND_DIR;
-    // (28 degrees either way)
-    vec2 directionA = vec2(wind.x * 0.883 - wind.y * 0.469, wind.x * 0.469 + wind.y * 0.883);
-    vec2 directionB = vec2(wind.x * 0.883 + wind.y * 0.469, -wind.x * 0.469 + wind.y * 0.883);
-    float pixelAlongA = abs(dot(pixelStepX, directionA)) + abs(dot(pixelStepY, directionA));
-    float pixelAlongB = abs(dot(pixelStepX, directionB)) + abs(dot(pixelStepY, directionB));
-    vec2 familyA = whiteHorses(scaledXz, crestBend, ragged, bandDepth, directionA, CRESTS_A_SPACING, CRESTS_A_SPEED,
-      uTime, 3.1, rarity, fromCamera, rise, pixelAlongA * scale / CRESTS_A_SPACING, lyingFoamShows);
-    vec2 familyB = whiteHorses(scaledXz, -crestBend, -ragged, bandDepth, directionB, CRESTS_B_SPACING, CRESTS_B_SPEED,
-      uTime, 8.7, rarity, fromCamera, rise, pixelAlongB * scale / CRESTS_B_SPACING, lyingFoamShows);
-    // (in sheltered water the foam is thinner: lace with the water showing through it, not a white shape)
-    windFoam = max(familyA.x, familyB.x) * (1.0 - SHELTERED_FOAM_THINNER * sheltered);
-    // (right under the eye a crest is drawn by its foam alone)
-    whiteCrests = max(familyA.y, familyB.y) * smoothstep(4.0, 18.0, levelDistance);
+  // (Below the wind that raises them there are none, and none of this is worked out: the test is on a uniform.)
+  if (uWind > WHITECAPS_FROM_WIND) {
+    float sheltered = max(inLagoon, step(reefDistance, FORE_REEF_BEGINS - 2.0));
+    float openSeaWhitecaps = smoothstep(FORE_REEF_BEGINS + 5.0, FORE_REEF_BEGINS + 21.0, reefDistance)
+      * smoothstep(1.0, 2.6, waterDepth);
+    float reefFlatWhitecaps = (1.0 - smoothstep(CREST_BEGINS - 20.0, CREST_BEGINS - 8.0, reefDistance))
+      * smoothstep(0.5, 1.1, waterDepth);
+    float lagoonWhitecaps = smoothstep(1.6, 3.6, waterDepth);
+    float shelteredWhitecaps = mix(reefFlatWhitecaps, lagoonWhitecaps, inLagoon);
+    float whitecaps = smoothstep(WHITECAPS_FROM_WIND, 1.0, uWind) * (1.0 - uUnderWater)
+      * mix(openSeaWhitecaps, shelteredWhitecaps, sheltered);
+    if (whitecaps > 0.003) {
+      // (in sheltered water everything is measured three times larger, so the crests come out a third the size)
+      float scale = 1.0 + 2.0 * sheltered;
+      float crestBend = ((ripplesMedium.b - 0.5) * 2.5 + (ripplesLarge.b - 0.5) * 5.0 + (windPatches.b - 0.5) * 30.0)
+        * scale;
+      vec2 scaledXz = xz * scale;
+      vec2 fromCamera = xz - cameraPosition.xz;
+      float levelDistance = max(length(fromCamera), 1.0);
+      fromCamera /= levelDistance;
+      float ragged = (ripplesMedium.b - 0.5) * 0.2 + (foamSmall.b - 0.5) * 0.12;
+      float crestHeight = mix(0.6, mix(0.15, 0.2, inLagoon), sheltered) * whitecaps * scale;
+      float eyeHeight = max(cameraPosition.y - vWaterPosition.y, 0.4);
+      float rise = crestHeight * levelDistance / eyeHeight;
+      float rarity = mix(0.75, 0.59, whitecaps) + mix(0.09, 0.06, inLagoon) * sheltered;
+      float pixelSize = max(length(pixelStepX), length(pixelStepY)) * scale;
+      float lyingFoamShows = (1.0 - smoothstep(1.5, 5.0, pixelSize)) * smoothstep(0.0, 0.3, whitecaps);
+      float bandDepth = 1.0 + 1.5 * sheltered;
+      vec2 wind = WIND_DIR;
+      // (28 degrees either way)
+      vec2 directionA = vec2(wind.x * 0.883 - wind.y * 0.469, wind.x * 0.469 + wind.y * 0.883);
+      vec2 directionB = vec2(wind.x * 0.883 + wind.y * 0.469, -wind.x * 0.469 + wind.y * 0.883);
+      float pixelAlongA = abs(dot(pixelStepX, directionA)) + abs(dot(pixelStepY, directionA));
+      float pixelAlongB = abs(dot(pixelStepX, directionB)) + abs(dot(pixelStepY, directionB));
+      vec2 familyA = whiteHorses(scaledXz, crestBend, ragged, bandDepth, directionA, CRESTS_A_SPACING, CRESTS_A_SPEED,
+        uTime, 3.1, rarity, fromCamera, rise, pixelAlongA * scale / CRESTS_A_SPACING, lyingFoamShows);
+      vec2 familyB = whiteHorses(scaledXz, -crestBend, -ragged, bandDepth, directionB, CRESTS_B_SPACING, CRESTS_B_SPEED,
+        uTime, 8.7, rarity, fromCamera, rise, pixelAlongB * scale / CRESTS_B_SPACING, lyingFoamShows);
+      // (in sheltered water the foam is thinner: lace with the water showing through it, not a white shape)
+      windFoam = max(familyA.x, familyB.x) * (1.0 - SHELTERED_FOAM_THINNER * sheltered);
+      // (right under the eye a crest is drawn by its foam alone)
+      whiteCrests = max(familyA.y, familyB.y) * smoothstep(4.0, 18.0, levelDistance);
+    }
   }
 
   // ---- The lagoon's shore waves ----
@@ -1237,7 +1280,8 @@ void main() {
   // sky), its back a thin line of sky; from where it breaks - the bigger the wave, the further out - it is white.
   // (Only the flat sheets lie in the lagoon: the two meshes the waves move are compiled without this.)
   #ifndef WATER_STANDS_STEEP
-  if (inLagoon > 0.5 && depthOverSand < 1.6) {
+  // (and only from the wind that raises them: below it lagExposure is nothing)
+  if (uWind > LAGOON_WAVES_FROM_WIND && inLagoon > 0.5 && depthOverSand < 1.6) {
     float shoreWaves = lagExposure(xz) * (1.0 - uUnderWater);
     if (shoreWaves > 0.003) {
       vec3 shoreWave = lagWave(xz, depthOverSand, uTime);
@@ -1270,123 +1314,135 @@ void main() {
 
   // ---- Foam ----
 
-  // The wave model says how much (waveFoam); the detail texture turns that into lace where it is thin and a white
-  // sheet with holes where it is thick (soft patches only, further away, where the lace would be too fine to see).
-  // The pattern drifts slowly with the ripples instead of racing ashore.
-  float laceNear = max(foamSmall.a, foamFine.a * 0.9) * 0.6 + (foamSmall.b + foamFine.b) * 0.2;
-  float laceFar = 0.22 + ripplesMedium.b * 0.36 + ripplesLarge.b * 0.30;
-  float lace = mix(laceNear, laceFar, smoothstep(8.0, 30.0, cameraDistance)) * 0.62 + shoreStreak * 0.38;
-  // (on steep water the pattern is the reading laid along it, drawn out into streaks the way the water falls)
-  float steepLace = mix(steepFoam.a * 0.55 + steepFoam.b * 0.45, fallingStreak, 0.45) * awayFromSeam
-    + 0.5 * (1.0 - awayFromSeam);
-  lace = mix(lace, steepLace, steep);
-  // (The white mass is no lace at all, nor a falling sheet: it is thick white water, in lumps.)
-  lace = mix(lace, 0.6 + 0.4 * massLumps.b, whiteMass);
   float foam = 0.0;
-  // (where the lace pattern is above this the foam is white, below it blue-grey)
-  float whiteLaceThreshold = 0.3;
-  // (how far this is the thin sheet of water on the sand: below)
-  float onSand = 0.0;
-  if (uIsFlatSheet < 0.5 && (waveFoam > 0.003 || waterDepth < 0.09 || metresOffBeach < 16.0)) {
-    // The foam's edge towards the beach is scalloped: it reaches the sand in tongues a few strides across, and
-    // between them thins out short of it. (The wave model ends the foam along one even line, a stride off the
-    // beach. The tongues stand still on the beach, as a beach's cusps do.)
-    float foamOfWaves = waveFoam;
-    if (metresOffBeach < SCALLOPS_REACH + 1.5) {
-      float betweenTongues = 1.0 - smoothstep(0.3, 0.75, noise(xz * SCALLOPS_A_METRE));
-      foamOfWaves *= smoothstep(-0.4, 0.8, metresOffBeach - SCALLOPS_REACH * betweenTongues);
+  // Whether this dot may carry foam the waves made (the two meshes the waves move: where the wave model puts any,
+  // at the water's edge, and near the beach, where foam lies round the rocks), and whether it carries the wind's.
+  // None of the foam is worked out where there can be none, which is most of the sea.
+  bool wavesMayFoam = uIsFlatSheet < 0.5 && (waveFoam > 0.003 || waterDepth < 0.09 || metresOffBeach < 16.0);
+  bool windFoams = windFoam + whiteCrests > 0.003;
+  if (wavesMayFoam || windFoams) {
+    // The wave model says how much (waveFoam); the detail texture turns that into lace where it is thin and a white
+    // sheet with holes where it is thick (soft patches only, further away, where the lace would be too fine to see).
+    // The pattern drifts slowly with the ripples instead of racing ashore.
+    float laceNear = max(foamSmall.a, foamFine.a * 0.9) * 0.6 + (foamSmall.b + foamFine.b) * 0.2;
+    float laceFar = 0.22 + ripplesMedium.b * 0.36 + ripplesLarge.b * 0.30;
+    float lace = mix(laceNear, laceFar, smoothstep(8.0, 30.0, cameraDistance)) * 0.62 + shoreStreak * 0.38;
+    // (on steep water the pattern is the reading laid along it, drawn out into streaks the way the water falls)
+    float steepLace = mix(steepFoam.a * 0.55 + steepFoam.b * 0.45, fallingStreak, 0.45) * awayFromSeam
+      + 0.5 * (1.0 - awayFromSeam);
+    lace = mix(lace, steepLace, steep);
+    // (The white mass is no lace at all, nor a falling sheet: it is thick white water, in lumps.)
+    lace = mix(lace, 0.6 + 0.4 * massLumps.b, whiteMass);
+    // (where the lace pattern is above this the foam is white, below it blue-grey)
+    float whiteLaceThreshold = 0.3;
+    // (how far this is the thin sheet of water on the sand: below)
+    float onSand = 0.0;
+    if (wavesMayFoam) {
+      // (how far this is the thin sheet on the sand, where foam stays lace: above)
+      onSand = 1.0 - smoothstep(SHEET_ON_SAND_UNDER.x, SHEET_ON_SAND_UNDER.y, waterDepth);
+      // (With none of the waves' foam here, the threshold is what laceThreshold gives for none, and only the foam
+      // round a rock is left to draw.)
+      whiteLaceThreshold = 1.0;
+      if (waveFoam > 0.0) {
+        // The foam's edge towards the beach is scalloped: it reaches the sand in tongues a few strides across, and
+        // between them thins out short of it. (The wave model ends the foam along one even line, a stride off the
+        // beach. The tongues stand still on the beach, as a beach's cusps do.)
+        float foamOfWaves = waveFoam;
+        if (metresOffBeach < SCALLOPS_REACH + 1.5) {
+          float betweenTongues = 1.0 - smoothstep(0.3, 0.75, noise(xz * SCALLOPS_A_METRE));
+          foamOfWaves *= smoothstep(-0.4, 0.8, metresOffBeach - SCALLOPS_REACH * betweenTongues);
+        }
+        // only foam the waves made; no standing lace along the beach
+        float foamAmount = clamp(foamOfWaves * (0.75 + 0.5 * ripplesMedium.b), 0.0, 1.0);
+        // the sheet of water sliding up and down the sand carries a white edge and a little lace, not a grey veil
+        float offTheSheet = max(smoothstep(0.03, 0.15, waterDepth), smoothstep(0.4, 0.8, foamOfWaves));
+        foamAmount *= mix(0.3, 1.0, offTheSheet);
+        float threshold = mix(laceThreshold(foamAmount), laceThresholdOnSand(foamAmount), onSand);
+        whiteLaceThreshold = max(threshold, -0.05);
+        foam = foamAsLace(foamAmount, threshold, lace, cameraDistance);
+        // from far off the lace is too fine to see: thin foam then reads as a pale veil, patchier where it is thinner
+        float veil = clamp(foamAmount * (0.30 + 1.1 * lace), 0.0, 1.0);
+        foam = mix(foam, veil, smoothstep(12.0, 55.0, cameraDistance) * offTheSheet);
+        foam = max(foam,
+          smoothstep(mix(0.72, 0.86, onSand), 1.0, foamOfWaves) * (0.55 + 0.45 * smoothstep(0.3, 0.7, lace)));
+        // a line of foam at the very edge of moving water (not round a still puddle lying in a dip in the sand)
+        float waterEdge = 1.0 - smoothstep(0.0, 0.06, waterDepth);
+        foam = max(foam, waterEdge * smoothstep(0.45, 0.75, lace + 0.15) * smoothstep(0.06, 0.22, foamOfWaves));
+      }
+      if (metresOffBeach < 24.0) {
+        float churned = clamp(waveHeight * 3.0 + waveFoam, 0.0, 1.0);
+        foam = max(foam, foamRoundObstacles(xz) * smoothstep(0.45, 0.75, lace + 0.30 * churned));
+      }
     }
-    // only foam the waves made; no standing lace along the beach
-    float foamAmount = clamp(foamOfWaves * (0.75 + 0.5 * ripplesMedium.b), 0.0, 1.0);
-    // the sheet of water sliding up and down the sand carries a white edge and a little lace, not a grey veil
-    float offTheSheet = max(smoothstep(0.03, 0.15, waterDepth), smoothstep(0.4, 0.8, foamOfWaves));
-    foamAmount *= mix(0.3, 1.0, offTheSheet);
-    // (how far this is the thin sheet on the sand, where foam stays lace: above)
-    onSand = 1.0 - smoothstep(SHEET_ON_SAND_UNDER.x, SHEET_ON_SAND_UNDER.y, waterDepth);
-    float threshold = mix(laceThreshold(foamAmount), laceThresholdOnSand(foamAmount), onSand);
-    whiteLaceThreshold = max(threshold, -0.05);
-    foam = foamAsLace(foamAmount, threshold, lace, cameraDistance);
-    // from far off the lace is too fine to see: thin foam then reads as a pale veil, patchier where it is thinner
-    float veil = clamp(foamAmount * (0.30 + 1.1 * lace), 0.0, 1.0);
-    foam = mix(foam, veil, smoothstep(12.0, 55.0, cameraDistance) * offTheSheet);
-    foam = max(foam,
-      smoothstep(mix(0.72, 0.86, onSand), 1.0, foamOfWaves) * (0.55 + 0.45 * smoothstep(0.3, 0.7, lace)));
-    // a line of foam at the very edge of moving water (not round a still puddle lying in a dip in the sand)
-    float waterEdge = 1.0 - smoothstep(0.0, 0.06, waterDepth);
-    foam = max(foam, waterEdge * smoothstep(0.45, 0.75, lace + 0.15) * smoothstep(0.06, 0.22, foamOfWaves));
-    if (metresOffBeach < 24.0) {
-      float churned = clamp(waveHeight * 3.0 + waveFoam, 0.0, 1.0);
-      foam = max(foam, foamRoundObstacles(xz) * smoothstep(0.45, 0.75, lace + 0.30 * churned));
+    // The white horses' foam: a white sheet where it is fresh, lace as it thins - drawn out in streaks along the wind
+    // (the detail texture read stretched twice that way) - and a pale veil from far off. Under it the water is full of
+    // bubbles for a while, and paler.
+    if (windFoam + whiteCrests > 0.003) {
+      float windLace = mix(lace, windStreaks.a * 0.65 + windStreaks.b * 0.35, 0.45);
+      colour = mix(colour, UNDER_WHITECAP * (0.45 + 0.55 * uDaylight) * (1.0 - 0.8 * uNight), 0.3 * windFoam);
+      float whitecapFoam = foamAsLace(windFoam, laceThreshold(windFoam), windLace, cameraDistance);
+      float veil = clamp(smoothstep(0.2, 0.85, windFoam) * (0.45 + 1.1 * windLace), 0.0, 1.0);
+      whitecapFoam = mix(whitecapFoam, veil, smoothstep(12.0, 55.0, cameraDistance)) * (1.0 - 0.3 * inLagoon);
+      whitecapFoam = max(whitecapFoam, whiteCrests * (0.82 + 0.18 * smoothstep(0.3, 0.6, lace)));
+      foam = max(foam, whitecapFoam);
+      whiteLaceThreshold = min(whiteLaceThreshold, mix(0.3, -0.05, max(windFoam, whiteCrests)));
     }
-  }
-  // The white horses' foam: a white sheet where it is fresh, lace as it thins - drawn out in streaks along the wind
-  // (the detail texture read stretched twice that way) - and a pale veil from far off. Under it the water is full of
-  // bubbles for a while, and paler.
-  if (windFoam + whiteCrests > 0.003) {
-    float windLace = mix(lace, windStreaks.a * 0.65 + windStreaks.b * 0.35, 0.45);
-    colour = mix(colour, UNDER_WHITECAP * (0.45 + 0.55 * uDaylight) * (1.0 - 0.8 * uNight), 0.3 * windFoam);
-    float whitecapFoam = foamAsLace(windFoam, laceThreshold(windFoam), windLace, cameraDistance);
-    float veil = clamp(smoothstep(0.2, 0.85, windFoam) * (0.45 + 1.1 * windLace), 0.0, 1.0);
-    whitecapFoam = mix(whitecapFoam, veil, smoothstep(12.0, 55.0, cameraDistance)) * (1.0 - 0.3 * inLagoon);
-    whitecapFoam = max(whitecapFoam, whiteCrests * (0.82 + 0.18 * smoothstep(0.3, 0.6, lace)));
-    foam = max(foam, whitecapFoam);
-    whiteLaceThreshold = min(whiteLaceThreshold, mix(0.3, -0.05, max(windFoam, whiteCrests)));
-  }
 
-  // (All of the foam's shading is worked out only where there is foam: over most of the sea there is none.)
-  if (foam > 0.0) {
-    // Foam is white where it is thick and blue-grey where it thins; the ripples under it catch the sun, so it looks
-    // frothy.
-    float closeUp = 1.0 - smoothstep(5.0, 22.0, cameraDistance);
-    // (The ripples are laid on from above: on steep water, and on the white mass a landed lip throws up, they would
-    // be smeared down it in streaks, so there the foam goes by the readings laid along the surface instead.)
-    float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
-    float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
-    float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
-    vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
-    // close up, even thick foam is a mass of bubbles with water showing between them
-    // (not the white mass: water showing through it in specks made it look like ice)
-    float bubbles = mix(foamFine.a, steepFoam.a, steep);
-    foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, bubbles)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance))
-      * (1.0 - whiteMass);
-    // no foam at all on water a few centimetres deep unless the wave model put plenty there (the white edge of the swash)
-    foam *= max(smoothstep(0.03, 0.10, waterDepth), smoothstep(0.2, 0.4, waveFoam));
-    foam = min(foam, 0.94);
-    // (Where a sheet of foam is thin - the hollows of its pattern - the water under it shows through: painted solid
-    // there, in thin foam's colour, a sheet of foam looked like snow with pools of meltwater in it. Not the white
-    // mass, which is thick all through.)
-    float thickFoam = smoothstep(whiteLaceThreshold, whiteLaceThreshold + 0.26, lace);
-    // (on the sand, less still: there the holes of the lace are wet sand, and it is their darkness against the
-    // white threads that makes it lace)
-    foam *= mix(mix(THIN_FOAM_HIDES, THIN_FOAM_HIDES_ON_SAND, onSand), 1.0, max(thickFoam, whiteMass));
-    vec3 foamThickness = mix(THIN_FOAM, vec3(1.08), thickFoam);
-    // (the foam is lit as a rougher surface than the water: the ripples' tilt counts for more close up, and the lace
-    // and the streaks give it lumps of its own)
-    vec3 rippleTilt = vec3(-foamSlope.x, 0.0, -foamSlope.y)
-      * (1.5 + 3.5 * (1.0 - smoothstep(4.0, 30.0, cameraDistance)));
-    // (Only a little: a sheet of foam lying on the water is nearly flat. Tilted more, half of it stood in its own
-    // blue-grey shade, and it looked like snow lying in drifts.)
-    vec3 lumps = vec3(shoreStreak - 0.5, 0.0, lace - 0.5) * FLAT_FOAM_LUMPS;
-    // (Piled-up white water - steep, or standing high - is a heap of lumps: on it the lumps are those of the reading
-    // laid along the surface, they tilt it more, and the hollows between them are in shade.)
-    float piledUp = max(steep, smoothstep(0.5, 1.4, vWaterPosition.y - uSeaLevel));
-    vec3 upTheSlope = cross(waveNormal, vec3(alongWave.x, 0.0, alongWave.y));
-    vec2 steepSlope = (steepFoam.rg - 0.5) * awayFromSeam;
-    vec3 steepLumps = (vec3(alongWave.x, 0.0, alongWave.y) * steepSlope.x + upTheSlope * steepSlope.y) * PILED_LUMPS;
-    // (The white mass is lit as a cloud is: round lumps a metre across, bright where they face the sun and softly
-    // shaded where they turn away and in the hollows between them - a pale shade, not the blue-grey of thin foam.)
-    vec2 massSlope = massLumps.rg - 0.5 + MASS_SMALL_LUMPS * (massSmallLumps.rg - 0.5);
-    float massHeight = mix(massLumps.b, massSmallLumps.b, 0.35);
-    vec3 massTilt = (vec3(alongWave.x, 0.0, alongWave.y) * massSlope.x + upTheSlope * massSlope.y) * MASS_LUMPS_TILT;
-    vec3 foamNormal = normalize(waveNormal + (rippleTilt + lumps) * laidFromAbove
-      + steepLumps * piledUp * (1.0 - 0.6 * whiteMass) + massTilt * whiteMass);
-    vec3 foamInShade = mix(SHADED_FOAM, MASS_IN_SHADE, whiteMass);
-    vec3 foamShade = mix(foamInShade, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
-    foamShade *= 1.0 - PILED_HOLLOWS * piledUp * (1.0 - smoothstep(0.25, 0.6, lace)) * (1.0 - whiteMass);
-    foamShade *= 1.0 - MASS_HOLLOWS * whiteMass * (1.0 - smoothstep(0.3, 0.62, massHeight));
-    // (thin foam is a film, with no lumps to stand in each other's shade)
-    foamShade = mix(vec3(1.0), foamShade, max(thickFoam, whiteMass));
-    colour = mix(colour, foamColour * foamThickness * foamShade, foam);
+    // (All of the foam's shading is worked out only where there is foam: over most of the sea there is none.)
+    if (foam > 0.0) {
+      // Foam is white where it is thick and blue-grey where it thins; the ripples under it catch the sun, so it looks
+      // frothy.
+      float closeUp = 1.0 - smoothstep(5.0, 22.0, cameraDistance);
+      // (The ripples are laid on from above: on steep water, and on the white mass a landed lip throws up, they would
+      // be smeared down it in streaks, so there the foam goes by the readings laid along the surface instead.)
+      float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
+      float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
+      float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
+      vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
+      // close up, even thick foam is a mass of bubbles with water showing between them
+      // (not the white mass: water showing through it in specks made it look like ice)
+      float bubbles = mix(foamFine.a, steepFoam.a, steep);
+      foam *= 1.0 - 0.45 * (1.0 - smoothstep(0.25, 0.75, bubbles)) * (1.0 - smoothstep(3.0, 14.0, cameraDistance))
+        * (1.0 - whiteMass);
+      // no foam at all on water a few centimetres deep unless the wave model put plenty there (the white edge of the swash)
+      foam *= max(smoothstep(0.03, 0.10, waterDepth), smoothstep(0.2, 0.4, waveFoam));
+      foam = min(foam, 0.94);
+      // (Where a sheet of foam is thin - the hollows of its pattern - the water under it shows through: painted solid
+      // there, in thin foam's colour, a sheet of foam looked like snow with pools of meltwater in it. Not the white
+      // mass, which is thick all through.)
+      float thickFoam = smoothstep(whiteLaceThreshold, whiteLaceThreshold + 0.26, lace);
+      // (on the sand, less still: there the holes of the lace are wet sand, and it is their darkness against the
+      // white threads that makes it lace)
+      foam *= mix(mix(THIN_FOAM_HIDES, THIN_FOAM_HIDES_ON_SAND, onSand), 1.0, max(thickFoam, whiteMass));
+      vec3 foamThickness = mix(THIN_FOAM, vec3(1.08), thickFoam);
+      // (the foam is lit as a rougher surface than the water: the ripples' tilt counts for more close up, and the lace
+      // and the streaks give it lumps of its own)
+      vec3 rippleTilt = vec3(-foamSlope.x, 0.0, -foamSlope.y)
+        * (1.5 + 3.5 * (1.0 - smoothstep(4.0, 30.0, cameraDistance)));
+      // (Only a little: a sheet of foam lying on the water is nearly flat. Tilted more, half of it stood in its own
+      // blue-grey shade, and it looked like snow lying in drifts.)
+      vec3 lumps = vec3(shoreStreak - 0.5, 0.0, lace - 0.5) * FLAT_FOAM_LUMPS;
+      // (Piled-up white water - steep, or standing high - is a heap of lumps: on it the lumps are those of the reading
+      // laid along the surface, they tilt it more, and the hollows between them are in shade.)
+      float piledUp = max(steep, smoothstep(0.5, 1.4, vWaterPosition.y - uSeaLevel));
+      vec3 upTheSlope = cross(waveNormal, vec3(alongWave.x, 0.0, alongWave.y));
+      vec2 steepSlope = (steepFoam.rg - 0.5) * awayFromSeam;
+      vec3 steepLumps = (vec3(alongWave.x, 0.0, alongWave.y) * steepSlope.x + upTheSlope * steepSlope.y) * PILED_LUMPS;
+      // (The white mass is lit as a cloud is: round lumps a metre across, bright where they face the sun and softly
+      // shaded where they turn away and in the hollows between them - a pale shade, not the blue-grey of thin foam.)
+      vec2 massSlope = massLumps.rg - 0.5 + MASS_SMALL_LUMPS * (massSmallLumps.rg - 0.5);
+      float massHeight = mix(massLumps.b, massSmallLumps.b, 0.35);
+      vec3 massTilt = (vec3(alongWave.x, 0.0, alongWave.y) * massSlope.x + upTheSlope * massSlope.y) * MASS_LUMPS_TILT;
+      vec3 foamNormal = normalize(waveNormal + (rippleTilt + lumps) * laidFromAbove
+        + steepLumps * piledUp * (1.0 - 0.6 * whiteMass) + massTilt * whiteMass);
+      vec3 foamInShade = mix(SHADED_FOAM, MASS_IN_SHADE, whiteMass);
+      vec3 foamShade = mix(foamInShade, vec3(1.06), clamp(dot(foamNormal, uSunDirection) * 1.1 + 0.2, 0.0, 1.0));
+      foamShade *= 1.0 - PILED_HOLLOWS * piledUp * (1.0 - smoothstep(0.25, 0.6, lace)) * (1.0 - whiteMass);
+      foamShade *= 1.0 - MASS_HOLLOWS * whiteMass * (1.0 - smoothstep(0.3, 0.62, massHeight));
+      // (thin foam is a film, with no lumps to stand in each other's shade)
+      foamShade = mix(vec3(1.0), foamShade, max(thickFoam, whiteMass));
+      colour = mix(colour, foamColour * foamThickness * foamShade, foam);
+    }
   }
   // water under a few cm deep is invisible unless it carries foam
   opacity = max(opacity * smoothstep(0.01, 0.12, waterDepth), foam * smoothstep(0.0, 0.045, waterDepth));

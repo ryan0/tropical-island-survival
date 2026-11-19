@@ -58,6 +58,14 @@ export const seaConfig = {
   floorHeightPicture: { span: 1024, size: 2048 },
 
   /**
+   * The shore in each direction from the centre, as a picture one dot high, which the water's
+   * shader reads in place of the shore's formula (shore-round-picture.ts): its dots across, and
+   * the radius its shoreline is measured from (about the atoll's own, so that the numbers kept
+   * are small).
+   */
+  shoreRoundPicture: { size: 4096, radiusKeptFrom: 150 },
+
+  /**
    * The sea floor as the waves know it: a picture of its depth, and of how long each swell takes to
    * reach every spot of it (sea-floor-pictures.ts).
    */
