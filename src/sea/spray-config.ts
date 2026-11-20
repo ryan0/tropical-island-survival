@@ -121,6 +121,88 @@ export const sprayConfig = {
     easing: 3,
   },
 
+  /**
+   * Bubbles, seen from under water, where breaking water would throw spray above it: where a lip
+   * lands it drives a billowing cloud of them down into the water, and behind white water a
+   * thinner layer hangs under the surface. Each puff of the cloud is driven down, soon stopped by
+   * the water, and then rises and thins (bubble-plumes.ts).
+   */
+  bubblePlumes: {
+    /** Puffs in the water at most: past that, a new one replaces the oldest. */
+    poolSize: 500,
+    /**
+     * None is released further than this from the eye: the water hides them from 18 m and takes
+     * their colour (bubble-plumes.vert.glsl), and the pool is kept for the near ones.
+     */
+    releasedWithin: 20,
+    /** They are released between these depths under the surface. */
+    releasedBelow: [0.15, 0.5],
+    /**
+     * A puff's middle is kept at least this many times its size under the surface and above the
+     * floor: a sprite is drawn all at one distance, so either would cut a straight edge across it.
+     */
+    keptOffSurfaceAndFloor: 0.5,
+    /**
+     * How fast the water stops a puff: the share of its speed, beyond its rising, it loses in a
+     * second is 1 - exp(-drag). Once stopped it rises at a speed between these.
+     */
+    drag: 2.2,
+    riseSpeed: [0.2, 0.5],
+    /**
+     * A puff keeps its depth under the surface as a wave passes over it, so the surface over this
+     * many of them is asked for each frame, in turn. Each follows the last surface found over it,
+     * so as not to jump: in a frame of dt seconds, 1 - exp(-surfaceFollowing * dt) of the way.
+     */
+    surfacesSampled: 48,
+    surfaceFollowing: 12,
+    /** How much it grows across, a second, as its bubbles spread. */
+    growth: 0.1,
+    /** It fades in over this many seconds, and out over this share of its life, at the end. */
+    fadeIn: 0.3,
+    fadeOutOver: 0.7,
+    /** A puff this deep under the surface gets half the daylight. */
+    halfLightDepth: 2.5,
+    /** Milky white, slightly towards cyan: the colour of a cloud of bubbles in daylight. */
+    colour: [0.86, 0.95, 0.97],
+
+    /**
+     * Of the spots where a lip lands, this share drives puffs down: the spray's spots lie far
+     * thicker along a breaking wave than the pool could hold puffs for. Each drives at least this
+     * many down, and up to this many more for each metre of wave: scattered this far round the
+     * spot, carried on with the wave between these speeds and driven down between these (metres a
+     * second). They are between these sizes across, last between these times and are at most so
+     * opaque, so that many overlap into a cloud.
+     */
+    landingLip: {
+      chance: 0.4,
+      fewestPuffs: 3,
+      puffsPerMetre: 1.5,
+      scatter: 0.5,
+      inwardSpeed: [0.3, 0.9],
+      downwardSpeed: [1.5, 3.5],
+      size: [0.5, 1.1],
+      seconds: [2.5, 4],
+      opacity: 0.6,
+    },
+    /** A falling lip and white water each drive one puff down, more slowly, smaller and fainter. */
+    fallingLip: {
+      scatter: 0.3,
+      inwardSpeed: [0.2, 0.6],
+      downwardSpeed: [0.4, 1],
+      size: [0.3, 0.6],
+      seconds: [1.8, 3],
+      opacity: 0.4,
+    },
+    bore: {
+      scatter: 0.6,
+      inwardSpeed: [0.6, 1.4],
+      downwardSpeed: [0.4, 1],
+      size: [0.25, 0.7],
+      seconds: [2, 3.5],
+      opacity: 0.32,
+    },
+  },
+
   /** How droplets and mist move once thrown. */
   flight: {
     /** Metres a second gained each second. Mist hangs in the air; droplets fall. */

@@ -1,5 +1,6 @@
 import { Fog, PCFShadowMap, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { seaConfig } from '../sea/sea-config';
+import { useWaterAsFog } from '../sea/water-as-fog';
 import { useSmootherShadowEdges } from './soft-shadows';
 
 export interface Stage {
@@ -56,6 +57,7 @@ export function createStage(errorMessage: HTMLElement, hint: HTMLElement): Stage
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   useSmootherShadowEdges();
+  useWaterAsFog();
 
   // A context the browser takes away (a driver fault, too little memory) stops the picture with no
   // error thrown. The page says so, and how far it had got.

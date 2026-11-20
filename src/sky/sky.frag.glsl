@@ -41,6 +41,7 @@ varying vec3 vViewDirection;
 #include "../shaders/shared/noise"
 #include "distance-up-to"
 #include "sky-gradient"
+#include "../shaders/shared/through-water"
 
 // The colours of the sky's parts (the gradient's are in sky-gradient.glsl).
 const vec3 MILKY_WAY_COLOUR = vec3(0.15, 0.17, 0.26);
@@ -191,7 +192,8 @@ void main() {
 
   // Haze low down, then the water's colour when under it.
   sky = mix(sky, uSkyHorizon, smoothstep(0.07, 0.0, direction.y) * 0.55);
-  sky = mix(sky, uUnderWaterColour, uUnderWater);
+  // (to an eye under water what lies beyond everything else is the water's own light: through-water.glsl)
+  sky = mix(sky, waterLightFrom(uUnderWaterColour, direction.y), uUnderWater);
   // (a dot's worth of noise: it breaks up the bands a smooth gradient shows in 8-bit colour)
   sky += (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0);
   gl_FragColor = vec4(sky, 1.0);

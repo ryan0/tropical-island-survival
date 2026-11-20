@@ -31,6 +31,7 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uTime',
   'uSeaLevel',
+  'uUnderWater',
   'uDaylight',
   'uSkyHorizon',
   'uDetail',

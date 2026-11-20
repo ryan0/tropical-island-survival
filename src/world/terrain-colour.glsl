@@ -556,15 +556,19 @@ if (waterDepth > 0.0) {
   // (with the sea drained, uDebugMode 5, the ground is drawn as if no water stood over it)
   float standingDepth = max(waterDepth - 0.2, 0.0) * step(uDebugMode, 4.5);
   // under water: sand reads paler, red is absorbed with depth, and the water column adds its own blue-green glow
+  // (The paling and the glow are the water over the floor as an eye above the sea looks down through it. To an
+  // eye under the water there is no such veil: the water between the two is another rule's, through-water.glsl.)
+  float seenFromAbove = 1.0 - uUnderWater;
   vec3 greyed = vec3(dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2))) * vec3(1.04, 1.04, 1.02);
   // (less so in the lagoon's glassy shallows)
-  float greying = mix(0.5, 0.28, lagoonSide) * smoothstep(0.0, 0.5, standingDepth);
+  float greying = mix(0.5, 0.28, lagoonSide) * smoothstep(0.0, 0.5, standingDepth) * seenFromAbove;
   diffuseColor.rgb = mix(diffuseColor.rgb, greyed, greying);
   // (the dimming must start at exactly 1: a step here draws a dark line along the waterline)
   float dimming = mix(1.0, 0.87, smoothstep(0.0, 0.7, standingDepth));
-  vec3 throughWater = exp(-standingDepth * vec3(0.36, 0.085, 0.045));
+  vec3 throughWater = exp(-standingDepth * vec3(0.36, 0.085, 0.045)
+    * mix(1.0, TAKEN_TO_AN_EYE_UNDER_WATER, uUnderWater));
   diffuseColor.rgb *= dimming * throughWater;
-  diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDaylight;
+  diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDaylight * seenFromAbove;
 
   // The net of light that ripples throw on the sea floor (light-net.glsl). Ankle-deep water is too thin to bend the
   // light into a net, so it fades in between 10 and 80 cm; and where the swell breaks, the surface is too broken and

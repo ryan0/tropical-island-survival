@@ -1278,6 +1278,150 @@ and form of view: `tools/look/` (its `README.md` says how to run a pass). They d
 build, lay pictures under a lettered grid, measure named parts of photographs and of ours, and draw the board.
 Run from the repository against the last merged build, they give the figures of `LOOK.md`'s table.
 
+### The second sitting: under water (19 and 20 November 2026)
+
+Ryan, on the phone, of the first sitting, which he merged: "a big improvement"; "if I had any complaint I would
+say that perhaps slightly too pale". He merged the measuring tools too (`tools/look/`). Branch
+`look-2-under-water`.
+
+**Slightly less pale.** The board agreed for the sky and the water, which both measured a little lighter than
+the photos. The day sky is at the photos' lightness (0.66 high up, where it was 0.71) at 1.1 times their
+saturation, and the water's own colours a notch deeper and richer (the deep lagoon at 1.4 times the photos'
+saturation, where the first sitting left it at 1.2 and found it at 1.7). Plants and sand, which measured as
+light as the photos, are as they were.
+
+**Under water, as it was:** one flat blue (a blue sheet laid over the whole screen, and a fog); stripes of
+light fixed to the screen; 46 ring bubbles circling the eye; the surface a pale blob overhead. Measured against
+the 21 photos, the water seen level was 0.14 too dark in lightness and too blue, the sand floor 0.13 too dark
+at twice the photos' saturation, and near coral blue-green.
+
+**What was done:**
+
+- *One rule for the water between the eye and a thing* (`shaders/shared/through-water.glsl`): each metre takes
+  a share of the light, red first, and puts the water's own light in its place, which is brighter looking up
+  and darker and bluer looking down. Everything goes by it: the ground, rocks, coral, plants and animals
+  through three.js's fog, which is given a second case (`sea/water-as-fog.ts`); the surface from below and the
+  backdrop beyond everything through the same file. The blue sheet over the screen is gone.
+- *The water's own colour* (`sea-config.ts`, `underWater`) is a bright turquoise over pale sand a few metres
+  down and a darker, purer blue over the deep, by how deep the floor is under the eye; less with a low sun,
+  under cloud and at night.
+- *A thing's own colour under water.* The paling and the blue glow that the ground, the rocks and the coral
+  take by their depth are the water over them as an eye above the sea sees it: to an eye under water they are
+  not applied. And such an eye is used to the light there, as a camera's white balance is: the red lost on the
+  way down counts for far less (`light-net.glsl`). So sand under water is pale sand under a net of light,
+  where it was a saturated blue.
+- *The surface from below* (`water.frag.glsl`, `seenFromUnderWater`): overhead, out to 49 degrees from straight
+  up, a window with all the sky drawn into it, the sun, its glow and the clouds, bent by the same ripples the
+  top side has; beyond it a mirror of the floor under it, pale in shallow water and dark in deep. (Snell's
+  window.) The three ripple readings moved up the shader for it; no view from above the water changed.
+- *Shafts of sunlight* (`sea/light-shafts.ts`): 256 soft ribbons that hang from the surface in a grid that
+  wraps round the eye, slant the way the light travels in water, face the eye, swell and die on clocks of
+  their own, and are brightest looking towards the sun. In place of the stripes.
+- *Specks* (`sea/under-water-specks.ts`): 900 fine pale points that keep their places in the water, drifting a
+  few centimetres a second, so that swimming forward makes them stream past. In place of the bubbles.
+
+The shafts and the specks were each built by an Opus agent to a written brief, in a copy of the repository of
+its own; Claude took their files, wired them in (`sea/under-water.ts` owns both), and tuned them.
+
+**Measured after** (the under-water board, `tools/look/boards/under-water.json`; lightness is ours less the
+photos'):
+
+| | Photos (lightness, chroma, hue) | Before | After |
+|---|---|---|---|
+| Open water seen level, shallow sandy lagoon | 0.56, 0.082, 221 | -0.14, hue +16 | +0.03, hue -3 |
+| Open water seen level, over a reef | 0.55, 0.110, 233 | -0.09 | -0.04, hue +11 |
+| The sand floor, near | 0.64, 0.040, 161 | -0.13, chroma x2.0 | -0.03, chroma x1.3 |
+| Coral ten metres off and more | 0.55, 0.087, 217 | -0.10 | -0.01, hue -14 |
+| Coral within a few metres | 0.50, 0.030, 110 | hue +93 | hue +57 |
+| The surface towards the sun | 0.82, 0.084, 226 | chroma x0.5 | chroma x0.8, +0.13 |
+
+**Known, and left:**
+
+- *Coral heads are still too green from a few metres.* The corals' and the heads' colours were taken in the
+  first sitting from photos made under water, which already carry the water's cast; the water then adds it
+  again. They want their colours as they are out of the water. That is the fourth sitting's.
+- *The mirror beyond the window is plain*: the floor's colour, with none of its shapes.
+- *No bubbles under a breaking wave*, and no white water from below: no photo of either was found.
+- *Night under water* is about as dark as it was, and darker overhead, where the surface is now a mirror of a
+  dark floor. Judged on one still, against no photo.
+- *A pale wedge of floor* shows at the foot of the drop-off's view, as it did before this sitting: not looked
+  into.
+- *Things above the water are not seen through the window*: palms on the shore, a bird.
+
+**Only the phone can say:** whether the shafts' flicker, the specks' drift and the window's wobble read well in
+motion (stills cannot show any of the three); whether a dive costs frames (the surface's shader does more
+under water than it did, and there are 256 ribbons and 900 points more).
+
+### The second sitting, after Ryan's notes: the surface, the rays, waves from below (20 November 2026)
+
+Ryan, of the second sitting: "This is great"; and "the surface from underwater could be a bit more metallic
+maybe, and the light rays a bit more realistic please do a few more passes on this against references from
+real life"; "we could improve the appearance of waves and waves breaking from underwater"; and a bug, with a
+picture: "this mesh from the waves underwater", a pale band hanging in the water and running down to the floor.
+
+**The band** was the breaker's own mesh. Where no wave stands its ribbon lies sunk 4 m under the sea, along the
+line the waves break on, hidden from above by the sea's own surface; from below nothing hid it. It is not
+drawn while the eye is under water (`breaker.ts`, `chooseDetail`). The sea's own mesh is the wave from below.
+
+**More photographs**, gathered by an Opus agent from Wikimedia Commons: 23, in `reference-photos/under-surface/`
+(8 of shafts of light, 8 of the surface as a mirror, 7 of waves from the water). `LOOK.md` says what they show.
+
+**The surface from below** (`water.frag.glsl`, `seenFromUnderWater`). In the photographs the underside is like
+liquid metal because dark mirror and bright glint lie side by side, crisp and fine; ours was soft washes.
+
+- *The mirror shows what is under it*: the line of sight is turned down from the surface and followed to the
+  floor, and there the floor's own picture says how deep it is and the reef's map whether a coral head stands:
+  pale shallows and dark heads, bent by every ripple, and the water's own colour beyond. (It showed one flat
+  colour.)
+- *Finer facets.* The surface's slope from below takes a fourth reading of the detail texture, the foam's
+  finest (1.3 m across), which was being read for every dot of water already.
+- *Glints.* Outside the window the finest facets tip far enough, here and there, to show the low sky: crisp
+  bright pieces on the dark mirror, thick at the window's edge and fewer further out, of all sizes and in
+  drifts (three sizes of ripple together: by the finest alone they were polka dots).
+- *The window's edge* comes in as Fresnel's law has it, where it was a soft band.
+- *The sun* is no disc from below (it showed as ovals with a rim): the ripples smear it into a dazzle, and
+  every facet that bends its light to the eye glints, thick about where it stands and thinning away, so that
+  the window is a field of white pieces on blue, as in the photographs. (The rim was no fault of a disc's: a
+  ripple that sweeps the eye's line across a small sun draws it as a ring. The dazzle is wide enough, 0.09
+  radians, for the ring to close into a white piece.)
+
+**The rays** (`light-shafts.ts`). In the photographs there are two things: looking up, a burst of very many
+fine streaks about the sun; from the side, a few broad soft slanting bands that fade halfway down. Ours were
+a few thin rods of even brightness. Now there are two kinds of shaft: 400 broad soft ones (0.2 to 1 m wide, 7
+to 14 m long, dying away with depth), and 484 fine ones close round the line from the eye to the sun, which
+do not show from the side. A shaft brightens as trains of ripples pass over the spot it hangs from, so
+neighbours brighten together and the curtain of rays shifts; it is brighter looking back along the light,
+and brighter the more nearly the eye looks along it, through more of it; and it leans a little as the ripple
+over it tilts.
+
+**Waves from below.** Foam is neither window nor mirror: a pale ceiling of bubbles with the daylight in it,
+ragged at its edges, where the waves' own foam lies (the wave model's, as the top side draws it). So white
+water running over the reef shows from below, and the back of a breaking wave.
+
+**Bubbles under breaking water** (`bubble-plumes.ts`; built by an Opus agent to a brief, then fitted to the new
+water and made denser). Where a lip lands, where one is falling and where white water runs, the spray's own
+sampling of the wave model drives puffs of bubbles down while the eye is under water, where above it it throws
+spray: a pool of 500 soft point sprites, each driven down, stopped by the water, then rising and thinning over
+two to four seconds, so that a pale cloud hangs under the foam where the wave broke and is gone when it has
+passed. A puff keeps its depth under the surface as the wave passes over it (the wave model is asked for the
+surface over 48 of them a frame, in turn) and rests on the floor instead of sinking into it; the water between
+takes it with distance as it takes everything (`through-water.glsl`). None is released further than 20 m from
+the eye.
+
+**Measured:** the under-water board is as the sitting left it (the water's colours did not move); no view from
+above the water changed.
+
+**Known, and left:** the foam from below is a flat pale sheet, and the bubble clouds under it are soft and
+pale, not the dense white churn of the one photograph; a wave seen from below has no lip (the breaker's mesh
+is hidden, and it is the sea's own swell that shows); the glints near the eye are large soft-edged pieces;
+white horses in a wind do not show from below; the spray's random streams now move on while the eye is under
+water, so a view that has been under throws its spray differently from one that has not.
+
+**Only the phone can say:** how the glints, the rays, the foam and the bubbles move (the rays brighten and
+lean in time, which no still shows); and what a dive costs: under water the surface reads two more pictures
+for every dot and does more arithmetic than it did, 884 ribbons are drawn where there were 256, and beside a
+break up to 500 large soft sprites are blended over the view.
+
 **Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
 `ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first sitting:
 the ground's shader now includes the shore's formulas alone, not the whole island's); the measuring tools live

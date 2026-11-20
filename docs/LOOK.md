@@ -79,6 +79,10 @@ Read with these in mind:
   strays no further than the photos do, for water near and far, palm crowns and shrubs. In colour it strayed
   further in one material: dry sand, whose hollows were shaded blue (clean sand in the photos is all of one
   colour: 0.002 to 0.003, against our 0.02).
+- **After the first sitting Ryan found the whole "perhaps slightly too pale".** The sky and the water were the
+  two that measured lighter than the photos: the sky is now at their lightness, and the water's own colours a
+  notch deeper and richer (`ROADMAP.md`, "The second sitting"). The table's last column is as the first sitting
+  left it.
 - **The numbers are to steer by, not to hit.** A photo's exposure is its own (the same white sand measures 0.66
   to 0.92 in seven photos), and a patch of ours is never quite the same thing as a patch of theirs. A material
   within a fifth of the photos' saturation and ten degrees of their hue has been left alone.
@@ -264,10 +268,44 @@ in plain natural light, which matters: a flash puts back the red that water take
 
 Not found: white water under a breaking wave from below; dusk; a level view across bare lagoon sand.
 
+*More,* in `reference-photos/under-surface/`: 23 photos from Wikimedia Commons, gathered 20 November 2026 after
+Ryan's notes on the second sitting (`SOURCES.md` there), for three things:
+
+- *Shafts of light* (8). Looking up towards the sun there is a burst of very many fine streaks all round it
+  (`rays-sun-through-ripples-looking-up-bondi`, `rays-fine-fan-all-round-sun-brittany`,
+  `rays-sun-starburst-open-blue-mediterranean`), only a little brighter than the water, and the sun itself a
+  white dazzle. With the sun to one side there are a few broad, soft, slanting bands that fade halfway to the
+  floor (`rays-slanting-shafts-sun-to-side-over-reef`). Over white sand they fade well above the floor
+  (`rays-faint-shafts-over-white-sand-bahamas`).
+- *The surface as a mirror* (8). Calm, it doubles the reef almost perfectly, with a band of far blue water
+  between the thing and its image (`mirror-calm-surface-over-reef-flat-red-sea`). Ruffled, the image breaks into
+  long fine streaks, dark and bright side by side (`mirror-rippled-surface-reflecting-reef-red-sea`,
+  `mirror-ruffled-surface-green-reflection-red-sea`): that is what looks like metal. Over shallow sand it
+  mirrors the sand (`mirror-surface-reflecting-sand-shallows-aqaba`). Straight up, the window of sky has a sharp
+  edge made wavy by the ripples, and outside it the surface is dark
+  (`mirror-snells-window-edge-from-below-barbados`).
+- *Waves from the water* (7, all toned as surf photographs are). Only one is from wholly under water
+  (`wave-breaking-crest-from-below-bubbles`): the curl's underside a bright cyan sheet, a sharp white line at
+  the lip, a ceiling of fine bubbles above and dark green water below. The others are from inside a barrel at
+  the waterline: the wall goes from teal to a clear cyan at the lip, and white water is white.
+
+Not found: a swell passing overhead; a plain cloud of white water driven down; rays reaching a sand floor.
+
 Ryan, 19 November 2026: "we want beautiful and realistic underwater scenes as the player will spend decent amount
 of time there", and that includes "how the surface looks from underwater".
 
-*Rejected:* bubbles as rings circling the eye, and rays of light as stripes fixed to the screen ("tacky").
+*Rejected:* bubbles as rings circling the eye, and rays of light as stripes fixed to the screen ("tacky"); the
+sun from below as ovals with a rim; glints all of one size in rows ("polka dots" again); rays as thin rods of
+even brightness.
+
+*Now (20 November 2026):* the water a bright turquoise over sand and a deeper blue over the reef, as the photos
+measure it; things losing their colour with distance, red first, until at twenty-five metres there is only the
+water; sand under water pale under its net of light; fine specks hanging in the water. Ryan, of that: "This is
+great", with the surface to be "a bit more metallic maybe" and the rays "a bit more realistic". Since then: the
+surface a window of sky broken into white pieces by the sun, with a crisp edge, and beyond it a dark mirror of
+the floor with bright glints on it; a burst of fine rays about the sun and broad soft shafts from the side; foam
+a pale ceiling from below, and a cloud of bubbles driven down where a wave breaks (`ROADMAP.md`, "The second
+sitting" and "after Ryan's notes", has the figures and what is left).
 
 ## Sand and beach
 

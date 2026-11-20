@@ -62,7 +62,7 @@ function createFarSea(createMaterial: WaterDependencies['createMaterial']): Mesh
   );
   // It is always in view.
   farSea.frustumCulled = false;
-  // With the wave mesh: before the lagoon shore band, the bubbles and the spray.
+  // With the wave mesh: before the lagoon shore band, what hangs in the water under it and the spray.
   farSea.renderOrder = 5;
   return farSea;
 }

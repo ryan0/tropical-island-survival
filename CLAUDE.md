@@ -25,6 +25,11 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`src/world/terrain-declarations.glsl`). One
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
   the sun sets and crosses the sky through the night.
+- To an eye under water, the water between it and a thing takes the thing's colour with distance, red first
+  (`src/shaders/shared/through-water.glsl`). Every material gets that from three.js's fog, which has a second
+  case for it (`src/sea/water-as-fog.ts`); the surface from below is a window of sky and a mirror beyond it
+  (`seenFromUnderWater` in `src/sea/water.frag.glsl`); `src/sea/under-water.ts` owns what hangs in the water,
+  but for the bubbles a breaking wave drives down, which are the spray's (`src/sea/bubble-plumes.ts`).
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
   `docs/ROADMAP.md`. Read it before starting work. The work in hand is the look, against reference photos, in
   four sittings with Ryan's review after each.

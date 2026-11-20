@@ -21,6 +21,15 @@ export function mix(from: number, to: number, share: number): number {
   return from + (to - from) * share;
 }
 
+/**
+ * How many pixels a metre spans at a metre from the eye: what turns a size in the world into a
+ * size on the screen, for things drawn as points. `fieldOfView` is the camera's, in degrees from
+ * top to bottom; `viewHeight` the picture's height in pixels.
+ */
+export function pixelsPerMetreAtAMetre(fieldOfView: number, viewHeight: number): number {
+  return (viewHeight * 0.5) / Math.tan((fieldOfView * Math.PI) / 360);
+}
+
 /** `index` brought into 0 up to `count`, going round: -1 is the last. */
 export function wrap(index: number, count: number): number {
   return ((index % count) + count) % count;

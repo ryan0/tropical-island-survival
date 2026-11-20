@@ -13,6 +13,7 @@
 uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
 uniform float uSeaLevel;      // the height of the still sea surface
+uniform float uUnderWater;    // 1 while the eye is under water
 uniform float uDaylight;        // daylight, 0 at night to 1 by day
 uniform float uGritAverage;   // the grit picture's average brightness (ground-grit.ts)
 uniform float uWind;       // the wind's strength, 0 (none) to 1 (high)

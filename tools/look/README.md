@@ -28,6 +28,16 @@ Measure the board, change a colour, build, draw and measure again:
 node tools/look/colour-board.ts tools/look/boards/colours.json node_modules/.cache/look/colour-board.png --now node_modules/.cache/look/now --before node_modules/.cache/look/before
 ```
 
+The views from under water are a group of their own, with a board of their own:
+
+```
+node tools/look/draw-views.ts node_modules/.cache/look/under-water --group underWater
+```
+
+```
+node tools/look/colour-board.ts tools/look/boards/under-water.json node_modules/.cache/look/under-water-board.png --now node_modules/.cache/look/under-water
+```
+
 To move a colour of ours by a measured amount (here: seven tenths of its saturation, ten degrees towards green,
 a little lighter), and get it back as the code writes it:
 
@@ -52,7 +62,7 @@ node tools/look/contact-sheet.ts node_modules/.cache/look/sheet.png reference-ph
 
 | File | What it holds |
 |---|---|
-| `look-views.ts` | The views the look is measured through, in three groups: `colour`, `evening`, `weather` |
+| `look-views.ts` | The views the look is measured through, in four groups: `colour`, `evening`, `weather`, `underWater` |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |

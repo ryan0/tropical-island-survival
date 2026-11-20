@@ -1,97 +1,92 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  CanvasTexture,
-  Points,
-  PointsMaterial,
-  type Camera,
-  type Color,
-  type Fog,
-  type Scene,
-} from 'three';
-import { createCanvas } from '../core/canvas';
-import { FULL_TURN } from '../core/maths';
+import type { Fog, PerspectiveCamera, Scene } from 'three';
+import { mix, pixelsPerMetreAtAMetre, smoothstep } from '../core/maths';
+import type { SharedUniforms } from '../core/shared-uniforms';
+import { createLightShafts, type LightShaftsFrame } from './light-shafts';
 import { seaConfig } from './sea-config';
+import { createUnderWaterSpecks, type UnderWaterSpecksFrame } from './under-water-specks';
+import { FOG_BEGINS_UNDER_WATER } from './water-as-fog';
 import type { WaveModel } from './wave-model';
 
 export interface UnderWaterDependencies {
   scene: Scene;
-  camera: Camera;
+  camera: PerspectiveCamera;
   waves: WaveModel;
-  /** The scene's fog: under water the eye sees a few tens of metres, and what it sees is blue. */
+  /**
+   * The scene's fog. Under water it stands for the water between the eye and what it looks at
+   * (water-as-fog.ts), in the water's own colour.
+   */
   fog: Fog;
-  /** The blue overlay with its rays of light, laid over the picture while the camera is under. */
-  overlay: HTMLElement;
-  /** Two of the uniforms every shader shares: 1 when the camera is under water, and the water's own colour. */
-  uniforms: { uUnderWater: { value: number }; uUnderWaterColour: { value: Color } };
+  /**
+   * The uniforms every shader shares. Two are set here: uUnderWater, 1 while the camera is under
+   * water, and uUnderWaterColour, the water's own colour there.
+   */
+  uniforms: SharedUniforms;
+}
+
+export interface UnderWaterFrame {
+  time: number;
+  /** 0 at night to 1 in full day, and the other way about. */
+  daylight: number;
+  night: number;
+  /** How much of the sun gets through the clouds to the camera, 0 to 1. */
+  sunThrough: number;
+  /** A debug switch: with the sea drained the camera is never under water. */
+  isSeaDrained: boolean;
+  /** The renderer's pixel ratio, and the height of the view in CSS pixels. */
+  pixelRatio: number;
+  viewHeight: number;
 }
 
 export interface UnderWater {
   /** The height of the water's surface at the camera, as of the last update. */
   readonly surfaceHeight: number;
   readonly isCameraUnder: boolean;
-  /**
-   * `daylight` is 0 at night to 1 in full day; `night` the other way about. With the sea drained
-   * (a debug switch) the camera is never under water.
-   */
-  update(time: number, daylight: number, night: number, isSeaDrained: boolean): void;
+  update(frame: UnderWaterFrame): void;
 }
 
 // The camera counts as under water from this far below the surface, where the water is at least so deep.
 const JUST_UNDER = 0.02;
 const SHALLOWEST = 0.12;
 
-/** A bubble: a faint disc with a bright rim. */
-function bubblePicture(): HTMLCanvasElement {
-  const { canvas, context } = createCanvas(32, 32, 'the bubbles');
+const config = seaConfig.underWater;
+const [fogBeginsInAir, fogEndsInAir] = seaConfig.fogInAir;
 
-  context.beginPath();
-  context.arc(16, 16, 11, 0, FULL_TURN);
-  context.fillStyle = 'rgba(255,255,255,.22)';
-  context.fill();
-  context.strokeStyle = 'rgba(255,255,255,.95)';
-  context.lineWidth = 3;
-  context.stroke();
-  return canvas;
-}
-
-/** Being under water: the fog closes in, a blue overlay with rays of light comes up, bubbles rise. */
+/**
+ * Being under water: the fog becomes the water, in the colour the water has where the eye is;
+ * shafts of sunlight hang in it, and fine specks that show its depth as the eye moves.
+ */
 export function createUnderWater(dependencies: UnderWaterDependencies): UnderWater {
-  const { scene, camera, waves, fog, overlay, uniforms } = dependencies;
-  const positions = new Float32Array(seaConfig.bubbles * 3);
-  const shape = new BufferGeometry();
-  const positionAttribute = new BufferAttribute(positions, 3);
-  shape.setAttribute('position', positionAttribute);
-  const bubbles = new Points(
-    shape,
-    new PointsMaterial({
-      map: new CanvasTexture(bubblePicture()),
-      size: 0.09,
-      transparent: true,
-      depthWrite: false,
-      opacity: 0.8,
-    }),
-  );
-  // They are wherever the camera is, not where the shape's bounds say.
-  bubbles.frustumCulled = false;
-  bubbles.visible = false;
-  bubbles.renderOrder = 6;
-  scene.add(bubbles);
-
+  const { scene, camera, waves, fog, uniforms } = dependencies;
+  const lightShafts = createLightShafts({ scene, uniforms });
+  const lightShaftsFrame: LightShaftsFrame = {
+    isCameraUnder: false,
+    surfaceHeight: 0,
+    daylight: 1,
+    sunThrough: 1,
+  };
+  const specks = createUnderWaterSpecks({ scene, uniforms });
+  const specksFrame: UnderWaterSpecksFrame = {
+    isCameraUnder: false,
+    surfaceHeight: 0,
+    focalLength: 0,
+  };
   let surfaceHeight = 0;
   let isCameraUnder = false;
 
-  function riseRoundTheCamera(time: number): void {
-    const { x, y, z } = camera.position;
-    for (let i = 0; i < seaConfig.bubbles; i++) {
-      const risen = (time * 0.22 + i * 0.173) % 1;
-      const bearing = i * 2.4;
-      const distance = 0.7 + (i % 7) * 0.55;
-      positions[i * 3] = x + Math.cos(bearing) * distance + Math.sin(time * 1.3 + i) * 0.07;
-      positions[i * 3 + 1] = Math.min(surfaceHeight - 0.08, y - 2.2 + risen * 4.2);
-      positions[i * 3 + 2] = z + Math.sin(bearing) * distance + Math.cos(time * 1.1 + i) * 0.07;
-    }
-    positionAttribute.needsUpdate = true;
+  /** The water's colour looking level: brighter over pale sand than over the deep, and by the light there is. */
+  function colourTheWater(floorDepth: number, frame: UnderWaterFrame): void {
+    const deep = smoothstep(config.sandLightsItTo, config.deepFrom, floorDepth);
+    const light =
+      mix(config.lightAtSunset, 1, frame.daylight) *
+      (1 - config.nightDimming * frame.night) *
+      mix(config.lightUnderCloud, 1, frame.sunThrough);
+    const [sandRed, sandGreen, sandBlue] = config.colourOverSand;
+    const [deepRed, deepGreen, deepBlue] = config.colourOverDeep;
+    uniforms.uUnderWaterColour.value.setRGB(
+      mix(sandRed, deepRed, deep) * light,
+      mix(sandGreen, deepGreen, deep) * light,
+      mix(sandBlue, deepBlue, deep) * light,
+    );
   }
 
   return {
@@ -102,27 +97,35 @@ export function createUnderWater(dependencies: UnderWaterDependencies): UnderWat
       return isCameraUnder;
     },
 
-    update(time, daylight, night, isSeaDrained) {
-      surfaceHeight = waves.heightAt(camera.position.x, camera.position.z, time);
+    update(frame) {
+      surfaceHeight = waves.heightAt(camera.position.x, camera.position.z, frame.time);
+      const floorDepth = surfaceHeight - waves.spot.groundHeight;
       // Below the surface, and there is actually water here.
       isCameraUnder =
-        !isSeaDrained &&
+        !frame.isSeaDrained &&
         camera.position.y < surfaceHeight - JUST_UNDER &&
-        surfaceHeight - waves.spot.groundHeight > SHALLOWEST;
-      const light = (1 - 0.8 * night) * (0.55 + 0.45 * daylight);
+        floorDepth > SHALLOWEST;
 
       uniforms.uUnderWater.value = isCameraUnder ? 1 : 0;
-      uniforms.uUnderWaterColour.value.setRGB(0.04 * light, 0.38 * light, 0.5 * light);
-      const [near, far] = isCameraUnder ? seaConfig.fogUnderWater : seaConfig.fogInAir;
-      if (isCameraUnder) fog.color.copy(uniforms.uUnderWaterColour.value);
-      fog.near = near;
-      fog.far = far;
-      overlay.style.opacity = isCameraUnder ? '1' : '0';
-      bubbles.visible = isCameraUnder;
+      fog.near = isCameraUnder ? FOG_BEGINS_UNDER_WATER : fogBeginsInAir;
+      fog.far = fogEndsInAir;
+
+      lightShaftsFrame.isCameraUnder = isCameraUnder;
+      lightShaftsFrame.surfaceHeight = surfaceHeight;
+      lightShaftsFrame.daylight = frame.daylight;
+      lightShaftsFrame.sunThrough = frame.sunThrough;
+      lightShafts.update(lightShaftsFrame);
+      specksFrame.isCameraUnder = isCameraUnder;
+      specksFrame.surfaceHeight = surfaceHeight;
+      specksFrame.focalLength = pixelsPerMetreAtAMetre(
+        camera.fov,
+        frame.pixelRatio * frame.viewHeight,
+      );
+      specks.update(specksFrame);
       if (!isCameraUnder) return;
 
-      overlay.style.setProperty('--ray', light.toFixed(2));
-      riseRoundTheCamera(time);
+      colourTheWater(floorDepth, frame);
+      fog.color.copy(uniforms.uUnderWaterColour.value);
     },
   };
 }

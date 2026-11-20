@@ -55,7 +55,14 @@ the git tag `build-78`.
 14. **The sand shader owns the water's edge.** See the hard rule in `CLAUDE.md`. (Build 76.)
 15. **One small repeating texture, read several times** at different sizes and angles, gives ripples, foam lace and
     the net of light on the sea floor without a visible repeat [22_detail.js].
-16. **Everything under water takes the sea's tint by depth**: sand, rock and coral alike [seatint.glsl].
+16. **Everything under water takes the sea's tint by depth**: sand, rock and coral alike [seatint.glsl]. That is
+    the water over a thing, as an eye above the sea sees it.
+    **To an eye under water it is the water between the two that counts**, by the distance, red first, with
+    the water's own light put in its place (`through-water.glsl`). Everything takes that from three.js's fog,
+    which is given a second case (`sea/water-as-fog.ts`), so that no material needs telling. three.js hands a
+    material the fog's colour, its near and its far and nothing more, so being under water is said by a fog
+    that begins behind the eye; another kind of fog would say it plainly, but three.js compiles every shader
+    again when the kind of fog changes. (20 November 2026.)
 
 ## The sky
 

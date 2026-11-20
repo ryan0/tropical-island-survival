@@ -10,6 +10,7 @@ import type { RockSurface } from './rocks-config';
 /** The shared uniforms the rock colouring reads. */
 const SHARED_UNIFORMS = [
   'uSeaLevel',
+  'uUnderWater',
   'uDebugMode',
   'uTime',
   'uWind',

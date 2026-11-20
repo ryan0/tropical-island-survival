@@ -42,6 +42,12 @@ const vec2 NET_COARSENS_OVER = vec2(0.5, 1.3);
 // filled in, in water more than a metre deep.
 const float WATER_FILLS_SHADOWS = 0.3;
 
+// An eye under water gets used to the light there, as a camera's white balance does: the red that the water over a
+// thing has taken from the light on it is missed far less than an eye above the sea misses it. (Photographs taken
+// a few metres down in daylight show corals tan and sand pale, not green.) So to an eye under water, the water
+// over a thing takes this share of what it takes to an eye above.
+const float TAKEN_TO_AN_EYE_UNDER_WATER = 0.15;
+
 // How far a shadow is filled in, in water so deep.
 float shadowFilledAt(float depth) {
   return WATER_FILLS_SHADOWS * smoothstep(0.1, 1.0, depth);

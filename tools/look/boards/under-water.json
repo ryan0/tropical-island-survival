@@ -1,0 +1,91 @@
+{
+  "materials": [
+    {
+      "name": "Open water seen level, in a shallow sandy lagoon",
+      "photos": [
+        ["under-water/moorea-split-lagoon-overcast.jpg", "F4:J4"],
+        ["under-water/moorea-shark-mirrored-in-surface-from-below.jpg", "A4:C7"],
+        ["under-water/rose-atoll-lagoon-sand-turtle-shark-three-views.png", "H0:J2"]
+      ],
+      "ours": [
+        ["under-level-lagoon", "A1:D3"],
+        ["under-level-away-from-sun", "F1:J3"]
+      ]
+    },
+    {
+      "name": "Open water seen level, over a reef 5 to 15 m down",
+      "photos": [
+        ["under-water/palmyra-snorkeler-over-table-coral-shallows.jpg", "A1:C2"],
+        ["under-water/palmyra-shallow-reef-colour-fading-with-distance.jpg", "F2:J3"],
+        ["under-water/palmyra-coral-field-fading-to-blue-green.jpg", "A0:E1"],
+        ["under-water/palmyra-mantas-over-shallow-reef-surface-glints.jpg", "A3:E4"],
+        ["under-water/palmyra-reef-bommies-under-surface-blue-distance.jpg", "F1:J2"],
+        ["under-water/kingman-reef-natural-light-red-gone.jpg", "A0:J0"]
+      ],
+      "ours": [
+        ["under-fore-reef", "A1:J3"],
+        ["under-drop-off", "A0:J2"]
+      ]
+    },
+    {
+      "name": "Looking up, away from the sun",
+      "photos": [
+        ["under-water/bahamas-sun-through-surface-from-depth-bubble-ring.jpg", "A0:B1"],
+        ["under-water/maldives-sharks-looking-up-at-surface-glints.jpg", "A3:C4"],
+        ["under-water/red-sea-sun-rays-in-open-blue-water.jpg", "H0:J2"]
+      ],
+      "ours": [
+        ["under-straight-up", "A0:C2"],
+        ["under-up-towards-sun", "A6:C8"]
+      ]
+    },
+    {
+      "name": "The surface towards the sun",
+      "photos": [
+        ["under-water/maldives-sharks-looking-up-at-surface-glints.jpg", "D0:H1"],
+        ["under-water/eilat-sun-through-surface-blue-gradient.jpg", "D0:E1"],
+        ["under-water/bahamas-sun-through-surface-from-depth-bubble-ring.jpg", "E3:F4"],
+        ["under-water/palmyra-surface-from-below-and-blue-depth.jpg", "A0:D1"]
+      ],
+      "ours": [["under-up-towards-sun", "D1:F3"]]
+    },
+    {
+      "name": "The sand floor, near",
+      "photos": [
+        ["under-water/moorea-split-lagoon-overcast.jpg", "A8:C9"],
+        ["under-water/moorea-split-lagoon-late-afternoon.jpg", "F8:J9"],
+        ["under-water/rose-atoll-lagoon-sand-turtle-shark-three-views.png", "A7:B8"],
+        ["under-water/hawaii-kona-caustics-on-sand.jpg", "C1:E3"]
+      ],
+      "ours": [
+        ["under-down-at-sand", "A5:E8"],
+        ["under-reef-flat", "E8:H9"],
+        ["under-level-lagoon", "A8:C9"]
+      ]
+    },
+    {
+      "name": "Coral within a few metres",
+      "photos": [
+        ["under-water/palmyra-snorkeler-over-table-coral-shallows.jpg", "B5:F7"],
+        ["under-water/palmyra-shallow-reef-colour-fading-with-distance.jpg", "A6:C8"],
+        ["under-water/baker-island-reef-slope-into-blue.png", "D5:G8"],
+        ["under-water/palmyra-reef-bommies-under-surface-blue-distance.jpg", "A5:C6"]
+      ],
+      "ours": [
+        ["under-coral-near", "E1:G1"],
+        ["under-head-close", "F5:G6"],
+        ["under-level-lagoon", "F5:H6"]
+      ]
+    },
+    {
+      "name": "Coral ten metres off and more",
+      "photos": [
+        ["under-water/palmyra-snorkeler-over-table-coral-shallows.jpg", "E2:I3"],
+        ["under-water/palmyra-coral-field-fading-to-blue-green.jpg", "A4:D5"],
+        ["under-water/kingman-reef-natural-light-red-gone.jpg", "C4:G6"],
+        ["under-water/palmyra-shallow-reef-colour-fading-with-distance.jpg", "E5:G6"]
+      ],
+      "ours": [["under-head-close", "H5:J5"]]
+    }
+  ]
+}

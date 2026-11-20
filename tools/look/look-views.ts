@@ -219,6 +219,97 @@ const weather: ReferenceView[] = [
   }),
 ];
 
-export const lookViews = { colour, evening, weather };
+const LAGOON_FLOOR: Pose = [8, -1.0, 80, 0.3, -0.05];
+// A wave of a set stands up on the south-east fore reef and is about to throw its lip at this moment on the wave
+// clock, just east of this spot (the tests' view `photo-barrel` looks at it from above the water).
+const A_SET_WAVE_BREAKS = 72.6;
+const BESIDE_THE_BREAK: Pose = [44, -1.5, 322, 4.86, 0.2];
+// The sun stands due south at noon, 41 degrees up: a yaw of half a turn looks towards it.
+const TOWARDS_THE_NOON_SUN = Math.PI;
+
+/** From under water: how colour goes with distance, the surface from below, light in the water. */
+const underWater: ReferenceView[] = [
+  view('under-level-lagoon', 'level across the lagoon floor to a coral head', LAGOON_FLOOR, calm),
+  view(
+    'under-level-towards-sun',
+    'level, towards the sun',
+    [8, -1.2, 80, TOWARDS_THE_NOON_SUN, 0.12],
+    calm,
+  ),
+  view('under-level-away-from-sun', 'level, away from the sun', [8, -1.2, 80, 0, 0.05], calm),
+  view(
+    'under-up-towards-sun',
+    'up at the surface towards the sun',
+    [8, -1.6, 80, TOWARDS_THE_NOON_SUN, 0.7],
+    calm,
+  ),
+  view('under-straight-up', 'straight up at the surface', [8, -1.6, 80, 0.3, 1.35], calm),
+  view('under-down-at-sand', 'down at the sand floor', [8, -0.8, 84, 0.3, -1.0], calm),
+  view('under-head-close', 'two coral heads from a few metres', [14, -1.2, 78, 0.9, -0.1], calm),
+  view('under-coral-near', "a head's corals from close by", [68.8, -1.0, 51.8, 3.927, -0.1], calm),
+  view('under-reef-flat', 'the shallow reef flat', [5, -0.6, 190, Math.PI, 0.2], calm),
+  view('under-fore-reef', 'the fore reef, 4 m down', [0, -4, 340, Math.PI, -0.1], calm),
+  view('under-drop-off', 'down the drop-off into deep water', [0, -6, 368, Math.PI, -0.3], calm),
+  view('under-usual-breeze', 'the lagoon floor in the usual breeze', LAGOON_FLOOR),
+  view('under-cloudy', 'the lagoon floor under cloud', LAGOON_FLOOR, { ...calm, cloudCover: 0.95 }),
+  view(
+    'under-low-sun',
+    'the lagoon towards a low sun',
+    [8, -1.2, 80, TOWARDS_THE_SETTING_SUN, 0.15],
+    {
+      ...calm,
+      sun: { dayPhase: 0.78 },
+    },
+  ),
+  view('under-night', 'the lagoon floor by moonlight', LAGOON_FLOOR, {
+    ...calm,
+    sun: { dayPhase: 0 },
+  }),
+  // The light in the water, and the far surface: rays towards the sun, up at it and from one side.
+  view(
+    'under-deep-towards-sun',
+    'the fore reef 5 m down, towards the sun',
+    [0, -5, 345, TOWARDS_THE_NOON_SUN, 0.25],
+    calm,
+  ),
+  view(
+    'under-deep-up-at-sun',
+    'the sun through the surface from 5 m down',
+    [0, -5, 345, TOWARDS_THE_NOON_SUN, 0.75],
+    calm,
+  ),
+  view(
+    'under-lagoon-towards-sun',
+    'the lagoon, towards the sun',
+    [8, -1.6, 80, TOWARDS_THE_NOON_SUN, 0.2],
+    calm,
+  ),
+  view(
+    'under-sun-to-one-side',
+    'the lagoon with the sun to one side',
+    [8, -1.6, 80, 1.9, 0.1],
+    calm,
+  ),
+  view(
+    'under-low-angle',
+    'the surface from just under it, at a low angle',
+    [8, -0.5, 80, 0.3, 0.12],
+  ),
+  // A wave of a set breaking on the south-east fore reef, from under water beside it and under it.
+  view('under-wave-standing', 'a wave standing up, from beside it', BESIDE_THE_BREAK, {
+    waveTime: A_SET_WAVE_BREAKS,
+  }),
+  view('under-wave-landed', 'the same wave a second on, its lip landed', BESIDE_THE_BREAK, {
+    waveTime: A_SET_WAVE_BREAKS + 1,
+  }),
+  view('under-wave-overhead', 'its white water from below', [56, -2.5, 321, 4.86, 0.9], {
+    waveTime: A_SET_WAVE_BREAKS + 1,
+  }),
+  view('under-behind-wave', 'the back of the wave from the reef side', [62, -2.2, 316, 1.2, 0.35], {
+    waveTime: A_SET_WAVE_BREAKS + 0.6,
+  }),
+];
+
+export const lookViews = { colour, evening, weather, underWater };
 
 export type ViewGroup = keyof typeof lookViews;

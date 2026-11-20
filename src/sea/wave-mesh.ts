@@ -124,7 +124,7 @@ export function createWaveMesh({ scene, island, createMaterial }: WaveMeshDepend
       },
       material,
     );
-    // With the far sea: before the lagoon shore band, the bubbles and the spray.
+    // With the far sea: before the lagoon shore band, what hangs in the water under it and the spray.
     piece.mesh.renderOrder = 5;
     group.add(piece.mesh);
     return piece;

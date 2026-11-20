@@ -1,5 +1,11 @@
 import { Vector3, type PerspectiveCamera, type Scene } from 'three';
+import { pixelsPerMetreAtAMetre } from '../core/maths';
 import type { Random } from '../core/random';
+import {
+  createBubblePlumes,
+  type BreakingWaterBursts,
+  type BubblePlumeUniforms,
+} from './bubble-plumes';
 import { seaConfig } from './sea-config';
 import { createSprayBursts, type BreakingSpot } from './spray-bursts';
 import { sprayConfig } from './spray-config';
@@ -27,6 +33,10 @@ export interface SprayDependencies {
   random: Random;
   /** A stream of its own for the spray along the crest, so that it moves none of the rest. */
   randomOnCrest: Random;
+  /** A stream of its own for the bubbles breaking water drives under, seen from under water. */
+  randomUnderWater: Random;
+  /** Two of the uniforms every shader shares, for the bubbles. */
+  uniforms: BubblePlumeUniforms;
   waves: WaveModel;
   /**
    * How far outside the line its waves break on the main swell's crest lies in a direction, at a
@@ -73,11 +83,12 @@ const SHORTEST_FRAME = 0.008;
 export function createSpray(dependencies: SprayDependencies): Spray {
   const { scene, camera, random, waves, islandRadius, offshoreOfReef, obstacles, hearSurf } =
     dependencies;
-  const { randomOnCrest, crestOutsideLine } = dependencies;
+  const { randomOnCrest, crestOutsideLine, randomUnderWater, uniforms } = dependencies;
   const facing = new Vector3();
   const droplets = createSprayDroplets(scene);
   const bursts = createSprayBursts(random, droplets);
   const burstsOnCrest = createSprayBursts(randomOnCrest, droplets);
+  const plumes = createBubblePlumes({ scene, uniforms, random: randomUnderWater, waves });
   const spot: BreakingSpot = { x: 0, z: 0, surface: 0, inwardX: 0, inwardZ: 0, breakerHeight: 0 };
   const surfaceBefore = obstacles.map(() => 0);
   let surfBreaking = 0;
@@ -105,6 +116,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
     dt: number,
     cameraDirection: number,
     lookDirection: number,
+    into: BreakingWaterBursts,
   ): void {
     const { onCrest, landingLip, fallingLip } = config;
     const [behind, ahead] = onCrest.aheadOfCrest;
@@ -124,12 +136,12 @@ export function createSpray(dependencies: SprayDependencies): Spray {
         wave.landingLip > landingLip.throwsAbove &&
         randomOnCrest() < wave.landingLip * onCrest.landingChance * frameShare
       ) {
-        burstsOnCrest.fromBurstingCrest(spot);
+        into.fromBurstingCrest(spot);
       } else if (
         wave.fallingLip > fallingLip.throwsAbove &&
         randomOnCrest() < wave.fallingLip * onCrest.fallingChance * frameShare
       ) {
-        burstsOnCrest.fromFallingLip(spot);
+        into.fromFallingLip(spot);
       }
     }
   }
@@ -140,6 +152,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
     dt: number,
     cameraDirection: number,
     lookDirection: number,
+    into: BreakingWaterBursts,
   ): number {
     const { landingLip, fallingLip, bore } = config;
     const frameShare = Math.min(1, dt * config.chanceFrameRate);
@@ -163,14 +176,14 @@ export function createSpray(dependencies: SprayDependencies): Spray {
         wave.landingLip > landingLip.throwsAbove &&
         random() < wave.landingLip * landingLip.chance * frameShare
       ) {
-        bursts.fromLandingLip(spot);
+        into.fromLandingLip(spot);
       } else if (
         wave.fallingLip > fallingLip.throwsAbove &&
         random() < wave.fallingLip * fallingLip.chance * frameShare
       ) {
-        bursts.fromFallingLip(spot);
+        into.fromFallingLip(spot);
       } else if (wave.bore > bore.throwsAbove && random() < wave.bore * bore.chance * frameShare) {
-        bursts.fromBore(spot);
+        into.fromBore(spot);
       }
     }
     return breaking;
@@ -216,19 +229,28 @@ export function createSpray(dependencies: SprayDependencies): Spray {
 
       const isSeaThere = !frame.isCameraUnderWater && !frame.isSeaDrained;
       if (fromShore < config.nearShoreline && isSeaThere) {
-        const breaking = throwFromTheReef(time, dt, cameraDirection, lookDirection);
-        if (isThrownFromCrest) throwFromTheCrest(time, dt, cameraDirection, lookDirection);
+        const breaking = throwFromTheReef(time, dt, cameraDirection, lookDirection, bursts);
+        if (isThrownFromCrest) {
+          throwFromTheCrest(time, dt, cameraDirection, lookDirection, burstsOnCrest);
+        }
         surfBreaking +=
           (Math.min(1, breaking / config.surfSound.loudestAt) - surfBreaking) *
           Math.min(1, dt * config.surfSound.easing);
         hearSurf(surfBreaking);
         throwFromObstacles(time, dt);
       }
+      // Under the water, breaking water drives bubbles down where above it it would throw spray.
+      const isUnderTheSea = frame.isCameraUnderWater && !frame.isSeaDrained;
+      if (fromShore < config.nearShoreline && isUnderTheSea) {
+        throwFromTheReef(time, dt, cameraDirection, lookDirection, plumes);
+        if (isThrownFromCrest) throwFromTheCrest(time, dt, cameraDirection, lookDirection, plumes);
+      }
 
       droplets.move(dt);
-      const focalLength =
-        (frame.pixelRatio * frame.viewHeight * 0.5) / Math.tan((camera.fov * Math.PI) / 360);
+      plumes.move(dt, time);
+      const focalLength = pixelsPerMetreAtAMetre(camera.fov, frame.pixelRatio * frame.viewHeight);
       droplets.show(focalLength, frame.daylight, frame.night);
+      plumes.show(focalLength, frame.daylight, frame.night);
     },
 
     throwFromCrest(isThrown) {

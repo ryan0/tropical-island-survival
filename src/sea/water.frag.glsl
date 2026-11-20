@@ -115,6 +115,7 @@ varying vec2 vWhiteMass;
 #include "../shaders/shared/lagwave"
 #include "wave-timing/timing"
 #include "../sky/sky-gradient"
+#include "../shaders/shared/through-water"
 #include "torn-edge"
 
 // ---- Numbers to retune ----
@@ -140,9 +141,9 @@ const float CRESTS_B_SPACING = 10.5;
 const float CRESTS_B_SPEED = 3.5;
 
 // The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue where it is deep.
-const vec3 OVER_SAND_AQUA = vec3(0.34, 0.75, 0.71);
-const vec3 TURQUOISE = vec3(0.22, 0.52, 0.61);
-const vec3 OCEAN_BLUE = vec3(0.01, 0.18, 0.34);
+const vec3 OVER_SAND_AQUA = vec3(0.24, 0.71, 0.67);
+const vec3 TURQUOISE = vec3(0.11, 0.49, 0.58);
+const vec3 OCEAN_BLUE = vec3(0.0, 0.14, 0.30);
 // Added where the ripples face the sun.
 const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
 // Water full of bubbles where waves have just broken.
@@ -191,11 +192,47 @@ const vec3 MOONLIGHT = vec3(0.55, 0.62, 0.80);
 // How bright its faint sheen is, and its glitter.
 const float MOON_SHEEN = 0.05;
 const float MOON_GLITTER = 0.7;
-// From under water: the surface away from the sky, and the bright window of sky overhead; and the light with the sun
-// at the horizon.
-const vec3 UNDERSIDE_DARK = vec3(0.02, 0.28, 0.40);
-const vec3 UNDERSIDE_WINDOW = vec3(0.60, 0.92, 0.96);
-const vec3 LOW_SUN_UNDER_WATER = vec3(0.6, 0.45, 0.5);
+// From under water (seenFromUnderWater).
+// How much slower light goes in water than in air, which is what bends it at the surface; and the share of light
+// that water mirrors when met square on (the rest is Fresnel's law, as Schlick wrote it).
+const float WATER_INDEX = 1.33;
+const float MIRRORED_SQUARE_ON = 0.02;
+// How much brighter the sky is drawn through the window than from the beach: an eye in the dim of the water is
+// opened wider.
+const float WINDOW_BRIGHTER = 1.2;
+// The sun through the window is no disc: the ripples smear it into a dazzle this wide (radians), this bright.
+// (Narrower, each ripple that swept the eye's line across the sun drew it as a thin bright ring with a dark
+// middle: wide enough, the ring closes into a white piece.)
+const float SUNS_DAZZLE_ACROSS = 0.09;
+const float SUNS_DAZZLE = 3.0;
+// How steep the ripples are from below, in a calm and in the usual breeze, against how the top side draws them (a
+// ripple bends the light that comes down through it far more than it tilts the light it mirrors); and how much
+// brighter and darker they make the window, gathering the light and spreading it.
+const vec2 RIPPLES_FROM_BELOW = vec2(1.0, 1.9);
+const float WINDOW_LENSED = 0.7;
+// Outside the window the surface is a mirror, but never a clean one: its finest facets tip far enough, here and
+// there, to show the low sky, as crisp glints. They are thick just outside the window's edge and die away
+// outwards (over so much of seenFromUnderWater's getsOut), with a faint sheen under them at the edge itself.
+// A facet glints where the fine pattern is above the first of GLINTS_FROM far from the window (or far from the
+// sun, for the sun's own glints in the window), the second at it: the pattern is mostly near a half. GLINT_EDGE is
+// how soft a glint's edge is, in the same measure.
+const float SHEEN_AT_WINDOWS_EDGE = 0.1;
+const float GLINTS_DIE_OVER = 0.35;
+const vec2 GLINTS_FROM = vec2(0.66, 0.52);
+const float GLINT_EDGE = 0.035;
+// The sun's glints in the window: how far from the sun they reach (radians, in air), and how bright they are.
+const float SUN_GLINTS_OVER = 0.55;
+const float SUN_GLINTS = 1.0;
+// (they begin at these levels of the fine pattern, far from the sun and at it, as the mirror's do at GLINTS_FROM)
+const vec2 SUN_GLINTS_FROM = vec2(0.68, 0.59);
+// What the mirror shows: the floor under the water, pale sand or a dark coral head, as far off as this at most.
+const vec3 FLOOR_IN_THE_MIRROR = vec3(0.80, 0.80, 0.76);
+const vec3 HEAD_IN_THE_MIRROR = vec3(0.34, 0.40, 0.33);
+const float MIRROR_REACHES = 45.0;
+// Foam from below: a ceiling of bubbles with the daylight in it, pale where it is thin and a little greyer where
+// it is thick enough to keep some of the light out.
+const vec3 THIN_FOAM_FROM_BELOW = vec3(0.82, 0.95, 0.96);
+const vec3 THICK_FOAM_FROM_BELOW = vec3(0.66, 0.82, 0.86);
 // Debug switch 3.
 const vec3 PLAIN_WATER = vec3(0.03, 0.25, 0.50);
 
@@ -488,18 +525,121 @@ float groundHeightAt(vec2 p) {
   #endif
 }
 
-// The surface seen from under water, looking along -towardsCamera.
-vec3 seenFromUnderWater(vec2 xz, vec3 towardsCamera, float cameraDistance) {
-  float lookingUp = clamp(-towardsCamera.y, 0.0, 1.0);
-  // (the sky shows only in a window overhead; further out the surface mirrors the water below)
-  float skyWindow = smoothstep(0.5, 0.8, lookingUp);
-  float ripples = fbm(xz * 0.9 + vec2(uTime * 0.3, uTime * 0.2));
-  vec3 daylight = mix(LOW_SUN_UNDER_WATER, vec3(1.0), uDaylight) * (1.0 - 0.8 * uNight);
-  vec3 colour = mix(UNDERSIDE_DARK, UNDERSIDE_WINDOW, skyWindow * (0.45 + 0.9 * ripples)) * daylight;
-  // (the sun, its light bent towards straight overhead as it enters the water)
-  vec3 sunSeenFromBelow = normalize(vec3(uSunDirection.x * 0.6, uSunDirection.y, uSunDirection.z * 0.6));
-  colour += uSunColour * pow(max(dot(-towardsCamera, sunSeenFromBelow), 0.0), 40.0) * 1.2 * (1.0 - uNight);
-  return mix(colour, uUnderWaterColour, 1.0 - exp(-cameraDistance * 0.05));
+// The surface as the ripples tilt it, for an eye under it: the wave's own slope (waveUp, the mesh's), the three
+// ripple readings and the foam's finest one, turned back to the world's axes as the top side turns them. Less in
+// a light air, and never quite flat.
+vec3 rippledFromBelow(vec3 waveUp, vec4 ripplesLarge, vec4 ripplesMedium, vec4 ripplesSmall, vec4 finest) {
+  vec2 largeSlope = ripplesLarge.rg - 0.5;
+  vec2 g2 = ripplesMedium.rg - 0.5;
+  vec2 g3 = ripplesSmall.rg - 0.5;
+  vec2 g4 = finest.rg - 0.5;
+  vec2 mediumSlope = vec2(g2.x * 0.8 + g2.y * 0.6, -g2.x * 0.6 + g2.y * 0.8);
+  vec2 smallSlope = vec2(g3.x * 0.28 - g3.y * 0.96, g3.x * 0.96 + g3.y * 0.28);
+  vec2 finestSlope = vec2(-g4.x - g4.y, g4.x - g4.y) * 0.71;
+  float ruffling = mix(RIPPLES_FROM_BELOW.x, RIPPLES_FROM_BELOW.y, clamp(uWind / USUAL_WIND, 0.0, 1.0));
+  vec2 slope = (largeSlope * 0.4 + mediumSlope * 0.5 + smallSlope * 0.5 + finestSlope * 0.4) * ruffling;
+  return normalize(normalize(waveUp) + vec3(-slope.x, 0.0, -slope.y));
+}
+
+// From under water the surface is two things. Overhead, and out to about 49 degrees from straight up, it is a
+// window: all the sky from horizon to horizon is drawn together into that round of it, with the sun and the clouds
+// in it, and every ripple bends it. Further out no light from above comes down the line of sight at all, and the
+// surface is a mirror of what lies under it: pale sand and dark coral heads in shallow water, the dark in deep.
+// (Snell's window.) Between the two the mirror comes in as Fresnel's law has it, and ripples too small to draw
+// leave a pale sheen on it. Foam is neither: a lit cloud. What is seen then comes to the eye through the water
+// between, like anything else (through-water.glsl).
+// towardsCamera: from this point of the surface to the eye. surfaceUp: the surface's normal (either way up).
+// xz: where this point is. waterDepth: how deep the water is under it. gathered: how much of the light the ripples
+// gather here, 0 to 1 (a half is as much as on flat water), broadly (x) and by their finest facets (y). foam: how
+// much foam lies here, 0 to 1; foamLumps: its pattern, in broad lumps (x) and in bubbles (y).
+vec3 seenFromUnderWater(vec3 towardsCamera, float cameraDistance, vec3 surfaceUp, vec2 xz, float waterDepth,
+    vec2 gathered, float foam, vec2 foamLumps) {
+  vec3 sight = -towardsCamera;
+  vec3 up = surfaceUp.y < 0.0 ? -surfaceUp : surfaceUp;
+  // (1 where the line of sight meets the surface square on)
+  float squareness = dot(sight, up);
+  // Out into the air: the line of sight is bent away from straight up, and where this is nothing or less it does
+  // not get out at all.
+  float getsOut = 1.0 - WATER_INDEX * WATER_INDEX * (1.0 - squareness * squareness);
+  float squareInAir = sqrt(max(getsOut, 0.0));
+  float slanting = 1.0 - squareInAir;
+  float slanting2 = slanting * slanting;
+  float mirrors = MIRRORED_SQUARE_ON + (1.0 - MIRRORED_SQUARE_ON) * slanting2 * slanting2 * slanting;
+  vec3 intoAir = normalize(WATER_INDEX * sight + (squareInAir - WATER_INDEX * squareness) * up);
+  float daylight = (0.25 + 0.75 * uDaylight) * (1.0 - 0.8 * uNight);
+
+  // The sky through the window, as the sky dome draws it (sky/sky-gradient.glsl), with the sun and its glow. The
+  // sun is no disc from here: the ripples smear it into a dazzle, and break that into pieces that dance.
+  float sunShows = 1.0 - uNight;
+  vec3 sky = skyGradient(normalize(intoAir.xz + 1e-5), clamp(intoAir.y, 0.0, 1.0));
+  float fromSun = sqrt(max(0.0, 2.0 - 2.0 * dot(intoAir, uSunDirection)));
+  float sunsDazzle = exp(-fromSun * fromSun / (SUNS_DAZZLE_ACROSS * SUNS_DAZZLE_ACROSS));
+  // (And through ripples the sun is in a thousand places at once: every facet that bends its light to the eye
+  // glints, thick about where the sun stands and thinning away from it. The window in the photographs is a field
+  // of such white pieces on blue, not a smooth sky.)
+  float nearTheSun = exp(-fromSun * fromSun / (SUN_GLINTS_OVER * SUN_GLINTS_OVER));
+  float sunGlintsFrom = mix(SUN_GLINTS_FROM.x, SUN_GLINTS_FROM.y, nearTheSun);
+  float sunGlints = smoothstep(sunGlintsFrom, sunGlintsFrom + GLINT_EDGE, gathered.y) * nearTheSun;
+  sky += uSunColour * sunShows * (sunsBroadGlow(fromSun) * 1.3 + 0.45 * exp(-fromSun * 9.0)
+    + SUNS_DAZZLE * sunsDazzle + SUN_GLINTS * sunGlints);
+  // (the moon, by night)
+  float fromMoon = sqrt(max(0.0, 2.0 - 2.0 * dot(intoAir, uMoonDirection)));
+  sky += MOONLIGHT * uNight * (0.25 * exp(-fromMoon * 8.0)
+    + exp(-fromMoon * fromMoon / (SUNS_DAZZLE_ACROSS * SUNS_DAZZLE_ACROSS)));
+  // The clouds, from the sky's own pictures, as the top side mirrors them. (Only in the window: the pictures have
+  // no mipmaps, and may be read inside a branch.)
+  if (mirrors < 1.0) {
+    float across = atan(intoAir.z, intoAir.x) / FULL_TURN + 0.5;
+    float upSky = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(intoAir.y, 0.0, 1.0)) / QUARTER_TURN);
+    vec4 clouds = mix(texture2D(uSkyPictureFrom, vec2(across, upSky)), texture2D(uSkyPictureTo, vec2(across, upSky)),
+      uSkyPictureBlend);
+    // (red was divided by 2.3 to fit in the picture)
+    sky = sky * (1.0 - clouds.a + clouds.b)
+      + uCloudInSun * clouds.r * mix(2.4, 1.85, uDaylight) + uCloudInShade * clouds.g * 0.82;
+  }
+  float lensed = 1.0 + WINDOW_LENSED * (gathered.x - 0.5);
+  vec3 window = sky * WINDOW_BRIGHTER * lensed;
+
+  // The mirror. The line of sight goes down from the surface as steeply as it came up to it, and meets the floor
+  // so far off: there the floor is as deep as its picture says, and a coral head stands or does not (the reef's
+  // map: neither picture has mipmaps). So the mirror shows the pale shallows and the dark heads, bent by every
+  // ripple, and beyond them the water's own colour.
+  vec3 mirroredSight = sight - 2.0 * squareness * up;
+  float toTheFloor = min(waterDepth / max(-mirroredSight.y, 0.1), MIRROR_REACHES);
+  vec2 onFloor = xz + mirroredSight.xz * toTheFloor;
+  float depthThere = max(uSeaLevel - groundHeightAt(onFloor), 0.0);
+  vec2 reefUvThere = (onFloor - HOME_ISLET) / REEF_MAP_SPAN + 0.5;
+  float headThere = 0.0;
+  if (abs(reefUvThere.x - 0.5) < 0.49 && abs(reefUvThere.y - 0.5) < 0.49) {
+    headThere = smoothstep(0.25, 0.85, texture2D(uReefMap, reefUvThere).g);
+  }
+  vec3 floorLit = mix(FLOOR_IN_THE_MIRROR, HEAD_IN_THE_MIRROR, headThere)
+    * exp(-depthThere * vec3(0.05, 0.02, 0.015)) * daylight;
+  vec3 mirror = seenThroughWater(floorLit, uUnderWaterColour, toTheFloor, mirroredSight.y);
+  // (The glints: the surface's finest facets tip far enough, here and there, to show the low sky and the sun's
+  // light in it. Thick just outside the window's edge, fewer further out, and each one crisp: dark mirror and
+  // bright glint side by side are what make the underside look like metal.)
+  float nearTheWindow = exp(min(getsOut, 0.0) / GLINTS_DIE_OVER);
+  // (far off they are the tips of coarser ripples: fewer of those are let glint, so that the far surface is
+  // set with small pieces and not with slabs)
+  float glintsFrom = mix(GLINTS_FROM.x, GLINTS_FROM.y, nearTheWindow) + 0.05 * smoothstep(8.0, 30.0, cameraDistance);
+  float glints = smoothstep(glintsFrom, glintsFrom + GLINT_EDGE, gathered.y) * (0.3 + 0.7 * nearTheWindow);
+  vec3 glintLight = (0.8 * uSkyHorizon + 0.7 * uSunColour * sunShows) * WINDOW_BRIGHTER * daylight;
+  mirror = mix(mirror, glintLight, clamp(glints + SHEEN_AT_WINDOWS_EDGE * nearTheWindow, 0.0, 1.0));
+
+  vec3 colour = mix(window, mirror, mirrors);
+
+  // Foam: a ceiling of bubbles with the daylight in it, ragged at its edges, and in it a grain of the bubbles
+  // themselves.
+  float foamCover = smoothstep(0.18, 0.6, foam + (foamLumps.x - 0.5) * 0.3);
+  // (The lace is a bright net with dark holes: turned over, bright bubbles packed together. Faintly: drawn
+  // strongly it was a hide of dark spots.)
+  float bubbles = 1.0 - smoothstep(0.3, 0.8, foamLumps.y);
+  vec3 foamLit = mix(THIN_FOAM_FROM_BELOW, THICK_FOAM_FROM_BELOW, smoothstep(0.45, 1.0, foam))
+    * (0.74 + 0.36 * foamLumps.x + 0.07 * bubbles) * daylight;
+  colour = mix(colour, foamLit, foamCover * 0.92);
+
+  return seenThroughWater(colour, uUnderWaterColour, cameraDistance, sight.y);
 }
 
 void main() {
@@ -571,10 +711,48 @@ void main() {
   }
   #endif
 
-  // From under water none of what follows shows: the surface is its underside alone, drawn as the end of main
-  // draws it. (Not while a debug colour is asked for, which is laid over it there.)
+  // ---- The ripples ----
+
+  // Ripples: the detail texture read three times, 37 m, 14 m and 4.3 m across, each copy turned and running its
+  // own way, so the eye finds no repeat. Far away the GPU blends each copy smooth by itself. (There was a fourth,
+  // 1.3 m across: it could hardly be told in the picture, and it made the water busy close to.)
+  // (The clock is wrapped, so that the readings stay
+  // exact however long the game has run: after RIPPLES_REPEAT seconds each is back where it began.)
+  // (They are read here, before the branch below: the underside is bent by them as the top is.)
+  float rippleTime = mod(uTime, RIPPLES_REPEAT);
+  vec4 ripplesLarge = texture2D(uDetail, xz * 0.027 + rippleTime * LARGE_RIPPLES_RUN);
+  vec2 turnedForMedium = vec2(xz.x * 0.8 - xz.y * 0.6, xz.x * 0.6 + xz.y * 0.8);
+  vec4 ripplesMedium = texture2D(uDetail, turnedForMedium * 0.071 + rippleTime * MEDIUM_RIPPLES_RUN);
+  vec2 turnedForSmall = vec2(xz.x * 0.28 + xz.y * 0.96, -xz.x * 0.96 + xz.y * 0.28);
+  vec4 ripplesSmall = texture2D(uDetail, turnedForSmall * 0.23 + rippleTime * SMALL_RIPPLES_RUN);
+  // (And the foam's finest reading, 1.3 m across, which only drifts: further down it is the foam's lace and
+  // bubbles; from under water, the surface's finest facets.)
+  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
+  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
+
+  // From under water none of what follows shows: the surface is its underside alone. (Not while a debug colour
+  // is asked for, which the end of main lays over it.)
   if (uUnderWater > 0.5 && uDebugMode < 2.5) {
-    vec3 underside = seenFromUnderWater(xz, towardsCamera, cameraDistance);
+    // (the water's depth here, as "How deep the water is" works it out below: the floor's picture has no mipmaps
+    // and may be read anywhere)
+    float depthBelow = vWaterPosition.y + SEA_FLOOR_DEPTH;
+    if (uIsFlatSheet < 0.5 || inLagoon > 0.5) depthBelow = vWaterPosition.y - groundHeightAt(xz);
+    vec3 surfaceUp = rippledFromBelow(vWaterNormal, ripplesLarge, ripplesMedium, ripplesSmall, foamFine);
+    // (Each ripple is a lens too: it gathers the light here and spreads it there. Broadly, by the ripples that
+    // are drawn; and finely, by facets a hand across, which glint. Far off the fine ones cannot be told apart,
+    // and the glints go by coarser ripples, so that the far surface still glitters.)
+    // (Three sizes of ripple together, so that the glints are of all sizes and lie in drifts, not in rows: by
+    // the finest alone they were polka dots.)
+    float nearFacets = foamFine.b * 0.44 + ripplesSmall.b * 0.33 + ripplesMedium.b * 0.23;
+    float farFacets = ripplesSmall.b * 0.45 + ripplesMedium.b * 0.55;
+    float fineFacets = mix(nearFacets, farFacets, smoothstep(6.0, 22.0, cameraDistance));
+    vec2 gathered = vec2(ripplesMedium.b * 0.6 + ripplesSmall.b * 0.4, fineFacets);
+    // (and the foam the waves have left here: its lumps, in the ripples' own readings, and its bubbles, which
+    // are the foam's lace seen from the other side)
+    vec2 foamLumps = vec2(ripplesMedium.b * 0.6 + ripplesLarge.b * 0.25 + ripplesSmall.a * 0.15,
+      mix(foamFine.a, ripplesSmall.a, smoothstep(6.0, 22.0, cameraDistance)));
+    vec3 underside = seenFromUnderWater(towardsCamera, cameraDistance, surfaceUp, xz, depthBelow, gathered,
+      vWaveState.x, foamLumps);
     gl_FragColor = vec4(underside + (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0), 1.0);
     return;
   }
@@ -674,17 +852,7 @@ void main() {
 
   // (All the readings of the detail texture are made here, outside any branch: docs/DEVICE_NOTES.md.)
 
-  // Ripples: the detail texture read three times, 37 m, 14 m and 4.3 m across, each copy turned and running its
-  // own way, so the eye finds no repeat. Far away the GPU blends each copy smooth by itself. (There was a fourth,
-  // 1.3 m across: it could hardly be told in the picture, and it made the water busy close to.)
-  // (The clock is wrapped, so that the readings stay
-  // exact however long the game has run: after RIPPLES_REPEAT seconds each is back where it began.)
-  float rippleTime = mod(uTime, RIPPLES_REPEAT);
-  vec4 ripplesLarge = texture2D(uDetail, xz * 0.027 + rippleTime * LARGE_RIPPLES_RUN);
-  vec2 turnedForMedium = vec2(xz.x * 0.8 - xz.y * 0.6, xz.x * 0.6 + xz.y * 0.8);
-  vec4 ripplesMedium = texture2D(uDetail, turnedForMedium * 0.071 + rippleTime * MEDIUM_RIPPLES_RUN);
-  vec2 turnedForSmall = vec2(xz.x * 0.28 + xz.y * 0.96, -xz.x * 0.96 + xz.y * 0.28);
-  vec4 ripplesSmall = texture2D(uDetail, turnedForSmall * 0.23 + rippleTime * SMALL_RIPPLES_RUN);
+  // (The ripples' three readings are made further up, before the underside is drawn.)
   // Foam lies on the water and goes with it, slowly, while the ripples run through under it: so its lace and its
   // bubbles have readings of their own that only drift, one as fine as the small ripples and one finer, 1.3 m
   // across. (The flat sheets carry only the wind's foam, which is torn and gone in a few seconds: there the
@@ -695,8 +863,7 @@ void main() {
   #else
   vec4 foamSmall = ripplesSmall;
   #endif
-  vec2 turnedForFine = vec2(-xz.x * 0.71 + xz.y * 0.71, -xz.x * 0.71 - xz.y * 0.71);
-  vec4 foamFine = texture2D(uDetail, turnedForFine * 0.77 + uTime * vec2(-0.05, -0.06));
+  // (the finer one is read further up, with the ripples: the underside's glints go by it too)
 
   // Once more stretched twice along the wind, for the white horses' foam: read here and not inside their branch.
   vec2 windStreaksUv = vec2(dot(xz, vec2(-WIND_DIR.y, WIND_DIR.x)) * 0.16, dot(xz, WIND_DIR) * 0.07);
@@ -1386,7 +1553,8 @@ void main() {
   colour = mix(colour, uSkyHorizon, haze);
   opacity = mix(opacity, 1.0, haze);
   if (uUnderWater > 0.5) {
-    colour = seenFromUnderWater(xz, towardsCamera, cameraDistance);
+    colour = seenFromUnderWater(towardsCamera, cameraDistance, normal, xz, waterDepth, vec2(0.5), waveFoam,
+      vec2(0.5));
     opacity = 1.0;
   }
   if (abs(uDebugMode - 3.0) < 0.5) {

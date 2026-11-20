@@ -4,6 +4,7 @@
 
 // the height of the still sea surface
 uniform float uSeaLevel;
+uniform float uUnderWater;   // 1 while the eye is under water
 // a debug switch: 5 drains the sea, to see its floor
 uniform float uDebugMode;
 // daylight: 0 at night, 1 by day

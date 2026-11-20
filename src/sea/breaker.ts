@@ -34,8 +34,13 @@ export interface BreakerDependencies {
 export interface Breaker {
   readonly isShown: boolean;
   show: (isShown: boolean) => void;
-  /** Shows each piece at the level of detail its distance from the eye calls for. */
-  chooseDetail(eye: Vector3): void;
+  /**
+   * Shows each piece at the level of detail its distance from the eye calls for; and none of it
+   * while the eye is under water. Where no wave stands the ribbon lies sunk in the sea, hidden from
+   * above by the sea's own surface: from below it showed, a pale band hanging in the water along
+   * the line the waves break on.
+   */
+  chooseDetail(eye: Vector3, isEyeUnderWater: boolean): void;
   /** Its size, for the debug panel. */
   readonly description: string;
 }
@@ -140,8 +145,9 @@ export function createBreaker(dependencies: BreakerDependencies): Breaker {
       group.visible = isShown;
     },
 
-    chooseDetail(eye) {
+    chooseDetail(eye, isEyeUnderWater) {
       for (const { depthOnly, mesh, shapes, probes } of pieces) {
+        mesh.visible = depthOnly.visible = !isEyeUnderWater;
         let nearest = Infinity;
         for (const probe of probes) nearest = Math.min(nearest, eye.distanceTo(probe));
         mesh.geometry = depthOnly.geometry = shapes[detailLevel(nearest)];

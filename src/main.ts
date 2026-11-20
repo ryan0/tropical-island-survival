@@ -23,7 +23,7 @@ import { createFootprints } from './player/footprints';
 import { createPlayer, type PlayerFrame } from './player/player';
 import { seaConfig } from './sea/sea-config';
 import { createSpray, type SprayFrame } from './sea/spray';
-import { createUnderWater } from './sea/under-water';
+import { createUnderWater, type UnderWaterFrame } from './sea/under-water';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
 import { createCrestLine } from './sea/crest-line';
@@ -279,14 +279,7 @@ const footprints = createFootprints({
   waves,
   player,
 });
-const underWater = createUnderWater({
-  scene,
-  camera,
-  waves,
-  fog,
-  overlay: pageElement('uw'),
-  uniforms,
-});
+const underWater = createUnderWater({ scene, camera, waves, fog, uniforms });
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);
@@ -296,6 +289,8 @@ const spray = createSpray({
   camera,
   random: randomStream('spray'),
   randomOnCrest: randomStream('spray on the crest'),
+  randomUnderWater: randomStream('bubble plumes'),
+  uniforms,
   waves,
   crestOutsideLine: crests.crestOutsideLine,
   islandRadius: island.radius,
@@ -395,6 +390,15 @@ const cloudsFrame: CloudsFrame = {
   night: 0,
   cameraPosition: camera.position,
 };
+const underWaterFrame: UnderWaterFrame = {
+  time: 0,
+  daylight: 1,
+  night: 0,
+  sunThrough: 1,
+  isSeaDrained: false,
+  pixelRatio: 1,
+  viewHeight: 0,
+};
 const lightsFrame: LightsFrame = {
   sunDirection,
   moonDirection,
@@ -484,7 +488,14 @@ function frame(now: number): void {
   clouds.update(cloudsFrame);
 
   const isSeaDrained = uniforms.uDebugMode.value === SEA_DRAINED;
-  underWater.update(time, light.daylight, light.night, isSeaDrained);
+  underWaterFrame.time = time;
+  underWaterFrame.daylight = light.daylight;
+  underWaterFrame.night = light.night;
+  underWaterFrame.sunThrough = clouds.sunThrough;
+  underWaterFrame.isSeaDrained = isSeaDrained;
+  underWaterFrame.pixelRatio = renderer.getPixelRatio();
+  underWaterFrame.viewHeight = view.height;
+  underWater.update(underWaterFrame);
 
   lightsFrame.daylight = light.daylight;
   lightsFrame.night = light.night;
@@ -525,7 +536,7 @@ function frame(now: number): void {
   waterFrame.wind = uniforms.uWind.value;
   waterFrame.isCameraUnderWater = underWater.isCameraUnder;
   water.update(waterFrame);
-  breaker.chooseDetail(camera.position);
+  breaker.chooseDetail(camera.position, underWater.isCameraUnder);
   uniforms.uShoreBandShown.value = water.isBandShown ? 1 : 0;
 
   instanceCells.update(camera.position);

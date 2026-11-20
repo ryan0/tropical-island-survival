@@ -1,8 +1,8 @@
 // What the sea does to anything under it, as terrain-colour.glsl does to the sand: to its colour (paler and greyer,
 // red lost with depth, the water's own blue-green glow) and to the sun's light on it (the net of light the ripples
 // throw, mostly on faces that look up). Used by the rocks and the coral.
-// Needs the uniforms uSeaLevel, uDaylight, uTime, uWind, uDebugMode, uDetail (the detail texture) and uCaustics (the
-// caustics texture), declared by the file that includes it.
+// Needs the uniforms uSeaLevel, uDaylight, uTime, uWind, uDebugMode, uUnderWater, uDetail (the detail texture) and
+// uCaustics (the caustics texture), declared by the file that includes it.
 
 #include "light-net"
 
@@ -25,18 +25,23 @@ vec3 seaTint(vec3 colour, vec3 worldPosition, float tintStrength) {
   float depthUnderWater = depthUnderSeaTint(worldPosition);
   float isUnderWater = step(0.0001, depthUnderWater);
 
-  // Paler and greyer
+  // Paler and greyer, and (below) the water's own glow in front of it: that is the water over it as an eye above
+  // the sea looks down through it. To an eye under the water with it there is no such veil. The light that falls
+  // on it has still lost its red on the way down; what the water between the two does is another rule's, by the
+  // distance (through-water.glsl), so that a coral an arm's length away keeps its colour.
+  float seenFromAbove = 1.0 - uUnderWater;
   vec3 paleGrey = vec3(dot(colour, vec3(0.3, 0.5, 0.2))) * vec3(1.04, 1.04, 1.02);
-  float greying = 0.4 * tintStrength * smoothstep(0.0, 0.5, depthUnderWater);
+  float greying = 0.4 * tintStrength * smoothstep(0.0, 0.5, depthUnderWater) * seenFromAbove;
   vec3 tinted = mix(colour, paleGrey, greying);
 
   // Darker, and red lost with depth
   float darkening = mix(1.0, 0.87, smoothstep(0.0, 0.7, depthUnderWater));
-  vec3 colourLeft = exp(-depthUnderWater * tintStrength * SEA_ABSORPTION);
+  vec3 colourLeft = exp(-depthUnderWater * tintStrength * SEA_ABSORPTION
+    * mix(1.0, TAKEN_TO_AN_EYE_UNDER_WATER, uUnderWater));
   tinted *= darkening * colourLeft;
 
   // The water's own glow, which needs daylight
-  tinted += SEA_GLOW * (1.0 - exp(-depthUnderWater * 0.9)) * uDaylight * (0.4 + 0.6 * tintStrength);
+  tinted += SEA_GLOW * (1.0 - exp(-depthUnderWater * 0.9)) * uDaylight * (0.4 + 0.6 * tintStrength) * seenFromAbove;
 
   // Out of the water, the colour is left exactly as it was
   return mix(colour, tinted, isUnderWater);

@@ -13,6 +13,7 @@ const SHARED_UNIFORMS = [
   'uTime',
   'uDaylight',
   'uSeaLevel',
+  'uUnderWater',
   'uDebugMode',
   'uCameraPosition',
   'uWind',
