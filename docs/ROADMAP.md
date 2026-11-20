@@ -1496,15 +1496,15 @@ photographs', then how much lighter or darker):
 
 | Material | Photos | Before | Now |
 |---|---|---|---|
-| The floor of a grove in sun | lightness 0.54, saturation 0.019 | 3.2 times, +0.09 | 0.9 times, +0.14 |
-| Coral gravel in sun | 0.65, 0.005 | 8.4 times, +0.11 | 2.8 times, +0.05 |
+| The floor of a grove in sun | lightness 0.54, saturation 0.019 | 3.9 times, -0.02 | 1.3 times, +0.09 |
+| Coral gravel in sun | 0.65, 0.005 | 12.6 times, +0.01 | 3.2 times, +0.05 |
 | Litter under the trees | 0.54, 0.050 | 1.5 times, -0.07 | 0.7 times, -0.04 |
 | Low plants on sand | 0.47, 0.065 | 1.4 times, +0.10 | 1.2 times, +0.02 |
 
 The floor is still lighter than the photographs' (theirs are dappled with shade, and three of the seven are
 of grey gravel alone). Gravel has next to no colour in the photographs, and ours has what the sun's warm light
-gives it. In none of these is ours busier than the photographs: its dots stray from a patch's average 0.6 to
-0.8 times as far as theirs do.
+gives it. In lightness none of these is busier than the photographs: its dots stray from a patch's average
+0.5 to 0.8 times as far as theirs do. ("Before" is the lawn, measured where the gravel and the litter now lie.)
 
 **More photographs**, gathered by an Opus agent from Wikimedia Commons for this sitting and the next: 30, of
 which 12 of the ground (five grove floors from standing height, two sand tracks through palms, two islets

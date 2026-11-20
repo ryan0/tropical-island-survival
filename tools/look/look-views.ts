@@ -340,6 +340,13 @@ const ground: ReferenceView[] = [
     {},
     aboveGround,
   ),
+  view(
+    'ground-gravel-bank',
+    'a bank of coral gravel among the creepers, at the feet',
+    [5, 1.6, 131.5, 0, -0.8],
+    {},
+    aboveGround,
+  ),
   view('ground-path', 'a footpath through the grove', [-8, 1.6, 144.5, 0.7, -0.4], {}, aboveGround),
   view(
     'ground-beach-top-along',
