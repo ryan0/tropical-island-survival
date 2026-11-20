@@ -49,6 +49,13 @@ interface VineLeaf {
 }
 
 const RUNNER_COLOUR: Triple = [0.2, 0.16, 0.08];
+/**
+ * A vine leaf's green: the olive of the creepers painted on the ground round it
+ * (ground-tiles/low-plants-tile-config.ts). Brighter and greener, a mat of these stood out of them.
+ */
+const VINE_LEAF: Triple = [0.25, 0.33, 0.17];
+/** How many triangles a leaf's fan is cut into. */
+const LEAF_FAN = 6;
 const FLOWER_COLOUR: Triple = [0.78, 0.36, 0.74];
 
 /**
@@ -60,12 +67,13 @@ export function vineMat(random: Random): PlantModel {
   const simpler = createTriangles();
   let leavesSoFar = 0;
 
-  // A leaf (or a flower) is round with a notch at the tip: a fan of four triangles.
+  // A leaf (or a flower) is round with a notch at the tip: a fan of six triangles. (Of four, a
+  // leaf close to was an angular scrap.)
   function addLeaf({ at: [x, y, z], radius, turn, tiltX, tiltZ, colour }: VineLeaf): void {
     const rim: Triple[] = [];
-    for (let q = 0; q <= 4; q++) {
-      const a = turn + (q / 4 - 0.5) * 5.3;
-      const r = radius * (q === 0 || q === 4 ? 0.85 : 1);
+    for (let q = 0; q <= LEAF_FAN; q++) {
+      const a = turn + (q / LEAF_FAN - 0.5) * 5.3;
+      const r = radius * (q === 0 || q === LEAF_FAN ? 0.85 : 1);
       rim.push([
         x + Math.cos(a) * r,
         y + Math.cos(a) * r * tiltX + Math.sin(a) * r * tiltZ,
@@ -78,7 +86,7 @@ export function vineMat(random: Random): PlantModel {
     const dark: Triple = [colour[0] * 0.7, colour[1] * 0.7, colour[2] * 0.7];
     // Further away: every second leaf, half as big again.
     const isInSimpler = leavesSoFar++ % 2 === 0;
-    for (let q = 0; q < 4; q++) {
+    for (let q = 0; q < LEAF_FAN; q++) {
       const [x0, y0, z0] = rim[q];
       const [x1, y1, z1] = rim[q + 1];
       full.add(
@@ -86,10 +94,12 @@ export function vineMat(random: Random): PlantModel {
         [x1, y1, z1, 0, 0, nx, ny, nz, colour],
         [x0, y0, z0, 0, 0, nx, ny, nz, colour],
       );
-      if (isInSimpler) {
+      // (further away a leaf is cut as coarsely as it was: every other piece of the fan, twice as wide)
+      if (isInSimpler && q % 2 === 0) {
+        const [nextX, nextY, nextZ] = rim[q + 2];
         simpler.add(
           [x, y + 0.01, z, 0, 0, nx, ny, nz, dark],
-          [x + (x1 - x) * 1.5, y1, z + (z1 - z) * 1.5, 0, 0, nx, ny, nz, colour],
+          [x + (nextX - x) * 1.5, nextY, z + (nextZ - z) * 1.5, 0, 0, nx, ny, nz, colour],
           [x + (x0 - x) * 1.5, y0, z + (z0 - z) * 1.5, 0, 0, nx, ny, nz, colour],
         );
       }
@@ -142,7 +152,7 @@ function addRunner(
     pz = nextZ;
     direction += (random() - 0.5) * 0.7;
     for (let leaf = 0; leaf < 3; leaf++) {
-      const g = 0.95 + 0.5 * random();
+      const g = 0.85 + 0.4 * random();
       const side = (random() - 0.5) * 0.42;
       const y = 0.05 + 0.07 * random();
       const radius = 0.085 + 0.04 * random();
@@ -155,7 +165,7 @@ function addRunner(
         turn,
         tiltX,
         tiltZ,
-        colour: [0.22 * g, 0.34 * g, 0.17 * g],
+        colour: [VINE_LEAF[0] * g, VINE_LEAF[1] * g, VINE_LEAF[2] * g],
       });
     }
   }

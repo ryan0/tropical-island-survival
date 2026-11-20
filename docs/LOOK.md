@@ -54,7 +54,7 @@ redrawn: `tools/look/boards/ground.json`.)
 | The same sand in a palm's shade | 5 | 0.63 | 0.009 | 194 | 3.0 | 1.8 |
 | Palm crowns in sun | 8 | 0.45 | 0.047 | 146 | 2.3 | 1.3 |
 | Shrubs and trees in sun | 6 | 0.42 | 0.076 | 127 | 1.6 | 1.2 |
-| Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | 1.4 | 1.3 |
+| Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | 1.4 | 1.2 |
 | The floor of a coconut grove in sun | 7 | 0.54 | 0.019 | 90 | 3.2 | 0.9 |
 | Coral gravel in sun | 4 | 0.65 | 0.005 | 79 | 8.4 | 2.8 |
 | Litter under the trees | 3 | 0.54 | 0.050 | 106 | 1.5 | 0.7 |

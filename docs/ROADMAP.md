@@ -1485,6 +1485,9 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
   nuts where there were 240 and 70, and most of the nuts are weathered grey (`plants-config.ts`,
   `fallenFromPalms`). The other things on the ground after them in the plants' stream (vine mats, lumps of
   coral, stumps) stand in new places for it.
+- *The modelled vine mats* that stand among the painted creepers were a brighter, purer green than they are,
+  with leaves of four straight edges: their leaves are now the creepers' olive and cut rounder
+  (`things-on-the-ground.ts`).
 - *How green the floor is* is one number (`terrain-colour.glsl`, `LOW_PLANTS`, its first part): where the
   ground is lush the creepers close into mats, and elsewhere it is bare gravel and litter. It was raised a
   step from the first try, which was greyer than most of the photographs' groves.
@@ -1494,10 +1497,10 @@ photographs', then how much lighter or darker):
 
 | Material | Photos | Before | Now |
 |---|---|---|---|
-| The floor of a grove in sun | lightness 0.54, saturation 0.019 | 3.2 times, +0.09 | 0.9 times, +0.15 |
+| The floor of a grove in sun | lightness 0.54, saturation 0.019 | 3.2 times, +0.09 | 0.9 times, +0.14 |
 | Coral gravel in sun | 0.65, 0.005 | 8.4 times, +0.11 | 2.8 times, +0.05 |
-| Litter under the trees | 0.54, 0.050 | 1.5 times, -0.07 | 0.7 times, -0.02 |
-| Low plants on sand | 0.47, 0.065 | 1.4 times, +0.10 | 1.3 times, +0.04 |
+| Litter under the trees | 0.54, 0.050 | 1.5 times, -0.07 | 0.7 times, -0.04 |
+| Low plants on sand | 0.47, 0.065 | 1.4 times, +0.10 | 1.2 times, +0.02 |
 
 The floor is still lighter than the photographs' (theirs are dappled with shade, and three of the seven are
 of grey gravel alone). Gravel has next to no colour in the photographs, and ours has what the sun's warm light
@@ -1646,7 +1649,7 @@ too long, the first to make smaller are the ground's three, `ground-tiles/*-conf
   the stars' turning not in motion at all.
 - "The look, against references" (above) has had its four sittings: each one's "Known, and left" says what
   it did not cure in its own subject.
-- Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
+- Short turf is sparse flat cut-outs; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
   films from the desktop only. Spray has only been tuned on stills.
