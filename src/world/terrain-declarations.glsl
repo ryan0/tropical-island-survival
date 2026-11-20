@@ -37,7 +37,6 @@ uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
 uniform sampler2D uSeaBed;          // the reef's hard floor and lived-in sand (sea-bed/sea-bed-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
-varying float vGroundLevelness; // how nearly level the ground is here: 1 level, 0 a wall (the upward part of its normal)
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"

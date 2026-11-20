@@ -24,6 +24,7 @@ import { createPlayer, type PlayerFrame } from './player/player';
 import { seaConfig } from './sea/sea-config';
 import { createSpray, type SprayFrame } from './sea/spray';
 import { createUnderWater, type UnderWaterFrame } from './sea/under-water';
+import { createUnderWaterPicture } from './sea/under-water-picture';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
 import { createCrestLine } from './sea/crest-line';
@@ -288,6 +289,15 @@ const footprints = createFootprints({
   player,
 });
 const underWater = createUnderWater({ scene, camera, waves, fog, seaSeenFromAbove, uniforms });
+const underWaterPicture = createUnderWaterPicture({
+  renderer,
+  scene,
+  camera,
+  uniforms,
+  seaSeenFromAbove,
+  waterMaterials,
+});
+underWaterPicture.draw(testHooks.isUnderWaterPictureDrawn);
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);
@@ -350,6 +360,19 @@ const debugPanel = createDebugPanel(
       }),
     },
     { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
+    {
+      // (under-water-picture.ts: read the frame rate with it on and off)
+      heading: 'on trial',
+      switches: [
+        {
+          label: 'bend what is under water',
+          set(on) {
+            underWaterPicture.draw(on);
+          },
+          isOn: () => underWaterPicture.isDrawn,
+        },
+      ],
+    },
     { heading: 'fly to', actions: placesToFlyTo(player) },
   ],
 );
@@ -549,9 +572,11 @@ function frame(now: number): void {
 
   instanceCells.update(camera.position);
 
+  underWaterPicture.update(underWater.isCameraUnder, isSeaDrained);
   renderer.render(scene, camera);
   frameMeter.update(realSeconds, (performance.now() - begunAt) / 1000);
   frameRateLabel.update(frameMeter.framesPerSecond);
   requestAnimationFrame(frame);
 }
+underWaterPicture.sortScene();
 requestAnimationFrame(frame);

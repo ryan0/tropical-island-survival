@@ -33,6 +33,10 @@ const float SURFACE_DRAWS = 0.35;
 // Light bends as it leaves water: the sine of its angle to straight up is this many times smaller in the water
 // than in the air (1 / 1.33).
 const float BENT_AT_THE_SURFACE = 0.75;
+// The picture of what is under the sea (sea/under-water-picture.ts) holds each thing's depth beside its colour, as
+// a number 0 to 1: the square root of its depth over this many metres, which keeps the shallows fine (a hand's
+// breadth of depth near the surface, a forearm at ten metres). 1 is this deep or deeper, or nothing at all.
+const float PICTURE_HOLDS_TO = 32.0;
 
 // The water's own colour over a thing so many metres under it. (By the depth, not by how far the light runs
 // through the water at a slant: a lagoon is one colour from the beach and from above it.)
@@ -52,6 +56,14 @@ vec3 waterInThisLight(float daylight, float night) {
 float hiddenByWater(float metres, float share) {
   float veils = metres / HIDES_BY_METRES;
   return 1.0 - exp(-share * veils * veils);
+}
+
+// A depth as the picture of what is under the sea holds it, and back.
+float depthAsHeld(float depth) {
+  return sqrt(clamp(depth / PICTURE_HOLDS_TO, 0.0, 1.0));
+}
+float depthHeld(float held) {
+  return held * held * PICTURE_HOLDS_TO;
 }
 
 // How many metres of water the light from a thing passes through on its way to an eye above the sea. depth: how

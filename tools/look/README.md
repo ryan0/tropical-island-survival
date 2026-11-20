@@ -48,6 +48,33 @@ swimmer's eye in a dozen places of the lagoon and the ocean's reef and from stra
 depth (out over a pool, across the lagoon from a low eye, a coral head and the reef flat from above), and
 `steepFloor`, the drop-off's face and the walls of the reef's pools.
 
+## The pairs and the fly-round
+
+Small pictures from poses chosen for them hid what Ryan found by flying about at full size. So a pass at the
+water or at its floor ends with two sets drawn as large as he sees the game, and looked at so.
+
+The pairs (`--group pairs`, `boards/pairs.json`): eight of our views, each beside the photograph it is matched
+to, one sheet a pair:
+
+```
+node tools/look/draw-views.ts node_modules/.cache/look/pairs --group pairs --size 1600x900
+```
+
+```
+node tools/look/pair-sheets.ts tools/look/boards/pairs.json node_modules/.cache/look/pairs node_modules/.cache/look/pair-sheets
+```
+
+The fly-round (`--group flyRound`): twelve spots from 5 to 40 m up, each at noon, at dusk and under cloud.
+Look at them one at a time, with a part enlarged wherever something looks odd: a contact sheet of them is too
+small to show a seam or a stepped edge.
+
+```
+node tools/look/draw-views.ts node_modules/.cache/look/fly-round --group flyRound --size 1600x900
+```
+
+`--bent` draws any group with the trial of the picture of what is under the sea switched on
+(`src/sea/under-water-picture.ts`).
+
 To move a colour of ours by a measured amount (here: seven tenths of its saturation, ten degrees towards green,
 a little lighter), and get it back as the code writes it:
 
@@ -78,7 +105,8 @@ hair from the same view drawn alone (the sky turns with the day, and the day is 
 
 | File | What it holds |
 |---|---|
-| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `nightSky` |
+| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `pairs`, `flyRound`, `nightSky` |
+| `pair-sheets.ts` | Lays each of the pairs' views beside its photograph, one sheet a pair |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |

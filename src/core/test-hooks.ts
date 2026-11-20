@@ -41,6 +41,7 @@ declare global {
     __wind?: number;
     __cloudCover?: number;
     __isAutomaticQualityOff?: boolean;
+    __isUnderWaterPictureDrawn?: boolean;
     __cloudPictureWidth?: number;
   }
 }
@@ -73,6 +74,8 @@ export interface HookedSystems {
 export interface TestHooks {
   /** Asked for before the page was loaded: no automatic quality steps, and smaller cloud pictures. */
   readonly isAutomaticQualityOff: boolean;
+  /** Asked for before the page was loaded: the trial of the picture of what is under the sea, on. */
+  readonly isUnderWaterPictureDrawn: boolean;
   readonly cloudPictureWidth: number | undefined;
   /** While it is, the waves, the weather and the day stand still. */
   isClockStopped(): boolean;
@@ -88,6 +91,7 @@ export interface TestHooks {
 export function createTestHooks(): TestHooks {
   return {
     isAutomaticQualityOff: window.__isAutomaticQualityOff === true,
+    isUnderWaterPictureDrawn: window.__isUnderWaterPictureDrawn === true,
     cloudPictureWidth: window.__cloudPictureWidth,
 
     isClockStopped: () => window.__isClockStopped === true,

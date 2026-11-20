@@ -36,6 +36,11 @@ export interface WaterMaterialsDependencies {
 
 export interface WaterMaterials {
   create: (sheet: WaterSheet) => ShaderMaterial;
+  /**
+   * Draws none of the sea's surfaces while off: for the picture of what is under the sea, which
+   * the surfaces read and so may not be drawn into.
+   */
+  show(isShown: boolean): void;
   /** The wave model's defines, for another shader that includes it (crest-line.ts). */
   waveDefines: Readonly<Record<string, string>>;
   /** The wave model as the shader has it, ready to compile on its own: the tests compare it with the program's copy. */
@@ -154,15 +159,20 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     SHAPE_BACK_FROM: glslFloat(breakerPath.firstPlaceOnBack),
   };
 
+  const made: ShaderMaterial[] = [];
   return {
     waveDefines,
+
+    show(isShown) {
+      for (const material of made) material.visible = isShown;
+    },
 
     create(sheet) {
       const isWaveMesh = sheet === 'wave mesh';
       const isBand = sheet === 'lagoon shore band';
       const isBreakerDepth = sheet === 'breaker depth';
       const isBreaker = sheet === 'breaker' || isBreakerDepth;
-      return new ShaderMaterial({
+      const material = new ShaderMaterial({
         // uIsFlatSheet: 1 leaves the sheet flat (the vertex shader moves only the wave mesh). uIsShoreBand: 1 for the band.
         uniforms: {
           uIsFlatSheet: { value: isWaveMesh || isBreaker ? 0 : 1 },
@@ -193,6 +203,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
         vertexShader: isBreaker ? breakerVertexShader : isBand ? bandVertexShader : vertexShader,
         fragmentShader: isBreakerDepth ? breakerDepthFragmentShader : fragmentShader,
       });
+      made.push(material);
+      return material;
     },
 
     waveShaderSource() {

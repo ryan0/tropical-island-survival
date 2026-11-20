@@ -618,6 +618,83 @@ const steepFloor: ReferenceView[] = [
   ),
 ];
 
+/**
+ * Views laid beside a photograph each (boards/pairs.json, pair-sheets.ts): the same height of
+ * eye, the same way of looking and the same light, so that what differs is ours to mend.
+ */
+const pairs: ReferenceView[] = [
+  view(
+    'pair-rippled-shallows',
+    'rippled sand from standing in the shallows',
+    [-20, 1.1, 101.5, 0.3, -0.4],
+    calm,
+  ),
+  view(
+    'pair-rocks-through-calm-water',
+    'out over rock in knee-deep water',
+    [0, 1.2, 213, Math.PI, -0.3],
+    calm,
+  ),
+  view(
+    'pair-shallows-from-the-beach',
+    "the lagoon's shallows from its beach",
+    [-12, 1.7, 107, 0.9, -0.22],
+    calm,
+  ),
+  view(
+    'pair-reef-flat-from-a-jetty',
+    'across the reef flat from 4 m up',
+    [0, 4, 200, 2.8, -0.3],
+    calm,
+  ),
+  view('pair-patch-reef-from-a-boat', 'a patch of reef from a boat', [6, 2, 90, 0.5, -0.4], calm),
+  view(
+    'pair-drop-off-from-the-air',
+    'the reef flat to the drop-off from the air',
+    [150, 70, 350, 1.15, -0.6],
+  ),
+  view(
+    'pair-lagoon-from-the-air',
+    "the lagoon's patch reefs from the air",
+    [0, 110, 150, 0, -0.95],
+  ),
+  view('pair-lagoon-at-dusk', 'across the calm lagoon at dusk', [0, 1.7, 107, 0.2, -0.06], {
+    ...calm,
+    sun: { dayPhase: 0.82 },
+  }),
+];
+
+// Where the fly-round looks from, 5 to 40 m up; each is drawn in three lights.
+const FLY_ROUND_SPOTS: [name: string, pose: Pose][] = [
+  ['lagoon-shelf', [0, 8, 92, 0.3, -0.5]],
+  ['lagoon-basin-edge', [0, 20, 80, 0, -0.6]],
+  ['lagoon-islet', [25, 15, 30, 0.7, -0.45]],
+  ['lagoon-head', [47, 6, 62, 0, -0.6]],
+  ['lagoon-west', [-60, 35, 40, 0.8, -0.7]],
+  ['lagoon-west-shore', [-92, 5, 0, -1.571, -0.4]],
+  ['reef-flat', [0, 6, 185, Math.PI, -0.4]],
+  ['back-reef-pool', [0, 12, 215, Math.PI, -0.5]],
+  ['crest', [44, 15, 285, Math.PI, -0.5]],
+  ['fore-reef-out', [0, 12, 345, Math.PI, -0.45]],
+  ['fore-reef-along', [70, 30, 372, 1.571, -0.55]],
+  ['east-reef', [175, 10, 0, -1.571, -0.45]],
+];
+const FLY_ROUND_LIGHTS: [name: string, changes: Partial<Moment>][] = [
+  ['noon', calm],
+  ['dusk', { ...calm, sun: { dayPhase: 0.8 } }],
+  ['overcast', { cloudCover: 1 }],
+];
+
+/**
+ * A round of the sea from the fly camera, where Ryan looks from: for looking over at full size
+ * before a pass at the water or its floor is called done.
+ */
+const flyRound: ReferenceView[] = FLY_ROUND_SPOTS.flatMap(([spot, pose]) =>
+  FLY_ROUND_LIGHTS.map(([light, changes]) =>
+    view(`fly-${spot}-${light}`, `${spot} from the fly camera, ${light}`, pose, changes),
+  ),
+);
+
 const MIDNIGHT = { ...calm, cloudCover: 0, sun: { dayPhase: 0 } };
 const TOWARDS_THE_MOON = Math.PI + 0.35;
 
@@ -686,6 +763,8 @@ export const lookViews = {
   seaFloor,
   waterDepth,
   steepFloor,
+  pairs,
+  flyRound,
   nightSky,
 };
 

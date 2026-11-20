@@ -10,6 +10,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 `look-3-ground` and the fourth, coral and the night sky, on `look-4-coral-and-sky`, which begins where the
 third ends, both for his review (20 November 2026). His notes on them (soil on the islet; the sea floor's
 patterns) are answered on `look-5-sea-floor`, which begins where the fourth ends ("After the night", below).
+That grew into a plan of its own for the water and its floor, in three sittings against matched photographs
+("The water and its floor against matched photographs", below): the first is done, and waits on his review
+and the phone's reading of a trial.
 After it comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
 many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
@@ -1855,6 +1858,87 @@ would stand unveiled in deep water, as nothing did here); and the frame rate, wh
 
 Two groups of views were added for this: `waterDepth` (out over a pool, the lagoon from a low eye, a head
 and the reef flat from above) and `steepFloor` (the drop-off's face and foot, a pool's wall).
+
+### The water and its floor against matched photographs: the plan (20 November 2026)
+
+Ryan, of the passes above: "this is better but still there are issues. In a lot of places it feels we have
+'spray painted' the surface"; "still seeing a lot of oddities in how we do the sand texturing"; "I think we
+should try to better match the real lagoon. Lets plan what would be needed to actually resolve this so we are
+not just spinning."
+
+**What his two pictures showed, and why.** A flat sea at dusk with the reef as stains on it: the passes above
+had moved most of the water's veil onto the things under it, and the surface's own ripple shading went with
+it; from afar the floor's detail is faded to flat averages, so a patch of reef is one colour with a soft edge;
+and nothing under water is bent or blurred, which was named on 17 November as the largest step left. A
+stepped edge along the drop-off: the rule that steep ground is rock went by the ground mesh's own normals,
+and had its 2 m triangles' edges. Kinked ripples: they were laid by the distance from the shore, read from a
+picture that holds it to 3 to 6 cm in steps a forearm apart, and ripples 9 cm apart kinked at every step.
+
+**Why the passes went round in circles.** (1) They were judged on small pictures, from poses chosen for
+them, at noon in a light breeze; he flies anywhere, at full size, at any hour. (2) There was no agreed
+target: the boards measure a patch's average colour, not how a reef's edge or rippled sand looks through
+water. (3) The water was three rules laid over one another (a tint on each thing by its depth, the new veil
+on each thing, the surface's own colour and opacity), mended in turn, so that each mend moved something else.
+
+**The plan he agreed** ("this all sounds good... take as much time as you need to get a high quality"), in
+three sittings with his review after each:
+
+| | Stage | What is done |
+|---|---|---|
+| A | Targets | Eight pairs: a photograph beside our view from the same height, way of looking and light, as large as they come (`tools/look/pair-sheets.ts`). And a fly-round: twelve spots from 5 to 40 m up, each at noon, at dusk and under cloud, looked over at full size before a pass is called done. |
+| B | The known faults, at their causes | Ripples laid without the shore's picture; steepness from the island's formula; painted edges for rubble and for the film of algae. |
+| C | A trial: bend what is under water | Everything the water veils drawn first to a picture half the screen's size; the surface reads it a little to one side, by its slope. Behind a switch, for the phone to say what it costs. |
+| D | One rule for the water | Colour and clearness from real lagoon water, by the true distance through it, with the sky's mirror weighed against the light from below, in place of the three rules. |
+| E | The floor against the pairs | The ripples' size and shape from standing height; rubble painted for the reef; structure at the middle distance, so that a patch is not flat from the air. (The ground's shader is at its limit of 16 pictures: its pictures would be stacked in one.) |
+| F | Checks, the phone, the docs | |
+
+Not to be touched: the surface's look that he approved (ripples, glints, foam, waves) and the colours
+measured in the first sitting.
+
+### That plan's first sitting: the targets, the three faults, the trial (20 November 2026)
+
+**The pairs** (`tools/look/boards/pairs.json`; three of the photographs are Ryan's own references): rippled
+sand from standing in the shallows; rock through knee-deep calm water; a lagoon's shallows from its beach; a
+reef flat from a jetty; a patch of reef from a boat; a reef flat running to its drop-off, from the air; a
+lagoon's patch reefs, from the air; a calm lagoon at dusk. They are for him to approve or change. What they
+show at once, before anything is mended: our shallow water is coloured turquoise from the first step, where
+half a metre of real water over white sand is all but colourless; our patches of reef are cut out crisply,
+where real ones are soft and broken by the ripples; from a low eye our far heads and stones show through the
+water, where real water at that angle is the sky's mirror; at dusk our floor shows, where a real lagoon is
+all mirror. The first is stage D's, the second C's and E's, the last two D's.
+
+**The three faults:**
+
+- *Ripples* are laid in circles about the atoll's centre, by the distance from it, which is exact: every
+  shore here follows a circle nearly enough. (The picture is read twice, by two directions that each jump a
+  whole turn along a different line, so that no hairline shows where one jumps.)
+- *Steepness* is the island's own formula, worked out a metre to each side for every dot of the reef's cover
+  picture (its fourth channel, which was spare), not the mesh's normals.
+- *Rubble* lies as an apron at the foot of each rock, by the sea bed picture's own heights: the floor next
+  under the level the sand lies at, wider the more rock there is. So it has the rock's painted outline. The
+  soft fringe that fell away over metres from a reef is gone, and so is the scatter on open sand (thinned
+  out, the stones' picture shows its largest pieces alone: grey slabs on clean ripples). *The film of algae*
+  is the sea bed picture's painted patchwork, as sparse dark blotches, and ripples run on under it.
+
+**The trial** (`src/sea/under-water-picture.ts`; the debug panel's `bend what is under water`, off unless
+switched on). Everything that takes the scene's fog is drawn before the frame into a picture half the
+screen's size, each thing as it is and with its depth under the sea beside its colour; the surface reads the
+picture where it would have shown the frame through itself, shifted by 0.3 of its slope over the depth, and
+draws the whole of the water's veil over what it reads, by that thing's own depth. On the desktop it does
+what was hoped: heads, stones and the edges of reef break up and shimmer under the ripples, the surface's own
+shading is back over the lagoon at dusk, and where there is nothing behind the water the picture says so (no
+sky through a wave). It reads no depth texture: the depth is a number each thing writes beside its colour.
+What it costs is the scene's triangles drawn twice and a quarter of the screen's dots coloured twice.
+
+**Left for the later stages:** with the trial on, the floor in the shallows is the picture's and half as
+sharp (the net of light most of all); a thing that stands out of the sea in front of water can leave a dot's
+fringe; the coral heads' own search along the line of sight is still made, though the picture now answers it;
+the rubble's bed still reads as crazy paving close to; the film's blotches have crisp edges.
+
+**Only the phone can say:** what the trial costs. Read the frame rate with `more dots` on, then with `bend
+what is under water` on as well, on the beach, over the lagoon and over the reef. If it holds, stage D is
+built on the picture; if not, D goes on each thing as now, and the painted look can be lessened but not
+ended.
 
 ## Later
 

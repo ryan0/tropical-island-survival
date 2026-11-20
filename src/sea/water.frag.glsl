@@ -90,6 +90,13 @@ uniform vec3 uCloudInSun;
 uniform vec3 uCloudInShade;
 // The map of the clouds' shadows, and how much of the sun reaches the camera through the clouds.
 uniform sampler2D uCloudShadeMap;
+// What is under the sea, as a picture drawn before the frame (under-water-picture.ts): each thing as it is, with
+// its depth under the sea in alpha (water-veil.glsl). uPictureDrawn is 1 while it is drawn; uDotOfPicture is one
+// dot of the screen as a share of it; uPictureScale is how many shares of it a metre spans a metre from the eye.
+uniform sampler2D uUnderWaterPicture;
+uniform float uPictureDrawn;
+uniform vec2 uDotOfPicture;
+uniform vec2 uPictureScale;
 uniform float uSunThroughCloud;
 
 // The point on the water and the normal of the sheet there (the waves', without the ripples).
@@ -306,6 +313,16 @@ const float SIGHT_RUNS_ALONG = 10.0;
 // through it.
 const float DEPTH_SPREADS = 0.8;
 const float DEPTH_AHEAD_COUNTS = 0.6;
+// Where the picture of what is under the sea is drawn, the surface reads what is behind it from the picture, a
+// little to one side: as far as its slope bends the eye's line on the way down. A ray that goes into water
+// through a slope is turned by a quarter of the slope, so it lands that share of the depth to one side; this is
+// that share (a little more than the quarter, as a calm sea's ripples are flatter here than a real one's), and
+// the depth it is taken over at most (m).
+const float BENDS = 0.3;
+const float BENDS_NO_DEEPER_THAN = 5.0;
+// (But for its first depths at a shore the surface is drawn over the frame's own ground, which is sharper than
+// the picture: the picture comes in between these depths, m.)
+const vec2 PICTURE_FROM_DEPTH = vec2(0.05, 0.3);
 // The sea's surface draws a share of the water's veil, by the depth of the floor under it (water-veil.glsl); and
 // where the swell breaks, and the water is churned up and never quite clear, this much of the whole veil more.
 const float CHURNED_VEILS_MORE = 0.8;
@@ -1216,6 +1233,21 @@ void main() {
   waterColour = mix(waterColour, AERATED_WATER, clamp(waveFoam * 0.8, 0.0, 0.72));
   waterColour *= waterInThisLight(uDaylight, uNight);
 
+  // ---- What is behind the surface, read bent from its picture ----
+
+  // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one, the
+  // line is left unbent. The picture has no mipmaps, so it may be read inside this branch.)
+  float readsPicture = uPictureDrawn * (1.0 - uUnderWater);
+  vec4 behind = vec4(0.0, 0.0, 0.0, 1.0);
+  if (readsPicture > 0.5) {
+    vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;
+    vec3 slopeAsSeen = mat3(viewMatrix) * vec3(surfaceSlope.x, 0.0, surfaceSlope.y);
+    vec2 bentBy = slopeAsSeen.xy * uPictureScale
+      * (BENDS * min(waterDepth, BENDS_NO_DEEPER_THAN) / max(cameraDistance, 0.5));
+    behind = texture2D(uUnderWaterPicture, onPicture + bentBy);
+    if (behind.a < 0.004) behind = texture2D(uUnderWaterPicture, onPicture);
+  }
+
   // ---- How much the water hides what is under it ----
 
   // The surface draws only its share of the water's veil, by the depth of the floor under it: what is under the
@@ -1227,7 +1259,15 @@ void main() {
   // the crest turned from clear to turquoise as it passed.)
   float churnedUp = smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
     * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
-  float opacity = mix(0.07, 1.0, hiddenByWater(hidingDepth, SURFACE_DRAWS + CHURNED_VEILS_MORE * churnedUp))
+  float veilMetres = hidingDepth;
+  float veilDrawn = SURFACE_DRAWS;
+  if (readsPicture > 0.5) {
+    // (With the picture, the surface draws the whole veil, and knows what is behind it: the water in front of
+    // the thing seen is the wave's own and then the sea down to the thing, along the bent line.)
+    veilMetres = pathInLift + (1.0 - seesThrough) * depthHeld(behind.a) / max(wayDown, LEAST_WAY_DOWN);
+    veilDrawn = 1.0;
+  }
+  float opacity = mix(0.07, 1.0, hiddenByWater(veilMetres, veilDrawn + CHURNED_VEILS_MORE * churnedUp))
     * smoothstep(0.0, 0.4, waterDepth);
   // (a wave the light comes through still hides what is behind it)
   opacity = max(opacity, lightThrough * 0.95);
@@ -1245,7 +1285,9 @@ void main() {
   float depthAhead = max(floorOnAlongSight + liftOverSea, 0.0);
   float runUnderSurface = mix(max(waterDepth, 0.0), depthAhead, smoothstep(0.6, 1.0, sightRunsOn))
     * sightLevel / max(towardsCamera.y, 0.02);
-  float noFloorBehind = (1.0 - exp(-runUnderSurface / VEILED_OVER)) * (1.0 - uUnderWater) * (1.0 - headBehind);
+  // (None of this where the picture of what is under the sea is read: it holds what is behind the water.)
+  float noFloorBehind = (1.0 - exp(-runUnderSurface / VEILED_OVER)) * (1.0 - uUnderWater) * (1.0 - headBehind)
+    * (1.0 - readsPicture);
   // Thin water over a reef top is seen through to that top, however soon the floor falls away beyond it. Where
   // the line of sight would meet a level floor within a few metres, the ground is asked for a little past there
   // (the island's formula, as for the depth): if it is still above the line, it is what lies behind the water.
@@ -1591,5 +1633,13 @@ void main() {
   }
   // (a dot's worth of noise: it breaks up the bands a smooth gradient shows in 8-bit colour)
   colour += (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0);
+  if (readsPicture > 0.5) {
+    // The water is drawn over the picture's bent reading here, and the surface whole: not, as without the
+    // picture, laid thinly over whatever the frame has drawn straight behind it.
+    float overPicture = smoothstep(PICTURE_FROM_DEPTH.x, PICTURE_FROM_DEPTH.y, waterDepth);
+    float drawn = 1.0 - (1.0 - overPicture) * (1.0 - opacity);
+    colour = (colour * opacity + behind.rgb * overPicture * (1.0 - opacity)) / max(drawn, 1e-3);
+    opacity = drawn;
+  }
   gl_FragColor = vec4(colour, opacity);
 }

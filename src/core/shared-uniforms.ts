@@ -53,6 +53,15 @@ export type SharedUniforms = Record<string, IUniform> &
     uBreakerArc: { value: Vector2 };
     /** The camera's position, for materials three.js does not give it to. */
     uCameraPosition: { value: Vector3 };
+    /**
+     * The scene under the sea as a picture, for the sea's surface to read bent
+     * (sea/under-water-picture.ts): the picture; 1 while it is drawn; one dot of the screen as a
+     * share of it, across and down; and how many shares of it a metre a metre from the eye spans.
+     */
+    uUnderWaterPicture: { value: Texture | null };
+    uPictureDrawn: { value: number };
+    uDotOfPicture: { value: Vector2 };
+    uPictureScale: { value: Vector2 };
     /** The biggest things standing in the surf: x, z, radius. The water draws foam round them. */
     uSurfObstacles: { value: Vector3[] };
     /** A circle round each group of them that holds all its foam: x, z, radius (sea/surf-obstacles.ts). */
@@ -87,6 +96,10 @@ export function createSharedUniforms(
     uBreakerShapes: { value: null },
     uBreakerArc: { value: new Vector2() },
     uCameraPosition: { value: new Vector3() },
+    uUnderWaterPicture: { value: null },
+    uPictureDrawn: { value: 0 },
+    uDotOfPicture: { value: new Vector2(1, 1) },
+    uPictureScale: { value: new Vector2(1, 1) },
     uSurfObstacles: { value: noObstacles },
     uSurfObstacleGroups: { value: noGroups },
     ...skyLight,

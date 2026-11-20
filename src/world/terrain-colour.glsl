@@ -9,7 +9,7 @@
 //   already read at vUv). Only the map's green is grit: its red and blue are the slopes of the sea floor's sand
 //   ripples (ground-grit.ts).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; groundNoise, groundFbm and
-//   randomsOf; coverOf, litAgainstSun and dimples; the varying vGroundLevelness; and from the chunks it includes: footpathDistance (footpaths.glsl);
+//   randomsOf; coverOf, litAgainstSun and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
 //   openSea and the reef's zones (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
 //   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the
 //   reef's cover, the turf's broad patterns, what stands over the ground and what lies on it, it reads from
@@ -139,8 +139,8 @@ const float REEFS_SKIRT = 0.16;
 const float MOST_OF_A_REEF_IS_ROCK = 0.94;
 const float PAVEMENT_SHOWS = 0.42;
 // Sand lies on ground more nearly level than the second number, and none on ground less level than the first (the
-// upward part of the ground's normal: 0.87 is a slope of 30 degrees, 0.71 of 45): anywhere, and on the ocean
-// reef's seaward slope, which is reef rock unless it is a terrace.
+// upward part of the ground's normal, from the reef's cover picture: 0.87 is a slope of 30 degrees, 0.71 of
+// 45): anywhere, and on the ocean reef's seaward slope, which is reef rock unless it is a terrace.
 const vec2 SAND_LIES_ON_SLOPES = vec2(0.74, 0.9);
 const vec2 SAND_LIES_ON_FORE_REEF = vec2(0.93, 0.985);
 // A patch reef in the lagoon begins between these depths (m) off the beach of an islet that stands on it.
@@ -175,15 +175,14 @@ const float LEVEL_WANDERS = 1.1;
 // within the first distance of the eye and have faded to its averages by the second (m).
 const float SLOPE_READ_OVER = 0.03;
 const vec2 SEA_BED_SHOWS_WITHIN = vec2(14.0, 46.0);
-// Rubble: the stones' picture is laid at this scale below this depth (m). How thickly it lies: in the
-// stretches of sand that have a scatter; at a reef's edge; in a bank behind the crest. And what colour it is
-// multiplied by where it lies thick: it is grey-brown there under a fuzz of algae, where a lone piece is bleached.
+// Rubble: the stones' picture is laid at this scale below this depth (m). How thickly it lies in a bank behind
+// the crest. And what colour it is multiplied by where it lies thick: it is grey-brown there under a fuzz of
+// algae, where a lone piece is bleached.
 const float RUBBLE_SCALE = 0.7;
 const float RUBBLE_BELOW = 0.12;
-const vec3 RUBBLE = vec3(0.09, 1.0, 1.0);
-// (the fringe of rubble comes in between the first two shares of the floor that are rock, and is gone again
-// between the last two)
-const vec4 RUBBLE_FRINGE = vec4(0.03, 0.22, 0.5, 0.85);
+const float RUBBLE_BANKS = 1.0;
+// (the apron of rubble at a rock's foot: this share of the floor at most, next under the level the sand lies at)
+const float RUBBLE_APRON = 0.14;
 // (and how strongly the rock's grain marks each piece)
 const float RUBBLE_GRAIN = 0.8;
 // (a piece throws less of a shadow under water, where the light comes from all round: this much of the land's)
@@ -200,8 +199,10 @@ const vec2 FILM_BETWEEN = vec2(0.46, 0.64);
 const vec3 FILM_ON_SAND = vec3(0.86, 0.83, 0.74);
 // (even where it grows thickest it is blotches with clean sand between: the most of the sand it covers)
 const float MOST_FILM = 0.62;
-// (how strongly the rock's grain breaks its edge into tufts)
-const float FILM_GRAIN = 0.5;
+// (Its blotches: the sea bed's painted patchwork shows as film where it is under the first number plus the
+// second times how much film grows, and their edges are as soft as the third. Even at its most it is dark
+// blotches on pale sand: with the sand left only as holes in it, it was a soldier's camouflage.)
+const vec3 FILM_BLOTCHES = vec3(0.06, 0.22, 0.14);
 
 // The ripples in the sand of a shallow floor: they come in between the first two depths and are gone between
 // the last two (metres of water); and how strongly a ripple is shaded by its slope towards the sun.
@@ -301,17 +302,28 @@ seaBed = mix(seaBed, SEA_BED_AVERAGES, floorBlurs);
 seaBedSunward = mix(seaBedSunward, SEA_BED_AVERAGES, floorBlurs);
 // (The ripples that small waves leave in the sand of a shallow floor are a picture too, of their slopes: the red
 // and the blue of the grit's own picture, read at a scale of their own (sand-ripples.ts). Their ridges lie along
-// the shore, since waves turn to run in on it wherever they come from. So the picture is laid round the atoll,
-// its ridges following the shore's own line: the ocean's on the reef, the lagoon's in the lagoon, and circles
-// round the islet in the lagoon's middle. It goes a whole number of times round, to meet itself, and each of
-// the three is laid at about its own distance from the centre, so that it is little stretched along its
-// ridges; they change over where the lagoon is too deep for ripples.)
+// the shore, since waves turn to run in on it wherever they come from: so the picture is laid round the atoll's
+// centre, its ridges circles about it, which every shore here follows nearly enough (the ocean's, the lagoon's,
+// and the islet's in the lagoon's middle). It goes a whole number of times round, to meet itself, and at each
+// of three distances its own number of times, so that it is little stretched along its ridges; the three change
+// over where the lagoon is too deep for ripples, and on land.
+// (By the distance from the centre, which is exact. Laid by the distance from the shore, read from the shore's
+// picture, ridges a hand's breadth apart took that picture's steps: it holds the shore to a few centimetres, a
+// forearm at a time, and the ridges kinked at every step.)
+// (The direction from the centre jumps a whole turn along the line due west of it, where the graphics card,
+// which blurs a picture by how fast its coordinates change from dot to dot, would blur the ripples to nothing
+// along a hairline. So the picture is read a second time by a direction that jumps due east instead, which
+// finds the same dots of it, and each reading is used away from its own jump.)
 float fromCentre = length(xz);
 float roundTheIslet = lagoonSide * (1.0 - step(RIPPLES_ROUND_ISLET_WITHIN, fromCentre));
 float ripplesGoRound = mix(mix(RIPPLES_GO_ROUND.x, RIPPLES_GO_ROUND.y, lagoonSide), RIPPLES_GO_ROUND.z, roundTheIslet);
-float fromShore = mix(fromCentre - shoreRadius + landWidth * lagoonSide, fromCentre, roundTheIslet);
-vec2 sandRipples = texture2D(map,
-  vec2(directionFromCentre / FULL_TURN * ripplesGoRound, fromShore / SAND_RIPPLES_SPAN)).rb - 0.5;
+float ripplesOut = fromCentre / SAND_RIPPLES_SPAN;
+vec2 ripplesReadWest = texture2D(map,
+  vec2((atan(-xz.y, -xz.x) / FULL_TURN + 0.5) * ripplesGoRound, ripplesOut)).rb;
+vec2 sandRipples = mix(
+  texture2D(map, vec2(directionFromCentre / FULL_TURN * ripplesGoRound, ripplesOut)).rb,
+  ripplesReadWest,
+  smoothstep(0.7, 0.9, abs(directionFromCentre) / HALF_TURN)) - 0.5;
 vec2 litterSunward = onGround + shadowOfACentimetre * LITTER_STANDS;
 vec4 litterTileSunward = texture2D(uLitterTile,
   vec2(litterSunward.x * 0.8 - litterSunward.y * 0.6, litterSunward.x * 0.6 + litterSunward.y * 0.8) / LITTER_TILE_SPAN);
@@ -659,6 +671,9 @@ if (waterDepth > 0.0) {
   // are single readings of the noise: the pictures laid by them bring ragged edges of their own.)
   float stretch = groundNoise(xz * 0.047 + 91.0);
 
+  // (The reef's cover here, from its picture: how much is high ground, how much bare pavement, how much of a
+  // ridge the crest is; and how nearly level the ground is, by the island's own formula.)
+  vec4 reefCover = texture2D(uReefCover, xz / REEF_COVER_SPAN + 0.5);
   float hard = 0.0;         // 0 where the floor is sand, to 1 where it is all rock
   float nearReef = 0.0;     // 0 far from rock, to 1 at its edge and on it: rubble gathers there, and nothing burrows
   float crusted = 0.0;      // how much of the rock is the pounded crest's: paler, and pink with crust
@@ -686,11 +701,8 @@ if (waterDepth > 0.0) {
     float oceanReef = 0.0;
     float nearOceanReef = 0.0;
     if (onTheReef > 0.5) {
-      // (The reef's cover here is read from its picture: how much is high ground, how much bare pavement, how
-      // much of a ridge the crest is.)
       float beyondBeachShallows = max(metresOffshore - REEF_BEGINS, 0.0);
       float alongTheReef = clamp(metresOffshore, 0.0, REEF_BEGINS) + beyondBeachShallows / shoreRound.g;
-      vec3 reefCover = texture2D(uReefCover, xz / REEF_COVER_SPAN + 0.5).rgb;
       // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
       float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (groundNoise(xz * 1.3 + 4.0) - 0.5);
       float highGround = reefCover.r + ragged;
@@ -744,7 +756,7 @@ if (waterDepth > 0.0) {
   // real one is, with sand only on its terraces and in its grooves. (The pattern moves the limit a little, so
   // that it is no contour of the slope.)
   vec2 sandLiesTo = mix(SAND_LIES_ON_SLOPES, SAND_LIES_ON_FORE_REEF, onForeReef);
-  float tooSteepForSand = 1.0 - smoothstep(sandLiesTo.x, sandLiesTo.y, vGroundLevelness + 0.08 * (coralPattern - 0.5));
+  float tooSteepForSand = 1.0 - smoothstep(sandLiesTo.x, sandLiesTo.y, reefCover.a + 0.08 * (coralPattern - 0.5));
   hard = max(hard, tooSteepForSand * smoothstep(0.3, 0.9, waterDepth));
   // (even solid reef keeps sand in its deepest holes)
   hard *= MOST_OF_A_REEF_IS_ROCK;
@@ -767,39 +779,37 @@ if (waterDepth > 0.0) {
   float filmGrows = smoothstep(FILM_BETWEEN.x, FILM_BETWEEN.y, groundNoise(xz * 0.13 + 63.0) + 0.3 * (stretch - 0.5))
     * smoothstep(0.9, 2.0, waterDepth) * (1.0 - smoothstep(9.0, 14.0, waterDepth)) * (1.0 - nearReef) * MOST_FILM;
   // (it lies in blotches a hand to an arm across, as the tufts and stains on Raiatea's lagoon sand do)
-  // (and close to, tufts with a grain: the rock's, which is all the fine detail the floor has)
-  float filmsEdge = 0.45 * groundNoise(xz * 3.7 + 11.0) + 0.35 * groundNoise(xz * 13.0) + 0.2 + FILM_GRAIN * rockGrain;
-  float film = smoothstep(1.0 - filmGrows, 1.1 - filmGrows, filmsEdge) * step(0.004, filmGrows) * (1.0 - freshHeap);
+  // (Its blotches are the painted patchwork of the sea bed's picture, which on rock is turf: as noise cut at a
+  // level they were an airbrushed stain with a speckle, and where they stopped the ripples a stencil's edge.
+  // Far off, where the picture has faded, there is only how much of it there is.)
+  float filmsBlotches = 1.0 - smoothstep(FILM_BLOTCHES.x + FILM_BLOTCHES.y * filmGrows,
+    FILM_BLOTCHES.x + FILM_BLOTCHES.y * filmGrows + FILM_BLOTCHES.z, seaBed.g);
+  float film = mix(filmsBlotches, filmGrows, floorBlurs) * step(0.004, filmGrows) * (1.0 - freshHeap);
   sand *= mix(vec3(1.0), FILM_ON_SAND, film);
 
   float ripplesHere = smoothstep(RIPPLES_BETWEEN.x, RIPPLES_BETWEEN.y, waterDepth)
-    * (1.0 - smoothstep(RIPPLES_BETWEEN.z, RIPPLES_BETWEEN.w, waterDepth)) * (1.0 - film) * (1.0 - 0.8 * livedIn);
+    * (1.0 - smoothstep(RIPPLES_BETWEEN.z, RIPPLES_BETWEEN.w, waterDepth)) * (1.0 - 0.4 * film)
+    * (1.0 - 0.8 * livedIn);
   // (the picture's slopes are along the shore and out from it: turned here to the world's east and south)
   vec2 outFromCentre = xz / max(fromCentre, 1.0);
   vec2 rippleSlope = sandRipples.x * vec2(-outFromCentre.y, outFromCentre.x) + sandRipples.y * outFromCentre;
   sand *= 1.0 + dot(rippleSlope, -towardsSun) * RIPPLE_SHADE * ripplesHere;
 
-  // Rubble: broken coral, the stones' picture laid finer. A scatter of pale pieces on the sand in stretches; a
-  // fringe of it along the edge of every reef; whole banks behind the crest.
-  float scatter = RUBBLE.x * smoothstep(0.52, 0.74, groundNoise(xz * 0.29 + 12.0));
-  // (The fringe lies where the rock begins to stand out of the sand, and gives way to sand again in the holes of
-  // solid reef. It is a bed where it lies at all: thinned out, the picture shows its largest pieces alone, and
-  // a few slabs on bare sand is not what lies round a reef.)
-  float fringe = RUBBLE.y * smoothstep(RUBBLE_FRINGE.x, RUBBLE_FRINGE.y, hard)
-    * (1.0 - smoothstep(RUBBLE_FRINGE.z, RUBBLE_FRINGE.w, hard));
-  float rubble = max(max(scatter, fringe), RUBBLE.z * rubbleBanks) * smoothstep(0.3, 0.9, waterDepth);
+  // Rubble: broken coral, the stones' picture laid finer. Whole banks behind the crest; and at the foot of every
+  // rock an apron of it (below, with the rock). None is scattered over open sand: thinned out, the picture shows
+  // its largest pieces alone, and a few grey slabs on clean rippled sand is not what the photographs show.
+  float rubble = RUBBLE_BANKS * rubbleBanks * smoothstep(0.3, 0.9, waterDepth);
   float rubbleCover = coverOf(gravelTile, rubble, GRAVEL_FULL_COVER, farOff);
   float rubbleTowardsSun = coverOf(gravelTileSunward, rubble, GRAVEL_FULL_COVER, farOff);
   // (thickest, it is the whole bed as painted; and there a piece's rank stands for its height)
   float wholeBed = smoothstep(0.82, 0.98, rubble);
   float rubbleRelief = mix(rubbleCover - rubbleTowardsSun, BED_RELIEF * (gravelTile.a - gravelTileSunward.a), wholeBed);
   rubbleCover = max(rubbleCover, wholeBed);
-  vec3 rubbleColour = mix(gravelTile.rgb, GRAVEL_AVERAGE_COLOUR, floorBlurs)
-    * mix(DEAD_CORAL_TINT, OVERGROWN_RUBBLE, smoothstep(0.25, 0.8, rubble));
   // (each piece pitted and stained in its own way: the rock's grain)
-  rubbleColour *= 1.0 + RUBBLE_GRAIN * rockGrain;
-  sand = mix(sand, rubbleColour, rubbleCover)
-    * litAgainstSun(rubbleRelief, RUBBLE_SHADOWS * (1.0 - farOff) * uDaylight);
+  vec3 rubblePieces = mix(gravelTile.rgb, GRAVEL_AVERAGE_COLOUR, floorBlurs) * (1.0 + RUBBLE_GRAIN * rockGrain);
+  float sunOnRubble = RUBBLE_SHADOWS * (1.0 - farOff) * uDaylight;
+  sand = mix(sand, rubblePieces * mix(DEAD_CORAL_TINT, OVERGROWN_RUBBLE, smoothstep(0.25, 0.8, rubble)), rubbleCover)
+    * litAgainstSun(rubbleRelief, sunOnRubble);
 
   // Rock: the reef's hard floor (the sea bed's picture). The sand floods it to a level: the more of the floor
   // is rock, the lower the sand lies in it, so that the edge of a reef is knobs of rock standing out of sand and
@@ -830,9 +840,20 @@ if (waterDepth > 0.0) {
     // stood out of the sand every 4 m, and from a few metres up the reef flat was a lattice of them.)
     float levelHere = clamp(hard + LEVEL_WANDERS * levelWanders * 4.0 * hard * (1.0 - hard), 0.0, 1.0);
     float rockCover = mix(coverOf(seaBed, levelHere, 1.0, 0.0), rockFromAfar, farOff);
-    // (the sand lies in shade against the rock's foot)
     float sandLevel = 1.0 - levelHere;
-    sand *= 1.0 - SAND_SHADED_AT_ROCK * smoothstep(sandLevel - 0.1, sandLevel, seaBed.a) * (1.0 - farOff);
+    // At the rock's foot lies an apron of rubble: the floor a little under the sand's level, by the picture's own
+    // heights, so that the apron has the rock's painted outline and ends as crisply. (As an amount that fell away
+    // over some metres from a reef it was a grey halo with a soft edge, sprayed on.) In solid reef that is every
+    // hole, and rubble fills them. Far off there is only how much of it there is.
+    // (The more rock, the wider its apron: round a lone knob in open sand there is next to none. At one width
+    // everywhere, a knob the size of a fist lay in a grey slab of rubble a stride across.)
+    float apronWide = RUBBLE_APRON * smoothstep(0.0, 0.35, hard);
+    float apron = mix(smoothstep(sandLevel - apronWide - 0.015, sandLevel - apronWide, seaBed.a), apronWide, farOff)
+      * smoothstep(0.3, 0.9, waterDepth);
+    sand = mix(sand, rubblePieces * OVERGROWN_RUBBLE, apron)
+      * litAgainstSun(apron * BED_RELIEF * (gravelTile.a - gravelTileSunward.a), sunOnRubble);
+    // (the apron lies in shade against the rock)
+    sand *= 1.0 - SAND_SHADED_AT_ROCK * smoothstep(sandLevel - 0.05, sandLevel, seaBed.a) * (1.0 - farOff);
     sand = mix(sand, rock, rockCover);
   }
   diffuseColor.rgb = sand;

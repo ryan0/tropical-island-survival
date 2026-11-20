@@ -173,6 +173,12 @@ another try when three.js or the phone's driver has moved on: the trial's branch
 
 - `cameraPosition` is only filled in for ShaderMaterial, Phong, Toon and Standard materials. In a patched LAMBERT
   material it stays at the origin and nothing warns you. Use the shared uniform `uCameraPosition`.
+- On trial (20 November 2026, not yet read on the phone): the scene under the sea drawn each frame into a
+  picture half the screen's size, which the sea's surface reads (`sea/under-water-picture.ts`). It is a
+  colour picture with an ordinary depth buffer, as the shadow map is, and no depth texture is read: each
+  thing writes its depth under the sea into the picture's alpha. During that drawing the sea's own materials
+  are hidden, since a material may not be drawn into a picture it reads; and the shadow map is not redrawn,
+  since the first drawing of a frame draws it from what its own camera sees.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

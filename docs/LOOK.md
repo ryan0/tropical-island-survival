@@ -318,12 +318,23 @@ notes"). Rejected with it: water that turns solid at a depth, or along a line ac
 eye; the surf zone's cloudiness as a veil of its own; shadows on the sea floor at a low sun, which the
 straight shadow map lays tens of metres from where bent light would.
 
+*The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
+looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A
+pass at the water or at its floor is judged on them, and on the fly-round, at full size. What the photographs
+have that ours has not, as the pairs first showed it: water half a metre deep over white sand is all but
+colourless, and turns turquoise only some metres out; patches of reef and weed have soft edges that the
+ripples break up; at a low angle far water is the sky's mirror, and nothing under it shows; a lagoon at dusk
+is all mirror but at the feet; sand ripples are fine, even and everywhere, and low in contrast.
+
 *Rejected in that pass:* the stones' picture laid twice as large for rubble (slabs on sand); a thin scatter
 of the same over wide stretches (a mosaic with sand in the gaps); a skirt of rubble as wide as the old soft
 halo round a head (the lagoon by home, which is bright sand, became a grey field); the litter's picture,
 bleached, as sticks of broken coral (it read as leaves and straws); the film of algae as one broad even
 stain (a blot again); crust painted as discs (stickers); trails in the sand as smooth arcs (they read as
-drawn rings).
+drawn rings). And after: ripples laid by the shore's picture (kinked at its every step); steepness from the
+mesh (stepped edges); rubble as an amount falling away from a reef (a grey halo, sprayed on), and as a
+scatter on open sand (slabs); the film of algae as noise cut at a level, with a speckle (an airbrushed
+stain), and covering most of the sand with holes in it (camouflage).
 
 ## Under water
 

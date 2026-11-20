@@ -1,12 +1,15 @@
 // Draws the look's views (look-views.ts) from a build of the page, one picture each:
 //
-//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b]
+//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b] [--size 1600x900] [--bent]
 //
 // <folder> is where the pictures go, each named for its view. --page is the built page to draw:
 // the working files' (dist/index.html, after `npm run build`) unless another is named, such as a
 // reference build kept by the checks (node_modules/.cache/reference-builds/<commit>.html), which
 // is how "before" pictures are made. --group is one of look-views.ts's groups (colour is the
-// default) or all.
+// default) or all. --size is the pictures' size in dots: a phone's shape and small unless given;
+// the pairs and the fly-round are for looking at as large as Ryan sees the game (README.md).
+// --bent draws with the trial of the picture of what is under the sea switched on
+// (src/sea/under-water-picture.ts).
 //
 // The pictures are drawn by the software renderer, as the tests' are: colour and stills can be
 // trusted, motion and frame rate cannot.
@@ -21,7 +24,7 @@ import { lookViews, type ViewGroup } from './look-views.ts';
 
 const repository = path.resolve(import.meta.dirname, '../..');
 // A phone held sideways is about this shape; the tests' own pictures are square.
-const PICTURE = { width: 1000, height: 560 };
+const USUAL_SIZE = '1000x560';
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -29,8 +32,14 @@ const { values, positionals } = parseArgs({
     page: { type: 'string', default: path.join(repository, 'dist', 'index.html') },
     group: { type: 'string', default: 'colour' },
     only: { type: 'string' },
+    size: { type: 'string', default: USUAL_SIZE },
+    bent: { type: 'boolean', default: false },
   },
 });
+const [width, height] = values.size.split('x').map(Number);
+if (!(width > 0 && height > 0))
+  throw new Error(`--size wants dots across by dots down, as ${USUAL_SIZE}`);
+const PICTURE = { width, height };
 if (positionals.length !== 1) throw new Error('say where the pictures are to go');
 const [folder] = positionals;
 
@@ -47,6 +56,11 @@ if (views.length === 0) throw new Error('no view has any of those names');
 mkdirSync(folder, { recursive: true });
 const browser = await chromium.launch(playwrightConfig.use?.launchOptions);
 const context = await browser.newContext({ viewport: PICTURE });
+if (values.bent) {
+  await context.addInitScript(() => {
+    window.__isUnderWaterPictureDrawn = true;
+  });
+}
 // One page draws every view: each view sets all that it depends on.
 const { page, problems } = await openScenePage(context, path.resolve(values.page));
 for (const view of views) {

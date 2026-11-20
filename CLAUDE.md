@@ -66,6 +66,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   which git ignores (videos of waves in `reference-photos/waves/`). The look rules and what each reference showed
   are in `docs/LOOK.md`. Colour is measured against the photos, not judged by eye alone (`docs/LOOK.md`,
   "Colour, measured"; the tools are in `tools/look/`). He often asks for several passes in a row at one thing.
+  A pass at the water or its floor is judged at the size he sees the game, on the pairs (our view beside a
+  photo from the same height and light) and the fly-round (from 5 to 40 m up, at noon, dusk and under cloud):
+  small pictures from chosen poses at noon hid faults he found at once (`tools/look/README.md`).
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
   for him to review; commits, merges, pushes and anything destructive are his. Put each shell command you ask

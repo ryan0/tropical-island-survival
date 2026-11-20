@@ -1,0 +1,44 @@
+{
+  "pairs": [
+    {
+      "view": "pair-rippled-shallows",
+      "photo": "sea-floor/cuba-shallow-sand-ripples-from-above-water.jpg",
+      "shows": "Rippled sand from standing in the shallows: how fine and how even the ripples are, and how they go into the sky's mirror with distance."
+    },
+    {
+      "view": "pair-rocks-through-calm-water",
+      "photo": "water-surface/calm-water-over-reef-rock.png",
+      "shows": "Rock through knee-deep calm water: clear and bent by the ripples near to, a shimmer of dark and pale further out, the sky's blue beyond."
+    },
+    {
+      "view": "pair-shallows-from-the-beach",
+      "photo": "water-surface/clear-shallows-under-palms.png",
+      "shows": "A lagoon's shallows from its beach: white sand under a net of light, dark patches with soft bent edges, turquoise going to blue."
+    },
+    {
+      "view": "pair-reef-flat-from-a-jetty",
+      "photo": "water-weather/lagoon-from-jetty-rail-reef-flat.jpg",
+      "shows": "A reef flat from a few metres up: mottled dark patches, soft and low in contrast under the ripples, on turquoise."
+    },
+    {
+      "view": "pair-patch-reef-from-a-boat",
+      "photo": "coral/palmyra-lagoon-patch-reef-from-above-water.jpg",
+      "shows": "A patch of reef through a few metres of water from a boat: brown and olive, soft-edged, in bright aqua, with the blue of the deep beyond."
+    },
+    {
+      "view": "pair-drop-off-from-the-air",
+      "photo": "water-surface/reef-flat-to-drop-off-from-above.png",
+      "shows": "From the air: white sand, turquoise shallows mottled with reef, and the deep blue beginning along a ragged edge."
+    },
+    {
+      "view": "pair-lagoon-from-the-air",
+      "photo": "sea-floor/lizard-island-reef-patches-on-sand-from-the-air.jpg",
+      "shows": "Patch reefs on a lagoon's sand from the air: dark lace-edged patches, each mottled within, on pale turquoise."
+    },
+    {
+      "view": "pair-lagoon-at-dusk",
+      "photo": "water-weather/maldives-dusk-jetty-calm-lagoon.jpg",
+      "shows": "A calm lagoon at dusk: the water is the sky's mirror, and its floor shows only at the feet."
+    }
+  ]
+}

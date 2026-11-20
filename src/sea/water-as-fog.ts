@@ -19,10 +19,15 @@ import waterVeil from '../shaders/shared/water-veil.glsl';
 // water its own light comes up through (water-veil.glsl), whatever it is, so that the sea's
 // surface need not hide it by the depth of whatever lies beside it. For that every material must
 // know four numbers more: the daylight, the night, how high the eye is above the sea, and whether
-// there is a sea (it can be drained). They
+// there is a sea (it can be drained; and while the picture of what is under it is drawn for the
+// surface to read, under-water-picture.ts, things are drawn into it unveiled). They
 // are given as one uniform, whose value is one array that every material shares: three.js copies
 // a material's uniforms when it first compiles it, but an array of this kind it hands over as it
 // is, so what is written into it each frame reaches them all.
+
+// The fourth of the numbers every material is told of the sea: nought with the sea drained, one
+// with it there, and this while the picture of what is under it is drawn.
+const INTO_THE_PICTURE = 2;
 
 /** Where the scene's fog begins while the eye is under water (under-water.ts sets it). */
 export const FOG_BEGINS_UNDER_WATER = -1;
@@ -43,8 +48,11 @@ const SEEN_THROUGH_WATER = `
 		if ( fogNear < 0.0 ) {
 			gl_FragColor.rgb = seenThroughWater( gl_FragColor.rgb, fogColor, metresFromEye, riseFromEye );
 		} else {
-			float depthUnderSea = - ( vPlaceFromEye.w + seaSeenFromAbove.z ) * seaSeenFromAbove.w;
-			if ( depthUnderSea > 0.0 ) {
+			float depthUnderSea = - ( vPlaceFromEye.w + seaSeenFromAbove.z ) * min( seaSeenFromAbove.w, 1.0 );
+			if ( seaSeenFromAbove.w > 1.5 ) {
+				// (into the picture of what is under the sea: as it is, with its depth beside its colour)
+				gl_FragColor.a = depthAsHeld( depthUnderSea );
+			} else if ( depthUnderSea > 0.0 ) {
 				float metresOfWater = metresOfWaterOver( depthUnderSea, riseFromEye );
 				// (its colour goes by the depth alone, as the surface's does, whichever way the eye looks)
 				vec3 waterColour = waterBodyColour( depthUnderSea )
@@ -69,6 +77,11 @@ export interface SeaSeenFromAbove {
    * wave, it is less than nought). isSeaThere: false while the sea is drained, and veils nothing.
    */
   set(daylight: number, night: number, eyeOverSea: number, isSeaThere: boolean): void;
+  /**
+   * While on, nothing is veiled, and each thing writes its depth under the sea beside its colour:
+   * for drawing the picture the sea's surface reads (under-water-picture.ts).
+   */
+  drawIntoPicture(on: boolean): void;
 }
 
 /**
@@ -78,12 +91,17 @@ export interface SeaSeenFromAbove {
  */
 export function useWaterAsFog(): SeaSeenFromAbove {
   const numbers = new Float32Array(4);
+  let seaIsThere = 1;
   const seaSeenFromAbove: SeaSeenFromAbove = {
     set(daylight, night, eyeOverSea, isSeaThere) {
       numbers[0] = daylight;
       numbers[1] = night;
       numbers[2] = eyeOverSea;
-      numbers[3] = isSeaThere ? 1 : 0;
+      seaIsThere = isSeaThere ? 1 : 0;
+      numbers[3] = seaIsThere;
+    },
+    drawIntoPicture(on) {
+      numbers[3] = on ? INTO_THE_PICTURE : seaIsThere;
     },
   };
   const isAsExpected =
