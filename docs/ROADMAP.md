@@ -22,13 +22,13 @@ the phone with another agent).**
   it replaced deleted. In hand or next, in this order:
   1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore", far below): for
      Ryan to confirm on the phone, where a new rule in every material's vertex shader has not yet run.
-  2. *Colours and clearness against the pairs* (the plan's stage D): shallow water over white sand is all but
-     colourless for its first half metre, where ours is turquoise from the first step; far water at a low
-     angle is the sky's mirror, where ours shows its floor; a lagoon at dusk is all mirror, where ours is blue
-     with its floor showing. The numbers are in `src/shaders/shared/water-veil.glsl` (the water's colour, its
-     glow, how soon it hides) and the mirror's in `src/sea/water.frag.glsl` ("What the surface mirrors").
-     Real lagoon water is clearer than ours: sand shows at 10 to 20 m, where ours hides two thirds by 4.6 m
-     (`HIDES_BY_METRES`); the research is `docs/research/water-hiding-its-floor.md`.
+  2. *Colours and clearness against the pairs* (the plan's stage D). Begun, by measuring ("The water's
+     colours, measured on the pairs", far below), and what was measured says to change nothing by day: our
+     water is within the photographs' own spread. What is left is two things for Ryan to say, not passes to
+     make: whether the land and the shallows at dusk should be lighter, and whether the water should be as
+     clear as a real lagoon's (`HIDES_BY_METRES` in `src/shaders/shared/water-veil.glsl`: ours hides two
+     thirds by 4.6 m, a real lagoon shows its sand at 10 to 20 m; the research is
+     `docs/research/water-hiding-its-floor.md`).
   3. *The floor against the pairs* (stage E): patches of reef that are soft and mottled, not cut out; the
      ripples' size and evenness from standing height; rubble painted for the reef (the bed of it is the land's
      gravel and reads as crazy paving); structure at the middle distance. The ground's shader reads 16
@@ -40,8 +40,10 @@ the phone with another agent).**
   only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
   our own views can be drawn and compared anywhere.
 - *Waiting on Ryan:* the wording of the standard "One owner for each effect"
-  (`CODE_STANDARDS.md`), which was added at his word but not read by him; whether the water should be as
-  clear as a real lagoon's; the proposal "many more kinds at a flat cost" (below); six finished agents'
+  (`CODE_STANDARDS.md`), which was added at his word but not read by him; a look on the phone at the islet's
+  shore and at anything under water, since the rule that draws it is new to the phone ("The islet's shore");
+  whether the land and the shallows should be lighter at dusk; whether the water should be as clear as a
+  real lagoon's; the proposal "many more kinds at a flat cost" (below); six finished agents'
   worktrees on his desktop to clear away (`.claude/worktrees/`).
 
 After the look comes the much greater variety of plants,
@@ -2119,6 +2121,41 @@ arithmetic, with no loop and nothing divided by what could be nought, but this p
 desktop about vertex shaders before: `DEVICE_NOTES.md`); and the frame rate, which should not have moved.
 If anything under water or on land looks torn or stretched on the phone, this rule is the first suspect:
 setting `raisedThroughSurface`'s result to nought in `sea/water-as-fog.ts` switches it off.
+
+### The water's colours, measured on the pairs (20 November 2026, evening)
+
+Ryan, of the pairs: "we could also use them to help with colours if there is time"; and, sending the islet's
+shore, "let's start both on the colours and the issue I mentioned". The islet's shore is the section before
+this. The colours were begun by measuring matching parts of each pair, and the measuring changed nothing in
+the code. What it showed:
+
+- *By day our water is within the photographs' own spread.* The nearest water over white sand, from a beach:
+  the photograph 0.76 light, 0.042 strong, hue 183; ours 0.72, 0.035, 201. Over a reef flat from a jetty:
+  theirs 0.69, 0.077, hue 186; ours 0.74, 0.086, 208. Over rock in calm water (Ryan's own reference): theirs
+  0.70, 0.111, hue 224; ours 0.75, 0.090, 209. So ours is some 20 degrees bluer than two and 15 degrees
+  greener than the third, and no stronger in colour near the shore. The board of the first sitting agrees
+  (shallow water over sand: 1.2 times as strong, 9 degrees bluer; deep lagoon 1.4 times, 9 degrees), and he
+  found that sitting's water, if anything, "slightly too pale". The islet's fix moved none of it.
+- *What was said of the pairs before they were measured was wrong in one thing:* "our shallow water is
+  turquoise from the first step". Measured, the first water over sand is no stronger in colour than the
+  photograph's. It looked so because, before the islet's fix, the sand did not show through it from a low
+  eye.
+- *The board's row "Sunset: the water" cannot steer.* It says ours is twice as strong in colour and 103
+  degrees off in hue. Its six photographs are a dark teal sea under storm cloud, a pink-grey calm lagoon and
+  a navy sea under an orange sky: averaged, opposite colours cancel to a grey that none of them is. Ours, a
+  blue slate with a warm path to the sun, sits among them. (Greying the water's own colour under a low sun
+  was tried, as the row seemed to ask: it moved the row from 2.0 times to 1.9, and was taken out again. The
+  blue there is the sky's mirror, not the water's own colour.)
+- *At dusk in a flat calm ours is the sky's mirror near the horizon, as both calm photographs are, and
+  darker than both nearer the eye.* There the mirror weakens, as it should, and what shows is the water's
+  own colour and the floor, both dimmed more at dusk than the sky is: our sand at dusk is far darker than our
+  sky (0.36 against 0.60), where in the long exposure from the Maldives it is lighter than its sky. That is
+  the land's light at dusk, which the first sitting set and he approved, and a camera's exposure is not the
+  eye's: it is for him to say, with the pair in front of him. The pair is now drawn in a flat calm, as its
+  photograph is.
+
+Two views were added to the group `waterDepth` for the faults he found from the ground that day:
+`depth-from-the-islet` and `depth-from-the-ocean-beach`.
 
 ## Later
 

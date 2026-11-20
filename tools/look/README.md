@@ -78,6 +78,10 @@ side, or take their difference (`ffmpeg ... blend=all_mode=difference`): what st
 floor's own markings must move together, and with the surface's bend set to nought for one build (`BENDS`,
 `water.frag.glsl`) must not move at all.
 
+A board's figure for a row is the average of its photographs. Where they differ in kind (the sea at sunset
+under storm cloud, in a pink calm, under an orange sky) the average is a colour none of them has, and the
+row cannot steer: measure it photograph by photograph (`picture-parts.ts`) before acting on it.
+
 The sand's ripples have a group of their own, `ripples`: straight down from 3 m in every quarter of the atoll,
 and from 6 m at dusk. A fault in them shows only from above and enlarged, and best of all in their picture
 drawn by itself, lit from one side and tiled, which is where to look first.

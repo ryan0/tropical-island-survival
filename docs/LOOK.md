@@ -321,10 +321,16 @@ straight shadow map lays tens of metres from where bent light would.
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A
 pass at the water or at its floor is judged on them, and on the fly-round, at full size. What the photographs
-have that ours has not, as the pairs first showed it: water half a metre deep over white sand is all but
-colourless, and turns turquoise only some metres out; patches of reef and weed have soft edges that the
+have that ours has not, as the pairs first showed it: patches of reef and weed have soft edges that the
 ripples break up; at a low angle far water is the sky's mirror, and nothing under it shows; a lagoon at dusk
-is all mirror but at the feet; sand ripples are fine, even and everywhere, and low in contrast.
+is all mirror but at the feet; sand ripples are fine, even and everywhere, and low in contrast. (It was
+also said then that water half a metre deep over white sand is all but colourless where ours was turquoise
+from the first step: measured, ours is no stronger in colour there than the photograph's. By day our water
+is within the photographs' own spread: `ROADMAP.md`, "The water's colours, measured on the pairs".)
+
+*A caution for the boards:* a row whose photographs differ in kind averages to a colour none of them has.
+"Sunset: the water" is a teal sea, a pink-grey lagoon and a navy sea, and their average is grey: measure
+such a row photograph by photograph.
 
 *Rejected in that pass:* the stones' picture laid twice as large for rubble (slabs on sand); a thin scatter
 of the same over wide stretches (a mosaic with sand in the gaps); a skirt of rubble as wide as the old soft

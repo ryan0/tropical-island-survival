@@ -547,6 +547,20 @@ const seaFloor: ReferenceView[] = [
 const waterDepth: ReferenceView[] = [
   view('depth-over-a-pool', 'out over a pool from the reef flat', [0, 1.0, 216, Math.PI, -0.12]),
   view('depth-over-a-pool-calm', 'the same in a light breeze', [0, 1.0, 216, Math.PI, -0.12], calm),
+  view(
+    'depth-from-the-islet',
+    "the lagoon islet's shore from the islet's top",
+    [0, 1.7, 2, Math.PI, -0.12],
+    calm,
+    aboveGround,
+  ),
+  view(
+    'depth-from-the-ocean-beach',
+    'out over the reef flat from home beach, in the usual breeze',
+    [10, 1.7, 158, Math.PI - 0.3, -0.1],
+    {},
+    aboveGround,
+  ),
   view('depth-lagoon-low-eye', 'across the lagoon from a wading eye', [0, 0.5, 101, 0, -0.1]),
   view('depth-lagoon-standing', 'the same from standing', [0, 1.3, 101, 0, -0.14], calm),
   view('depth-head-from-above', 'a coral head from above', [47, 9, 58, 0, -0.75]),
@@ -658,10 +672,15 @@ const pairs: ReferenceView[] = [
     "the lagoon's patch reefs from the air",
     [0, 110, 150, 0, -0.95],
   ),
-  view('pair-lagoon-at-dusk', 'across the calm lagoon at dusk', [0, 1.7, 107, 0.2, -0.06], {
-    ...calm,
-    sun: { dayPhase: 0.82 },
-  }),
+  view(
+    'pair-lagoon-at-dusk',
+    'across the lagoon at dusk, in a flat calm',
+    [0, 1.7, 107, 0.2, -0.06],
+    {
+      wind: 0,
+      sun: { dayPhase: 0.82 },
+    },
+  ),
 ];
 
 // Where the fly-round looks from, 5 to 40 m up; each is drawn in three lights.
