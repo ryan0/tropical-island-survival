@@ -1739,6 +1739,123 @@ with `more dots` on; the first thing to lower is the picture's anisotropic filte
 second; the lever is the picture's size); whether the rock and the ripples shimmer as the eye swims; and
 whether 16 pictures is within the phone's own limit (if it were not, some ground would come out black).
 
+### The same day, his second notes: how the water hides its floor, the drop-off, the ripples
+
+Ryan, of the sea floor: "all of the new changes are great", and four things, with pictures. The ripples "look
+banded and unnatural" in places. "The face of the cliff/dropoff should be less sandy probably more rocky
+though check what actually makes sense." And the water: "you can almost see under the top opaqueness"; "how
+stark the shallower areas are to the opaqueness"; "how the waves get coloured differently because of this";
+"the level of opaqueness based on depth is a bit too stark and has some oddities we should refine". The first
+part of the branch was committed at his word, and this part, with its faults named below, when he had seen it
+("yes please commit and push").
+
+**What was wrong with the water** (`sea/water.frag.glsl`, "How much the water hides what is under it"). It
+hid its floor by a step: next to clear at a metre, solid at five and a half, steepest between two and four.
+So the rim of every pool and the foot of every coral head was the edge of a lid. And for a low eye there was
+a second, harder edge: where the line of sight, followed 16 m on, was still above the floor, the water was
+solid at once, in a colour far darker than the pale floor seen through the clear water just before it. On a
+level shelf that is true of every spot more than a few strides off, and it drew a line across the lagoon. And
+in the surf zone a third veil came in with the first metre of depth, so that a swell crossing the crest
+turned from clear to turquoise as it passed.
+
+**A first answer** kept the veil on the surface and made it gradual: by depth on a curve with no step, and
+for a low eye by how far the line of sight runs on under the surface. Ryan, on hearing of it: "distance from
+the observer is what would determine opaqueness looking at something through water. Not strictly the depth.
+If this is too intensive to calculate we still would want to get as close to this as possible. Do some
+research on how this could be and what other people have done for rendering realistic water."
+
+**What the research found** (an Opus agent, an hour of reading; its notes with every formula, number and
+source are `docs/research/water-hiding-its-floor.md`):
+
+- *The engines go by the length of the eye's line inside the water*, got from the scene's depth behind each
+  dot of the surface (Unity's HDRP and URP water, Crest, Catlike Coding's "Looking Through Water"): what is
+  behind is multiplied by exp(-absorption x length) for each colour, and the water's own scattered light put
+  in its place. They use the depth straight down as well, for other things: the shallows' tint, foam, the
+  damping of waves. We may not read the scene's depth (`DEVICE_NOTES.md`).
+- *Without it, Half-Life 2's engine fogged every thing under water in the thing's own shader*, by the part
+  of the line from the eye to it that lies under the water's plane (`CalcWaterFogAlpha` in Valve's published
+  shader code). The surface then has only its reflection to add, over a floor that is veiled already. That
+  is what our materials can do, and it is what cures the lid: a thing is hidden by the water it is under,
+  not by the depth of whatever lies beside it.
+- *For an eye above the sea the length that counts is the bent one.* Light leaving water bends at the
+  surface, so it comes up through the water at no more than 49 degrees from straight up, through at most one
+  and a half times the thing's depth, however far off and low the eye is. None of the engines read bends the
+  line, and with the straight line a flat 2 m deep and 100 m off would be seen through 54 m of water and be
+  the colour of the open sea; with the bent one it is seen through 3 m and is the colour of its depth to the
+  horizon, as in every photograph of a lagoon. What makes far water hide its floor in life is the sky's
+  reflection, which is half to four fifths of the light beyond 83 degrees.
+- *Real lagoon water is clearer than ours.* Sand is still most of the light that comes back from 10 m, and a
+  good part at 20 m; red is gone by 5 to 10 m. Ours hides two thirds by 4.6 m, which is the palette Ryan
+  approved in the first sitting: it is one number (`HIDES_BY_METRES`) if he wants it clearer.
+
+**Now** (`shaders/shared/water-veil.glsl`; `DECISIONS.md` 16):
+
+- *Each thing under the sea draws most of the veil on itself, by its own depth*: the ground, the rocks, the
+  coral, the plants and the animals alike, through three.js's fog, which already veiled them by the distance
+  for an eye under water (`sea/water-as-fog.ts`). The water its light passes through is its depth, times up
+  to one and a half as the eye looks lower (the bent path). Under water it is the plain distance, as it was.
+- *The surface draws the rest* (35 parts in a hundred of the veil's strength), by the depth of the floor
+  under each spot of it, because only the surface knows the swell's shading, the clouds' shadows and the
+  foam's cloudiness. Looking straight down the two together hide exactly what the surface alone did.
+- *The veil has no step*: the share hidden is 1 - exp(-(metres / 4.6) squared), a twentieth at a metre, a
+  fifth at two, two thirds at 4.6, nearly all by nine.
+- *For a low eye, far water loses its floor by degrees*, by how far the line of sight runs on under the
+  surface before it meets the floor (two thirds by 34 m), into the colour of its own depth: there is no line
+  where it turns solid. Beyond a reef's edge the line meets nothing and the water hides all.
+- *In the surf zone* the water is cloudier by the same rule, not by a veil of its own.
+
+So the rim of a pool is no lid: its walls and floor fade as they go down. A coral head's flanks fade into
+the blue. A swell crossing the reef flat adds three parts in a hundred to the veil where it added fourteen,
+and thirty over the crest.
+
+The water's colours are as they were: measured against the photographs before and after, deep lagoon, far
+sea and shallows differ by a degree of hue and 0.01 of lightness (`boards/colours.json`). Dusk, night, cloud
+and high wind were looked at side by side and are unchanged.
+
+**Shadows under water at a low sun** (Ryan, the same hour: "the shadows of the palms and such can be
+disembodied at twilight hours being rendered even on the deep ocean floor"). The shadows are worked out as
+in air, straight: with the sun five degrees up, a palm's shadow reached the floor 5 m down some 57 m further
+on than a real one, which light bent steeply down at the surface would put within 6 m. And at such a sun
+little of its light goes into the sea at all. So a shadow on anything under water now fades out between
+3.5 and 9 m of depth at any hour, and in any water deeper than a wade as daylight falls
+(`shaders/shared/light-net.glsl`). No view drawn here showed the fault or its cure: it is by rule, for Ryan
+to confirm.
+
+**The drop-off, and every steep face.** What makes sense: loose sand rests at some 30 degrees and no
+steeper, and a fore reef's slope is reef framework with sand only on its terraces and in its grooves. So the
+ground now tells its shader how nearly level it is (the upward part of its normal, from the corners of its
+triangles), and ground steeper than about 30 to 40 degrees is bare reef rock at any depth: the walls of the
+grooves and pools, a patch reef's flanks, the drop-off's face, which had sand in patches all the way down. On
+the ocean reef's seaward slope the limit is 10 to 20 degrees. The rubble's fringe follows, at the top and
+the foot of a wall.
+
+**The ripples.** They were the sum of forty plain waves, and where such waves cancel there were none: bands
+of ripples and bands of bare sand, the same bands again every 2.4 m. Now the waves are added as turning
+arrows and only the sum's direction is kept: ridges of one height everywhere, which fork just where the sum
+comes to nothing (`world/sand-ripples.ts`).
+
+**And the reef's rock from above** (seen while looking at the waves, and in one of his pictures): solid
+reef was a lattice of the sea bed picture's own dark patches, every 4 m. The ground's noise at a few metres
+now moves both the level the sand lies at and the cover's place on its ramp, so that each repeat bares
+different knobs and is darker or paler than the last; and the picture fades to its averages from 14 m, not
+22.
+
+**Known, and left:** on a steep face the rock's picture, laid from above, is drawn out down the slope (by a
+half at 45 degrees, more on a groove's wall); from a low eye, stones and heads some way off show dimly
+through the surface, where before the solid water hid them, which is true to life but new; with the floor
+showing deeper, the straight edges of the fore reef's spurs can be seen from above, where the ground's
+triangles are large; the floor seen through the surface is still not bent, so things under water stand
+where they would with no water there; the veil goes by the still sea's level, not the wave over a thing;
+the surf zone's cloudiness is a fixed band along the reef, not the wake of the waves that break there.
+
+**Only the phone can say:** whether the water reads as water in motion now that it is clearer (the net of
+light and the floor show deeper); whether every material has taken the new uniform (a thing that had not
+would stand unveiled in deep water, as nothing did here); and the frame rate, which should not have moved
+(no picture more is read; each dot of a thing under the sea does a little more arithmetic).
+
+Two groups of views were added for this: `waterDepth` (out over a pool, the lagoon from a low eye, a head
+and the reef flat from above) and `steepFloor` (the drop-off's face and foot, a pool's wall).
+
 ## Later
 
 - More passes on the reef.

@@ -1,6 +1,6 @@
 import { Fog, PCFShadowMap, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { seaConfig } from '../sea/sea-config';
-import { useWaterAsFog } from '../sea/water-as-fog';
+import { useWaterAsFog, type SeaSeenFromAbove } from '../sea/water-as-fog';
 import { useSmootherShadowEdges } from './soft-shadows';
 
 export interface Stage {
@@ -10,6 +10,8 @@ export interface Stage {
   scene: Scene;
   camera: PerspectiveCamera;
   fog: Fog;
+  /** What every material is told of the sea, to veil what is under it (water-as-fog.ts). */
+  seaSeenFromAbove: SeaSeenFromAbove;
 }
 
 // The page is drawn at the screen's own sharpness up to this many dots to a CSS pixel.
@@ -57,7 +59,7 @@ export function createStage(errorMessage: HTMLElement, hint: HTMLElement): Stage
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFShadowMap;
   useSmootherShadowEdges();
-  useWaterAsFog();
+  const seaSeenFromAbove = useWaterAsFog();
 
   // A context the browser takes away (a driver fault, too little memory) stops the picture with no
   // error thrown. The page says so, and how far it had got.
@@ -78,5 +80,5 @@ export function createStage(errorMessage: HTMLElement, hint: HTMLElement): Stage
   const [fogNear, fogFar] = seaConfig.fogInAir;
   const fog = new Fog(FOG_COLOUR_BEFORE_THE_FIRST_FRAME, fogNear, fogFar);
   scene.fog = fog;
-  return { renderer, canvas, scene, camera, fog };
+  return { renderer, canvas, scene, camera, fog, seaSeenFromAbove };
 }

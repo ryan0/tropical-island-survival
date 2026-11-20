@@ -173,6 +173,11 @@ another try when three.js or the phone's driver has moved on: the trial's branch
 
 - `cameraPosition` is only filled in for ShaderMaterial, Phong, Toon and Standard materials. In a patched LAMBERT
   material it stays at the origin and nothing warns you. Use the shared uniform `uCameraPosition`.
+- A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
+  colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
+  one typed array put into every kind's list is shared by every built-in material, and writing into it
+  reaches them all: that is how the fog is told of the sea (`sea/water-as-fog.ts`). It must be put there
+  before any material is compiled.
 - A texture read inside an `if` may be taken at the wrong level of detail on some GPUs. Read the texture before the
   branch (the terrain shader does this for the detail texture) or use a texture without mipmaps.
 - An instanced mesh is never culled unless `frustumCulled` is set, and opaque things are drawn in order of material

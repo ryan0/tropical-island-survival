@@ -44,7 +44,9 @@ under-water board measures coral from them), and the night sky the group `nightS
 photograph of the night is never what the eye saw. The sea floor itself is the group `seaFloor`, from a
 swimmer's eye in a dozen places of the lagoon and the ocean's reef and from straight above, with the board
 `boards/sea-floor.json` (sand, rock under turf, coralline crust, rubble); it draws on the `reef` group and on
-`under-down-at-sand` too.
+`under-down-at-sand` too. Two more groups have no board: `waterDepth`, how the water hides its floor with
+depth (out over a pool, across the lagoon from a low eye, a coral head and the reef flat from above), and
+`steepFloor`, the drop-off's face and the walls of the reef's pools.
 
 To move a colour of ours by a measured amount (here: seven tenths of its saturation, ten degrees towards green,
 a little lighter), and get it back as the code writes it:
@@ -76,7 +78,7 @@ hair from the same view drawn alone (the sky turns with the day, and the day is 
 
 | File | What it holds |
 |---|---|
-| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `nightSky` |
+| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `nightSky` |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |

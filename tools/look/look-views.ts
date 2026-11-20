@@ -539,6 +539,85 @@ const seaFloor: ReferenceView[] = [
   ),
 ];
 
+/**
+ * How the water hides its floor with depth, from where Ryan found it stark (20 November 2026):
+ * out over a pool from the shallows beside it, across the lagoon from a low eye, a coral head
+ * from above, and a wave crossing the reef flat seen from straight above.
+ */
+const waterDepth: ReferenceView[] = [
+  view('depth-over-a-pool', 'out over a pool from the reef flat', [0, 1.0, 216, Math.PI, -0.12]),
+  view('depth-over-a-pool-calm', 'the same in a light breeze', [0, 1.0, 216, Math.PI, -0.12], calm),
+  view('depth-lagoon-low-eye', 'across the lagoon from a wading eye', [0, 0.5, 101, 0, -0.1]),
+  view('depth-lagoon-standing', 'the same from standing', [0, 1.3, 101, 0, -0.14], calm),
+  view('depth-head-from-above', 'a coral head from above', [47, 9, 58, 0, -0.75]),
+  view('depth-reef-edge-from-above', "the reef's edge and the deep from above", [
+    0,
+    14,
+    330,
+    Math.PI,
+    -0.8,
+  ]),
+  view(
+    'depth-wave-over-the-flat',
+    'a wave crossing the reef flat, from above',
+    [44, 22, 306, 0, -1.4],
+    {
+      waveTime: A_SET_WAVE_BREAKS + 2,
+    },
+  ),
+  view('depth-reef-flat-from-above', 'the reef flat from 22 m up', [44, 22, 280, 0, -1.4]),
+  view(
+    'depth-dusk-shadows',
+    "the lagoon islet's palms' shadows late in the day, from above",
+    [25, 60, 0, 0, -1.5707],
+    { wind: LIGHT_BREEZE, sun: { dayPhase: 0.76 } },
+  ),
+  view(
+    'depth-swell-over-the-flat',
+    'the swell over the back reef, from above',
+    [0, 22, 255, 0, -1.4],
+  ),
+  view(
+    'depth-lagoon-shelf-from-above',
+    "the lagoon's shelf running down, from above",
+    [0, 12, 80, 0, -1.1],
+    {
+      ...calm,
+    },
+  ),
+];
+
+/** The steep ground under the sea: the drop-off's face, a groove's walls, a patch reef's flank. */
+const steepFloor: ReferenceView[] = [
+  view(
+    'steep-drop-off-face',
+    "the drop-off's face from 10 m off, 20 m down",
+    [0, -20, 401, 0, 0.05],
+    calm,
+  ),
+  view('steep-drop-off-down', 'down the drop-off from its lip', [0, -9, 378, Math.PI, -0.6], calm),
+  view('steep-drop-off-from-below', 'up the drop-off from its foot', [0, -28, 403, 0, 0.6], calm),
+  view(
+    'steep-fore-reef-slope',
+    "the fore reef's slope, 8 m down",
+    [0, -7, 366, Math.PI, -0.4],
+    calm,
+  ),
+  view('steep-pool-wall', "a pool's wall in the back reef", [0, -1.2, 224, Math.PI, -0.3], calm),
+  view(
+    'steep-lagoon-slope',
+    "the lagoon shelf's slope into the basin",
+    [0, -4.2, 58, 0, -0.4],
+    calm,
+  ),
+  view(
+    'steep-from-above',
+    'the drop-off through the surface from above',
+    [0, 12, 372, Math.PI, -0.9],
+    calm,
+  ),
+];
+
 const MIDNIGHT = { ...calm, cloudCover: 0, sun: { dayPhase: 0 } };
 const TOWARDS_THE_MOON = Math.PI + 0.35;
 
@@ -597,6 +676,17 @@ const nightSky: ReferenceView[] = [
   ),
 ];
 
-export const lookViews = { colour, evening, weather, underWater, ground, reef, seaFloor, nightSky };
+export const lookViews = {
+  colour,
+  evening,
+  weather,
+  underWater,
+  ground,
+  reef,
+  seaFloor,
+  waterDepth,
+  steepFloor,
+  nightSky,
+};
 
 export type ViewGroup = keyof typeof lookViews;

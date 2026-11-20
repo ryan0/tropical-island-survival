@@ -4,7 +4,7 @@ import type { SharedUniforms } from '../core/shared-uniforms';
 import { createLightShafts, type LightShaftsFrame } from './light-shafts';
 import { seaConfig } from './sea-config';
 import { createUnderWaterSpecks, type UnderWaterSpecksFrame } from './under-water-specks';
-import { FOG_BEGINS_UNDER_WATER } from './water-as-fog';
+import { FOG_BEGINS_UNDER_WATER, type SeaSeenFromAbove } from './water-as-fog';
 import type { WaveModel } from './wave-model';
 
 export interface UnderWaterDependencies {
@@ -16,6 +16,8 @@ export interface UnderWaterDependencies {
    * (water-as-fog.ts), in the water's own colour.
    */
   fog: Fog;
+  /** What every material is told of the sea, to veil what is under it for an eye above it. */
+  seaSeenFromAbove: SeaSeenFromAbove;
   /**
    * The uniforms every shader shares. Two are set here: uUnderWater, 1 while the camera is under
    * water, and uUnderWaterColour, the water's own colour there.
@@ -56,7 +58,7 @@ const [fogBeginsInAir, fogEndsInAir] = seaConfig.fogInAir;
  * shafts of sunlight hang in it, and fine specks that show its depth as the eye moves.
  */
 export function createUnderWater(dependencies: UnderWaterDependencies): UnderWater {
-  const { scene, camera, waves, fog, uniforms } = dependencies;
+  const { scene, camera, waves, fog, seaSeenFromAbove, uniforms } = dependencies;
   const lightShafts = createLightShafts({ scene, uniforms });
   const lightShaftsFrame: LightShaftsFrame = {
     isCameraUnder: false,
@@ -109,6 +111,12 @@ export function createUnderWater(dependencies: UnderWaterDependencies): UnderWat
       uniforms.uUnderWater.value = isCameraUnder ? 1 : 0;
       fog.near = isCameraUnder ? FOG_BEGINS_UNDER_WATER : fogBeginsInAir;
       fog.far = fogEndsInAir;
+      seaSeenFromAbove.set(
+        frame.daylight,
+        uniforms.uNight.value,
+        camera.position.y - uniforms.uSeaLevel.value,
+        !frame.isSeaDrained,
+      );
 
       lightShaftsFrame.isCameraUnder = isCameraUnder;
       lightShaftsFrame.surfaceHeight = surfaceHeight;

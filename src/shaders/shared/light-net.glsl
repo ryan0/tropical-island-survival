@@ -41,6 +41,13 @@ const vec2 NET_COARSENS_OVER = vec2(0.5, 1.3);
 // A shadow under water is not as dark as one in air: the water scatters the sun's light into it. How far it is
 // filled in, in water more than a metre deep.
 const float WATER_FILLS_SHADOWS = 0.3;
+// And deeper there is none: the sun's light is scattered all ways on its way down, and a shadow is gone between
+// these depths (m). Nor is there one in any depth of water once the sun is low: its light glances off the sea
+// and little goes in, and what does is bent steeply down, so that nothing on the shore can shade the floor far
+// out. (The shadows are worked out as in air, straight: at dusk a palm's lay across the deep floor a hundred
+// metres from it.) They are gone between these shares of daylight (sky-light.ts: 1 is full day).
+const vec2 NO_SHADOWS_BELOW = vec2(3.5, 9.0);
+const vec2 NO_SHADOWS_UNDER_WATER_BY_DAYLIGHT = vec2(0.9, 0.45);
 
 // An eye under water gets used to the light there, as a camera's white balance does: the red that the water over a
 // thing has taken from the light on it is missed far less than an eye above the sea misses it. (Photographs taken
@@ -48,9 +55,13 @@ const float WATER_FILLS_SHADOWS = 0.3;
 // over a thing takes this share of what it takes to an eye above.
 const float TAKEN_TO_AN_EYE_UNDER_WATER = 0.15;
 
-// How far a shadow is filled in, in water so deep.
+// How far a shadow is filled in, in water so deep. (Needs uDaylight, as the net itself does.)
 float shadowFilledAt(float depth) {
-  return WATER_FILLS_SHADOWS * smoothstep(0.1, 1.0, depth);
+  float inWater = smoothstep(0.1, 1.0, depth);
+  float goneWithDepth = smoothstep(NO_SHADOWS_BELOW.x, NO_SHADOWS_BELOW.y, depth);
+  float goneWithTheSun = smoothstep(NO_SHADOWS_UNDER_WATER_BY_DAYLIGHT.x, NO_SHADOWS_UNDER_WATER_BY_DAYLIGHT.y, uDaylight);
+  // (in the shallows by the shore a low sun's shadows stay: there they lie near what throws them)
+  return inWater * mix(WATER_FILLS_SHADOWS, 1.0, max(goneWithDepth, goneWithTheSun * smoothstep(0.3, 1.5, depth)));
 }
 
 // Where to read the caustics texture for the net at a place (x, z) at a time.

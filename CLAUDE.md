@@ -19,14 +19,17 @@ Ryan directs it and judges it on his phone; Claude writes it.
   written once for shader and program (`src/sea/wave-timing/timing.glsl`). The front of a breaking wave, with its
   lip and the white water it throws up, is a mesh of its own that keeps to the crest (`src/sea/breaker.ts`); the
   sea's mesh draws the rest. All water is coloured by one rule, how much of it the eye looks through
-  (`src/sea/water.frag.glsl`).
+  (`src/sea/water.frag.glsl`). To an eye above the sea, each thing under it is veiled by the water its own
+  light comes up through, drawn on the thing itself; the surface draws only a share
+  (`src/shaders/shared/water-veil.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
   formula out for every dot: its noise and random numbers, the shore, the reef's cover, the turf's patterns
   (`src/world/terrain-declarations.glsl`). The islet's ground is coral sand from shore to shore; stones, the
   trees' litter and creepers are pictures of the real things laid over it (`src/world/ground-tiles/`), by the
   land's broad patterns and a map of what stands over each spot (`src/world/tree-cover-map.ts`). The sea's
   floor is sand, rubble and rock by how much of each belongs in a place; the rock is a picture of reef
-  pavement that the sand floods to a level (`src/world/sea-bed/`). One
+  pavement that the sand floods to a level (`src/world/sea-bed/`), and ground too steep for sand to lie on is
+  bare rock. One
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
   the sun sets and crosses the sky through the night, among stars that are points, the bright ones in their
   real places, turning about the pole (`src/sky/stars.ts`).

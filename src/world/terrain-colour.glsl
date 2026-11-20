@@ -9,7 +9,7 @@
 //   already read at vUv). Only the map's green is grit: its red and blue are the slopes of the sea floor's sand
 //   ripples (ground-grit.ts).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; groundNoise, groundFbm and
-//   randomsOf; coverOf, litAgainstSun and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
+//   randomsOf; coverOf, litAgainstSun and dimples; the varying vGroundLevelness; and from the chunks it includes: footpathDistance (footpaths.glsl);
 //   openSea and the reef's zones (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
 //   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the
 //   reef's cover, the turf's broad patterns, what stands over the ground and what lies on it, it reads from
@@ -138,6 +138,11 @@ const float REEFS_SKIRT = 0.16;
 // where the pavement shows through the sand of the ocean reef's shallows.
 const float MOST_OF_A_REEF_IS_ROCK = 0.94;
 const float PAVEMENT_SHOWS = 0.42;
+// Sand lies on ground more nearly level than the second number, and none on ground less level than the first (the
+// upward part of the ground's normal: 0.87 is a slope of 30 degrees, 0.71 of 45): anywhere, and on the ocean
+// reef's seaward slope, which is reef rock unless it is a terrace.
+const vec2 SAND_LIES_ON_SLOPES = vec2(0.74, 0.9);
+const vec2 SAND_LIES_ON_FORE_REEF = vec2(0.93, 0.985);
 // A patch reef in the lagoon begins between these depths (m) off the beach of an islet that stands on it.
 const vec2 CLEAR_OF_ISLETS_BEACH = vec2(0.9, 2.2);
 // (and how far that wanders, in metres of depth, from one stretch of the islet's shore to the next)
@@ -156,16 +161,20 @@ const float KIND_VARIES = 0.3;
 // (and how far back along it the lagoon's rock is moved: in still water little of the pink crust grows, and the
 // rock lies under turf and silt)
 const float KIND_IN_LAGOON = 0.12;
+// (and how far it wanders along the ramp over a few metres)
+const float KIND_WANDERS = 0.7;
 const float SAND_SHADED_AT_ROCK = 0.22;
 // (From far off a reef is this much rock and the rest the sand in its holes and gutters, which the eye no longer
 // picks out: it lightens the whole.)
 const float ROCK_FROM_AFAR = 0.8;
 // (and its edge from afar is cut between these two values of the share of rock, with the noise added)
 const vec2 REEFS_EDGE_FROM_AFAR = vec2(0.36, 0.6);
+// How far the level the sand lies at in the rock wanders over a few metres, as a share of the floor.
+const float LEVEL_WANDERS = 1.1;
 // The sea bed's picture is read again this far towards the sun (m), for its slopes; and its own marks show
 // within the first distance of the eye and have faded to its averages by the second (m).
 const float SLOPE_READ_OVER = 0.03;
-const vec2 SEA_BED_SHOWS_WITHIN = vec2(22.0, 60.0);
+const vec2 SEA_BED_SHOWS_WITHIN = vec2(14.0, 46.0);
 // Rubble: the stones' picture is laid at this scale below this depth (m). How thickly it lies: in the
 // stretches of sand that have a scatter; at a reef's edge; in a bank behind the crest. And what colour it is
 // multiplied by where it lies thick: it is grey-brown there under a fuzz of algae, where a lone piece is bleached.
@@ -654,6 +663,7 @@ if (waterDepth > 0.0) {
   float nearReef = 0.0;     // 0 far from rock, to 1 at its edge and on it: rubble gathers there, and nothing burrows
   float crusted = 0.0;      // how much of the rock is the pounded crest's: paler, and pink with crust
   float rubbleBanks = 0.0;  // the banks of rubble that storms leave behind the crest
+  float onForeReef = 0.0;   // 0 inside the ocean reef's crest, to 1 on its seaward slope
   if (waterDepth > 0.3) {
     float inLagoonDepths = smoothstep(0.6, 1.7, waterDepth) * (1.0 - smoothstep(5.5, 7.9, waterDepth));
     float lagoonReef = smoothstep(REEF_EDGE.x, REEF_EDGE.y, coralPattern) * inLagoonDepths;
@@ -706,6 +716,7 @@ if (waterDepth > 0.0) {
         * (1.0 - smoothstep(GARDENS_BEGIN - 6.0, GARDENS_BEGIN + 10.0, alongTheReef)) * inReefDepths;
       oceanReef = max(oceanReef, PAVEMENT_SHOWS * inTheShallows * smoothstep(0.52, 0.74, wornThrough));
       nearOceanReef = max(nearOceanReef, inTheShallows * smoothstep(0.46, 0.58, wornThrough));
+      onForeReef = smoothstep(FORE_REEF_BEGINS - 6.0, FORE_REEF_BEGINS + 14.0, alongTheReef);
       // (and behind the crest storms leave banks of what they break off it)
       rubbleBanks = smoothstep(GARDENS_BEGIN, CREST_BEGINS - 6.0, alongTheReef) * (1.0 - onCrest)
         * smoothstep(0.5, 0.68, groundNoise(xz * 0.11 + 23.0));
@@ -727,6 +738,14 @@ if (waterDepth > 0.0) {
     hard = max(hard, smoothstep(0.30, 0.66, apronEdge) * deepEnough);
     nearReef = max(nearReef, smoothstep(0.30 - REEFS_SKIRT, 0.36, apronEdge) * deepEnough);
   }
+  // Sand does not lie on a steep slope: the walls of the reef's grooves and pools, the flanks of a patch reef and
+  // the face of the drop-off are bare reef, at any depth, with the sand on the ledges and at the foot. Loose sand
+  // rests at some 30 degrees; and the fore reef's long slope is reef rock wherever it is not nearly level, as a
+  // real one is, with sand only on its terraces and in its grooves. (The pattern moves the limit a little, so
+  // that it is no contour of the slope.)
+  vec2 sandLiesTo = mix(SAND_LIES_ON_SLOPES, SAND_LIES_ON_FORE_REEF, onForeReef);
+  float tooSteepForSand = 1.0 - smoothstep(sandLiesTo.x, sandLiesTo.y, vGroundLevelness + 0.08 * (coralPattern - 0.5));
+  hard = max(hard, tooSteepForSand * smoothstep(0.3, 0.9, waterDepth));
   // (even solid reef keeps sand in its deepest holes)
   hard *= MOST_OF_A_REEF_IS_ROCK;
 
@@ -786,7 +805,12 @@ if (waterDepth > 0.0) {
   // is rock, the lower the sand lies in it, so that the edge of a reef is knobs of rock standing out of sand and
   // then gutters of sand running into rock, as the real edge is, and never a line.
   if (hard > 0.004) {
-    float kind = seaBed.g + KIND_ON_CREST * crusted + KIND_VARIES * (stretch - 0.5) - KIND_IN_LAGOON * lagoonSide;
+    // (the ground's noise at a few metres, which further down moves the level the sand lies at)
+    float levelWanders = 0.5 * (groundNoise(xz * 0.6 + 9.0) - 0.5) + 0.25 * (groundNoise(xz * 2.1 + 2.0) - 0.5);
+    // (and here moves the cover along its ramp, so that one repeat of the picture is darker with turf and the
+    // next paler with crust: solid reef seen from above was a lattice of the picture's own dark patches)
+    float kind = seaBed.g + KIND_ON_CREST * crusted + KIND_VARIES * (stretch - 0.5) - KIND_IN_LAGOON * lagoonSide
+      + KIND_WANDERS * levelWanders;
     vec3 living = mix(BROWN_CORAL, OLIVE_CORAL, groundNoise(xz * 0.45 + 3.0));
     // (its cover's colour, along the ramp the picture is painted in: turf, what lives, old rock, crust, pale)
     float along = clamp(kind, 0.0, 1.0) * 4.0;
@@ -799,11 +823,15 @@ if (waterDepth > 0.0) {
     // (From far off the picture's knobs and gutters are too small to see, and the reef's edge would be the soft
     // outline of its broad pattern: a blot. A real reef's edge seen from the air is lace, with islands of rock
     // off it and bays of sand in it, so there the edge is cut by the ground's noise at a few metres.)
-    float edgeFromAfar = hard + 0.5 * (groundNoise(xz * 0.6 + 9.0) - 0.5) + 0.25 * (groundNoise(xz * 2.1 + 2.0) - 0.5);
-    float rockFromAfar = ROCK_FROM_AFAR * smoothstep(REEFS_EDGE_FROM_AFAR.x, REEFS_EDGE_FROM_AFAR.y, edgeFromAfar);
-    float rockCover = mix(coverOf(seaBed, hard, 1.0, 0.0), rockFromAfar, farOff);
+    float rockFromAfar = ROCK_FROM_AFAR
+      * smoothstep(REEFS_EDGE_FROM_AFAR.x, REEFS_EDGE_FROM_AFAR.y, hard + levelWanders);
+    // (Near to, the same noise moves the level the sand lies at, most where the floor is half rock: so that each
+    // repeat of the picture bares different knobs of it. With one level over a stretch of reef, the same knobs
+    // stood out of the sand every 4 m, and from a few metres up the reef flat was a lattice of them.)
+    float levelHere = clamp(hard + LEVEL_WANDERS * levelWanders * 4.0 * hard * (1.0 - hard), 0.0, 1.0);
+    float rockCover = mix(coverOf(seaBed, levelHere, 1.0, 0.0), rockFromAfar, farOff);
     // (the sand lies in shade against the rock's foot)
-    float sandLevel = 1.0 - hard;
+    float sandLevel = 1.0 - levelHere;
     sand *= 1.0 - SAND_SHADED_AT_ROCK * smoothstep(sandLevel - 0.1, sandLevel, seaBed.a) * (1.0 - farOff);
     sand = mix(sand, rock, rockCover);
   }

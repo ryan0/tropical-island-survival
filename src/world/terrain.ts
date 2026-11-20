@@ -204,10 +204,11 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
       ? '#define CAN_MEASURE_ACROSS_A_PIXEL\n'
       : '';
     shader.vertexShader =
-      `${SWAY_DECLARATIONS}\nvarying vec3 vGroundPosition;\n` +
+      `${SWAY_DECLARATIONS}\nvarying vec3 vGroundPosition;\nvarying float vGroundLevelness;\n` +
       shader.vertexShader.replace(
         '#include <project_vertex>',
-        `#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;\n${swayOf('vGroundPosition')}\n${LIGHT_UNDER_WATER}`,
+        // (The ground's tiles stand where they are drawn, unturned: a corner's normal is the world's.)
+        `#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;\n vGroundLevelness=normal.y;\n${swayOf('vGroundPosition')}\n${LIGHT_UNDER_WATER}`,
       );
     shader.fragmentShader =
       canMeasureAcrossPixel +

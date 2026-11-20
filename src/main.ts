@@ -85,7 +85,7 @@ function pageElement(id: string): HTMLElement {
 
 const build = { version: import.meta.env.BUILD_VERSION, commit: import.meta.env.BUILD_COMMIT };
 const testHooks = createTestHooks();
-const { renderer, canvas, scene, camera, fog } = createStage(
+const { renderer, canvas, scene, camera, fog, seaSeenFromAbove } = createStage(
   pageElement('err'),
   pageElement('hint'),
 );
@@ -287,7 +287,7 @@ const footprints = createFootprints({
   waves,
   player,
 });
-const underWater = createUnderWater({ scene, camera, waves, fog, uniforms });
+const underWater = createUnderWater({ scene, camera, waves, fog, seaSeenFromAbove, uniforms });
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);

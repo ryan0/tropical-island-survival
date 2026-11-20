@@ -306,6 +306,18 @@ fringes each reef. Shallow sand is a net of ripples; deeper it is humped and pit
 blotched with a film of algae. The lagoon's rock is under turf, the ocean reef's is crusted pink, most of all
 on the crest (`ROADMAP.md`, "After the night").
 
+*Ryan's second notes, the same day:* ripples "banded and unnatural" in places (they came and went in bands,
+where the waves they were summed from cancelled: now of one height everywhere, forking where the sum comes
+to nothing); "the face of the cliff/dropoff should be less sandy probably more rocky" (sand rests at some 30
+degrees: steeper ground is now bare reef, and the fore reef's slope is rock unless it is a terrace). And of
+the water, "the level of opaqueness based on depth is a bit too stark", and then "distance from the observer
+is what would determine opaqueness looking at something through water. Not strictly the depth": the surface
+hid things by the depth under each spot of it, with a step, and was a lid over every pool; now each thing
+under the sea is veiled by the water its own light comes up through, by degrees (`ROADMAP.md`, "his second
+notes"). Rejected with it: water that turns solid at a depth, or along a line across the lagoon for a low
+eye; the surf zone's cloudiness as a veil of its own; shadows on the sea floor at a low sun, which the
+straight shadow map lays tens of metres from where bent light would.
+
 *Rejected in that pass:* the stones' picture laid twice as large for rubble (slabs on sand); a thin scatter
 of the same over wide stretches (a mosaic with sand in the gaps); a skirt of rubble as wide as the old soft
 halo round a head (the lagoon by home, which is bright sand, became a grey field); the litter's picture,

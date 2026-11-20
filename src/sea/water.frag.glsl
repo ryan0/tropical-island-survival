@@ -116,6 +116,7 @@ varying vec2 vWhiteMass;
 #include "wave-timing/timing"
 #include "../sky/sky-gradient"
 #include "../shaders/shared/through-water"
+#include "../shaders/shared/water-veil"
 #include "torn-edge"
 
 // ---- Numbers to retune ----
@@ -140,16 +141,11 @@ const float CRESTS_A_SPEED = 4.0;
 const float CRESTS_B_SPACING = 10.5;
 const float CRESTS_B_SPEED = 3.5;
 
-// The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue where it is deep.
-const vec3 OVER_SAND_AQUA = vec3(0.24, 0.71, 0.67);
-const vec3 TURQUOISE = vec3(0.11, 0.49, 0.58);
-const vec3 OCEAN_BLUE = vec3(0.0, 0.14, 0.30);
+// (The colour of the water itself, and how it hides what is under it, are water-veil.glsl's.)
 // Added where the ripples face the sun.
 const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
 // Water full of bubbles where waves have just broken.
 const vec3 AERATED_WATER = vec3(0.52, 0.87, 0.85);
-// The water's colour multiplied by this with the sun at the horizon.
-const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
 // The water under a white horse's foam.
 const vec3 UNDER_WHITECAP = vec3(0.34, 0.66, 0.74);
 // Foam: its colour with the sun at the horizon; thin foam; foam turned away from the sun.
@@ -310,11 +306,16 @@ const float SIGHT_RUNS_ALONG = 10.0;
 // through it.
 const float DEPTH_SPREADS = 0.8;
 const float DEPTH_AHEAD_COUNTS = 0.6;
-// Clear water hides what is behind it where the line of sight, followed on this far, is still above the floor
-// (below): from where it is this little under the floor the waves know, which is smoothed and so too shallow
-// beside a drop, to this far above it.
+// The sea's surface draws a share of the water's veil, by the depth of the floor under it (water-veil.glsl); and
+// where the swell breaks, and the water is churned up and never quite clear, this much of the whole veil more.
+const float CHURNED_VEILS_MORE = 0.8;
+// The floor under the water is drawn straight on behind the surface, not bent down as water bends the eye's
+// line. So where the eye looks along the water, what is behind a spot of the surface is floor a long way on:
+// it is veiled by how far the line runs on under the surface before it meets the floor, to two thirds by this
+// many metres. The floor's depth for that is its depth here, or, where the line runs on as far as FLOOR_SOUGHT
+// metres, its depth there: beyond a reef's edge the line meets nothing, and the water hides all.
+const float VEILED_OVER = 34.0;
 const float FLOOR_SOUGHT = 16.0;
-const vec2 FLOOR_WELL_BELOW = vec2(-0.5, 0.4);
 // (But not where the line would meet the floor just under the water within this many metres, and the ground is
 // still there this much further on.)
 const float FLOOR_MET_WITHIN = 3.0;
@@ -1193,8 +1194,7 @@ void main() {
   // ---- The colour of the water itself ----
 
   // (The lagoon's water is coloured as any other water of its depth is: only the wind treats it differently.)
-  vec3 shallows = mix(OVER_SAND_AQUA, TURQUOISE, smoothstep(0.6, 3.2, seenDepth));
-  vec3 waterColour = mix(shallows, OCEAN_BLUE, smoothstep(3.0, 16.0, seenDepth));
+  vec3 waterColour = waterBodyColour(seenDepth);
   // (the light behind a wave, seen through it: pale through a sheet, cyan through a metre of water)
   vec3 throughWave = mix(LIGHT_THROUGH_THIN, LIGHT_THROUGH_THICK, smoothstep(0.1, 1.5, pathInLift));
   // (It is the sun's light: looked at towards the sun the wave glows with it, and with the sun behind the eye it
@@ -1214,31 +1214,38 @@ void main() {
   waterColour *= 0.96 + 0.09 * slick;
   // Aerated water: where waves have just broken the water is full of bubbles and turns pale and milky.
   waterColour = mix(waterColour, AERATED_WATER, clamp(waveFoam * 0.8, 0.0, 0.72));
-  waterColour *= mix(LOW_SUN_WATER_TINT, vec3(1.0), uDaylight) * (1.0 - 0.82 * uNight);
+  waterColour *= waterInThisLight(uDaylight, uNight);
 
   // ---- How much the water hides what is under it ----
 
-  // (a film of water a few centimetres deep on the sand is all but invisible: no tint, no dark edge)
-  float opacity = mix(0.07, 1.0, smoothstep(0.15, 5.6, hidingDepth)) * smoothstep(0.0, 0.4, waterDepth);
+  // The surface draws only its share of the water's veil, by the depth of the floor under it: what is under the
+  // sea draws the rest on itself, each thing by its own depth (water-veil.glsl), so that a coral head is not
+  // hidden by the depth of the sand beside it and a pool's rim is not the edge of a lid. (A film of water a few
+  // centimetres deep on the sand is all but invisible: no tint, no dark edge.)
+  // (Where the swell breaks the water is churned up and never quite clear, and the surface veils more: by the
+  // same rule, by degrees. As a veil of its own that came in with the first metre of depth, every swell crossing
+  // the crest turned from clear to turquoise as it passed.)
+  float churnedUp = smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
+    * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
+  float opacity = mix(0.07, 1.0, hiddenByWater(hidingDepth, SURFACE_DRAWS + CHURNED_VEILS_MORE * churnedUp))
+    * smoothstep(0.0, 0.4, waterDepth);
   // (a wave the light comes through still hides what is behind it)
   opacity = max(opacity, lightThrough * 0.95);
-  // where the swell breaks the water is churned up and never quite clear
-  float churnedUp = 0.5 * smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
-    * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
-  opacity = max(opacity, churnedUp * smoothstep(0.3, 1.2, waterDepth));
   // water with foam on it or bubbles in it is cloudy: it hides the sea floor and the light playing on it
   opacity = max(opacity, smoothstep(0.03, 0.5, waveFoam) * 0.86 * smoothstep(0.06, 0.4, waterDepth));
   // Water is only see-through where its floor is what lies behind it. Everything under the water is drawn
   // straight on behind the surface, not bent down as the water bends the eye's line: so where the eye looks along
   // level over the reef's edge, or through a wave standing in the shallows, what lies behind clear water is not
-  // the floor just under it but the open sky, a long way past. The line of sight is followed on FLOOR_SOUGHT
-  // metres (floorOnAlongSight, read above), and if it is still above the floor there (the waves' picture of the
-  // floor, sea-floor-pictures.ts) the water hides what is behind it, in its own colour. (Not where a coral head
-  // lies behind it, which that picture knows nothing of.)
-  float noFloorBehind = 0.0;
-  float sightUnderSea = FLOOR_SOUGHT * towardsCamera.y / sightLevel - liftOverSea;
-  noFloorBehind = smoothstep(FLOOR_WELL_BELOW.x, FLOOR_WELL_BELOW.y, floorOnAlongSight - sightUnderSea)
-    * (1.0 - uUnderWater) * (1.0 - headBehind);
+  // the floor just under it but floor a long way on, or the open sky. So the water veils what is behind it by
+  // how far the line of sight, not bent, runs on under the surface before it meets the floor: by degrees, over
+  // tens of metres, so that from a low eye the floor fades out with distance and there is no line where the water
+  // turns solid. (That run is the floor's depth over how steeply the line goes down: the depth here, or, where
+  // the line runs on as far as FLOOR_SOUGHT metres, the depth there, floorOnAlongSight, read above. Not where a
+  // coral head lies behind the water, which the waves' picture of the floor knows nothing of.)
+  float depthAhead = max(floorOnAlongSight + liftOverSea, 0.0);
+  float runUnderSurface = mix(max(waterDepth, 0.0), depthAhead, smoothstep(0.6, 1.0, sightRunsOn))
+    * sightLevel / max(towardsCamera.y, 0.02);
+  float noFloorBehind = (1.0 - exp(-runUnderSurface / VEILED_OVER)) * (1.0 - uUnderWater) * (1.0 - headBehind);
   // Thin water over a reef top is seen through to that top, however soon the floor falls away beyond it. Where
   // the line of sight would meet a level floor within a few metres, the ground is asked for a little past there
   // (the island's formula, as for the depth): if it is still above the line, it is what lies behind the water.
@@ -1254,7 +1261,8 @@ void main() {
       * (1.0 - smoothstep(0.6 * FLOOR_MET_WITHIN, FLOOR_MET_WITHIN, meetsFloorIn));
     noFloorBehind *= 1.0 - floorIsThere;
   }
-  opacity = max(opacity, noFloorBehind * smoothstep(0.0, 0.1, waterDepth));
+  // (the two hide together, as two veils do)
+  opacity = 1.0 - (1.0 - opacity) * (1.0 - noFloorBehind * smoothstep(0.0, 0.1, waterDepth));
 
   // ---- The clouds' shadows ----
 

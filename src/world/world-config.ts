@@ -80,10 +80,18 @@ export const worldConfig = {
    * their picture covers; how many ridges cross it (so they lie span / ridges apart: a hand's
    * breadth, as in the photographs of rippled sand); how many plain waves the picture is the sum
    * of, and how far from the middle one they lie in the number of ridges across the picture and
-   * down it (the wider, the shorter a ridge runs before it forks or ends); and how much narrower
-   * a crest is than a trough (1 is a plain wave).
+   * down it (the wider, the shorter a ridge runs before it forks); how much narrower a crest is
+   * than a trough (1 is a plain wave); and how far round a fork the ridges sink into the sand (as
+   * a share of the waves' usual sum: 0 is ridges of full height right up to the fork).
    */
-  sandRipples: { span: 2.4, ridges: 27, waves: 40, spread: [10, 4], crestSharpness: 1.25 },
+  sandRipples: {
+    span: 2.4,
+    ridges: 27,
+    waves: 28,
+    spread: [10, 4],
+    crestSharpness: 1.25,
+    forkSoftening: 0.3,
+  },
 
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */

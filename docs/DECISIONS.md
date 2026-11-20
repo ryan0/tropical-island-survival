@@ -63,6 +63,16 @@ the git tag `build-78`.
     material the fog's colour, its near and its far and nothing more, so being under water is said by a fog
     that begins behind the eye; another kind of fog would say it plainly, but three.js compiles every shader
     again when the kind of fog changes. (20 November 2026.)
+    **And to an eye above the sea, each thing under it is veiled by the water its own light comes up
+    through**, drawn on the thing itself by the same fog (`shaders/shared/water-veil.glsl`): its depth, times
+    up to one and a half as the eye looks lower, since light bends at the surface. The sea's surface draws
+    only a share of the veil, by the depth under each spot of it. While the surface drew all of it, a coral
+    head was hidden by the depth of the sand beside it and a pool's rim was the edge of a lid; and the scene's
+    depth behind the surface, by which other engines measure the water in front of a thing, may not be read
+    here (`DEVICE_NOTES.md`). Half-Life 2's engine did the same for the same reason
+    (`docs/research/water-hiding-its-floor.md`). The fog needs four numbers that three.js does not hand a
+    material: they are one uniform whose value is a typed array that every material shares
+    (`sea/water-as-fog.ts`). (20 November 2026.)
 
 ## The sky
 
