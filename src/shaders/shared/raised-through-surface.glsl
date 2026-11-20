@@ -26,6 +26,9 @@
 // Light bends as it leaves water: the sine of its angle to straight up is this many times smaller in the water
 // than in the air (1 / 1.33).
 const float BENT_LEAVING_WATER = 0.75;
+// (The whole of the way, and no less. Raised four fifths of the way, to see whether that was easier on the eye,
+// the floor lay too low for a line of sight that skims the sea: looking along a shore, the line ran on under the
+// surface over the floor again and found the deep, and a blue band lay along the beach's edge.)
 // Nothing deeper than the second of these is raised, and the raising fades out from the first (m): what lies so
 // deep is hidden by the water, and the floor of the open sea is one great rectangle whose corners, far off and
 // raised each by its own amount, would lift the whole of it to the surface.

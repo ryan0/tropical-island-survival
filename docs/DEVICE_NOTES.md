@@ -181,7 +181,7 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   on as well it made 39 to 42 frames a second (its cost by itself has not been read), and Ryan named no fault
   in the drawing. Its size is `seaConfig.underWaterPicture.shareOfScreen`. Still to save if it is wanted:
   what lies under the sea is drawn twice, into the picture and onto the screen, where the surface then
-  covers all of it but what lies in a hand's depth of water.
+  covers all of it.
 - New on 20 November 2026 and not yet on the phone: every built-in material's vertex shader ends by moving
   the vertex, while the picture of what is under the sea is drawn (`sea/water-as-fog.ts`, in three.js's
   `fog_vertex`): up, by how much nearer the surface it seems (`raised-through-surface.glsl`). It is two

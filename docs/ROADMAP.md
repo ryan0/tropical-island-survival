@@ -20,8 +20,10 @@ the phone with another agent).**
   section for each day's work after it). Done: the targets (eight pairs and a fly-round); the three faults
   first found; the picture of what is under the sea, now the one way the water is drawn, with every older rule
   it replaced deleted. In hand or next, in this order:
-  1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore", far below): for
-     Ryan to confirm on the phone, where a new rule in every material's vertex shader has not yet run.
+  1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore" and "The
+     waterline, and a calmer bending", far below): for Ryan to confirm on the phone, where a new rule in
+     every material's vertex shader has not yet run. If what is under the water is still too busy to the eye,
+     lower `BENDS` in `src/sea/water.frag.glsl`; do not lessen the raising.
   2. *Colours and clearness against the pairs* (the plan's stage D). Begun, by measuring ("The water's
      colours, measured on the pairs", far below), and what was measured says to change nothing by day: our
      water is within the photographs' own spread. What is left is two things for Ryan to say, not passes to
@@ -2059,7 +2061,7 @@ painted on each thing, and the surface greys all things alike. That is left for 
 pairs still show the stones and the floor's markings moving as one.
 
 *Still to do if the phone asks for it:* what lies under the sea is drawn twice, into the picture and onto the
-screen, and the surface then covers all of the second but what lies in a hand's depth of water. Leaving the
+screen, and the surface then covers all of the second. Leaving the
 deep ground and coral out of the screen's drawing would save that, but a thing left out of a drawing casts no
 shadow in it, so the shadows must be drawn apart first.
 
@@ -2103,8 +2105,8 @@ as before, and adds only its ripples' bending.
 which seems to lie a hand's depth under the sea, stood up out of the troughs of the waves as brown discs:
 Ryan saw it in his dev server, which shows the working files as they are saved.
 
-So that the frame's own drawing (by straight lines) is not mistaken for what the picture holds, it now shows
-through only where a thing lies in under 12 cm of water (it was 30).
+The frame's own drawing (by straight lines) was at first still let show through the surface where a thing lay
+in under 12 cm of water (it had been 30): see "The waterline, and a calmer bending" below, which ended that.
 
 **Checked:** every view from under the water and every view of the land is the same to the dot as before;
 the islet's shore from its top, from four sides and in a breeze, shows its sand running down under the water
@@ -2121,6 +2123,40 @@ arithmetic, with no loop and nothing divided by what could be nought, but this p
 desktop about vertex shaders before: `DEVICE_NOTES.md`); and the frame rate, which should not have moved.
 If anything under water or on land looks torn or stretched on the phone, this rule is the first suspect:
 setting `raisedThroughSurface`'s result to nought in `sea/water-as-fog.ts` switches it off.
+
+### The waterline, and a calmer bending (20 November 2026, as Ryan left)
+
+Ryan, of the build with the islet's shore mended: "still I can get a bit of issue at the water line from some
+angles" (a strip along the beach's edge, with a coral head that stands off the shore showing in it a second
+time); and "the level of distortion/raising with water is slightly too busy and disorienting on eyes". He
+was leaving, and asked that whatever followed be committed and pushed.
+
+**The strip at the waterline.** Reproduced from a low eye along the lagoon islet's shore: a dark line along
+the beach's edge, the far floor's own colours in it. Its cause was shown by switching things off one at a
+time: with the surface drawn whole over the picture everywhere, the line was gone; the picture itself was
+clean there. It was the frame's own drawing showing through the shallowest water, where the surface had been
+left see-through because that drawing is sharper than the picture. But it is drawn by straight lines, and
+looking along a shore a straight line through even a film of water runs on over the falling floor to
+whatever lies beyond, where it truly stands and not where it seems to. So the surface is now drawn whole,
+over the picture, wherever it is drawn at all (`water.frag.glsl`), and nothing shows through it but the
+picture. And where the picture's dots along the outline of something that stands out of the sea are part
+that thing and part the floor beyond, the picture is looked at a few dots to each side and the deepest of
+what is found is taken. What is given up: the wet sand in the last film of water is the picture's, half as
+fine as the screen.
+
+**The bending.** The ripples' bending of what is under the water is nearly halved (`BENDS` in
+`water.frag.glsl`, 0.25 to 0.14): it is the number to lower again if what is under the water is still too
+busy, and nought stills it altogether. The raising was tried at four fifths of the way and put back to the
+whole: at less, the floor lies too low for a line of sight that skims the sea, the line runs on under the
+surface and finds the deep, and a blue band lay along the beach's edge (the islet's fault again, in small).
+So how far things are raised is not a matter of taste; how much they wobble is.
+
+**Checked:** the islet's shore from six low places, the ocean beach in a breeze, the pairs and the
+fly-round, with no line at any beach's edge; every view from under the water and of the land the same to
+the dot.
+
+**Only the phone can say:** whether the bending is now easy on the eye in motion, and whether the edge of
+the water, which is the picture's now, looks soft there.
 
 ### The water's colours, measured on the pairs (20 November 2026, evening)
 

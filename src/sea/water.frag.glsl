@@ -311,12 +311,20 @@ const float DEPTH_SPREADS = 0.8;
 // it lands that share of the thing's depth to one side; this is that share, and the depth it is taken over at
 // most (m). (At 0.3 a stone's width changed by a third from one moment to the next: if what is under the water
 // still wobbles too much on the phone, this is the number.)
-const float BENDS = 0.25;
+const float BENDS = 0.14;
 const float BENDS_NO_DEEPER_THAN = 5.0;
-// (But a thing in next to no water is seen in the frame's own drawing of it, which is sharper than the picture:
-// the picture comes in between these depths of the thing, m. No deeper: the frame's own drawing is by straight
-// lines, and at a low angle a straight line through water even a foot deep runs on to something else.)
-const vec2 PICTURE_FROM_DEPTH = vec2(0.02, 0.12);
+// (Wherever the surface is drawn, it is drawn whole, over the picture: only the picture holds what is seen
+// through water. The frame's own drawing, straight behind the surface, was let show through the shallowest
+// water at first, being sharper: but it is drawn by straight lines, and looking along a shore a straight line
+// through even a film of water runs on over the falling floor to something else. A dark line lay along the
+// beach's edge, with whatever stood off the shore showing in it a second time, where it truly stands.)
+// The picture is half as fine as the screen, and along the outline of a thing that stands out of the sea its
+// dots are part that thing and part the sea floor beyond: their depth reads as next to nothing, and their colour
+// is the thing's, smeared a dot or two over the water. So where the picture says the thing behind lies in less
+// than the first of these depths of water, and the water at this spot is deeper than the second (m), the
+// picture is looked at this many dots of the screen to each side, and the deepest of what is found is taken.
+const vec2 OUTLINE_SUSPECTED = vec2(0.12, 0.25);
+const float OUTLINE_LOOKED_PAST = 4.0;
 // Where the swell breaks the water is churned up and never quite clear: it is this much cloudier than clear
 // water (water-veil.glsl's hiddenByWater).
 const float CHURNED_CLOUDIER = 0.8;
@@ -1184,6 +1192,18 @@ void main() {
     // lies, and then to one side by that depth. (Moved all alike, by the floor's depth, a head and the ground
     // round it shifted as one flat picture.)
     straightBehind = texture2D(uUnderWaterPicture, onPicture);
+    // (past the smeared outline of anything that stands out of the sea: OUTLINE_SUSPECTED, above)
+    if (depthHeld(straightBehind.a) < OUTLINE_SUSPECTED.x && waterDepth > OUTLINE_SUSPECTED.y) {
+      vec2 aside = uDotOfPicture * OUTLINE_LOOKED_PAST;
+      vec4 toTheRight = texture2D(uUnderWaterPicture, onPicture + vec2(aside.x, 0.0));
+      vec4 toTheLeft = texture2D(uUnderWaterPicture, onPicture - vec2(aside.x, 0.0));
+      vec4 above = texture2D(uUnderWaterPicture, onPicture + vec2(0.0, aside.y));
+      vec4 below = texture2D(uUnderWaterPicture, onPicture - vec2(0.0, aside.y));
+      if (toTheRight.a > straightBehind.a) straightBehind = toTheRight;
+      if (toTheLeft.a > straightBehind.a) straightBehind = toTheLeft;
+      if (above.a > straightBehind.a) straightBehind = above;
+      if (below.a > straightBehind.a) straightBehind = below;
+    }
     float itsDepth = clamp(depthHeld(straightBehind.a) + liftOverSea, 0.0, BENDS_NO_DEEPER_THAN);
     behind = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * itsDepth);
     // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one,
@@ -1543,14 +1563,8 @@ void main() {
     vec3 waterLight = uDaylight * waterInThisLight(uDaylight, uNight) * mix(0.62, 1.0, cloudLight);
     vec3 seenBehind = seenDownThroughWater(behind.rgb, depthBehind,
       mix(GREYS_UNDER_WATER.x, GREYS_UNDER_WATER.y, inLagoon), waterLight);
-    // (But where what lies straight behind this spot is in next to no water, the frame's own drawing of it shows
-    // through, which is sharper than the picture and is that very thing: the wet sand at the water's edge, a
-    // rock awash, the top of a coral head. By the thing's depth, not the floor's under this spot of the surface:
-    // by that, a pool's deep wall showed unveiled through the thin water over its rim.)
-    float overPicture = smoothstep(PICTURE_FROM_DEPTH.x, PICTURE_FROM_DEPTH.y, depthHeld(straightBehind.a));
-    float drawn = 1.0 - (1.0 - overPicture) * (1.0 - opacity);
-    colour = (colour * opacity + seenBehind * overPicture * (1.0 - opacity)) / max(drawn, 1e-3);
-    opacity = drawn;
+    colour = colour * opacity + seenBehind * (1.0 - opacity);
+    opacity = 1.0;
   }
   gl_FragColor = vec4(colour, opacity);
 }

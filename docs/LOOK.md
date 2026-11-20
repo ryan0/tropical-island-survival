@@ -316,7 +316,12 @@ hid things by the depth under each spot of it, with a step, and was a lid over e
 under the sea is veiled by the water its own light comes up through, by degrees (`ROADMAP.md`, "his second
 notes"). Rejected with it: water that turns solid at a depth, or along a line across the lagoon for a low
 eye; the surf zone's cloudiness as a veil of its own; shadows on the sea floor at a low sun, which the
-straight shadow map lays tens of metres from where bent light would.
+straight shadow map lays tens of metres from where bent light would. And after: what is under the water
+drawn where it stands and not where it seems to (from a shore that falls away, its shallows were a flat
+band of the water's colour); the screen's own drawing let show through the shallowest water (a dark line
+along the beach's edge, things showing in it a second time); things raised less than the whole way to
+where they seem (a blue band at the beach's edge); the ripples bending what is under them by a quarter of
+their slope, as real water does ("slightly too busy and disorienting on eyes": it is 0.14 now).
 
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A
