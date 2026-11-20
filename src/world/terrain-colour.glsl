@@ -47,6 +47,9 @@ const float CLOUD_SHADOW_LIGHT = 0.45;
 // the middle of the lagoon.
 const float FLOOR_SWIMS = 0.3;
 const float NET_ON_OUTER_REEF = 0.45;
+// How far a shadow on ground as bright as white is filled in by the light the ground round it throws back (sand
+// is about 0.85 as bright, and turf 0.4).
+const float GROUND_FILLS_SHADOWS = 0.38;
 
 // The colours of the ground.
 // (The sand is kept well under 1: in full sun the lighting multiplies it by about 1.3, and sand that clips to pure
@@ -54,10 +57,10 @@ const float NET_ON_OUTER_REEF = 0.45;
 const vec3 WARM_SAND = vec3(0.725, 0.715, 0.69);
 const vec3 GREY_SAND = vec3(0.71, 0.71, 0.70);
 const vec3 VINE_GREEN = vec3(0.25, 0.34, 0.19);
-const vec3 BARE_SOIL = vec3(0.80, 0.73, 0.56);
+const vec3 BARE_SOIL = vec3(0.76, 0.72, 0.62);
 const vec3 SOIL_BROWN = vec3(0.50, 0.38, 0.25);
 const vec3 LITTER_BROWN = vec3(0.50, 0.40, 0.25);
-const vec3 PATH_SAND = vec3(0.80, 0.70, 0.50);
+const vec3 PATH_SAND = vec3(0.74, 0.72, 0.66);
 const vec3 ROCK_GREY = vec3(0.46, 0.44, 0.39);
 const vec3 BROWN_CORAL = vec3(0.30, 0.25, 0.17);
 const vec3 OLIVE_CORAL = vec3(0.13, 0.23, 0.15);
@@ -392,7 +395,9 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
 
       float fromPath = footpathDistance(xz) + (groundNoise(xz * 0.9) - 0.5) * 0.7 + (groundNoise(xz * 4.0) - 0.5) * 0.25;
       float onPath = smoothstep(1.05, 0.72, fromPath);
-      vec3 pathColour = mix(soil, PATH_SAND, 0.55) * (0.9 + 0.2 * groundNoise(xz * 3.0));
+      // (a path on an atoll is trodden coral sand and gravel, pale grey: mixed half and half with the soil it was
+      // an orange-brown)
+      vec3 pathColour = mix(soil, PATH_SAND, 0.8) * (0.9 + 0.2 * groundNoise(xz * 3.0));
       land = mix(land, pathColour, onPath);
       // (bare rock on the highest ground, of which the atoll has little)
       if (height > 9.5) {
@@ -578,6 +583,12 @@ if (waterDepth > 0.0) {
   netOfLight = netLight * sunThroughCloudHere;
   shadowFilledIn = shadowFilledAt(standingDepth);
 }
+
+// A shadow on the ground is not as dark as the sun's absence alone would make it: the sunlit ground round it
+// throws light back into it, pale sand most of all. (In photographs the shade of a palm on coral sand is two thirds
+// as light as the sand beside it. With nothing thrown back ours was a third as light, and blue.)
+float groundsBrightness = dot(diffuseColor.rgb, vec3(1.0 / 3.0));
+shadowFilledIn = max(shadowFilledIn, GROUND_FILLS_SHADOWS * groundsBrightness);
 
 // ---- The sea drained (uDebugMode 5) ----
 
