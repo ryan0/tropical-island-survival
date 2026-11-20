@@ -19,7 +19,7 @@ import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
 import { lightLeavesFromBothSides } from './leaf-light';
-import { paintBarkPicture, paintFrondPicture } from './palm-pictures';
+import { FROND_CUTOFF, paintBarkPicture, paintFrondPicture } from './palm-pictures';
 import { createFrondShape, createTrunkShape } from './palm-shapes';
 import {
   palmsConfig,
@@ -135,7 +135,11 @@ function createFrondMaterial(
   picture: CanvasTexture,
   uniforms: Record<string, IUniform>,
 ): MeshLambertMaterial {
-  const material = new MeshLambertMaterial({ map: picture, alphaTest: 0.4, side: DoubleSide });
+  const material = new MeshLambertMaterial({
+    map: picture,
+    alphaTest: FROND_CUTOFF,
+    side: DoubleSide,
+  });
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniforms.uTime;
     shader.uniforms.uWind = uniforms.uWind;
@@ -231,7 +235,7 @@ export function createPalms(dependencies: PalmsDependencies): Palms {
   const frondShadowMaterial = new MeshDepthMaterial({
     depthPacking: RGBADepthPacking,
     map: frondPicture,
-    alphaTest: 0.4,
+    alphaTest: FROND_CUTOFF,
   });
   const barkMaterial = new MeshLambertMaterial({
     map: paintBarkPicture(random),

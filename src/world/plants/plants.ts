@@ -18,7 +18,9 @@ import type { Random, Range } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
+import { keepCoverageFarOff } from './cut-out-mipmaps';
 import { lightLeavesFromBothSides } from './leaf-light';
+import { FROND_CUTOFF } from './palm-pictures';
 import { createPlantModels, type PlantModel } from './plant-models';
 import { plantsConfig, type PlantKindConfig } from './plants-config';
 
@@ -53,6 +55,8 @@ interface PlantKind {
 }
 
 const CELL_SIZE = 32;
+/** A leaf is drawn where the leaf atlas is more opaque than this. */
+const LEAF_CUTOFF = 0.5;
 
 export function createPlants(dependencies: PlantsDependencies): void {
   const { random, groundHeight, landmarks, isInRock, instanceCells } = dependencies;
@@ -60,13 +64,14 @@ export function createPlants(dependencies: PlantsDependencies): void {
   const models = createPlantModels();
   const leafPicture = new CanvasTexture(models.leafAtlas);
   leafPicture.anisotropy = Math.min(4, dependencies.maxAnisotropy);
+  keepCoverageFarOff(leafPicture, LEAF_CUTOFF);
   const barkPicture = new CanvasTexture(models.bark);
 
   const bark = new MeshLambertMaterial({ map: barkPicture, vertexColors: true });
   const leaves = lightLeavesFromBothSides(
     new MeshLambertMaterial({
       map: leafPicture,
-      alphaTest: 0.5,
+      alphaTest: LEAF_CUTOFF,
       side: DoubleSide,
       vertexColors: true,
     }),
@@ -75,7 +80,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
   const leafShadows = new MeshDepthMaterial({
     depthPacking: RGBADepthPacking,
     map: leafPicture,
-    alphaTest: 0.5,
+    alphaTest: LEAF_CUTOFF,
   });
   const plainLeaves = lightLeavesFromBothSides(
     new MeshLambertMaterial({ side: DoubleSide, vertexColors: true }),
@@ -84,7 +89,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
   const fallenFronds = lightLeavesFromBothSides(
     new MeshLambertMaterial({
       map: dependencies.palmFrondPicture,
-      alphaTest: 0.4,
+      alphaTest: FROND_CUTOFF,
       side: DoubleSide,
     }),
     'fallen fronds',

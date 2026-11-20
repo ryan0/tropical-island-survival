@@ -1,8 +1,12 @@
 import { CanvasTexture } from 'three';
 import { createCanvas } from '../../core/canvas';
 import type { Random } from '../../core/random';
+import { keepCoverageFarOff } from './cut-out-mipmaps';
 
 // The palms' two pictures, painted on canvases from the palms' stream of random numbers.
+
+/** A frond is drawn where its picture is more opaque than this (its materials' alphaTest). */
+export const FROND_CUTOFF = 0.4;
 
 const FROND_WIDTH = 512;
 const FROND_HEIGHT = 128;
@@ -68,6 +72,7 @@ export function paintFrondPicture(random: Random, maxAnisotropy: number): Canvas
 
   const picture = new CanvasTexture(canvas);
   picture.anisotropy = Math.min(4, maxAnisotropy);
+  keepCoverageFarOff(picture, FROND_CUTOFF);
   return picture;
 }
 

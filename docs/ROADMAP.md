@@ -1054,6 +1054,17 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
   is never switched off, so no shader is rebuilt at dusk. The sky's light at night is cold (it had kept the low
   sun's warm colours, and leaves glowed), and so is foam. By day nothing changes: 61 of 62 views are the same
   dot for dot, the other being the night.
+- *Far plants as full as near ones.* A leaf picture is cut out where it is clear, and far off the graphics card
+  reads smaller copies of it in which leaf and gap have run together, so thin leaves fell under the cutoff and
+  far palms and shrubs looked sparse (a weak point since the refactor). The smaller copies are now made at
+  start-up with their opacity raised until as much of each passes the cutoff as passes in the full picture
+  (`world/plants/cut-out-mipmaps.ts`): the far groves are fuller, close up nothing changes, and a frame costs
+  what it did.
+- *The water's leftovers.* The beach foam's scallops read at the shoreline, so that no tongue's edge could curl
+  into a hooked tail: tried and taken out, since the straight-sided tongues it gave break the foam into scraps,
+  which is no better. The pale hairline under the horizon: not found in eight views from low down, at the
+  phone's size and magnified; it stays on the list of weak points. The mirrored clouds' hard edges wait to be
+  seen on the phone, as before.
 - *Looked at and left.* The sky's own cost: a hundredth of a frame in the test renderer; `plain sky` is there
   for the phone to say otherwise. One haze for sky, sea and land: the land's fog and the sea's haze already
   agree to within a few parts in a hundred at every distance the atoll has, so making them one rule would
@@ -1081,7 +1092,6 @@ on and off, with `more dots` on, is the measure. The switch goes once it has bee
 - The moonlit night has been judged on stills from the desktop only, against no photos. Under water at night
   the light still has the low sun's warm cast.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
-- Far palms and shrubs look thinner than near ones (leaf cut-outs blur together with distance).
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
   films from the desktop only. Spray has only been tuned on stills.

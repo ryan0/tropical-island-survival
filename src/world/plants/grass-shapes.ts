@@ -6,6 +6,7 @@ import {
   MeshLambertMaterial,
   type IUniform,
 } from 'three';
+import { keepCoverageFarOff } from './cut-out-mipmaps';
 import type { CrossedCards } from './grass-config';
 import { lightLeavesFromBothSides } from './leaf-light';
 
@@ -49,6 +50,9 @@ function swayInTheWind(sway: number): string {
   ].join('\n');
 }
 
+/** A tuft is drawn where its picture is more opaque than this. */
+const TUFT_CUTOFF = 0.45;
+
 /**
  * The material of one kind of tuft: its picture, cut out where the picture is clear, lit the same
  * from both sides and bent by the wind. `name` must differ for each kind (leaf-light.ts says
@@ -60,8 +64,10 @@ export function createSwayingMaterial(
   name: string,
   uniforms: Record<string, IUniform>,
 ): MeshLambertMaterial {
+  const map = new CanvasTexture(picture);
+  keepCoverageFarOff(map, TUFT_CUTOFF);
   const material = lightLeavesFromBothSides(
-    new MeshLambertMaterial({ map: new CanvasTexture(picture), alphaTest: 0.45, side: DoubleSide }),
+    new MeshLambertMaterial({ map, alphaTest: TUFT_CUTOFF, side: DoubleSide }),
     name,
   );
   const lightLeaves = material.onBeforeCompile.bind(material);
