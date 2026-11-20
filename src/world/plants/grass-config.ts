@@ -61,7 +61,7 @@ export const grassConfig = {
     /** The share of the points offered there that grow it. */
     share: 0.11,
     size: { least: 0.5, spread: 0.45 },
-    colour: [0.7, 0.74, 0.5],
+    colour: [0.58, 0.62, 0.55],
     shade: { least: 0.9, spread: 0.2 },
   },
 

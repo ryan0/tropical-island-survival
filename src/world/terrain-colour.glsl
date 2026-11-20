@@ -168,11 +168,13 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       float crests = cos(dot(xz, vec2(0.8, 0.6)) * 13.0 + 4.0 * groundNoise(xz * 0.5));
       windRipples = crests * dot(sunAlongGround, vec2(0.8, 0.6)) * 0.07 * (1.0 - trodden) * nearness;
     }
-    float hummocks = dot(hummockSlope - 0.5, sunAlongGround) * 0.14 * exp(-cameraDistance * 0.010);
+    float hummocks = dot(hummockSlope - 0.5, sunAlongGround) * 0.10 * exp(-cameraDistance * 0.010);
     relief = (dimpled + windRipples + hummocks) * looseSand;
   }
   sand *= 1.0 + relief;
-  sand = mix(sand, sand * vec3(0.88, 0.95, 1.06), clamp(-relief * 4.0, 0.0, 1.0));
+  // (the shaded side of a hollow is a touch cooler, and no more: clean sand in photographs is all of one colour,
+  // and with a blue shade ours was blotched)
+  sand = mix(sand, sand * vec3(0.95, 0.975, 1.01), clamp(-relief * 4.0, 0.0, 1.0));
 
   // ---- Wet sand towards the water ----
 

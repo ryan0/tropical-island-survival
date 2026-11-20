@@ -10,7 +10,7 @@ export { layerEdgeWander, soilPatches, turfDryness, turfLushness };
  * dried out. terrain.ts writes them into the terrain's shader.
  */
 export const turfColours = {
-  thin: [0.46, 0.49, 0.31],
-  lush: [0.36, 0.43, 0.26],
-  dry: [0.6, 0.56, 0.39],
+  thin: [0.43, 0.47, 0.33],
+  lush: [0.34, 0.41, 0.27],
+  dry: [0.57, 0.54, 0.4],
 } as const;

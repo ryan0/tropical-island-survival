@@ -127,7 +127,7 @@ export function drawDuneGrass(random: Random): HTMLCanvasElement {
     const width = 1.4 + random() * 1.6;
     const height = 60 + random() * 62;
     const lean = (root - MIDDLE) * 1.6 + (random() - 0.5) * 60;
-    const colour: Rgb = [252, 240 + random() * 12, 172 + random() * 28];
+    const colour: Rgb = [246, 240 + random() * 12, 200 + random() * 24];
     drawBlade(context, { root, width, height, lean, colour });
   }
   return canvas;
