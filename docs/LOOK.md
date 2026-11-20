@@ -21,6 +21,67 @@ photographs are not in the repository (most are other people's); each group is d
   photos and in our pictures, side by side.
 - **Things move the way they point.** Fish once slid sideways and swam backwards; heading now comes from motion.
 
+## Colour, measured (photos)
+
+Ryan, 19 November 2026: "a lot of our colors feel a bit too busy? Or maybe over saturated? (including the
+water)". His phone shows Adaptive colour, and he wants the scene to look right on most screens. So colour is no
+longer judged by eye alone: parts of the reference photos and the same parts of our pictures are measured and
+laid side by side. A photo's numbers are the same on every screen, and a screen that deepens colours deepens
+the photos as it does ours.
+
+**How.** A part of a picture holding one material is averaged (its darkest and brightest fifths left out) and
+given in OKLCH, in which equal steps look equal: lightness 0 to 1, saturation (chroma: 0 is grey, 0.1 a clear
+colour, 0.2 a loud one) and hue in degrees (30 red, 70 orange, 110 yellow-green, 140 green, 200 turquoise, 250
+blue, 300 violet). Several photos from different cameras are averaged for each material, since any one photo's
+exposure and white balance are its own.
+
+**What the photos measure, and where ours stood** before and after the first sitting of "The look, against
+references" (`ROADMAP.md`). The last two columns are our saturation as a multiple of the photos'.
+
+| Material | Photos | Lightness | Saturation | Hue | Ours before | Ours after |
+|---|---|---|---|---|---|---|
+| Sky, high up, midday | 12 | 0.66 | 0.107 | 250 | 1.4 | 1.0 |
+| Sky at the horizon | 6 | 0.74 | 0.094 | 247 | 1.0 | 1.0 |
+| Sea over the reef, far | 4 | 0.68 | 0.083 | 247 | 1.5 | 1.1 |
+| Deep ocean | 5 | 0.44 | 0.094 | 260 | 1.5 | 1.1 |
+| Lagoon, deep | 5 | 0.57 | 0.081 | 231 | 1.7 | 1.2 |
+| Shallow water over sand | 13 | 0.66 | 0.074 | 210 | 1.3 | 1.1 |
+| Shallows from the air | 4 | 0.71 | 0.099 | 211 | 1.0 | 0.9 |
+| Coral sand in sun | 6 | 0.86 | 0.008 | 116 | 2.0 | 1.6 |
+| The same sand in a palm's shade | 5 | 0.63 | 0.009 | 194 | 3.0 | 2.1 |
+| Palm crowns in sun | 8 | 0.45 | 0.047 | 146 | 2.3 | 1.4 |
+| Shrubs and trees in sun | 6 | 0.42 | 0.076 | 127 | 1.6 | 1.2 |
+| Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | | |
+| The floor of a coconut grove in sun | 4 | 0.60 | 0.027 | 94 | | |
+| Sunset: the sky low, towards the sun | 5 | 0.72 | 0.064 | 67 | 2.0 | 1.4 |
+| Sunset: the sky high | 4 | 0.50 | 0.037 | 247 | 1.9 | 0.8 |
+| Sunset: the water | 6 | 0.45 | 0.023 | 141 | 2.0 | 2.0 |
+| Lobed and massive corals | 6 | 0.40 | 0.051 | 114 | 0.4 | 1.1 |
+| Brain corals | 2 | 0.48 | 0.057 | 83 | | |
+| Table corals | 3 | 0.58 | 0.056 | 82 | 1.0 | 1.0 |
+| Old reef rock under turf algae | 4 | 0.58 | 0.037 | 81 | | |
+
+Read with these in mind:
+
+- **Ours was one and a half to twice as saturated as the photos** in the sky, the sea, the lagoon and every
+  plant. That is what "over saturated" was, and it is what Adaptive colour then deepened again.
+- **Hue was wrong in three places:** the lagoon and the shallows too blue by 13 to 16 degrees (cobalt for teal);
+  the sunset's sky high up a mauve (355) where the photos have blue-grey (247), and its water violet (289); the
+  sand's shade a blue.
+- **Lightness was wrong in two:** the corals, pastels at 0.76 and 0.84 where the photos have earth colours at
+  0.40 to 0.58; and shade on sand, 0.42 where the photos have 0.63, two thirds as light as the sand in the sun
+  beside it.
+- **Sand has next to no colour** (0.008): it is white, a touch warm. The sunset's water has little (0.023), and
+  what it has is as often a grey or a dark teal as anything: in our last column it is a slate blue, which two of
+  the six photos are.
+- **"Busy", measured:** how far the dots of one patch stray from the patch's own average. In lightness ours
+  strays no further than the photos do, for water near and far, palm crowns and shrubs. In colour it strayed
+  further in one material: dry sand, whose hollows were shaded blue (clean sand in the photos is all of one
+  colour: 0.002 to 0.003, against our 0.02).
+- **The numbers are to steer by, not to hit.** A photo's exposure is its own (the same white sand measures 0.66
+  to 0.92 in seven photos), and a patch of ours is never quite the same thing as a patch of theirs. A material
+  within a fifth of the photos' saturation and ten degrees of their hue has been left alone.
+
 ## The atoll from the air
 
 *References:* an oval ring of green land round a turquoise lagoon in deep blue sea; a long sand spit beside a reef
@@ -162,15 +223,50 @@ the old-reef ground round a head ending in a straight line at the waterline wher
 
 *Still weak (Ryan, 19 November 2026):* "the coral and other under water textures need refining".
 
+*References for it,* in `reference-photos/coral/`: 28 photos from Wikimedia Commons, gathered the same day
+(`SOURCES.md` there), all but one in natural light, most from Rose Atoll, Kingman Reef, French Frigate Shoals,
+American Samoa, the Maldives, Réunion and the Torres Strait. What they show:
+
+- *Colour.* Corals in daylight are earth colours: mustard, khaki, olive, tan, brown, a dusty pink, a grey-blue
+  staghorn. None is a pastel, and none is as light as sand (the table above). Tips of branches and rims of
+  tables are paler. The colours first given from these are in `world/reef/reef-config.ts`.
+- *Surface.* A lobed coral (`porites-lobata-surface-close-hawaii`) is lumps a hand across under a fine even
+  grain of polyps; a brain coral (`leptoria-brain-coral-grooves-reunion`) is close winding grooves, pale ridge
+  and dark valley; a table (`table-acropora-hyacinthus-surface-maldives`) is a carpet of short upright twigs.
+  Ours are smooth.
+- *Whole heads* (`porites-lutea-head-on-sand-reunion`, `massive-coral-heads-on-sand-tau-american-samoa`,
+  `lagoon-coral-head-porites-pocillopora-french-frigate-shoals`): a head is one or two great domes, or a rock
+  crowded with a few kinds, standing straight out of clean sand. Ours are piles of balls.
+- *The floor.* Old reef and rubble are grey-brown under a fuzz of turf algae
+  (`pocillopora-verrucosa-on-rubble-maldives`); crusting pink algae is a dusty salmon
+  (`coralline-algae-encrusted-coral-rose-atoll`); sea grass is sparse green blades on grey-white sand
+  (`seagrass-thalassia-sand-floor-vanuatu`).
+
+Not found: ripple marks on a sand floor; a microatoll at a useful size.
+
 ## Under water
 
-*References:* none yet. Ryan, 19 November 2026: "we want beautiful and realistic underwater scenes as the player
-will spend decent amount of time there", and that includes "how the surface looks from underwater".
+*References,* in `reference-photos/under-water/`: 21 photos from Wikimedia Commons, gathered 19 November 2026 for
+the second sitting (`SOURCES.md` there lists each with its licence, depth, light and colours). All but three are
+in plain natural light, which matters: a flash puts back the red that water takes away. What they are for:
+
+- *How colour goes with distance* (`palmyra-snorkeler-over-table-coral-shallows`,
+  `palmyra-coral-field-fading-to-blue-green`, `kingman-reef-natural-light-red-gone`): at 2 to 4 m, tan coral is
+  cyan-green by 10 m and plain turquoise by 20; deeper, khaki goes to blue-green with no red anywhere.
+- *The surface from below* (`moorea-shark-mirrored-in-surface-from-below`, `red-sea-reef-looking-up-at-surface`,
+  `bahamas-sun-through-surface-from-depth-bubble-ring`, `eilat-sun-through-surface-blue-gradient`): a window of
+  bright sky overhead, and outside it a dark mirror of the floor; the sun a blurred white spot in a pale glow.
+- *Shafts of light* (`red-sea-sun-rays-in-open-blue-water`, the only clear one): slanting, soft-edged, fading
+  downwards.
+- *The net of light* (three from Kona): coarse and bright on sand, lying across rubble, coral and fish alike.
+- *Half above, half below* (two from Moorea), one of them under heavy cloud.
+
+Not found: white water under a breaking wave from below; dusk; a level view across bare lagoon sand.
+
+Ryan, 19 November 2026: "we want beautiful and realistic underwater scenes as the player will spend decent amount
+of time there", and that includes "how the surface looks from underwater".
 
 *Rejected:* bubbles as rings circling the eye, and rays of light as stripes fixed to the screen ("tacky").
-
-*To come:* the coral placed afresh and redesigned, each kind where it grows on a real reef, and the reef made to
-differ along the shore. What belongs in each region is in `REEF.md`.
 
 ## Sand and beach
 
@@ -179,6 +275,27 @@ sand; dark boulders and pale jagged limestone at the water's edge; a beach hut u
 
 *Approved:* clean, near-white sand in zones by height, each boundary wandering; dimples and wind ripples in dry
 sand; a narrow wet strip; scattered shells and pebbles; real rocks of five kinds placed in groups.
+
+*References (photos),* in `reference-photos/ground-and-shore/`: 26 photos from Wikimedia Commons, gathered 19
+November 2026 (`SOURCES.md` there), nine of them from one islet of Majuro Atoll, the rest from Rangiroa, Midway,
+Palmyra, Fakarava, Aitutaki, Diego Garcia, the Maldives and Heron Island. What they show:
+
+- *Sand.* White, of one colour, marked by footprints in light and shade alone
+  (`heron-island-coral-sand-beach-footprints`). A palm's shade on it is a soft grey two thirds as light as the
+  sand beside it, never dark and never blue (`rangiroa-motu-palm-shade-on-white-sand`).
+- *The ground under coconut palms* (`majuro-bikrin-coconut-sprout-on-gravel-floor`,
+  `majuro-bikrin-coconut-grove-interior`, `rangiroa-coconut-grove-on-white-sand`): pale grey coral gravel and
+  sand, strewn with brown husks, grey dead fronds and dry leaves; green comes from scattered herbs, seedlings
+  and vines, not from a lawn. Ours is turf. (For the third sitting: Ryan is to see one stretch before and after
+  before the island's character is changed.)
+- *Where plants begin* (`midway-beach-morning-glory-runners-over-sand`, `midway-beach-top-plant-edge-midday`):
+  creepers run out over white sand in loose patches from a wall of shrub; the sand between stays clean.
+- *Rubble and reef flat* (`majuro-bikrin-reef-flat-low-tide-meets-beach`,
+  `majuro-bikrin-coral-rubble-and-sand-close`): sand, then a band of grey rubble and cemented slabs, then the
+  flat.
+
+Not found: a footpath through a coconut grove. A path is taken to be what trodden ground there is: pale sand
+and gravel.
 
 *Rejected:* tide lines that read as contour lines; one pebble per cell ("polka dots"); rocks made of noise
 ("crumpled dark paper"); relief strong enough to read as dirt.
@@ -208,6 +325,16 @@ island and the water; clouds mirrored in the sea; golden hour and sunset light o
 
 *Rejected:* clouds that looked "far too solid"; cumulus that contrasted with the other clouds; noise lumps that
 read as snowy mountains; perfect balls that read as bubbles.
+
+*References (photos),* in `reference-photos/sky-and-colour/`: 31 photos from Wikimedia Commons, gathered 19
+November 2026 (`SOURCES.md` there): eight plain midday scenes with sand, palms, sea and sky in one frame, from
+seven cameras, which are what the table of colours rests on; palms and shrubs; lagoons from the air; the open
+ocean; six sunsets; and six of the night (a full moon's disc, the moon rising at dusk, its path on the sea, the
+Milky Way), most of them long exposures, which show the night brighter and more coloured than the eye has it.
+What the sunsets show: gold and peach low down towards the sun, a grey-blue above, clouds the only thing that
+goes pink or red; the sea a dark slate or grey with a narrow path of orange glitter. Not found: a coconut grove
+from above; the clear sky from overhead down to the horizon in one frame; a moonlit palm beach at an ordinary
+exposure.
 
 *Still weak (Ryan, 19 November 2026):* the "sky box/stars/moon ... could use refinement for realism and
 aesthetics".

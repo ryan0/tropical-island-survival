@@ -49,7 +49,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`review/index.html`). The phone signs off a batch of related work.
 - **Match the references.** Ryan sends photos, phone screenshots and videos; they are kept in `reference-photos/`,
   which git ignores (videos of waves in `reference-photos/waves/`). The look rules and what each reference showed
-  are in `docs/LOOK.md`. He often asks for several passes in a row at one thing.
+  are in `docs/LOOK.md`. Colour is measured against the photos, not judged by eye alone (`docs/LOOK.md`,
+  "Colour, measured"). He often asks for several passes in a row at one thing.
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
   for him to review; commits, merges, pushes and anything destructive are his. Put each shell command you ask

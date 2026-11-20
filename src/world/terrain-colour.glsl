@@ -54,8 +54,8 @@ const float GROUND_FILLS_SHADOWS = 0.38;
 // The colours of the ground.
 // (The sand is kept well under 1: in full sun the lighting multiplies it by about 1.3, and sand that clips to pure
 // white shows no relief.)
-const vec3 WARM_SAND = vec3(0.725, 0.715, 0.69);
-const vec3 GREY_SAND = vec3(0.71, 0.71, 0.70);
+const vec3 WARM_SAND = vec3(0.722, 0.715, 0.703);
+const vec3 GREY_SAND = vec3(0.706, 0.71, 0.712);
 const vec3 VINE_GREEN = vec3(0.25, 0.34, 0.19);
 const vec3 BARE_SOIL = vec3(0.76, 0.72, 0.62);
 const vec3 SOIL_BROWN = vec3(0.50, 0.38, 0.25);

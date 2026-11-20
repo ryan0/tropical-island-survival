@@ -1222,15 +1222,65 @@ screen; milestone commits pushed to the branch `look-1-colours`, not merged. He 
 looks most wrong: the ground and the palms from above, a lime green; the sea at sunset, violet under an orange
 sky; the lagoon from above, a cobalt blue with pastel coral heads.
 
+**The references.** Four Opus agents gathered 106 freely licensed photos from Wikimedia Commons in half an
+hour, a subject each, into `reference-photos/` (ignored by git; each folder has a `SOURCES.md` of titles,
+authors, licences and what each photo shows): 26 of the ground and shore, 21 under water, 28 of coral, 31 of the
+sky and of plain midday beach scenes. Claude looked at every one kept. `LOOK.md` now says what each set shows.
+This covers the later sittings too. Not found: a footpath through a grove, a grove from above, shafts of light
+under water beyond one photo, white water from below, a moonlit palm beach at an ordinary exposure.
+
+**The colour board.** Parts of the photos and the same parts of our pictures, measured and laid side by side
+(`LOOK.md`, "Colour, measured", has the method and the table). Ours was one and a half to twice as saturated
+as the photos in the sky, the sea, the lagoon and every plant; too blue in the lagoon; mauve and violet at
+sunset where the photos are blue-grey and slate; pastel in the corals; and far too dark in the shade.
+
+**What was changed,** each step measured before and after:
+
 - *The hard edge at the waterline.* The old reef round a coral head now comes in with the depth: none where the
   water is under half a metre deep, all of it by 1.3 m, sooner here and later there so that its edge follows no
   line of equal depth. In six views of heads that stand near a beach the shallows are clean sand.
+- *The day sky:* paler and less pure a blue (`sky-config.ts`), as light high up as the photos have it.
+  Saturation 1.4 times the photos' before, 1.0 after.
+- *The water's own colours* (over sand, turquoise, deep blue: `water.frag.glsl`): lightness and hue kept, a
+  quarter of the saturation gone. The deep lagoon 1.7 times the photos' before, 1.2 after; the open sea 1.5,
+  then 1.1.
+- *The plants:* fronds a grey-green (they are glossy, and half of what they show is sky), the leaf atlas, the
+  blade plants, the vine, the turf and the dune grass all olive greens with red at three quarters of the green
+  where it was a half or less. Palm crowns 2.3 times the photos' before, 1.4 after; shrubs 1.6, then 1.2.
+- *The corals* (`reef-config.ts`): each kind's tints taken from the photos, tan, mustard, olive, brown and a
+  grey-blue, half as light as sand, where they were lilac, pink and cream. The warmth once added on top of
+  every tint is gone.
+- *The sunset* (`sky-config.ts`, `sky-gradient.glsl`, `lights-config.ts`): gold low down and blue above where it
+  was salmon under mauve; the fire and the pink band weaker; the low sun's light gold where it was red-orange;
+  the evening's ambient light cool where it was mauve (sand at dusk was purple); the water under it tinted grey
+  where it was tinted violet.
+- *Shade on the ground* (`terrain-colour.glsl`): a shadow is filled in by the light the sunlit ground round it
+  throws back, the more the paler the ground, as water already fills a shadow under it. Shade on sand was a
+  third as light as the sand in the sun, and blue; it is nearly two thirds, as the photos have it.
+- *The footpath* is pale coral sand and gravel where it was an orange-brown soil; by moonlight it now shows.
+- *Dry sand:* the shaded side of a hollow is a touch cooler and no more, where it was blue, and the low
+  hummocks are gentler. This was the one material that measured busier than the photos.
+
+**"Busy" was mostly saturation.** Measured as how far the dots of a patch stray from its average, our water,
+palms and shrubs vary in lightness no more than the photos do. So no pattern of the water was taken out; if it
+still reads as busy on the phone with the colours calmed, the next thing to try is fewer of the lagoon's dark
+coral patches seen from above, and that is a change to the reef, for the fourth sitting.
+
+**Left for the later sittings, seen in this one:** the ground under the palms is a lawn where the photos have
+grey gravel, husks and litter (third sitting, with Ryan's yes first); coral heads are piles of smooth balls
+where the photos have one or two great domes with a grain (fourth); under water nothing was touched (second).
+The night's sky was not touched: the six night photos are for the fourth sitting.
+
+**The tools.** The measuring was done with five small scripts kept in the session's scratch folder, outside
+the repository: a contact sheet with a lettered grid, a measurer of named parts, a board of photos beside ours,
+a measure of busyness, and a converter to and from OKLCH. They will be wanted in every later sitting. Whether
+they belong in the repository (`tools/look/`, say, in Python and Node, nothing installed) is Ryan's to say.
 
 **Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
-`ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first
-sitting: the ground's shader now includes the shore's formulas alone, not the whole island's). **Open:** which colour mode Ryan's phone shows (Adaptive deepens colours,
-and the passes are tuned on stills from the desktop); whether there is a game or a film whose look under water
-is the one to aim at.
+`ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first sitting:
+the ground's shader now includes the shore's formulas alone, not the whole island's). **Open:** whether there is
+a game or a film whose look under water is the one to aim at; whether the measuring tools should live in the
+repository.
 
 ## Later
 
