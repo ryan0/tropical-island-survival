@@ -357,10 +357,22 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       float streaked = 1.0 + (streaks - 0.5) * 0.45 * nearness;
       vec3 turf = mix(turfTint, greener, greenerPatches * 0.6) * vec3(0.90, 0.92, 0.82) * mottle * streaked;
       turf *= 0.86 + 0.28 * groundNoise(xz * 11.0) * nearness + 0.14 * (1.0 - nearness);
-      // mats of creeping vine: darker, glossier green, speckled with small round leaves
+      // mats of creeping vine: darker, glossier green, speckled with small round leaves, each of its own size
+      // and shade, lit on the side towards the sun (pebble() lays them: as squares of one shade each, which they
+      // were, a mat was a chequerboard close up). From far off a mat is one even green.
       float vine = smoothstep(0.54, 0.66, groundFbm(xz * 0.21 + 90.0));
-      float leafSpeckle = 0.75 + 0.7 * hash(floor(xz * 7.0) + 2.0) * nearness + 0.35 * (1.0 - nearness);
-      turf = mix(turf, VINE_GREEN * leafSpeckle, vine * 0.8);
+      if (vine > 0.0) {
+        float leafSpeckle = 1.1;
+        if (nearness > 0.05) {
+          vec3 leaf = pebble(xz * 9.0 + 2.0, sunAlongGround, 0.9);
+          vec2 turnedLeaves = vec2(xz.x * 0.6 - xz.y * 0.8, xz.x * 0.8 + xz.y * 0.6);
+          vec3 leafBelow = pebble(turnedLeaves * 6.5 + 7.0, sunAlongGround, 0.9);
+          float lowerLeaves = mix(0.72, 0.85 + 0.35 * leafBelow.z, leafBelow.x);
+          float leaves = mix(lowerLeaves, (0.95 + 0.5 * leaf.z) * leaf.y, leaf.x);
+          leafSpeckle = mix(leafSpeckle, leaves, nearness);
+        }
+        turf = mix(turf, VINE_GREEN * leafSpeckle, vine * 0.8);
+      }
       // bare patches where the sandy soil shows through the turf
       float bare = smoothstep(0.56, 0.70, groundFbm(xz * 0.33 + 40.0) + 0.25 * (groundNoise(xz * 2.7) - 0.5));
       turf = mix(turf, BARE_SOIL * (0.85 + 0.3 * groundNoise(xz * 5.0)), bare * 0.85);
