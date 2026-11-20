@@ -1958,6 +1958,46 @@ noon and at dusk, with the trial off and on, the ridges run whole (`tools/look`,
 
 *The dolphins* are left out of the scene for now, at his word (`life-config.ts`, `dolphins.areOut`).
 
+*Rocks sliding on the ground under the trial* (Ryan, the same day: "it can seem as if the coral/rocks are
+sliding on the ground"; and "we need to be comprehensive when we make changes like this, not just consider
+the code in isolation. As well we should write and structure our code so things like this are avoided"). The
+trial gave the surface a way to bend what is under it, and two older rules that stood for the same bending
+were left running, neither of them in the file the trial was written in: the ground, rocks and coral swayed
+(`sway-under-water.glsl`, in their vertex shaders), and the ground's markings alone swam
+(`terrain-colour.glsl`). So the markings were moved three times and the rocks twice. And the surface moved
+all behind a spot of itself alike, by the floor's depth, where a head's top should hardly move and the sand at
+its foot should.
+
+What was done, and how it is kept from happening again:
+
+- *Every rule that draws what the water does to the view from above was listed*, across all the shaders:
+
+  | Effect | Rule | Where | With the picture drawn |
+  |---|---|---|---|
+  | Bending | sway of ground, rocks, coral | `shared/sway-under-water.glsl` | off (was on) |
+  | Bending | the ground's markings swim | `terrain-colour.glsl` | off (was on) |
+  | Bending | the surface reads the picture to one side | `water.frag.glsl` | on, each thing by its own depth (was by the floor's) |
+  | Veil | each thing veiled by its own depth | `sea/water-as-fog.ts` | off in the picture |
+  | Veil | the surface's opacity | `water.frag.glsl` | all of the veil, by the depth of what is behind |
+  | Veil | a coral head sought along the line of sight | `water.frag.glsl` | off |
+  | Veil | far water hides its floor for a low eye | `water.frag.glsl` | off |
+  | Veil | each thing greyed and tinted by its depth | `shared/seatint.glsl`, `terrain-colour.glsl` | on, as without the picture |
+  | Light on a thing | red lost with depth, the net of light, shadows filled | the things' own shaders | on: it is the thing's own |
+
+- *The bending has one owner.* `shaders/shared/seen-through-surface.glsl` says whether the things under the
+  sea must be drawn moved or the surface bends them, and the sway and the swim ask it and nothing else; a new
+  rule of either kind is told of there. The standard is written down (`CODE_STANDARDS.md`, "One owner for
+  each effect").
+- *Checked by motion, not by reading:* with the surface's bend set to nought for one build and the picture
+  drawn, two frames 0.6 s apart show the stones and the floor's markings standing still, where before the
+  markings moved. `draw-views.ts --later` draws such pairs for any view.
+
+Known, and left: with the trial off the older fault is as it has been since 18 November, at a smaller size:
+the ground's markings swim and the rocks do not, and the fish and the weed do neither. And the veil still
+has several owners, kept in step by hand: the table's five rows. Both end if the picture becomes the only
+way the water is drawn, since the older rules are then taken out and not switched off, which is the first
+thing stage D would do.
+
 *The trial, cheaper:* nothing that stands still and wholly above the sea is drawn into the picture (the
 palms, the land's plants, the inland ground), and the surface no longer searches along the line of sight for
 a coral head where the picture answers that. Still to do if the picture stays: the ground under the sea is

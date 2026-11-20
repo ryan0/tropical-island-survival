@@ -92,6 +92,15 @@ written from the config. Text substitution into shader source (`{{NAME}}`) is no
 
 ## Shaders
 
+- **One owner for each effect.** Where more than one piece of code can draw the same thing the eye sees (what
+  the sea's surface does to the eye's line; the water's veil over what is under it), one function says which of
+  them is in force, and each of them asks it and nothing else (`shaders/shared/seen-through-surface.glsl`).
+  Before a second way of drawing an effect is added, every rule that draws it already is found, by searching
+  for the effect and not by reading the file in hand, and the change's notes list them and say what becomes of
+  each. Taking the old rules out is better than switching them off. (On 20 November 2026 the surface was
+  given a way to bend what is under it while two older rules, in two other files, still moved the ground and
+  its markings: rocks slid over the ground.)
+
 - One statement per line, one declaration per line. Name intermediate values instead of nesting.
 - Laid out like the TypeScript: spaces round operators, two-space indent, a blank line between functions and
   between the stages of a long one, a digit on both sides of a decimal point (`0.5`, `2.0`).

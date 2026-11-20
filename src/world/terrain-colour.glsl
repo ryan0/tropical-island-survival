@@ -257,8 +257,9 @@ vec2 lightNetWobble = netWobbleOf(smallWaves);
 // The floor is seen through those small waves, and each bends the eye's line a little as it passes: the floor's
 // markings swim under them, further the deeper the water. (Only its markings: the ground's shape, and the shadows
 // on it, stay where they are. And only for an eye above the water, with the sea not drained: uDebugMode 5.)
-float seenThroughSurface = step(uSeaLevel, uCameraPosition.y) * step(uDebugMode, 4.5);
-xz += (smallWaves.rg - 0.5) * FLOOR_SWIMS * smoothstep(0.1, 1.2, waterDepth) * seenThroughSurface;
+// (And only where the things under the sea stand for the surface's bending themselves, seen-through-surface.glsl:
+// where the surface bends a picture of them, the markings swimming as well slid about under the rocks.)
+xz += (smallWaves.rg - 0.5) * FLOOR_SWIMS * smoothstep(0.1, 1.2, waterDepth) * thingsBendThemselves();
 
 // Grit: the ground's speckle picture (the material's own map, which three.js has already read into texelColor).
 // Everything below replaces the colour outright, so the speckle is put back at the end; it fades out with distance.

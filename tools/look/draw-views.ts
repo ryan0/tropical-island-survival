@@ -1,6 +1,6 @@
 // Draws the look's views (look-views.ts) from a build of the page, one picture each:
 //
-//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b] [--size 1600x900] [--bent]
+//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b] [--size 1600x900] [--bent] [--later 0.6]
 //
 // <folder> is where the pictures go, each named for its view. --page is the built page to draw:
 // the working files' (dist/index.html, after `npm run build`) unless another is named, such as a
@@ -9,7 +9,9 @@
 // default) or all. --size is the pictures' size in dots: a phone's shape and small unless given;
 // the pairs and the fly-round are for looking at as large as Ryan sees the game (README.md).
 // --bent draws with the trial of the picture of what is under the sea switched on
-// (src/sea/under-water-picture.ts).
+// (src/sea/under-water-picture.ts). --later draws each view a second time, that many seconds of
+// the waves' clock on, as <view>-later.png: a still cannot show one thing sliding over another,
+// and two a moment apart can (README.md).
 //
 // The pictures are drawn by the software renderer, as the tests' are: colour and stills can be
 // trusted, motion and frame rate cannot.
@@ -34,6 +36,7 @@ const { values, positionals } = parseArgs({
     only: { type: 'string' },
     size: { type: 'string', default: USUAL_SIZE },
     bent: { type: 'boolean', default: false },
+    later: { type: 'string' },
   },
 });
 const [width, height] = values.size.split('x').map(Number);
@@ -64,8 +67,13 @@ if (values.bent) {
 // One page draws every view: each view sets all that it depends on.
 const { page, problems } = await openScenePage(context, path.resolve(values.page));
 for (const view of views) {
-  await showMoment(page, view, view.moments[0]);
+  const [moment] = view.moments;
+  await showMoment(page, view, moment);
   writeFileSync(path.join(folder, `${view.name}.png`), await takePicture(page, view));
+  if (values.later !== undefined) {
+    await showMoment(page, view, { ...moment, waveTime: moment.waveTime + Number(values.later) });
+    writeFileSync(path.join(folder, `${view.name}-later.png`), await takePicture(page, view));
+  }
   console.log(view.name);
 }
 await browser.close();

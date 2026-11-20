@@ -316,9 +316,9 @@ const float DEPTH_AHEAD_COUNTS = 0.6;
 // Where the picture of what is under the sea is drawn, the surface reads what is behind it from the picture, a
 // little to one side: as far as its slope bends the eye's line on the way down. A ray that goes into water
 // through a slope is turned by a quarter of the slope, so it lands that share of the depth to one side; this is
-// that share (a little more than the quarter, as a calm sea's ripples are flatter here than a real one's), and
-// the depth it is taken over at most (m).
-const float BENDS = 0.3;
+// that share, and the depth it is taken over at most (m). (At 0.3 a stone's width changed by a third from one
+// moment to the next: if what is under the water still wobbles too much on the phone, this is the number.)
+const float BENDS = 0.25;
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (But for its first depths at a shore the surface is drawn over the frame's own ground, which is sharper than
 // the picture: the picture comes in between these depths, m.)
@@ -1243,9 +1243,14 @@ void main() {
   if (readsPicture > 0.5) {
     vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;
     vec3 slopeAsSeen = mat3(viewMatrix) * vec3(surfaceSlope.x, 0.0, surfaceSlope.y);
-    vec2 bentBy = slopeAsSeen.xy * uPictureScale
-      * (BENDS * min(waterDepth, BENDS_NO_DEEPER_THAN) / max(cameraDistance, 0.5));
-    behind = texture2D(uUnderWaterPicture, onPicture + bentBy);
+    vec2 bentAMetreDown = slopeAsSeen.xy * uPictureScale * (BENDS / max(cameraDistance, 0.5));
+    // A thing is moved by its own depth under the surface: the top of a coral head hardly at all, the sand at its
+    // foot by more. So the picture is read twice: first as if all behind this spot lay as deep as the floor,
+    // to find what is there and how deep it lies, and then by that depth. (Moved all alike, by the floor's
+    // depth, a head and the ground round it shifted as one flat picture.)
+    vec4 found = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * min(waterDepth, BENDS_NO_DEEPER_THAN));
+    float itsDepth = clamp(depthHeld(found.a) + liftOverSea, 0.0, BENDS_NO_DEEPER_THAN);
+    behind = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * itsDepth);
     if (behind.a < 0.004) behind = texture2D(uUnderWaterPicture, onPicture);
   }
 

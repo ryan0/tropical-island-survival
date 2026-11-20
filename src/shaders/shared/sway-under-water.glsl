@@ -2,9 +2,12 @@
 // little: things on the floor sway, further the deeper they lie, where a pane of glass would show them still. The
 // scene is not drawn through the water, so the sway is given to the things themselves: every vertex under the sea
 // is moved sideways by three long ripples crossing, the same for the ground and for whatever stands on it, so that
-// nothing slides over anything else. Only for an eye above the water, and not with the sea drained (uDebugMode 5).
+// nothing slides over anything else. Only where the things under the sea stand for the surface's bending
+// themselves (seen-through-surface.glsl): not where the surface bends a picture of them.
 //
-// Needs the uniforms uTime, uSeaLevel, uWind, uCameraPosition and uDebugMode.
+// Needs the uniforms uTime, uSeaLevel, uWind, uCameraPosition, uDebugMode and uPictureDrawn.
+
+#include "seen-through-surface"
 
 // Metres of sway for each metre of depth in the usual breeze; the share of that left in a calm; and the depth past
 // which it grows no more.
@@ -22,11 +25,10 @@ const vec3 SWAY_RIPPLE_C = vec3(1.1, 1.1, 0.8);
 // How far a point in the world is seen to one side of where it lies.
 vec3 swayUnderWater(vec3 worldPosition) {
   float depth = min(max(uSeaLevel - worldPosition.y, 0.0), SWAY_DEEPEST);
-  float seenThroughSurface = step(uSeaLevel, uCameraPosition.y) * step(uDebugMode, 4.5);
   vec2 sway = SWAY_RUNS_A * SWAY_RIPPLE_A.z * sin(dot(worldPosition.xz, SWAY_RUNS_A) * SWAY_RIPPLE_A.x + uTime * SWAY_RIPPLE_A.y)
     + SWAY_RUNS_B * SWAY_RIPPLE_B.z * sin(dot(worldPosition.xz, SWAY_RUNS_B) * SWAY_RIPPLE_B.x - uTime * SWAY_RIPPLE_B.y)
     + SWAY_RUNS_C * SWAY_RIPPLE_C.z * sin(dot(worldPosition.xz, SWAY_RUNS_C) * SWAY_RIPPLE_C.x + uTime * SWAY_RIPPLE_C.y);
   float inWind = mix(SWAY_IN_A_CALM, 1.0, smoothstep(0.0, 0.66, uWind));
-  sway *= SWAY_A_METRE_DOWN * depth * inWind * seenThroughSurface;
+  sway *= SWAY_A_METRE_DOWN * depth * inWind * thingsBendThemselves();
   return vec3(sway.x, 0.0, sway.y);
 }

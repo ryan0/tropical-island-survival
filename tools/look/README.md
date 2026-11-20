@@ -75,6 +75,12 @@ node tools/look/draw-views.ts node_modules/.cache/look/fly-round --group flyRoun
 `--bent` draws any group with the trial of the picture of what is under the sea switched on
 (`src/sea/under-water-picture.ts`).
 
+A still cannot show one thing sliding over another: rocks slid over the ground under the trial, and no
+picture here showed it. `--later 0.6` draws each view a second time, that many seconds on; lay the two side by
+side, or take their difference (`ffmpeg ... blend=all_mode=difference`): what stands on the floor and the
+floor's own markings must move together, and with nothing bending them (the surface's bend set to nought for
+one build) must not move at all.
+
 The sand's ripples have a group of their own, `ripples`: straight down from 3 m in every quarter of the atoll,
 and from 6 m at dusk. A fault in them shows only from above and enlarged, and best of all in their picture
 drawn by itself, lit from one side and tiled, which is where to look first.

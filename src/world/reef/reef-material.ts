@@ -2,7 +2,7 @@ import { MeshLambertMaterial, type IUniform } from 'three';
 import { CAUSTICS_BRIGHTEST } from '../../shaders/caustics-texture';
 import { glslFloat, glslVec3 } from '../../shaders/defines';
 import { withColouring } from '../../shaders/sunlight-under-water';
-import { SWAY_DECLARATIONS, swayOf } from '../../shaders/sway-under-water';
+import { SWAY_DECLARATIONS, SWAY_UNIFORMS, swayOf } from '../../shaders/sway-under-water';
 import colourShader from './coral-colour.glsl';
 import type { CoralSurfacePicture } from './coral-surface-picture';
 import declarations from './coral-declarations.glsl';
@@ -18,6 +18,7 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uCameraPosition',
   'uWind',
+  ...SWAY_UNIFORMS,
 ] as const;
 
 // Where the coral's surface is in the world, and which way it faces: the mottling, the surface's

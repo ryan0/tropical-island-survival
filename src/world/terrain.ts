@@ -12,7 +12,7 @@ import type { Random } from '../core/random';
 import { CAUSTICS_BRIGHTEST } from '../shaders/caustics-texture';
 import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
 import { withColouring } from '../shaders/sunlight-under-water';
-import { SWAY_DECLARATIONS, swayOf } from '../shaders/sway-under-water';
+import { SWAY_DECLARATIONS, SWAY_UNIFORMS, swayOf } from '../shaders/sway-under-water';
 import { createGroundGrit } from './ground-grit';
 import { createGroundNoise, createGroundRandoms } from './ground-noise';
 import type { GroundTiles } from './ground-tiles/ground-tiles';
@@ -45,6 +45,7 @@ const SHARED_UNIFORMS = [
   'uWind',
   'uCameraPosition',
   'uSunDirection',
+  ...SWAY_UNIFORMS,
 ] as const;
 
 export interface TerrainDependencies {
