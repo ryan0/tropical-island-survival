@@ -45,8 +45,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`seenFromUnderWater` in `src/sea/water.frag.glsl`); `src/sea/under-water.ts` owns what hangs in the water,
   but for the bubbles a breaking wave drives down, which are the spray's (`src/sea/bubble-plumes.ts`).
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
-  `docs/ROADMAP.md`. Read it before starting work. The work in hand is the look, against reference photos, in
-  four sittings with Ryan's review after each.
+  `docs/ROADMAP.md`. Read it before starting work: its first section says where things stand and what to do
+  first. The work in hand is the look, against reference photos: the water and its floor, against matched
+  pairs of photograph and view.
 - Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder
   `legacy/` there. Nothing in the repository uses it.
 
@@ -74,9 +75,27 @@ Ryan directs it and judges it on his phone; Claude writes it.
   photo from the same height and light) and the fly-round (from 5 to 40 m up, at noon, dusk and under cloud):
   small pictures from chosen poses at noon hid faults he found at once (`tools/look/README.md`).
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
-- **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
-  for him to review; commits, merges, pushes and anything destructive are his. Put each shell command you ask
-  him to run in its own code block.
+- **Find the cause before mending.** Draw the thing by itself and look, before naming a cause from the code:
+  on 20 November 2026 three causes named from reading were wrong, and each cost a round (`docs/ROADMAP.md`,
+  "Why the passes went round in circles"). A change to how something is drawn is made across the whole code,
+  not in the file in hand (`docs/CODE_STANDARDS.md`, "One owner for each effect").
+- **Ryan commits, merges and deploys.** Edit freely and run safe commands. By default leave the work uncommitted
+  on a branch for him to review; commits, merges, pushes and anything destructive are his. For a long sitting he
+  has each time, when asked in its plan, had milestones committed and pushed to a work branch, so that he can
+  try them from the Pages preview on the phone: ask in each plan, and never merge into `main` or push to it.
+  Put each shell command you ask him to run in its own code block.
+- **Installing is his too.** For a new package or system tool, say what is needed and why, give the command, and
+  carry on with whatever does not need it.
+- **When he steps away,** plan first and briefly; put in the plan the command that keeps his machine awake; on
+  his return give one short report with a before-and-after sheet for each thing, what only the phone can say,
+  and how to compare. A plan in several sittings is run one sitting at a time, with his notes between.
+- **Hours.** Estimates given as a person would work have run to twice what the work took: give what such work
+  has taken before, and never cut quality to meet a figure ("take as much time as you need to get a high
+  quality").
+- **The docs are the memory.** He works from the desktop, a laptop and the phone, with whichever agent is to
+  hand: what a session learns that the next will need goes into `docs/ROADMAP.md` ("Next" says where things
+  stand and what to do first), `docs/LOOK.md`, `docs/DECISIONS.md` and here, before the session ends. The
+  reference photographs are on his desktop only (`docs/reference-photos/README.md`).
 - **Tests must earn their time.** The project is young and how fast we can iterate matters more than coverage.
   Add a test only where it catches what the existing ones cannot; do not add one for each piece of work.
 - **Delegate when it pays.** Hand a piece of work to a smaller model (Opus, Sonnet) when the saving in time or

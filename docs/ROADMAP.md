@@ -5,16 +5,49 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
-**Now (Ryan, 19 November 2026): the look, against references**, in four sittings with his review after each
-("The look, against references", below). The first two are merged; the third, the ground, is on the branch
-`look-3-ground` and the fourth, coral and the night sky, on `look-4-coral-and-sky`, which begins where the
-third ends, both for his review (20 November 2026). His notes on them (soil on the islet; the sea floor's
-patterns) are answered on `look-5-sea-floor`, which begins where the fourth ends ("After the night", below).
-That grew into a plan of its own for the water and its floor, in three sittings against matched photographs
-("The water and its floor against matched photographs", below): the first is done, and the picture of what
-is under the sea that it tried is now the one way the water is drawn. Next: the water's colours and
-clearness against the pairs, then the floor.
-After it comes the much greater variety of plants,
+**Where things stand (20 November 2026, evening; Ryan is away for the weekend and may go on from a laptop or
+the phone with another agent).**
+
+- *Branches.* `main` holds the look's first two sittings (colours; under water). Three branches are stacked on
+  it, each begun where the one before ends, all pushed and none merged: `look-3-ground` (the ground and what
+  lies on it), `look-4-coral-and-sky` (coral, the reef's floor, the night sky), `look-5-sea-floor` (soil; the
+  sea floor redrawn; the water drawn over a picture of what is under it). Ryan has looked at all three: of
+  the third and fourth, "much better"; the fifth he has worked through with Claude all day, from the Pages
+  preview (`preview/look-5-sea-floor/`) and the desktop. Merging is his: merging `look-5-sea-floor` brings
+  all three. Work goes on on `look-5-sea-floor` (or a branch from it), committed and pushed at each stopping
+  place, as he has agreed for this effort; `main` is never touched.
+- *The phone:* a steady 60 frames a second on `look-5-sea-floor`, with rare dips, with the picture of what is
+  under the sea drawn every frame.
+- *The work in hand* is "The water and its floor against matched photographs" (its plan is far below, with a
+  section for each day's work after it). Done: the targets (eight pairs and a fly-round); the three faults
+  first found; the picture of what is under the sea, now the one way the water is drawn, with every older rule
+  it replaced deleted. In hand or next, in this order:
+  1. *What is seen through the surface is where the bent ray lands.* (See "The islet's shore" below, if it is
+     there; if not, it is still to do: from the lagoon islet the water by its shore is a flat cyan band with
+     a dark stepped line at the waterline.)
+  2. *Colours and clearness against the pairs* (the plan's stage D): shallow water over white sand is all but
+     colourless for its first half metre, where ours is turquoise from the first step; far water at a low
+     angle is the sky's mirror, where ours shows its floor; a lagoon at dusk is all mirror, where ours is blue
+     with its floor showing. The numbers are in `src/shaders/shared/water-veil.glsl` (the water's colour, its
+     glow, how soon it hides) and the mirror's in `src/sea/water.frag.glsl` ("What the surface mirrors").
+     Real lagoon water is clearer than ours: sand shows at 10 to 20 m, where ours hides two thirds by 4.6 m
+     (`HIDES_BY_METRES`); the research is `docs/research/water-hiding-its-floor.md`.
+  3. *The floor against the pairs* (stage E): patches of reef that are soft and mottled, not cut out; the
+     ripples' size and evenness from standing height; rubble painted for the reef (the bed of it is the land's
+     gravel and reads as crazy paving); structure at the middle distance. The ground's shader reads 16
+     pictures, all there are (`DEVICE_NOTES.md`): more would mean stacking them in one.
+  4. *Checks, the phone, the docs* (stage F).
+- *How a pass is judged*, since judging it otherwise cost a day: at the size Ryan sees the game, on the pairs
+  and the fly-round (`tools/look/README.md`), with the thing in question drawn by itself and enlarged before
+  a cause is named, and two frames a moment apart for anything that moves. The photographs are on his desktop
+  only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
+  our own views can be drawn and compared anywhere.
+- *Waiting on Ryan:* the three branches to merge; the wording of the standard "One owner for each effect"
+  (`CODE_STANDARDS.md`), which was added at his word but not read by him; whether the water should be as
+  clear as a real lagoon's; the proposal "many more kinds at a flat cost" (below); six finished agents'
+  worktrees on his desktop to clear away (`.claude/worktrees/`).
+
+After the look comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
 many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
 comes after.
