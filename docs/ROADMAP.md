@@ -1483,6 +1483,9 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
   nuts where there were 240 and 70, and most of the nuts are weathered grey (`plants-config.ts`,
   `fallenFromPalms`). The other things on the ground after them in the plants' stream (vine mats, lumps of
   coral, stumps) stand in new places for it.
+- *The modelled vine mats* that stand among the painted creepers were a brighter, purer green than they are,
+  with leaves of four straight edges: their leaves are now the creepers' olive and cut rounder
+  (`things-on-the-ground.ts`).
 - *How green the floor is* is one number (`terrain-colour.glsl`, `LOW_PLANTS`, its first part): where the
   ground is lush the creepers close into mats, and elsewhere it is bare gravel and litter. It was raised a
   step from the first try, which was greyer than most of the photographs' groves.
@@ -1545,7 +1548,7 @@ times the desktop's 0.3 s more, by the usual ratio); whether the pictures shimme
   crossing of the sky not in motion at all.
 - What is left of what "The look, against references" (above) is to cure: coral as smooth lumps; stars that
   are squares of one size. (Each sitting's "Known, and left" says what it did not cure in its own subject.)
-- Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
+- Short turf is sparse flat cut-outs; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
   films from the desktop only. Spray has only been tuned on stills.
