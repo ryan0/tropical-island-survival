@@ -64,9 +64,10 @@ export function simpleBushyCoral(random: Random): BufferGeometry {
   ]);
 }
 
-// A staghorn's branches: how many spring from its foot, how thick they are there, and how many
-// sides a branch is cut with (with four, a branch close to was a plank).
-const STAGHORN = { stems: 5, stemRadius: 0.034, sides: 6, tipSides: 5 };
+// A staghorn's branches: how many spring from its foot, how thick they are there, how many sides a
+// branch is cut with (with four, a branch close to was a plank), and how many each forks into,
+// twice over: a thicket, not a candelabrum.
+const STAGHORN = { stems: 5, stemRadius: 0.034, sides: 6, tipSides: 5, forks: 3 };
 
 /** Staghorn coral: a thicket of thin forking branches, pale at the tips. */
 export function staghornCoral(random: Random): BufferGeometry {
@@ -93,7 +94,7 @@ export function staghornCoral(random: Random): BufferGeometry {
 
     const [dx, dy, dz] = direction;
     const directionLength = Math.hypot(dx, dy, dz);
-    const forkCount = forksLeft > 1 ? 3 : 2;
+    const forkCount = STAGHORN.forks;
     for (let i = 0; i < forkCount; i++) {
       const angle = (i * FULL_TURN) / forkCount + random() * 1.3;
       const spread = 0.5 + random() * 0.35;
