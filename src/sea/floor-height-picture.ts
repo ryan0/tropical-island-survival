@@ -2,18 +2,13 @@ import {
   ClampToEdgeWrapping,
   HalfFloatType,
   LinearFilter,
-  Mesh,
-  OrthographicCamera,
-  PlaneGeometry,
   RedFormat,
-  Scene,
-  ShaderMaterial,
   WebGLRenderTarget,
   type Texture,
   type WebGLRenderer,
 } from 'three';
 import { glslFloat } from '../shaders/defines';
-import wholePictureShader from '../sky/whole-picture.vert.glsl';
+import { drawPictureOnce } from '../shaders/picture-drawn-once';
 import bakeShader from './floor-height-picture.frag.glsl';
 import { seaConfig } from './sea-config';
 
@@ -51,26 +46,8 @@ export function createFloorHeightPicture(renderer: WebGLRenderer): Texture | nul
     depthBuffer: false,
     stencilBuffer: false,
   });
-  const material = new ShaderMaterial({
-    defines: {
-      FLOOR_HEIGHT_SPAN: glslFloat(config.span),
-      FLOOR_HEIGHT_SIZE: glslFloat(config.size),
-    },
-    depthTest: false,
-    depthWrite: false,
-    vertexShader: wholePictureShader,
-    fragmentShader: bakeShader,
+  return drawPictureOnce(renderer, picture, bakeShader, {
+    FLOOR_HEIGHT_SPAN: glslFloat(config.span),
+    FLOOR_HEIGHT_SIZE: glslFloat(config.size),
   });
-  const quad = new Mesh(new PlaneGeometry(2, 2), material);
-  quad.frustumCulled = false;
-  const scene = new Scene();
-  scene.add(quad);
-
-  const drawnIntoBefore = renderer.getRenderTarget();
-  renderer.setRenderTarget(picture);
-  renderer.render(scene, new OrthographicCamera(-1, 1, 1, -1, 0, 1));
-  renderer.setRenderTarget(drawnIntoBefore);
-  quad.geometry.dispose();
-  material.dispose();
-  return picture.texture;
 }

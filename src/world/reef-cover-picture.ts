@@ -1,19 +1,14 @@
 import {
   ClampToEdgeWrapping,
   LinearFilter,
-  Mesh,
-  OrthographicCamera,
-  PlaneGeometry,
   RGBAFormat,
-  Scene,
-  ShaderMaterial,
   UnsignedByteType,
   WebGLRenderTarget,
   type Texture,
   type WebGLRenderer,
 } from 'three';
 import { glslFloat } from '../shaders/defines';
-import wholePictureShader from '../sky/whole-picture.vert.glsl';
+import { drawPictureOnce } from '../shaders/picture-drawn-once';
 import bakeShader from './reef-cover-picture.frag.glsl';
 import { worldConfig } from './world-config';
 
@@ -43,26 +38,8 @@ export function createReefCoverPicture(renderer: WebGLRenderer): Texture {
     depthBuffer: false,
     stencilBuffer: false,
   });
-  const material = new ShaderMaterial({
-    defines: {
-      REEF_COVER_SPAN: glslFloat(config.span),
-      REEF_COVER_SIZE: glslFloat(config.size),
-    },
-    depthTest: false,
-    depthWrite: false,
-    vertexShader: wholePictureShader,
-    fragmentShader: bakeShader,
+  return drawPictureOnce(renderer, picture, bakeShader, {
+    REEF_COVER_SPAN: glslFloat(config.span),
+    REEF_COVER_SIZE: glslFloat(config.size),
   });
-  const quad = new Mesh(new PlaneGeometry(2, 2), material);
-  quad.frustumCulled = false;
-  const scene = new Scene();
-  scene.add(quad);
-
-  const drawnIntoBefore = renderer.getRenderTarget();
-  renderer.setRenderTarget(picture);
-  renderer.render(scene, new OrthographicCamera(-1, 1, 1, -1, 0, 1));
-  renderer.setRenderTarget(drawnIntoBefore);
-  quad.geometry.dispose();
-  material.dispose();
-  return picture.texture;
 }

@@ -1156,8 +1156,9 @@ and it is counted against its class's line of the budget before it is merged.
 
 ## Weak points
 
-- The moonlit night has been judged on stills from the desktop only, against no photos. Under water at night
-  the light still has the low sun's warm cast.
+- The moonlit night has been judged on stills from the desktop only, against no photos. The moon's path is
+  the sun's own, which is up for two thirds of the day: so the full moon is already high in the south at dusk
+  and still there at dawn, where a real one rises as the sun sets. A truer path can come with its phases.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
