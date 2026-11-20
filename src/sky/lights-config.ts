@@ -37,10 +37,10 @@ export const lightsConfig = {
 
   hemisphere: {
     /** Light from the sky, red, green, blue, with the sun low and by day. */
-    skyInLowSun: [0.74, 0.66, 0.74],
+    skyInLowSun: [0.68, 0.7, 0.8],
     skyByDay: [0.78, 0.9, 1.06],
     /** Light bounced up off the sand, with the sun low and by day. */
-    groundInLowSun: [0.62, 0.42, 0.34],
+    groundInLowSun: [0.6, 0.5, 0.4],
     groundByDay: [0.86, 0.78, 0.6],
     /**
      * And at night, from the sky and off the sand: both cold. (With the low sun's colours kept on

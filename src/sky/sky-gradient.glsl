@@ -7,9 +7,9 @@
 
 const vec3 DAY_HAZE_WARMTH = vec3(0.10, 0.08, 0.05);
 const vec3 GOLDEN_HOUR_COLOUR = vec3(1.0, 0.80, 0.52);
-const vec3 SUNSET_FIRE_COLOUR = vec3(0.95, 0.34, 0.10);
-const vec3 EARTHS_SHADOW_COLOUR = vec3(0.56, 0.40, 0.62);
-const vec3 EVENING_PINK_COLOUR = vec3(0.98, 0.60, 0.55);
+const vec3 SUNSET_FIRE_COLOUR = vec3(0.90, 0.45, 0.12);
+const vec3 EARTHS_SHADOW_COLOUR = vec3(0.46, 0.42, 0.56);
+const vec3 EVENING_PINK_COLOUR = vec3(0.86, 0.62, 0.56);
 
 // bearing: which way round the horizon, a unit vector (x, z). aboveHorizon: 0 at the horizon to 1 overhead (the
 // direction's y).
@@ -35,13 +35,13 @@ vec3 skyGradient(vec2 bearing, float aboveHorizon) {
 
     // Towards evening: fire low down on the sun's side, a mauve band (the earth's shadow rising) on the other, and
     // a wash of pink above both.
-    sky += SUNSET_FIRE_COLOUR * evening * smoothstep(-0.3, 1.0, towardsSun) * exp(-aboveHorizon * 6.0) * 0.55;
-    float earthsShadow = evening * smoothstep(0.3, -0.9, towardsSun) * exp(-aboveHorizon * 5.0) * 0.65;
+    sky += SUNSET_FIRE_COLOUR * evening * smoothstep(-0.3, 1.0, towardsSun) * exp(-aboveHorizon * 6.0) * 0.35;
+    float earthsShadow = evening * smoothstep(0.3, -0.9, towardsSun) * exp(-aboveHorizon * 5.0) * 0.5;
     sky = mix(sky, EARTHS_SHADOW_COLOUR, earthsShadow);
     // (squared by multiplying: pow of a negative number is undefined, and below the band this is negative)
     float fromBandMiddle = (aboveHorizon - 0.16) / 0.12;
     float pinkBand = exp(-fromBandMiddle * fromBandMiddle);
-    sky = mix(sky, EVENING_PINK_COLOUR, evening * pinkBand * 0.28);
+    sky = mix(sky, EVENING_PINK_COLOUR, evening * pinkBand * 0.10);
   }
   return sky;
 }

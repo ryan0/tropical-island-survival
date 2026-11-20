@@ -152,7 +152,7 @@ const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
 // The water under a white horse's foam.
 const vec3 UNDER_WHITECAP = vec3(0.34, 0.66, 0.74);
 // Foam: its colour with the sun at the horizon; thin foam; foam turned away from the sun.
-const vec3 LOW_SUN_FOAM = vec3(1.0, 0.8, 0.75);
+const vec3 LOW_SUN_FOAM = vec3(1.0, 0.86, 0.74);
 const vec3 MOONLIT_FOAM = vec3(0.66, 0.78, 1.0);
 const vec3 THIN_FOAM = vec3(0.66, 0.90, 0.92);
 // How much of what is under it thin foam hides, against thick foam's all.
