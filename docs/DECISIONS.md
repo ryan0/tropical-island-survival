@@ -69,6 +69,10 @@ the git tag `build-78`.
 17. **Clouds are real volumes, drawn slowly** [23_clouds.js]. The sky is ray-marched into three wide pictures, one
     slice per frame, and the sky blends between them as the clouds drift. The same cloud field shades the island,
     dims the sun and shows in the water.
+    The stars are points, the real bright ones in their places, and the Milky Way and the moon's face are
+    pictures made at start-up (20 November 2026, `ROADMAP.md`, "The fourth sitting"): arithmetic for every dot
+    of sky gave stars that were squares and a galaxy of noise. The whole field turns about the pole with the
+    day, for an island taken to lie 7 degrees north.
 18. **The sunset is kept clear.** The cloud field leaves lanes towards sunset and sunrise so cloud never walls
     them off.
 

@@ -20,7 +20,7 @@ import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { seaConfig } from '../sea/sea-config';
 import { reefConfig } from './reef/reef-config';
 import { createReefCoverPicture } from './reef-cover-picture';
-import { createSandRipplesPicture } from './sand-ripples-picture';
+import { createSandRippleSlopes } from './sand-ripples';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { createTerrainShape, cutIntoTiles } from './terrain-shape';
@@ -150,12 +150,14 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const corners = shape.getAttribute('position') as BufferAttribute;
   shape.setAttribute('color', new BufferAttribute(cornerColours(corners, shape), 3));
   shape.computeVertexNormals();
-  const grit = createGroundGrit(random);
+  const grit = createGroundGrit(
+    random,
+    createSandRippleSlopes(dependencies.randomOfRipples, worldConfig.terrain.gritSize),
+  );
   const groundNoise = createGroundNoise();
   const groundRandoms = createGroundRandoms();
   const reefCover = createReefCoverPicture(renderer);
   const turfPatterns = createTurfPicture(renderer);
-  const sandRipples = createSandRipplesPicture(dependencies.randomOfRipples);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
@@ -176,7 +178,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     GRAVEL_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.gravel),
     LITTER_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.litter),
     LOW_PLANTS_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.lowPlants),
-    SAND_RIPPLES_SPAN: glslFloat(sandRipples.span),
+    SAND_RIPPLES_SPAN: glslFloat(worldConfig.sandRipples.span),
   };
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
   material.onBeforeCompile = (shader, renderer) => {
@@ -189,7 +191,6 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     shader.uniforms.uGravelTile = { value: groundTiles.gravel.texture };
     shader.uniforms.uLitterTile = { value: groundTiles.litter.texture };
     shader.uniforms.uLowPlantsTile = { value: groundTiles.lowPlants.texture };
-    shader.uniforms.uSandRipples = { value: sandRipples.texture };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2
@@ -204,7 +205,12 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     shader.fragmentShader =
       canMeasureAcrossPixel +
       declarations +
-      withColouring(shader.fragmentShader, `\n#ifndef TERRAIN_BARE\n${colourShader}\n#endif\n`);
+      withColouring(
+        shader.fragmentShader,
+        // (Bare, the ground is its corners' colour with the grit: only the green of the grit's
+        // picture is grit, ground-grit.ts.)
+        `\n#ifndef TERRAIN_BARE\n${colourShader}\n#else\ndiffuseColor.rgb = diffuse * vColor * texelColor.g;\n#endif\n`,
+      );
   };
 
   const tiles = new Group();

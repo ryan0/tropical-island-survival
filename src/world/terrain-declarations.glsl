@@ -34,7 +34,6 @@ uniform sampler2D uTreeCover;       // what stands over the ground (tree-cover-m
 uniform sampler2D uGravelTile;      // coral gravel and rubble, seen from above (ground-tiles.ts)
 uniform sampler2D uLitterTile;      // the trees' litter, likewise
 uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
-uniform sampler2D uSandRipples;     // the ripples in the sand of a shallow sea floor (sand-ripples-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 

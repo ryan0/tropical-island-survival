@@ -1,9 +1,4 @@
-import {
-  CylinderGeometry,
-  Float32BufferAttribute,
-  SphereGeometry,
-  type BufferGeometry,
-} from 'three';
+import { Float32BufferAttribute, SphereGeometry, type BufferGeometry } from 'three';
 import { FULL_TURN, smoothstep, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { bushyCoral, simpleBushyCoral, staghornCoral } from './branching-coral-shapes';
@@ -23,6 +18,9 @@ export interface CoralShapes {
   shapes: BufferGeometry[];
   fromAfar?: BufferGeometry;
 }
+
+/** A table coral's plate: how thick it is at its middle, and how finely the ball it is made from is cut. */
+const TABLE_PLATE = { thickness: 0.035, around: 16, rings: 6 };
 
 /**
  * What a coral's surface is like close to, as shares of the three patterns in the corals' surface
@@ -191,32 +189,38 @@ function simpleLobedCoral(random: Random): BufferGeometry {
   return lobedMound(random, 9, 5);
 }
 
-/** The first plate is the wide one; any above it are smaller and stand off to one side. */
+/**
+ * A table coral's plate: thin, a little dished, its outline uneven and its growing rim pale. The
+ * first plate is the wide one; any above it are smaller and stand off to one side. (As a disc of
+ * sixteen straight sides in one shade, a table seen from above was a flat pale counter.)
+ */
 function tablePlate(lumps: LumpyField, tier: number): BufferGeometry {
   const isUpper = tier > 0;
   const radius = isUpper ? 0.3 : 0.5;
   const height = 0.3 + tier * 0.2;
   const offsetX = isUpper ? 0.12 : 0;
+  const outlinePhase = lumps(tier + 1, 2, 3) * 6;
+  // A corner is moved and then painted: these carry what the moving found to the painting.
+  let isUpperSide = false;
+  let fromMiddle = 0;
   return shapedAndPainted(
-    new CylinderGeometry(radius, radius * 0.72, 0.06, 16, 1),
+    // (a ball, squashed flat: its rings give the plate corners between its middle and its rim)
+    new SphereGeometry(radius, TABLE_PLATE.around, TABLE_PLATE.rings),
     (x, y, z) => {
-      const fromMiddle = Math.hypot(x, z) / radius;
-      const k = 1 + 0.1 * lumps(x * 4, 0, z * 4);
-      return [
-        x * k + offsetX,
-        height + y + 0.07 * fromMiddle * fromMiddle + 0.03 * lumps(x * 5, 1, z * 5),
-        z * k,
-      ];
+      const angle = Math.atan2(z, x);
+      fromMiddle = Math.hypot(x, z) / radius;
+      isUpperSide = y > 0;
+      const outline =
+        1 + 0.1 * lumps(x * 4, 0, z * 4) + 0.08 * Math.sin(angle * 3 + outlinePhase) * fromMiddle;
+      // Thickest at the stalk, a blade at the rim, which turns up a little.
+      const thickness = TABLE_PLATE.thickness * (1 - 0.7 * fromMiddle * fromMiddle);
+      const dish = 0.07 * fromMiddle * fromMiddle + 0.03 * lumps(x * 5, 1, z * 5);
+      return [x * outline + offsetX, height + (y / radius) * thickness + dish, z * outline];
     },
-    (x, y, z) => {
-      const fromMiddle = Math.hypot(x - offsetX, z) / radius;
-      const isUpperSide = y - height > 0.03 * fromMiddle;
-      return (
-        (isUpperSide ? 0.95 : 0.7) +
-        0.3 * smoothstep(0.7, 1.05, fromMiddle) +
-        0.08 * lumps(x * 9, 2, z * 9)
-      );
-    },
+    (x, y, z) =>
+      (isUpperSide ? 0.82 : 0.58) +
+      0.36 * smoothstep(0.62, 1, fromMiddle) +
+      0.1 * lumps(x * 9, 2, z * 9),
   );
 }
 

@@ -26,7 +26,10 @@ Ryan directs it and judges it on his phone; Claude writes it.
   trees' litter and creepers are pictures of the real things laid over it (`src/world/ground-tiles/`), by the
   land's broad patterns and a map of what stands over each spot (`src/world/tree-cover-map.ts`). One
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
-  the sun sets and crosses the sky through the night.
+  the sun sets and crosses the sky through the night, among stars that are points, the bright ones in their
+  real places, turning about the pole (`src/sky/stars.ts`).
+- A coral is known by its surface: a picture of real ones (`src/world/reef/coral-surface-picture.ts`) is read
+  by the coral's shader, and each model says which surface it has. A coral head is one great boulder coral.
 - To an eye under water, the water between it and a thing takes the thing's colour with distance, red first
   (`src/shaders/shared/through-water.glsl`). Every material gets that from three.js's fog, which has a second
   case for it (`src/sea/water-as-fog.ts`); the surface from below is a window of sky and a mirror beyond it

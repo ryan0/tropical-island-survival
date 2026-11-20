@@ -227,10 +227,17 @@ several kinds on top; clams; reef fish in small parties that spread through the 
 Ryan plans more reef passes later.
 
 *Rejected:* kelp (replaced by short sea grass); bare platform tops; heads that sat on the sand without blending in;
+heads as platforms of cracked rock; one lacy mottle on every kind of coral; a table coral as a flat many-sided
+disc; coral 56 degrees too green from under water;
 the old-reef ground round a head ending in a straight line at the waterline where the head stands near the beach
 ("weird/hard cutoff", 19 November 2026).
 
 *Still weak (Ryan, 19 November 2026):* "the coral and other under water textures need refining".
+
+*Now (20 November 2026, for Ryan to judge):* a head is one great boulder coral, its sides alive and lobed and
+its flat top dead rock; each kind of coral has its own surface close to (a brain coral's grooves, a boulder
+coral's skin, warts); tables are thin uneven plates with pale rims; the sand of a shallow floor is rippled;
+rubble is the gravel's picture (`ROADMAP.md`, "The fourth sitting").
 
 *References for it,* in `reference-photos/coral/`: 28 photos from Wikimedia Commons, gathered the same day
 (`SOURCES.md` there), all but one in natural light, most from Rose Atoll, Kingman Reef, French Frigate Shoals,
@@ -250,6 +257,14 @@ American Samoa, the Maldives, Réunion and the Torres Strait. What they show:
   (`pocillopora-verrucosa-on-rubble-maldives`); crusting pink algae is a dusty salmon
   (`coralline-algae-encrusted-coral-rose-atoll`); sea grass is sparse green blades on grey-white sand
   (`seagrass-thalassia-sand-floor-vanuatu`).
+
+*More,* gathered 20 November 2026 (nine, in the same folder): four boulder corals seen whole from the side,
+khaki domes of close-packed lumps standing on sand or rubble, one with a diver for scale, two to three metres
+high (`porites-lobata-dome-on-sand-side-reunion`, `porites-lobata-big-round-head-with-diver-guam`,
+`porites-domes-field-american-samoa`); a mushroom-shaped bommie on white sand; patch reefs from the air and
+from a boat, round and dark in a pale lagoon (`fakarava-lagoon-patch-reefs-from-air`); ripples in lagoon sand
+seen from a drone (`maldives-meeru-rippled-lagoon-sand-from-drone`). Not found: coral rubble under water;
+sand ripples from under water.
 
 Not found: ripple marks on a sand floor; a microatoll at a useful size.
 
@@ -403,8 +418,20 @@ sets, pale in the dusk with a path of glitter under it, crosses the sky at an ev
 sea from home at midnight and sets in the west at dawn; its disc as wide as the sun's, with grey seas and a
 darker limb; its light cold and strong enough to walk by, with the palms' shadows on pale sand, long while it
 is low; the sky's own light cold too, where the low sun's warm colours had been kept on through the night;
-foam cold, not tan. No references yet: photos of a moonlit beach would be the thing to tune it against. Phases
-are to come (`sky-config.ts`, `moonBehindSun`).
+foam cold, not tan. Phases are to come (`sky-config.ts`, `moonBehindSun`).
+
+*The night sky (20 November 2026, for Ryan to judge):* stars as points of every brightness, the brightest of
+them the real ones in their places, turning about the pole through the night; the Milky Way a pale knotted
+band split by its rift, bright towards Scorpius; the moon's face the real one's; the moonlit sky a deep blue
+(`ROADMAP.md`, "The fourth sitting"). Nine more photographs were gathered for it, into the same folder: four
+of the Milky Way (`faint-milky-way-and-stars-in-sky-glow` is the nearest to what the eye sees: a faint haze),
+two star fields (`queenstown-southern-cross-star-field`: sparse, as the eye has them under a moon), the moon's
+path on a dark sea twice (`andaman-moon-and-moon-path-on-dark-sea`: a slate sky, a small moon, a silver
+path), and the full moon small and high over a dark sea. None is quite what the eye sees: a camera shows more
+stars and more colour.
+
+*Rejected:* stars as squares of one size; the Milky Way as a broad band of blue noise over half the sky; a
+moon whose seas were noise; a moonlit sky that was black.
 
 ## Props
 

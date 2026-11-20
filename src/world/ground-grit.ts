@@ -1,6 +1,7 @@
 import { CanvasTexture, RepeatWrapping } from 'three';
 import { createCanvas } from '../core/canvas';
 import type { Random } from '../core/random';
+import type { SandRippleSlopes } from './sand-ripples';
 import { worldConfig } from './world-config';
 
 export interface GroundGrit {
@@ -44,8 +45,12 @@ function createClumps(random: Random, cells: number): (u: number, v: number) => 
  * The ground's grit: every dot a slightly different grey (grains of sand) over soft clumps a few
  * dots and a few dozen dots across, with scattered round specks. One dot is about 1.4 cm on
  * the ground and the picture repeats every 3.5 m; all of it wraps at the edges.
+ *
+ * The grit is the picture's green. Its red and blue carry something else altogether, which the
+ * ground's colouring reads at a scale of its own: the slopes of the sea floor's sand ripples
+ * (sand-ripples.ts), across and down, a half being level. `ripples` must be of `gritSize` dots.
  */
-export function createGroundGrit(random: Random): GroundGrit {
+export function createGroundGrit(random: Random, ripples: SandRippleSlopes): GroundGrit {
   const { canvas, context } = createCanvas(SIZE, SIZE, 'the ground grit');
 
   const picture = context.createImageData(SIZE, SIZE);
@@ -80,9 +85,9 @@ export function createGroundGrit(random: Random): GroundGrit {
   let sum = 0;
   for (let i = 0; i < dots; i++) {
     const value = Math.max(0, Math.min(255, Math.round(150 + 105 * grey[i])));
-    picture.data[i * 4] = value;
+    picture.data[i * 4] = Math.round(127.5 + 127.5 * ripples.across[i]);
     picture.data[i * 4 + 1] = value;
-    picture.data[i * 4 + 2] = value;
+    picture.data[i * 4 + 2] = Math.round(127.5 + 127.5 * ripples.down[i]);
     picture.data[i * 4 + 3] = 255;
     sum += value;
   }

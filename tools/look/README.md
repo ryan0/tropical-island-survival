@@ -39,7 +39,9 @@ node tools/look/colour-board.ts tools/look/boards/under-water.json node_modules/
 ```
 
 The ground has a group of views and a board too (`--group ground`, `boards/ground.json`): the floor of the
-grove, gravel, litter and low plants.
+grove, gravel, litter and low plants. The corals and the reef's floor close to are the group `reef` (the
+under-water board measures coral from them), and the night sky the group `nightSky`, which has no board: a
+photograph of the night is never what the eye saw.
 
 To move a colour of ours by a measured amount (here: seven tenths of its saturation, ten degrees towards green,
 a little lighter), and get it back as the code writes it:
@@ -65,7 +67,7 @@ node tools/look/contact-sheet.ts node_modules/.cache/look/sheet.png reference-ph
 
 | File | What it holds |
 |---|---|
-| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground` |
+| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `nightSky` |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |

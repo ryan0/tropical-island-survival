@@ -7,9 +7,11 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 **Now (Ryan, 19 November 2026): the look, against references**, in four sittings with his review after each
 ("The look, against references", below). The first two are merged; the third, the ground, is on the branch
-`look-3-ground` for his review (20 November 2026). After it comes the much greater variety of plants, rocks, ground and
-props that the groundwork prepared for, by the proposal he has still to decide ("A proposal: many more kinds
-at a flat cost"). The list that follows is the order agreed before that, and stands for what comes after.
+`look-3-ground` and the fourth, coral and the night sky, on `look-4-coral-and-sky`, which begins where the
+third ends, both for his review (20 November 2026). After it comes the much greater variety of plants,
+rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
+many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
+comes after.
 
 1. **The breaking wave, pass 1: its timing, on a picture of the sea floor.** How often waves come, sets and
    lulls, speed from depth, the stand-up, the lip under gravity, the landing, and the break running along the
@@ -1518,6 +1520,105 @@ with `more dots` on, then with `plain ground` on as well: if the ground costs fr
 lower is the pictures' anisotropic filtering, `ground-tiles.ts`); how long the start-up now is (some four
 times the desktop's 0.3 s more, by the usual ratio); whether the pictures shimmer as the eye moves.
 
+### The fourth sitting: coral, the reef's floor, the night sky (20 November 2026)
+
+On the branch `look-4-coral-and-sky`, which begins where `look-3-ground` ends.
+
+**Coral** (`world/reef/`). The photographs (28, and nine more gathered for this sitting: four Porites heads
+seen whole, a bommie on sand, patch reefs from above): a coral is known by its surface, a brain coral's winding
+grooves, a boulder coral's fine velvet skin over lumps a hand across, the close warts of the branching kinds;
+and a head is one great dome, not a rock with things on it. Ours were smooth lumps under one blotchy mottle,
+on platforms of cracked rock.
+
+- *Each kind has its surface.* A picture made at start-up (`coral-surface-picture.ts`, built by an Opus agent
+  to a brief and judged on lit balls beside the photographs: 512 dots for half a metre) holds a brain coral's
+  ridges, a boulder coral's skin and warts, a pattern to a channel; each model says which it has (an attribute
+  on its corners), and the shader lays the picture on from three sides by the way the surface faces, darkening
+  the hollows. Of the lobed mounds every other model is a brain coral. The old mottle, the water's net of
+  lines read small, is gone: it smeared every kind with the same lace.
+- *A head is a great boulder coral* grown up to the surface: its sides alive, in big lobes with creases
+  between, khaki; its flat top dead rock, pale, crusted pink and tufted green, on which the others stand. It is
+  drawn with the coral's material where it was drawn with the rocks' (and the rubble round its foot is dead
+  coral, likewise). Its sides go on down in a skirt, so that a head on a slope does not hang in the water on
+  its downhill side.
+- *Shapes.* A table's plate is thin, dished and uneven in outline, with a pale growing rim (it was a disc of
+  sixteen straight sides in one shade, a counter from above); a staghorn has five thin stems where it had
+  three thick ones, cut round; a bush's stubs are cut with five sides where they had three.
+- *Round things look round.* Under water the light comes from all sides and a branch was a flat plank: a
+  surface seen edge on is now darker than one seen square on. The net of light falls by the way a surface
+  faces, where every coral was taken to face half up.
+- *Colour.* The tints are what photographs taken under water measure, and since the second sitting the water
+  between a coral and the eye takes red of its own: so coral a few metres off was 56 degrees too green. Each
+  tint is now multiplied by what it is out of the water (`reef-config.ts`, `outOfWater`), a middle course:
+  from under water coral two or three metres off measures 15 degrees warmer than the photographs, and from
+  above the water 11 to 32 degrees greener (it was 31 to 51).
+
+**The reef's floor** (`terrain-colour.glsl`, "The reef flat").
+
+- *Ripples in the sand* of a shallow floor, where the water is between a quarter of a metre and some five
+  deep: long low ridges a hand's length apart, across the way the waves come (east and west on the ocean's
+  reef, north and south in the lagoon), wandering and fading out in patches, shaded against the sun. They are
+  a picture of slopes (`sand-ripples.ts`) kept in two unused channels of the grit's picture.
+- *Rubble.* The reef's hard floor and the old reef round a head took their stones from arithmetic, a pebble to
+  a square; they now take them from the gravel's picture, as the land does.
+
+**The night sky** (`sky/`; built by an Opus agent to a brief, then tuned).
+
+- *Stars are points* (`stars.ts`): 4200, of which 139 stand where the real ones do (Scorpius with Antares, the
+  Teapot, the summer triangle, the Dipper, the Southern Cross and its Pointers, Orion and Sirius in their
+  season), the rest scattered, three times as many at each magnitude fainter and more of them towards the
+  Milky Way. The brightest are soft spots a few dots across and the faintest about one; most are near white,
+  a few faintly blue or orange. They turn about a pole 7 degrees above the northern horizon once a day; they
+  come out as the light goes; they are dimmer and warmer low down; the faint ones go near the moon; clouds,
+  palms and the island hide them. (They were one sky-cube in 400 filled in: squares of one size.)
+- *The Milky Way is a picture* made at start-up (`milky-way-picture.ts`), laid in the sky where the real one
+  lies among those stars: bright and wide in Sagittarius, split by the Great Rift, knotted, all but gone on
+  the far side. A full moon washes out nearly half of it. (It was a band of noise.)
+- *The moon's face is the real one* (`moon-face-picture.ts`): the seas in their places, Tycho and its rays,
+  Copernicus; its north to the sky's pole, so that it rises tipped over and stands upright in the south.
+- *A moonlit sky is deep blue*, lighter towards the moon: the old band of noise had lit most of the sky by
+  accident, and without it the sky was black.
+- The season is a night of late July (`sky-config.ts`, `starrySky.dueSouthAtMidnight`): the Milky Way's
+  bright middle stands in the south-west at midnight, clear of the moon.
+
+The day's sky and the dusk were measured again and left: the sky high and at the horizon are at the
+photographs' lightness and hue (saturation 1.1 times theirs); at sunset the sky low down is 10 degrees redder
+and the sky high 32 degrees more violet than the photographs' average, which the six photographs differ among
+themselves by more than.
+
+**Measured** (`tools/look/boards/under-water.json` and `colours.json`; a group of views each for the reef and
+the night sky in `look-views.ts`):
+
+| Material | Photos | Before | Now |
+|---|---|---|---|
+| Coral a few metres off, from under water | lightness 0.50, hue 110 | hue +56 | hue -15, lightness -0.08 |
+| Lobed and massive corals, from above | 0.40, 114 | hue +31, lightness +0.15 | hue +11, lightness +0.11 |
+| Table corals, from above | 0.58, 82 | hue +51, lightness +0.07 | hue +32, lightness +0.01 |
+
+**What it costs.** For a dot of coral, three readings of the surface picture and two of the detail texture,
+where there were three of the detail texture (and for a dot of a head, six fewer than the rocks' material
+took). A head is some 2000 triangles within 32 m and 400 beyond, where it was 700. The ground's shader reads
+no more pictures than after the third sitting: 13 of its own, the grit and the shadow map, 15 of the 16 that
+WebGL 2 promises (`DEVICE_NOTES.md`). The sky's dome reads one picture for a dot of night sky where it worked
+out two sky-cubes and five octaves of noise; the stars are 4200 points. The page's start-up is longer: 5.0 s
+before the night, 5.7 s now under the test renderer, of which the ground's three pictures are 0.3 s, the
+coral's 0.1 s and the sky's two 0.2 s.
+
+**Known, and left:** a brain coral's ridges blur into a double image where two of the three sides they are
+laid on from meet; warts on a smooth ball can read as pebbled leather, and a cauliflower coral is still a
+bunch of balls; the corals on a head are scattered as they were, with no kind keeping to its own depth or
+side; a head's dead top is plain; far heads are a green-blue 30 degrees greener than the photographs' (the
+water's own colour, which the second sitting set); the sea at sunset is a brighter, bluer slate than most of
+the photographs (the water was not to be touched in this sitting); the moon is full every night and its path
+is not a real moon's; the Milky Way is plainer than a long exposure shows it, as the eye has it.
+
+**Only the phone can say:** the stars' twinkle and the sky's turning (some 0.6 degrees a second, a ten-minute
+day); how the faintest stars read at the phone's dot size; whether the corals' surfaces shimmer as the eye
+swims; what the coral's shader and the heads' triangles cost beside a reef (read the frame rate under water
+by a head, with `more dots` on, then with the coral hidden); and how much longer the start-up is (on the
+desktop the pictures take some 0.7 s to paint in all: on the phone perhaps two or three seconds. If that is
+too long, the first to make smaller are the ground's three, `ground-tiles/*-config.ts`).
+
 ## Later
 
 - More passes on the reef.
@@ -1532,10 +1633,10 @@ times the desktop's 0.3 s more, by the usual ratio); whether the pictures shimme
 
 ## Weak points
 
-- The moonlit night has been judged on stills from the desktop only, against no photos, and the moon's
-  crossing of the sky not in motion at all.
-- What is left of what "The look, against references" (above) is to cure: coral as smooth lumps; stars that
-  are squares of one size. (Each sitting's "Known, and left" says what it did not cure in its own subject.)
+- The moonlit night has been judged on stills from the desktop only, and the moon's crossing of the sky and
+  the stars' turning not in motion at all.
+- "The look, against references" (above) has had its four sittings: each one's "Known, and left" says what
+  it did not cure in its own subject.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
