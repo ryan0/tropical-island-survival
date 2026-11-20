@@ -99,14 +99,11 @@ export function createReef(dependencies: ReefDependencies): Reef {
         matrix.compose(position.set(coral.x, coral.y, coral.z), lean, scale);
         mesh.setMatrixAt(index, matrix);
 
-        // The sea's dimming with depth is done in the shader, as for the sand; here only a little warmth.
+        // The sea's dimming with depth is done in the shader, as for the sand. (The tints are as photographs
+        // measure them: the warmth once added here made them orange.)
         const tint = config.tints[Math.floor(random() * config.tints.length)];
         const brightness = 0.85 + random() * 0.25;
-        colour.setRGB(
-          tint[0] * brightness * 1.12,
-          tint[1] * brightness * 0.97,
-          tint[2] * brightness * 0.92,
-        );
+        colour.setRGB(tint[0] * brightness, tint[1] * brightness, tint[2] * brightness);
         mesh.setColorAt(index, colour);
       });
       instanceCells.split(mesh, {

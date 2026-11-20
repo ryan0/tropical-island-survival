@@ -2,7 +2,9 @@ import type { Rgb } from '../../core/maths';
 import type { RockSurface } from '../rocks/rocks-config';
 
 // Sizes are metres; a model is about a metre across at size 1. Colours are red, green, blue
-// from 0 to 1, as they are before the water dims them.
+// from 0 to 1, as they are before the water dims them. The corals' tints are what photographs
+// taken in daylight under water measure (reference-photos/coral): tan, mustard, olive and
+// brown, half as light as sand. As pale pastels the corals were "lumps in pastel".
 
 /**
  * Every kind, in the order its meshes are made. The two small kinds are the simple shapes of knob
@@ -50,9 +52,9 @@ export const reefConfig = {
       isRock: true,
       tall: 1,
       tints: [
-        [0.8, 0.73, 0.62],
-        [0.76, 0.71, 0.62],
-        [0.84, 0.75, 0.65],
+        [0.54, 0.5, 0.41],
+        [0.46, 0.45, 0.37],
+        [0.59, 0.53, 0.43],
       ],
     },
     /** Lumps of broken reef rock round the foot of a head. */
@@ -61,10 +63,10 @@ export const reefConfig = {
       isRock: true,
       tall: 0.4,
       tints: [
-        [0.62, 0.58, 0.5],
-        [0.74, 0.7, 0.62],
-        [0.56, 0.54, 0.5],
-        [0.72, 0.62, 0.6],
+        [0.49, 0.45, 0.38],
+        [0.58, 0.55, 0.47],
+        [0.42, 0.41, 0.35],
+        [0.58, 0.48, 0.44],
       ],
     },
     /** Lobed coral (Porites): a mound of smooth rounded lobes. */
@@ -73,11 +75,11 @@ export const reefConfig = {
       isRock: false,
       tall: 0.4,
       tints: [
-        [0.8, 0.72, 0.56],
-        [0.7, 0.7, 0.82],
-        [0.78, 0.72, 0.58],
-        [0.82, 0.74, 0.6],
-        [0.76, 0.68, 0.66],
+        [0.58, 0.49, 0.29],
+        [0.4, 0.43, 0.27],
+        [0.62, 0.54, 0.38],
+        [0.6, 0.52, 0.28],
+        [0.4, 0.47, 0.38],
       ],
       simplerBeyond: 15,
     },
@@ -87,11 +89,11 @@ export const reefConfig = {
       isRock: false,
       tall: 0.5,
       tints: [
-        [0.94, 0.82, 0.72],
-        [0.84, 0.78, 0.9],
-        [0.96, 0.86, 0.7],
-        [0.92, 0.76, 0.78],
-        [0.92, 0.84, 0.72],
+        [0.59, 0.48, 0.39],
+        [0.49, 0.39, 0.29],
+        [0.62, 0.57, 0.45],
+        [0.53, 0.41, 0.39],
+        [0.54, 0.47, 0.35],
       ],
       simplerBeyond: 10,
     },
@@ -101,9 +103,9 @@ export const reefConfig = {
       isRock: false,
       tall: 0.85,
       tints: [
-        [0.84, 0.74, 0.56],
-        [0.7, 0.7, 0.86],
-        [0.86, 0.72, 0.72],
+        [0.5, 0.39, 0.28],
+        [0.46, 0.54, 0.59],
+        [0.64, 0.59, 0.47],
       ],
     },
     /** Table coral: a wide thin plate on a short stalk; the second model has a smaller plate above. */
@@ -112,9 +114,9 @@ export const reefConfig = {
       isRock: false,
       tall: 0.6,
       tints: [
-        [0.8, 0.7, 0.54],
-        [0.74, 0.68, 0.76],
-        [0.84, 0.76, 0.6],
+        [0.54, 0.47, 0.35],
+        [0.6, 0.58, 0.44],
+        [0.5, 0.4, 0.3],
       ],
     },
     /** Cauliflower coral: a tight bunch of knobs. */
@@ -123,9 +125,9 @@ export const reefConfig = {
       isRock: false,
       tall: 0.45,
       tints: [
-        [0.86, 0.72, 0.56],
-        [0.88, 0.68, 0.72],
-        [0.78, 0.72, 0.6],
+        [0.6, 0.55, 0.3],
+        [0.56, 0.43, 0.47],
+        [0.38, 0.44, 0.28],
       ],
       simplerBeyond: 11,
     },
@@ -134,9 +136,9 @@ export const reefConfig = {
       isRock: false,
       tall: 0.45,
       tints: [
-        [0.86, 0.72, 0.56],
-        [0.88, 0.68, 0.72],
-        [0.78, 0.72, 0.6],
+        [0.6, 0.55, 0.3],
+        [0.56, 0.43, 0.47],
+        [0.38, 0.44, 0.28],
       ],
     },
     smallBrain: {
@@ -144,14 +146,14 @@ export const reefConfig = {
       isRock: false,
       tall: 0.4,
       tints: [
-        [0.8, 0.72, 0.56],
-        [0.7, 0.7, 0.82],
-        [0.78, 0.72, 0.58],
-        [0.76, 0.68, 0.66],
+        [0.58, 0.49, 0.29],
+        [0.4, 0.43, 0.27],
+        [0.62, 0.54, 0.38],
+        [0.4, 0.47, 0.38],
       ],
     },
     /** Giant clam: two fat ribbed shells a little open, the fleshy lips between them vivid. */
-    clam: { shapes: 3, isRock: false, tall: 0.4, tints: [[0.92, 0.9, 0.86]] },
+    clam: { shapes: 3, isRock: false, tall: 0.4, tints: [[0.74, 0.7, 0.62]] },
   } satisfies Record<CoralKind, CoralKindConfig>,
 
   /** The colour of the lips of each of the clam's models. */
