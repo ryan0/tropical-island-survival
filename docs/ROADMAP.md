@@ -1621,7 +1621,7 @@ where there were three of the detail texture (and for a dot of a head, six fewer
 took). A head is some 2000 triangles within 32 m and 400 beyond, where it was 700. A first cut of the new
 shapes drew a fifth more triangles beside a reef (staghorns of 1100 triangles where they had 400, bushes of
 1900 where they had 1200): they were trimmed where it bought little, and a frame under water by two heads
-now draws 691 thousand triangles where it drew 656 thousand, and one on a head 622 thousand where it drew 595. The ground's shader reads
+now draws 682 thousand triangles where it drew 656 thousand, and one on a head 620 thousand where it drew 595. The ground's shader reads
 no more pictures than after the third sitting: 13 of its own, the grit and the shadow map, 15 of the 16 that
 WebGL 2 promises (`DEVICE_NOTES.md`). The sky's dome reads one picture for a dot of night sky where it worked
 out two sky-cubes and five octaves of noise (`fbm5`, which nothing uses now, is gone from `noise.glsl`); the stars are 4200 points. The page's start-up is longer: 5.0 s
