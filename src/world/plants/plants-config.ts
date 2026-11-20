@@ -18,6 +18,17 @@ export interface PlantKindConfig {
 }
 
 export const plantsConfig = {
+  /**
+   * What falls from a palm lies under it: the chance that a spot tried for a fallen frond, or for
+   * a nut, takes one, out in the open and under a palm's crown. And the share of the nuts that
+   * have lain long enough to weather grey.
+   */
+  fallenFromPalms: {
+    fronds: [0.04, 0.9],
+    nuts: [0.01, 0.5],
+    shareOfNutsWeathered: 0.6,
+  },
+
   /** Nothing is planted this near the hut or the footpaths. */
   clearOfHut: 6.5,
   clearOfPaths: 2.3,
@@ -75,7 +86,7 @@ export const plantsConfig = {
     },
     /** A dried palm frond lying under the trees. */
     fallenFrond: {
-      count: 240,
+      count: 800,
       tries: 40000,
       ground: [1.8, 9],
       reach: 3.5,
@@ -104,9 +115,9 @@ export const plantsConfig = {
       castsShadow: true,
     },
     coconut: {
-      count: 70,
+      count: 600,
       tries: 40000,
-      ground: [0.6, 2.6],
+      ground: [1.2, 9],
       reach: 1,
       shownWithin: 90,
       simplerBeyond: 0,

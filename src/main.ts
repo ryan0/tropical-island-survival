@@ -210,6 +210,7 @@ const plants = createPlants({
   landmarks,
   isInRock: rocks.isInRock,
   palmFrondPicture: palms.frondPicture,
+  palmCrowns: palms.crowns,
   instanceCells,
   maxAnisotropy,
 });

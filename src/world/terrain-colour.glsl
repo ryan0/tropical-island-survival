@@ -104,7 +104,7 @@ const vec3 LITTER = vec3(0.1, 0.28, 0.72);
 const float WRACK = 0.42;
 const vec3 WRACK_DARKER = vec3(0.62, 0.58, 0.54);
 // Low plants inland: on middling ground; more where it is lush; more at a shrub's foot.
-const vec3 LOW_PLANTS = vec3(-0.25, 1.1, 0.5);
+const vec3 LOW_PLANTS = vec3(-0.05, 1.1, 0.5);
 // How high stones and litter stand off the ground, in centimetres, for the shadows they throw; and the lowest
 // sun those are worked out for (the upward part of the unit vector towards it): lower, they would be endless.
 const float STONES_STAND = 2.5;

@@ -81,6 +81,39 @@ function drawCrown(pixels: Uint8Array, crown: Crown): void {
   }
 }
 
+/** The side of a square of the grid `crownsOver` keeps, in metres. */
+const GRID_SQUARE = 1;
+
+/**
+ * Whether a point lies under any of the crowns, for the program (what falls from a palm lies
+ * under it): a grid over the same square as the map, quick to ask of many thousands of points.
+ */
+export function crownsOver(crowns: readonly Crown[]): (x: number, z: number) => boolean {
+  const squares = Math.ceil(span / GRID_SQUARE);
+  const isUnder = new Uint8Array(squares * squares);
+  const squareOf = (fromCentre: number) => Math.floor((fromCentre + span / 2) / GRID_SQUARE);
+  for (const crown of crowns) {
+    const firstRow = Math.max(0, squareOf(crown.z - crown.reach));
+    const lastRow = Math.min(squares - 1, squareOf(crown.z + crown.reach));
+    const firstColumn = Math.max(0, squareOf(crown.x - crown.reach));
+    const lastColumn = Math.min(squares - 1, squareOf(crown.x + crown.reach));
+    for (let row = firstRow; row <= lastRow; row++) {
+      for (let column = firstColumn; column <= lastColumn; column++) {
+        const x = (column + 0.5) * GRID_SQUARE - span / 2;
+        const z = (row + 0.5) * GRID_SQUARE - span / 2;
+        if (Math.hypot(x - crown.x, z - crown.z) <= crown.reach)
+          isUnder[row * squares + column] = 1;
+      }
+    }
+  }
+  return (x, z) => {
+    const row = squareOf(z);
+    const column = squareOf(x);
+    if (row < 0 || row >= squares || column < 0 || column >= squares) return false;
+    return isUnder[row * squares + column] === 1;
+  };
+}
+
 /**
  * The map, `span` metres square about the atoll's centre. Red: how much litter lies here, under
  * a crown. Green: how near the foot of a shrub this is, where creepers gather. Blue: how deep the
