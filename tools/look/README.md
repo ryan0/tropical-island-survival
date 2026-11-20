@@ -63,6 +63,12 @@ squares that hold the material and nothing else:
 node tools/look/contact-sheet.ts node_modules/.cache/look/sheet.png reference-photos/coral/*.jpg --across 4 --cell 470
 ```
 
+Two things to mind. A board's figure is only as good as its parts: before a figure is acted on, lay the views
+it names under the grid and see that each part holds the material the row is called, at the distance it says
+(for two sittings a row called "coral within a few metres" lay on heads ten metres off). And compare a run
+with a run of the same views: one page draws them in turn, and a view drawn after other views can differ by a
+hair from the same view drawn alone (the sky turns with the day, and the day is hurried on from the last view's).
+
 ## What is here
 
 | File | What it holds |

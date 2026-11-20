@@ -228,9 +228,8 @@ Ryan plans more reef passes later.
 
 *Rejected:* kelp (replaced by short sea grass); bare platform tops; heads that sat on the sand without blending in;
 heads as platforms of cracked rock; one lacy mottle on every kind of coral; a table coral as a flat many-sided
-disc;
-the old-reef ground round a head ending in a straight line at the waterline where the head stands near the beach
-("weird/hard cutoff", 19 November 2026).
+disc; the old-reef ground round a head ending in a straight line at the waterline where the head stands near
+the beach ("weird/hard cutoff", 19 November 2026).
 
 *Still weak (Ryan, 19 November 2026):* "the coral and other under water textures need refining".
 
