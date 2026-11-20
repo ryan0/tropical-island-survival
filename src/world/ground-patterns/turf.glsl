@@ -1,5 +1,5 @@
-// The patterns of the turf that the grass follows: how lush it is, how dried out, where bare soil breaks through it,
-// and how its edge wanders. THIS FILE IS THE ONLY DEFINITION. terrain-colour.glsl draws them on the ground, and the
+// The broad patterns of what grows on the land, which the grass follows: how lush it is, how dried out, where
+// banks of bare gravel lie, and how the plants' edge wanders. THIS FILE IS THE ONLY DEFINITION. terrain-colour.glsl draws them on the ground, and the
 // build also turns them into JavaScript functions of the same names (tools/glsl-for-program-plugin.ts), so that the
 // grass grows where the ground shows turf (plants/grass-placement.ts).
 //
@@ -18,7 +18,8 @@ float turfDryness(float x, float z) {
   return 0.5 + 0.5 * sin(x * 0.13 + 2.1) * sin(z * 0.11 + 0.7);
 }
 
-// The broad pattern of the patches of bare soil in the turf, -1..1: high where they lie.
+// The broad pattern of the banks of bare gravel among the plants, -1..1: high where they lie. (When the ground
+// was a lawn these were its patches of bare soil, and the name has stayed.)
 float soilPatches(float x, float z) {
   return sin(x * 0.23 + 1.1 * sin(z * 0.17)) * sin(z * 0.21 + 1.4 * sin(x * 0.19) + 2.0);
 }

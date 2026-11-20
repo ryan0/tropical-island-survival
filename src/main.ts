@@ -65,7 +65,9 @@ import { createPalms } from './world/plants/palms';
 import { createPlants } from './world/plants/plants';
 import { createReef } from './world/reef/reef';
 import { createRocks } from './world/rocks/rocks';
+import { createGroundTiles } from './world/ground-tiles/ground-tiles';
 import { createTerrain } from './world/terrain';
+import { createTreeCoverMap } from './world/tree-cover-map';
 import { worldConfig } from './world/world-config';
 
 // Builds every system, wires them together and runs the frame loop.
@@ -120,6 +122,7 @@ const terrain = createTerrain({
   scene,
   renderer,
   random: randomStream('terrain'),
+  groundTiles: createGroundTiles(randomStream, maxAnisotropy),
   groundHeight: island.groundHeight,
   landmarks,
   uniforms,
@@ -199,7 +202,7 @@ createGrass({
   uniforms,
   instanceCells,
 });
-createPlants({
+const plants = createPlants({
   random: randomStream('plants'),
   groundHeight: island.groundHeight,
   landmarks,
@@ -208,6 +211,7 @@ createPlants({
   instanceCells,
   maxAnisotropy,
 });
+uniforms.uTreeCover.value = createTreeCoverMap([...palms.crowns, ...plants.crowns]);
 createFlowers({
   scene,
   random: randomStream('flowers'),

@@ -18,6 +18,7 @@ import type { Random } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks, Point } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
+import type { Crown } from '../tree-cover-map';
 import { lightLeavesFromBothSides } from './leaf-light';
 import { FROND_CUTOFF, paintBarkPicture, paintFrondPicture } from './palm-pictures';
 import { createFrondShape, createTrunkShape } from './palm-shapes';
@@ -55,6 +56,8 @@ export interface PalmsDependencies {
 export interface Palms {
   /** The picture of one frond, also used for fronds lying on the ground. */
   frondPicture: CanvasTexture;
+  /** Every palm's crown as it lies over the ground, for the litter under it. */
+  crowns: Crown[];
 }
 
 interface PalmSpot {
@@ -250,9 +253,16 @@ export function createPalms(dependencies: PalmsDependencies): Palms {
 
   const spots = findSpots(dependencies);
   const frondMesh = new InstancedMesh(frondShape, frondMaterial, spots.length * fronds.perPalm);
+  const crowns: Crown[] = [];
   spots.forEach((spot, index) => {
     const palm = placePalm(random, spot, index);
     trunksByKind[palm.kind].palms.push(palm.matrix);
+    crowns.push({
+      x: palm.crown.x,
+      z: palm.crown.z,
+      reach: fronds.length * palm.size * palm.crownSize,
+      kind: 'palm',
+    });
     growFronds(random, palm, frondMesh, index * fronds.perPalm);
   });
 
@@ -279,5 +289,5 @@ export function createPalms(dependencies: PalmsDependencies): Palms {
     simpler: { shape: simplerFrondShape, beyond: simplerBeyond, cellSize },
   });
 
-  return { frondPicture };
+  return { frondPicture, crowns };
 }

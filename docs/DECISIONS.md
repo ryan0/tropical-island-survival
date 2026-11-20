@@ -78,6 +78,17 @@ the git tag `build-78`.
     where the ground is.
 20. **Things need real shapes.** Painted rocks, painted rubble and bushes made of leaf pictures on balls were all
     rejected on the phone. Rocks, coral and plants are built as geometry.
+    What is small enough to be flat to an eye at standing height is painted all the same, and since 20
+    November 2026 as pictures of the real things, not as patterns of noise: the islet's ground is coral sand
+    from shore to shore, and stones, the trees' litter and creeping plants are each a picture painted once at
+    start-up and laid over it (`world/ground-tiles/`). In each picture a thing carries a rank, and the ground
+    shows only the things above a threshold it chooses for the spot, so one picture is a few stones on clean
+    sand here and a bank of rubble there. How thickly each lies comes from the turf's broad patterns and from
+    a map of what stands over the ground (`world/tree-cover-map.ts`): litter under a crown, creepers at a
+    shrub's foot. Nothing painted is bigger than a hand: a husk, a cobble or a fallen frond is a shape. A
+    painted stone throws a shadow behind it and catches the sun on its near edge, read from the same picture
+    a shadow's length towards the sun, or it is a stain. Those amounts are named numbers, so that another
+    island, larger and older, could have soil and a greener floor (Ryan expects the game to need one).
 21. **Plants and rocks are instanced in map squares**, culled when out of view and swapped for simpler shapes with
     distance [24_instances.js].
 

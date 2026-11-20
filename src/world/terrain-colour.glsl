@@ -1,5 +1,6 @@
-// The colour of the ground: dry and wet sand, turf, soil, footpaths, rock, the reef flat, what the water over it does
-// to its colour, and the net of light that ripples throw on the sea floor.
+// The colour of the ground: dry and wet sand, the stones, litter and low plants that lie on it inland, footpaths,
+// rock, the reef flat, what the water over it does to its colour, and the net of light that ripples throw on the
+// sea floor.
 //
 // terrain.ts puts this block, in braces, inside three.js's Lambert fragment shader just after <color_fragment>. It
 // replaces diffuseColor.rgb outright, so three.js's lighting and shadows still apply to it; and it sets netOfLight
@@ -7,13 +8,15 @@
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; groundNoise, groundFbm and
-//   randomsOf; fleck, pebble and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
+//   randomsOf; coverOf, pebble and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
 //   openSea and the reef's zones (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
-//   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the reef's
-//   cover and the turf's broad patterns it reads from pictures (uShoreRound, uReefCover, uTurfPatterns).
+//   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the
+//   reef's cover, the turf's broad patterns, what stands over the ground and what lies on it, it reads from
+//   pictures (uShoreRound, uReefCover, uTurfPatterns, uTreeCover, uGravelTile, uLitterTile, uLowPlantsTile).
 // Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
-//   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and THIN_TURF, LUSH_TURF and
-//   DRY_TURF (the turf's colours, which the grass shares: ground-patterns.ts), written by terrain.ts.
+//   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and for each ground tile
+//   its span in metres and the share of it its things cover (GRAVEL_TILE_SPAN, GRAVEL_FULL_COVER and so on),
+//   written by terrain.ts.
 
 // ---- Numbers to retune ----
 // (heights are metres above still sea level, depths metres of water, distances metres from the camera)
@@ -26,7 +29,6 @@ const vec3 PLAIN_FLOOR_SAND = vec3(0.77, 0.72, 0.61);
 const float DIMPLES_WITHIN = 120.0;
 const float WIND_RIPPLES_WITHIN = 90.0;
 const float SHELLS_WITHIN = 45.0;
-const float LITTER_WITHIN = 150.0;
 
 // The highest a lagoon wave can run up the sand, as a height.
 const float LAGOON_RUN_UP = 0.42;
@@ -56,11 +58,18 @@ const float GROUND_FILLS_SHADOWS = 0.5;
 // white shows no relief.)
 const vec3 WARM_SAND = vec3(0.722, 0.715, 0.703);
 const vec3 GREY_SAND = vec3(0.706, 0.71, 0.712);
-const vec3 VINE_GREEN = vec3(0.25, 0.34, 0.19);
-const vec3 BARE_SOIL = vec3(0.76, 0.72, 0.62);
-const vec3 SOIL_BROWN = vec3(0.50, 0.38, 0.25);
-const vec3 LITTER_BROWN = vec3(0.50, 0.40, 0.25);
-const vec3 PATH_SAND = vec3(0.74, 0.72, 0.66);
+// Inland the sand is a shade greyer than the beach's, for the dust of old leaves (the sand's colour is multiplied
+// by this); and in deep shade, where what falls rots where it lies, it and the litter are darker and browner.
+const vec3 GROVE_SAND = vec3(0.89, 0.875, 0.845);
+const vec3 DEEP_SHADE_STAIN = vec3(0.80, 0.76, 0.70);
+// Litter that has lain in the open bleaches to straw and silver (its colour is multiplied by this).
+const vec3 BLEACHED_LITTER = vec3(1.16, 1.16, 1.14);
+// A path's gravel is trodden a little darker than loose gravel.
+const float PATH_TRODDEN = 0.95;
+// The pictures' own colours are multiplied by these, to bring each to what the photographs measure with the game's
+// light on it (docs/LOOK.md, "Colour, measured"): the gravel a warm mid grey, the litter a browner straw.
+const vec3 GRAVEL_TINT = vec3(0.86, 0.845, 0.80);
+const vec3 LITTER_TINT = vec3(1.02, 0.985, 0.92);
 const vec3 ROCK_GREY = vec3(0.46, 0.44, 0.39);
 const vec3 BROWN_CORAL = vec3(0.30, 0.25, 0.17);
 const vec3 OLIVE_CORAL = vec3(0.13, 0.23, 0.15);
@@ -69,6 +78,33 @@ const vec3 PALE_REEF_ROCK = vec3(0.68, 0.64, 0.56);
 const vec3 PINK_CRUST = vec3(0.76, 0.58, 0.60);
 // The old reef round a coral head begins where the water is this deep, and is all there by the second depth (m).
 const vec2 OLD_REEF_BELOW = vec2(0.45, 1.3);
+
+// What lies on the ground (ground-tiles.ts), each as an amount from 0, none, to 1, as thick as its picture was
+// painted. The pictures' single things show within the first distance and have blurred to an average by the second.
+const vec2 THINGS_SHOW_WITHIN = vec2(9.0, 30.0);
+// The land's cover comes in between these heights of the plants' wandering edge (metres above the sea).
+const vec2 INLAND_BETWEEN = vec2(1.74, 1.84);
+// Stones: a scatter inland; in a bank of gravel; in the band of rubble at the back of the beach. And on a path.
+const vec3 STONES = vec3(0.34, 0.97, 0.9);
+const float STONES_ON_PATH = 0.62;
+// A bank of gravel comes in between these values of the land's broad pattern (-1 to 1): the higher, the less of
+// the islet is gravel and the more of it sand.
+const vec2 GRAVEL_BANKS = vec2(0.15, 0.6);
+// In a whole bed of gravel a stone's rank stands for its height: how strongly that is shaded against the sun.
+const float BED_RELIEF = 0.5;
+// Litter: along the back of the beach; everywhere inland; more under a crown.
+const vec3 LITTER = vec3(0.1, 0.28, 0.72);
+// The wrack the sea leaves along the tide line: how thickly, at most; and how much darker than the trees' litter
+// (its colour is multiplied by this).
+const float WRACK = 0.42;
+const vec3 WRACK_DARKER = vec3(0.62, 0.58, 0.54);
+// Low plants inland: on middling ground; more where it is lush; more at a shrub's foot.
+const vec3 LOW_PLANTS = vec3(-0.25, 1.1, 0.5);
+// How high stones and litter stand off the ground, in centimetres, for the shadows they throw; and the lowest
+// sun those are worked out for (the upward part of the unit vector towards it): lower, they would be endless.
+const float STONES_STAND = 2.5;
+const float LITTER_STANDS = 1.2;
+const float LOWEST_SUN_FOR_SHADOWS = 0.3;
 
 // ---- Where this point is ----
 
@@ -85,6 +121,8 @@ float depthAcrossPixel = max(fwidth(waterDepth), 1e-5);
 vec3 toCamera = uCameraPosition - vGroundPosition;
 float cameraDistance = length(toCamera);
 float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail shows: 1 at the camera, gone by 90 m
+// (and for the pictures of what lies on the ground: 0 where their single things show, 1 where they have blurred)
+float farOff = smoothstep(THINGS_SHOW_WITHIN.x, THINGS_SHOW_WITHIN.y, cameraDistance);
 
 // Which side of the land this is: lagoonSide is 1 on the lagoon's side (still water, no surf), 0 on the ocean's.
 // (The shore's shape in this direction is read from its picture, which the water's shader reads too: the ocean
@@ -119,6 +157,24 @@ xz += (smallWaves.rg - 0.5) * FLOOR_SWIMS * smoothstep(0.1, 1.2, waterDepth) * s
 float fineGrit = (texelColor.g - uGritAverage) * exp(-cameraDistance * 0.02);
 float coarseGrit = (texture2D(map, vUv * 0.23 + 0.37).g - uGritAverage) * 0.10 * exp(-cameraDistance * 0.006);
 float grit = (fineGrit + coarseGrit) * (1.0 - 0.75 * smoothstep(0.0, 0.5, waterDepth));
+
+// What lies on the ground, from its pictures (ground-tiles.ts). They have mipmaps, so they are read here, before
+// any branch. Each is laid at an angle of its own, so that the three never repeat together.
+vec2 onGround = vGroundPosition.xz;
+vec4 gravelTile = texture2D(uGravelTile, onGround / GRAVEL_TILE_SPAN);
+vec4 litterTile = texture2D(uLitterTile,
+  vec2(onGround.x * 0.8 - onGround.y * 0.6, onGround.x * 0.6 + onGround.y * 0.8) / LITTER_TILE_SPAN);
+vec4 lowPlantsTile = texture2D(uLowPlantsTile,
+  vec2(onGround.x * 0.6 + onGround.y * 0.8, onGround.y * 0.6 - onGround.x * 0.8) / LOW_PLANTS_TILE_SPAN + 0.37);
+// (The stones and the litter are read once more, a shadow's length towards the sun: a thing that stands a
+// finger's breadth off the ground throws a shadow behind it and catches the light on its sunward edge, and
+// without that a painted stone is a stain. The shadow is longer the lower the sun.)
+vec2 shadowOfACentimetre = 0.01 * uSunDirection.xz / max(uSunDirection.y, LOWEST_SUN_FOR_SHADOWS);
+vec2 stonesSunward = onGround + shadowOfACentimetre * STONES_STAND;
+vec4 gravelTileSunward = texture2D(uGravelTile, stonesSunward / GRAVEL_TILE_SPAN);
+vec2 litterSunward = onGround + shadowOfACentimetre * LITTER_STANDS;
+vec4 litterTileSunward = texture2D(uLitterTile,
+  vec2(litterSunward.x * 0.8 - litterSunward.y * 0.6, litterSunward.x * 0.6 + litterSunward.y * 0.8) / LITTER_TILE_SPAN);
 
 // the net itself, read twice - the second time turned and finer - so that no repeat shows
 vec4 lightNetRead = texture2D(uCaustics, lightNetUv + lightNetWobble);
@@ -329,127 +385,98 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
     vec3 shadowed = sand * (1.0 - 0.45 * chipShadow * (1.0 - chip) * nearness);
     vec3 litChip = chipColour * (0.85 + 0.3 * dot(fromMiddle, sunAlongGround) / radius);
     sand = mix(shadowed, litChip, chip * nearness);
+    // And along the same line the sea leaves its wrack: bits of weed, twig and husk, dark from the water, thinly
+    // and in stretches, never a drawn line. (It is the litter's picture, darkened: ground-tiles.ts.)
+    float wrackStretches = smoothstep(0.4, 0.62, groundNoise(xz * 0.17 + 31.0));
+    float wrack = WRACK * onDrift * wrackStretches * (1.0 - smoothstep(0.6 * SHELLS_WITHIN, SHELLS_WITHIN, cameraDistance));
+    float wrackCover = coverOf(litterTile, wrack, LITTER_FULL_COVER, farOff);
+    float wrackTowardsSun = coverOf(litterTileSunward, wrack, LITTER_FULL_COVER, farOff);
+    sand = mix(sand, litterTile.rgb * WRACK_DARKER, wrackCover)
+      * litAgainstSun(wrackCover - wrackTowardsSun, (1.0 - farOff) * uDaylight);
   }
   diffuseColor.rgb = sand;
 
   if (height > -0.1) {
     // ---- Dry land, and the beach above the waterline ----
 
-    // Towards the vegetation the ground changes in layers: sand, the back of the beach, and turf, which does not
-    // stop at a line but breaks up into islands and tongues with sand between them. How far this spot is turf
-    // (landCover) is worked out first: where it is none, the land's own colour is not worked out at all, and
-    // where it is all turf, the beach's fringe is not. (Most of the ground is wholly the one or the other.)
-    // (The turf's broad patterns are read from their picture: how lush, how dried out, the patches of bare soil,
-    // and how far the layers' edges wander.)
+    // The ground of an atoll's islet is coral sand and gravel from shore to shore: there is no soil to speak of and
+    // no lawn. What changes, going in from the beach, is what lies on it: stones thrown up by storms, the litter
+    // of the trees, and the low plants that creep over it. Each is a picture of the real thing (ground-tiles.ts),
+    // laid as thickly as this spot calls for: by how far inland it is, by the turf's broad patterns (read from
+    // their picture: where it is lush, where dried out, the edges' wander), and by what stands over it (the map
+    // of the trees: litter under a crown, creepers at a shrub's foot).
     vec4 turfPatterns = texture2D(uTurfPatterns, xz / TURF_PICTURE_SPAN + 0.5);
     float edgeWander = (turfPatterns.a * 2.0 - 1.0) * TURF_WANDER_KEPT;
     float layerHeight = height + edgeWander + (groundFbm(xz * 1.7) - 0.5) * 0.5;
-    float turfEdge = layerHeight + (groundFbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (groundNoise(xz * 3.3) - 0.5) * 0.30;
-    float landCover = smoothstep(1.74, 1.84, turfEdge);
+    float plantsEdge = layerHeight + (groundFbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (groundNoise(xz * 3.3) - 0.5) * 0.30;
+    // (0 on the open beach, 1 inland: it comes in over a broad, ragged band, in islands and tongues)
+    float inland = smoothstep(INLAND_BETWEEN.x, INLAND_BETWEEN.y, plantsEdge);
+    float backOfBeach = smoothstep(1.15, 1.65, layerHeight);
 
-    vec3 land = vec3(0.0);
-    if (landCover > 0.0) {
+    if (backOfBeach > 0.0) {
       float lushness = turfPatterns.r;
       float dryness = turfPatterns.g;
-      float dirtWaves = turfPatterns.b * 2.0 - 1.0;
-      // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
-      vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
-      turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
-      float streakAngle = groundNoise(xz * 0.13 + 4.0) * 12.566;
-      vec2 streakDirection = vec2(cos(streakAngle), sin(streakAngle));
-      vec2 streakUv = vec2(dot(xz, streakDirection) * 1.7, dot(xz, vec2(-streakDirection.y, streakDirection.x)) * 10.0);
-      float streaks = groundNoise(streakUv + 3.0 * groundNoise(xz * 0.7));
-      float greenerPatches = smoothstep(0.55, 0.68, groundFbm(xz * 0.8 + 21.0));
-      vec3 greener = turfTint * vec3(1.03, 1.10, 0.97) + 0.02;
-      float mottle = 0.80 + 0.40 * groundFbm(xz * 2.2);
-      float streaked = 1.0 + (streaks - 0.5) * 0.45 * nearness;
-      vec3 turf = mix(turfTint, greener, greenerPatches * 0.6) * vec3(0.90, 0.92, 0.82) * mottle * streaked;
-      turf *= 0.86 + 0.28 * groundNoise(xz * 11.0) * nearness + 0.14 * (1.0 - nearness);
-      // mats of creeping vine: darker, glossier green, speckled with small round leaves, each of its own size
-      // and shade, lit on the side towards the sun (pebble() lays them: as squares of one shade each, which they
-      // were, a mat was a chequerboard close up). From far off a mat is one even green.
-      float vine = smoothstep(0.54, 0.66, groundFbm(xz * 0.21 + 90.0));
-      if (vine > 0.0) {
-        float leafSpeckle = 1.1;
-        if (nearness > 0.05) {
-          vec3 leaf = pebble(xz * 9.0 + 2.0, sunAlongGround, 0.9);
-          vec2 turnedLeaves = vec2(xz.x * 0.6 - xz.y * 0.8, xz.x * 0.8 + xz.y * 0.6);
-          vec3 leafBelow = pebble(turnedLeaves * 6.5 + 7.0, sunAlongGround, 0.9);
-          float lowerLeaves = mix(0.72, 0.85 + 0.35 * leafBelow.z, leafBelow.x);
-          float leaves = mix(lowerLeaves, (0.95 + 0.5 * leaf.z) * leaf.y, leaf.x);
-          leafSpeckle = mix(leafSpeckle, leaves, nearness);
-        }
-        turf = mix(turf, VINE_GREEN * leafSpeckle, vine * 0.8);
-      }
-      // bare patches where the sandy soil shows through the turf
-      float bare = smoothstep(0.56, 0.70, groundFbm(xz * 0.33 + 40.0) + 0.25 * (groundNoise(xz * 2.7) - 0.5));
-      turf = mix(turf, BARE_SOIL * (0.85 + 0.3 * groundNoise(xz * 5.0)), bare * 0.85);
-
-      vec3 soil = SOIL_BROWN * (0.75 + 0.5 * groundFbm(xz * 1.3));
-      float hasSpeck = step(0.975, randomsOf(floor(xz * 18.0), 10.0).x);
-      float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
-      soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
-      float dirt = smoothstep(0.66, 0.80, dirtWaves + (groundFbm(xz * 0.6) - 0.5) * 0.5 + (groundNoise(xz * 3.1) - 0.5) * 0.12);
-      // under the trees the ground is not lawn: fallen fronds and leaf litter, brown and olive, darker than the grass
-      float leafLitter = smoothstep(0.35, 0.7, groundFbm(xz * 0.35 + 70.0));
-      turf = mix(turf, LITTER_BROWN * (0.7 + 0.6 * groundNoise(xz * 4.3)), leafLitter * 0.45);
-      land = mix(turf, soil, dirt * 0.85);
+      float broadWaves = turfPatterns.b * 2.0 - 1.0;
+      vec4 treeCover = texture2D(uTreeCover, xz / TREE_COVER_SPAN + 0.5);
+      float underCrown = treeCover.r;
+      float atShrubsFoot = treeCover.g;
+      float deepShade = treeCover.b;
+      float patchy = groundFbm(xz * 0.33 + 40.0) - 0.5;
 
       float fromPath = footpathDistance(xz) + (groundNoise(xz * 0.9) - 0.5) * 0.7 + (groundNoise(xz * 4.0) - 0.5) * 0.25;
-      float onPath = smoothstep(1.05, 0.72, fromPath);
-      // (a path on an atoll is trodden coral sand and gravel, pale grey: mixed half and half with the soil it was
-      // an orange-brown)
-      vec3 pathColour = mix(soil, PATH_SAND, 0.8) * (0.9 + 0.2 * groundNoise(xz * 3.0));
-      land = mix(land, pathColour, onPath);
+      float onPath = smoothstep(1.05, 0.72, fromPath) * inland;
+      float offPath = 1.0 - smoothstep(1.9, 0.9, fromPath) * inland;
+
+      // The sand itself, inland: a shade greyer for the dust of old leaves, and darker where the shade is deep
+      // and what falls rots where it lies.
+      vec3 ground = sand * mix(vec3(1.0), GROVE_SAND, max(inland, 0.6 * backOfBeach));
+      ground *= mix(vec3(1.0), DEEP_SHADE_STAIN, deepShade * inland);
+
+      // 1. Stones. A band of rubble at the back of the beach, where storms leave it; inland, banks of gravel
+      // with sand between, and a scatter of stones everywhere. A path is trodden gravel.
+      float rubbleBand = smoothstep(0.95, 1.3, layerHeight) * smoothstep(0.42, 0.6, groundFbm(xz * 0.5 + 13.0))
+        * (1.0 - inland);
+      float gravelBanks = smoothstep(GRAVEL_BANKS.x, GRAVEL_BANKS.y, broadWaves + patchy * 1.2);
+      float stones = max(rubbleBand * STONES.z, inland * mix(STONES.x, STONES.y, gravelBanks));
+      stones = mix(stones, STONES_ON_PATH, onPath);
+      float stoneCover = coverOf(gravelTile, stones, GRAVEL_FULL_COVER, farOff);
+      float stonesTowardsSun = coverOf(gravelTileSunward, stones, GRAVEL_FULL_COVER, farOff);
+      // (thickest, it is the whole bed as painted, grit and all; and there a stone's rank stands for its height)
+      float wholeBed = smoothstep(0.82, 0.98, stones);
+      float stoneRelief = mix(stoneCover - stonesTowardsSun, BED_RELIEF * (gravelTile.a - gravelTileSunward.a),
+        wholeBed);
+      stoneCover = max(stoneCover, wholeBed);
+      ground = mix(ground, gravelTile.rgb * GRAVEL_TINT * mix(1.0, PATH_TRODDEN, onPath), stoneCover);
+      float sunOnThings = (1.0 - farOff) * uDaylight;
+      ground *= litAgainstSun(stoneRelief, sunOnThings);
+
+      // 2. Litter. A thin drift along the back of the beach; inland a little everywhere, and thick under the
+      // crowns it falls from. None on a path: feet clear it.
+      float litter = backOfBeach * LITTER.x + inland * LITTER.y + underCrown * LITTER.z + patchy * 0.5;
+      litter = clamp(litter, 0.0, 1.0) * offPath * backOfBeach;
+      float litterCover = coverOf(litterTile, litter, LITTER_FULL_COVER, farOff);
+      float litterTowardsSun = coverOf(litterTileSunward, litter, LITTER_FULL_COVER, farOff);
+      // (it bleaches to straw and grey where the ground is dried out, and is darker in deep shade)
+      vec3 litterColour = litterTile.rgb * LITTER_TINT * mix(vec3(1.0), BLEACHED_LITTER, dryness * dryness)
+        * mix(vec3(1.0), DEEP_SHADE_STAIN, deepShade);
+      ground = mix(ground, litterColour, litterCover) * litAgainstSun(litterCover - litterTowardsSun, sunOnThings);
+
+      // 3. Low plants. Runners reach out over the sand from where the plants begin; inland they make mats where
+      // the ground is lush and round the feet of shrubs, and leave the dry stretches and the deep shade bare.
+      float runnersOut = smoothstep(1.25, 1.75, plantsEdge) * (1.0 - inland) * (0.25 + 0.5 * lushness);
+      float mats = LOW_PLANTS.x + LOW_PLANTS.y * lushness + LOW_PLANTS.z * atShrubsFoot - 0.35 * dryness
+        - 0.4 * deepShade + patchy * 0.9;
+      float lowPlants = clamp(max(runnersOut, inland * mats), 0.0, 1.0) * offPath;
+      float plantCover = coverOf(lowPlantsTile, lowPlants, LOW_PLANTS_FULL_COVER, farOff);
+      ground = mix(ground, lowPlantsTile.rgb, plantCover);
+
       // (bare rock on the highest ground, of which the atoll has little)
       if (height > 9.5) {
         float rock = smoothstep(10.6, 12.6, height + (groundNoise(xz * 0.5) - 0.5) * 2.0);
-        land = mix(land, ROCK_GREY * (0.7 + 0.6 * groundFbm(xz * 1.5)), rock);
+        ground = mix(ground, ROCK_GREY * (0.7 + 0.6 * groundFbm(xz * 1.5)), rock);
       }
+      diffuseColor.rgb = ground;
     }
-
-    // ---- Towards the vegetation, in layers ----
-
-    vec3 fringe = sand;
-    if (landCover < 1.0) {
-      // 1. the back of the beach: sand a shade greyer and warmer (old leaf mould), strewn with bits of leaf and twig
-      float backOfBeach = smoothstep(1.15, 1.65, layerHeight);
-      float leafMould = backOfBeach * (0.55 + 0.45 * smoothstep(0.3, 0.7, groundNoise(xz * 0.31 + 9.0)));
-      fringe = mix(sand, sand * vec3(0.86, 0.82, 0.74), leafMould);
-      float litter = 0.0;
-      if (backOfBeach > 0.001 && cameraDistance < LITTER_WITHIN) {
-        vec2 turned = vec2(xz.x * 0.8 + xz.y * 0.6, -xz.x * 0.6 + xz.y * 0.8);
-        float flecks = max(fleck(xz * 6.0), fleck(turned * 9.0 + 3.0));
-        litter = flecks * backOfBeach * smoothstep(0.2, 0.55, groundNoise(xz * 0.6 + 17.0)) * exp(-cameraDistance * 0.025);
-      }
-      fringe = mix(fringe, vec3(0.34, 0.25, 0.15) * (0.7 + 0.6 * randomsOf(floor(xz * 6.0), 11.0).x), litter * 0.85);
-      // 3. round every patch of turf, a rim of sand stained dark by roots and humus
-      float stainedRim = smoothstep(1.45, 1.74, turfEdge) * 0.7;
-      fringe = mix(fringe, vec3(0.52, 0.45, 0.34) * (0.85 + 0.3 * groundNoise(xz * 4.0)), stainedRim);
-      // coral rubble thrown up at the back of the beach: a band of small grey-white stones where the sand meets the
-      // scrub
-      float rubbleCover = smoothstep(0.95, 1.3, layerHeight) * smoothstep(0.42, 0.6, groundFbm(xz * 0.5 + 13.0));
-      // Three sizes of stone laid one over another (big ones on top), at three angles, so that no grid shows; grit
-      // between them. pebble() gives each (how much of this spot it covers, how it is lit, its tone).
-      vec3 rubble = vec3(0.74, 0.72, 0.67) * (0.9 + 0.2 * groundNoise(xz * 9.0));
-      // (only where there is rubble, and near enough for single stones to show)
-      if (rubbleCover > 0.002 && nearness > 0.02) {
-        vec2 turnedSmall = vec2(xz.x * 0.5 + xz.y * 0.87, -xz.x * 0.87 + xz.y * 0.5);
-        vec3 smallStone = pebble(turnedSmall * 15.0 + 7.0, sunAlongGround, 0.55);
-        vec3 smallColour = mix(vec3(0.56, 0.55, 0.52), vec3(0.92, 0.90, 0.86), smallStone.z) * smallStone.y;
-        rubble = mix(rubble, smallColour, smallStone.x);
-        vec2 turnedMiddle = vec2(xz.x * 0.94 - xz.y * 0.34, xz.x * 0.34 + xz.y * 0.94);
-        vec3 middleStone = pebble(turnedMiddle * 8.3 + 3.0, sunAlongGround, 0.6);
-        vec3 middleColour = mix(vec3(0.60, 0.58, 0.54), vec3(0.95, 0.93, 0.89), middleStone.z) * middleStone.y;
-        rubble = mix(rubble * (1.0 - 0.25 * middleStone.x), middleColour, middleStone.x);
-        vec3 bigStone = pebble(xz * 4.1, sunAlongGround, 0.45);
-        vec3 bigGreyOrWhite = mix(vec3(0.66, 0.64, 0.60), vec3(0.90, 0.87, 0.80), bigStone.z);
-        vec3 bigColour = mix(bigGreyOrWhite, vec3(0.80, 0.66, 0.56), step(0.85, bigStone.z)) * bigStone.y;
-        rubble = mix(rubble, bigColour, bigStone.x);
-      }
-      fringe = mix(fringe, mix(vec3(0.74, 0.72, 0.68), rubble, nearness), rubbleCover * 0.75);
-    }
-    diffuseColor.rgb = mix(fringe, land, landCover);
   }
 }
 
@@ -461,8 +488,7 @@ float sunThroughCloudHere = texture2D(uCloudShadeMap, xz / CLOUD_SHADE_SPAN_M + 
 float lightHere = mix(CLOUD_SHADOW_LIGHT, 1.0, sunThroughCloudHere);
 float lightAtCamera = mix(CLOUD_SHADOW_LIGHT, 1.0, texture2D(uCloudShadeMap, uCameraPosition.xz / CLOUD_SHADE_SPAN_M + 0.5).r);
 diffuseColor.rgb *= lightHere / lightAtCamera;
-// fine and faint on the beach, coarser on soil and turf
-diffuseColor.rgb *= 1.0 + grit * (height < 1.6 ? 0.55 : 1.1);
+diffuseColor.rgb *= 1.0 + grit * 0.55;
 
 if (waterDepth > 0.0) {
   // ---- The reef flat ----

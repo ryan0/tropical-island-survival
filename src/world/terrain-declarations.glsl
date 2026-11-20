@@ -1,5 +1,6 @@
 // What the colouring of the ground (terrain-colour.glsl) needs from outside main(): its uniforms and varying, the
-// chunks it calls, the noise its patterns are made of, and three patterns of small things lying on the ground.
+// chunks it calls, the noise its patterns are made of, how much a ground tile's things cover, and two patterns of
+// small things on the ground.
 // terrain.ts puts this in front of three.js's Lambert fragment shader. The chunks need the defines
 // TERRAIN_FOOTPATHS (footpaths.glsl) and LAGOON_WIND_DIRECTION (lagwave.glsl), and groundNoise needs
 // GROUND_NOISE_PERIOD (world-config.ts), all of which terrain.ts writes.
@@ -29,6 +30,10 @@ uniform sampler2D uGroundRandoms;   // plain random numbers, four to a dot (grou
 uniform sampler2D uShoreRound;      // the shore in each direction from the centre (sea/shore-round-picture.ts)
 uniform sampler2D uReefCover;       // what covers the reef's floor (reef-cover-picture.ts)
 uniform sampler2D uTurfPatterns;    // the turf's broad patterns (turf-picture.ts)
+uniform sampler2D uTreeCover;       // what stands over the ground (tree-cover-map.ts)
+uniform sampler2D uGravelTile;      // coral gravel and rubble, seen from above (ground-tiles.ts)
+uniform sampler2D uLitterTile;      // the trees' litter, likewise
+uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
@@ -70,18 +75,23 @@ vec4 randomsOf(vec2 square, float set) {
   return texture2D(uGroundRandoms, (square + set * vec2(37.0, 59.0) + 0.5) * (1.0 / GROUND_RANDOMS_SIZE));
 }
 
-// Bits of leaf litter and twig lying on sand: at most one short dark fleck in each square of p, at its own angle.
-// Returns how much of this spot the fleck covers, 0 to 1.
-float fleck(vec2 p) {
-  vec2 square = floor(p);
-  // (its middle, across and down; its angle; how narrow it is)
-  vec4 placed = randomsOf(square, 1.0);
-  float isThere = step(0.45, randomsOf(square, 2.0).x);
-  vec2 d = fract(p) - (placed.xy * 0.6 + 0.2);
-  float angle = placed.z * FULL_TURN;
-  float narrowness = 2.5 + 3.0 * placed.w;
-  vec2 e = vec2(d.x * cos(angle) + d.y * sin(angle), (-d.x * sin(angle) + d.y * cos(angle)) * narrowness);
-  return smoothstep(0.22, 0.12, length(e)) * isThere;
+// How much of a spot the things in a ground tile cover (ground-tiles.ts). tile: the tile as read there, whose alpha
+// is each thing's rank, so that the higher the threshold the fewer show. amount: how thickly they lie, 0 (none) to
+// 1 (as thick as the tile was painted). fullCover: the share of the tile its things cover when all show. farOff: 0
+// near the eye, where single things show, to 1 where the picture has blurred to its average and only how much
+// there is of it can be told.
+float coverOf(vec4 tile, float amount, float fullCover, float farOff) {
+  float threshold = 1.0 - amount;
+  float things = smoothstep(threshold, threshold + 0.07, tile.a);
+  return mix(things, amount * fullCover, farOff) * step(0.004, amount);
+}
+
+// How a thing lying on the ground is lit against the sun. relief: how much more of this spot its picture covers
+// than of the spot a shadow's length towards the sun, -1 to 1: above nothing on a thing's sunward edge, which
+// catches the light, and below it on the ground behind a thing, in its shadow. strength: 0 to 1. Returns what to
+// multiply the colour by.
+float litAgainstSun(float relief, float strength) {
+  return 1.0 + strength * (0.12 * max(relief, 0.0) + 0.27 * min(relief, 0.0));
 }
 
 // One layer of coral rubble: at most one stone in each square of p - anywhere in it, any size from a chip to a

@@ -61,6 +61,20 @@ export const worldConfig = {
    */
   turfPicture: { span: 400, size: 512, wanderKept: 1 },
 
+  /**
+   * The map of what stands over the ground (tree-cover-map.ts): the side of the square it covers,
+   * in metres, centred on the atoll, and its dots across: under a metre each, where the smallest
+   * crown it marks is some 3 m across.
+   */
+  treeCoverMap: { span: 400, size: 512 },
+
+  /**
+   * The pictures of what lies on the ground (ground-tiles/): the share of each its things cover
+   * when all of them show, which the ground's colouring goes by where a picture has blurred with
+   * distance and it can no longer tell one thing from the next.
+   */
+  groundTiles: { fullCover: { gravel: 0.66, litter: 0.64, lowPlants: 0.74 } },
+
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */
     size: 960,

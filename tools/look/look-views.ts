@@ -310,6 +310,100 @@ const underWater: ReferenceView[] = [
   }),
 ];
 
-export const lookViews = { colour, evening, weather, underWater };
+/** The ground of the islet, from standing height and from above: what the ground's board measures. */
+const ground: ReferenceView[] = [
+  view(
+    'ground-grove-ahead',
+    'the floor of the grove, looking along it',
+    [-2, 1.6, 140, 0.4, -0.25],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-grove-at-feet',
+    'the floor of the grove at the feet',
+    [-2, 1.6, 140, 0.4, -1.0],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-grove-east',
+    'the floor of the grove east of home',
+    [22, 1.6, 138, 2.0, -0.4],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-grove-west',
+    'the floor of the grove west of home',
+    [-30, 1.6, 136, 1.2, -0.35],
+    {},
+    aboveGround,
+  ),
+  view('ground-path', 'a footpath through the grove', [-8, 1.6, 144.5, 0.7, -0.4], {}, aboveGround),
+  view(
+    'ground-beach-top-along',
+    'where the plants begin, along the top of the beach',
+    [-20, 1.6, 157, Math.PI / 2, -0.3],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-beach-top-inland',
+    'the top of the beach, looking inland',
+    [3, 1.6, 160, 0, -0.3],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-beach-top-at-feet',
+    'the back of the beach at the feet',
+    [12, 1.6, 157, 0.3, -0.9],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-lagoon-side',
+    'the islet from its lagoon beach, looking inland',
+    [8, 1.6, 103, Math.PI, -0.25],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-from-above',
+    'the grove from thirty metres up',
+    [-5, 30, 138, 0.7, -1.3],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-islet-from-above',
+    'the home islet from a hundred metres up',
+    [0, 110, 175, 0, -1.1],
+  ),
+  view(
+    'ground-swash-ocean',
+    'wet sand where the swash runs, on the ocean beach',
+    [3, 1.5, 166, Math.PI / 2, -0.4],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-swash-lagoon',
+    "wet sand at the lagoon's edge",
+    [8, 1.5, 104.5, Math.PI / 2, -0.4],
+    {},
+    aboveGround,
+  ),
+  view(
+    'ground-east-islet',
+    'the ground of the eastern land',
+    [121, 1.6, 6, 0.3, -0.3],
+    {},
+    aboveGround,
+  ),
+];
+
+export const lookViews = { colour, evening, weather, underWater, ground };
 
 export type ViewGroup = keyof typeof lookViews;

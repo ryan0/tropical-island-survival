@@ -10,12 +10,12 @@ import {
 } from 'three';
 import type { Random } from '../core/random';
 import { CAUSTICS_BRIGHTEST } from '../shaders/caustics-texture';
-import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
+import { glslFloat, glslVec2 } from '../shaders/defines';
 import { withColouring } from '../shaders/sunlight-under-water';
 import { SWAY_DECLARATIONS, swayOf } from '../shaders/sway-under-water';
 import { createGroundGrit } from './ground-grit';
 import { createGroundNoise, createGroundRandoms } from './ground-noise';
-import { turfColours } from './ground-patterns';
+import type { GroundTiles } from './ground-tiles/ground-tiles';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { seaConfig } from '../sea/sea-config';
 import { reefConfig } from './reef/reef-config';
@@ -38,6 +38,7 @@ const SHARED_UNIFORMS = [
   'uCaustics',
   'uCloudShadeMap',
   'uReefMap',
+  'uTreeCover',
   'uShoreRound',
   'uWind',
   'uCameraPosition',
@@ -50,6 +51,8 @@ export interface TerrainDependencies {
   renderer: WebGLRenderer;
   /** The terrain's own stream: it speckles the grit. */
   random: Random;
+  /** The pictures of what lies on the ground. */
+  groundTiles: GroundTiles;
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   /** The uniforms every shader shares. They are read when the ground is first drawn. */
@@ -139,6 +142,7 @@ export interface Terrain {
 export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const { scene, renderer, random, groundHeight, landmarks, uniforms, windDirection } =
     dependencies;
+  const { groundTiles } = dependencies;
   const shape = createTerrainShape(groundHeight);
   const corners = shape.getAttribute('position') as BufferAttribute;
   shape.setAttribute('color', new BufferAttribute(cornerColours(corners, shape), 3));
@@ -161,9 +165,13 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     REEF_COVER_SPAN: glslFloat(worldConfig.reefCoverPicture.span),
     ...turfPictureDefines,
     SHORE_ROUND_FROM: glslFloat(seaConfig.shoreRoundPicture.radiusKeptFrom),
-    THIN_TURF: glslVec3(...turfColours.thin),
-    LUSH_TURF: glslVec3(...turfColours.lush),
-    DRY_TURF: glslVec3(...turfColours.dry),
+    TREE_COVER_SPAN: glslFloat(worldConfig.treeCoverMap.span),
+    GRAVEL_TILE_SPAN: glslFloat(groundTiles.gravel.span),
+    LITTER_TILE_SPAN: glslFloat(groundTiles.litter.span),
+    LOW_PLANTS_TILE_SPAN: glslFloat(groundTiles.lowPlants.span),
+    GRAVEL_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.gravel),
+    LITTER_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.litter),
+    LOW_PLANTS_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.lowPlants),
   };
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
   material.onBeforeCompile = (shader, renderer) => {
@@ -173,6 +181,9 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     shader.uniforms.uGroundRandoms = { value: groundRandoms };
     shader.uniforms.uReefCover = { value: reefCover };
     shader.uniforms.uTurfPatterns = { value: turfPatterns };
+    shader.uniforms.uGravelTile = { value: groundTiles.gravel.texture };
+    shader.uniforms.uLitterTile = { value: groundTiles.litter.texture };
+    shader.uniforms.uLowPlantsTile = { value: groundTiles.lowPlants.texture };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2

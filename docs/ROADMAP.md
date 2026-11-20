@@ -1430,6 +1430,52 @@ subnautica but mostly we should draw inspiration from nature/real life". So the 
 photographs in `reference-photos/under-water/`; a game may be looked to for how it solves a thing the
 photographs show (water that stays readable at a distance, say), and is not copied.
 
+### The third and fourth sittings, in one night (20 and 21 November 2026)
+
+Ryan, of the second sitting after its further passes: "Overall this look great but for now I'd say it is best
+we move on". He was stepping away for the night and asked for both remaining sittings at once, to review in
+the morning: the rule of one sitting at a time is his, and for a night he lifted it. Agreed before he left:
+
+- Two branches, the second begun where the first ends, so that each sitting can be looked at and merged by
+  itself: `look-3-ground` (part 4) and `look-4-coral-and-sky` (parts 5 to 7). Milestones committed and pushed
+  to them ("yes you may"); `main` untouched.
+- The floor of the grove may be changed from lawn to what the photographs show: "you may try this, judge both
+  what looks best and as well fits a real island. Consider that as the player is trying to survive we may
+  eventually need the island to be larger or perhaps the ability to travel between atolls and larger island or
+  two but this is for later". So what makes this islet a small sandy one (how much gravel, litter and green
+  lies where) is kept as named numbers and pictures that another island could set differently.
+- Ten hours, "take the time you need to get a good quality".
+
+### The third sitting: the ground and what lies on it (20 November 2026)
+
+**What the photographs say** (26 of the ground, gathered for the first sitting; `LOOK.md`, "Sand and beach"):
+an atoll islet has no soil to speak of and no lawn. Its ground is coral sand and gravel from shore to shore,
+pale grey; under the palms lie dead leaflets bleached to straw and silver, brown leaves, husks and twigs,
+thick under the crowns and thin in the open; the green comes from creepers that run out over the sand from the
+foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of noise with brown blotches.
+
+**The ground, redrawn** (`terrain-colour.glsl`, "Dry land"; `DECISIONS.md` 20):
+
+- *Sand from shore to shore.* Inland it is the beach's sand a shade greyer, and stained darker where the shade
+  is deep. The lawn, its bare patches and its brown soil are gone; the turf's broad patterns stay, and now say
+  where the ground is lush, where dried out and where a bank of gravel lies. The grass still grows by them.
+- *Three pictures of real things* (`world/ground-tiles/`, painted once at start-up, 1024 dots for 3 m of
+  ground, each built by an Opus agent to a brief and judged against the photographs): coral gravel (broken
+  fingers of branching coral, lumps, shell); the trees' litter (dead leaflets, dry leaves with their veins,
+  twigs, flakes of husk); and low plants (runners of beach morning glory, a small creeper, seedlings). In each,
+  alpha is a thing's rank, and the ground shows the things above a threshold: so the one picture of gravel is a
+  few stones on clean sand, a scatter, or a whole bank, and the litter is a leaf here and a mat there.
+- *A map of what stands over the ground* (`world/tree-cover-map.ts`), drawn from where the palms, trees and
+  shrubs were put: litter lies under a crown, creepers gather at a shrub's foot, and the sand is darker where
+  several crowns stand over it. Before, litter lay where a pattern of noise put it.
+- *Shadows.* A stone or a leaf throws a shadow behind it and catches the sun on its near edge, from a second
+  reading of its picture a shadow's length towards the sun: longer as the sun gets low. Without it a painted
+  stone is a stain (`LOOK.md`: "painted things read as flat").
+- *Where the beach meets the plants:* runners reach out over white sand before the plants proper begin; the
+  band of rubble at the back of the beach is the gravel's picture; and along the tide line the sea leaves a
+  thin, broken line of dark wrack with the shells.
+- *A footpath* is trodden sand with a scatter of stones, clear of litter and of plants.
+
 ## Later
 
 - More passes on the reef.

@@ -11,10 +11,11 @@ import type { GroundHeight, Landmarks, Point } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
 import { grassConfig, type RandomAmount, type TuftKind } from './grass-config';
 
-// Where the grass grows. On land it is scattered over the whole ring, thickest round home, and
-// grows where the ground shows turf, in the ground's own colours: mostly short turf with the odd
-// tall clump, grass with seed heads among it, and dune grass on the sand below. Sea grass grows
-// in beds on the lagoon floor.
+// Where the grass grows. On land it is scattered over the whole ring, thickest round home, in
+// tufts on the sand and gravel (the ground itself is no lawn: terrain-colour.glsl), by the turf's
+// broad patterns, which the ground's low plants go by too: mostly short tufts with the odd tall
+// clump, grass with seed heads among it, and dune grass on the sand below. Sea grass grows in
+// beds on the lagoon floor.
 // Everything takes its numbers from the grass's one stream in a fixed order, so changing what one
 // tuft draws, or whether it draws at all, moves every tuft after it.
 

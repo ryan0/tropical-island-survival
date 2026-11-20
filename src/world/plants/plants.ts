@@ -18,6 +18,7 @@ import type { Random, Range } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
+import type { Crown, CrownKind } from '../tree-cover-map';
 import { keepCoverageFarOff } from './cut-out-mipmaps';
 import { lightLeavesFromBothSides } from './leaf-light';
 import { FROND_CUTOFF } from './palm-pictures';
@@ -52,13 +53,31 @@ interface PlantKind {
   /** The size of one planted here, or 0 for none. It may draw random numbers, but only once the ground is the right height. */
   sizeAt: (x: number, z: number, height: number) => number;
   chooseColour: (colour: Color) => void;
+  /** For a kind that stands over the ground and drops its litter on it: what kind of crown it has. */
+  crownKind?: CrownKind;
+}
+
+export interface Plants {
+  /** The crown of every shrub and tree as it lies over the ground, for the litter under it. */
+  crowns: Crown[];
+}
+
+/** A crown's litter lies within this share of how far the model's leaves reach, at their widest. */
+const CROWN_SHARE_OF_REACH = 0.8;
+
+/** How far a model reaches from its foot, level, at size 1. */
+function levelReachOf(model: PlantModel): number {
+  model.full.computeBoundingBox();
+  const box = model.full.boundingBox;
+  if (box === null) return 0;
+  return Math.max(-box.min.x, box.max.x, -box.min.z, box.max.z);
 }
 
 const CELL_SIZE = 32;
 /** A leaf is drawn where the leaf atlas is more opaque than this. */
 const LEAF_CUTOFF = 0.5;
 
-export function createPlants(dependencies: PlantsDependencies): void {
+export function createPlants(dependencies: PlantsDependencies): Plants {
   const { random, groundHeight, landmarks, isInRock, instanceCells } = dependencies;
   const { kinds } = plantsConfig;
   const models = createPlantModels();
@@ -105,6 +124,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
     {
       // The hedge: thick just behind the beach, thinning out inland.
       config: kinds.beachShrub,
+      crownKind: 'shrub',
       parts: [{ model: models.beachShrub, material: leaves, shadowMaterial: leafShadows }],
       sizeAt(x, z, height) {
         if (isOffGround(height, kinds.beachShrub.ground)) return 0;
@@ -123,6 +143,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
     },
     {
       config: kinds.broadleafTree,
+      crownKind: 'tree',
       parts: [{ model: models.broadleafTree, material: leaves, shadowMaterial: leafShadows }],
       sizeAt(x, z, height) {
         if (isOffGround(height, kinds.broadleafTree.ground)) return 0;
@@ -136,6 +157,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
     },
     {
       config: kinds.scrubBush,
+      crownKind: 'shrub',
       parts: [{ model: models.scrubBush, material: leaves, shadowMaterial: leafShadows }],
       sizeAt(x, z, height) {
         if (isOffGround(height, kinds.scrubBush.ground)) return 0;
@@ -149,6 +171,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
     },
     {
       config: kinds.screwPine,
+      crownKind: 'tree',
       parts: [
         { model: models.screwPineLeaves, material: plainLeaves },
         { model: models.screwPineStems, material: bark },
@@ -276,10 +299,13 @@ export function createPlants(dependencies: PlantsDependencies): void {
   const position = new Vector3();
   const colour = new Color();
 
-  function plant({ config, parts, sizeAt, chooseColour }: PlantKind): void {
+  const crowns: Crown[] = [];
+
+  function plant({ config, parts, sizeAt, chooseColour, crownKind }: PlantKind): void {
     const meshes = parts.map(
       (part) => new InstancedMesh(part.model.full, part.material, config.count),
     );
+    const crownReach = CROWN_SHARE_OF_REACH * levelReachOf(parts[0].model);
     let planted = 0;
     for (let attempt = 0; attempt < config.tries && planted < config.count; attempt++) {
       const { x, z } = landmarks.ringPoint(random);
@@ -306,6 +332,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
         mesh.setMatrixAt(planted, matrix);
         mesh.setColorAt(planted, colour);
       }
+      if (crownKind !== undefined) crowns.push({ x, z, reach: crownReach * size, kind: crownKind });
       planted++;
     }
 
@@ -328,4 +355,5 @@ export function createPlants(dependencies: PlantsDependencies): void {
   }
 
   for (const kind of plantKinds) plant(kind);
+  return { crowns };
 }

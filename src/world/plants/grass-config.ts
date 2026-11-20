@@ -81,7 +81,7 @@ export const grassConfig = {
      * shows it (terrain-colour.glsl).
      */
     turfEdge: 1.8,
-    /** None where the ground's pattern of bare soil passes the first; most left out past the second. */
+    /** None where the ground's pattern of bare gravel passes the first; most left out past the second. */
     bareSoil: 0.74,
     soilEdge: 0.6,
     leftOutAtSoilEdge: 0.7,

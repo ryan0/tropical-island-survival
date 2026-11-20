@@ -36,6 +36,8 @@ export type SharedUniforms = Record<string, IUniform> &
     uCaustics: { value: Texture };
     /** The map of how high the coral heads stand, once the reef is built. */
     uReefMap: { value: Texture | null };
+    /** The map of what stands over the ground, once the palms and plants are put (world/tree-cover-map.ts). */
+    uTreeCover: { value: Texture | null };
     /** The sea floor as the waves know it, once it is made (sea/sea-floor-pictures.ts). */
     uSeaFloor: { value: Texture | null };
     uBreakTimes: { value: Texture | null };
@@ -76,6 +78,7 @@ export function createSharedUniforms(
     uDetail: { value: detailTexture },
     uCaustics: { value: causticsTexture },
     uReefMap: { value: null },
+    uTreeCover: { value: null },
     uSeaFloor: { value: null },
     uBreakTimes: { value: null },
     uFloorHeight: { value: null },
