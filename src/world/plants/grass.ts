@@ -78,7 +78,7 @@ function addTufts(dependencies: GrassDependencies, look: Look, tufts: readonly T
     );
   });
   mesh.receiveShadow = true;
-  instanceCells.split(mesh, { reach, shownWithin });
+  instanceCells.split(mesh, { kind: 'plants', reach, shownWithin });
 }
 
 function addSeaGrass(dependencies: GrassDependencies): void {
@@ -104,7 +104,11 @@ function addSeaGrass(dependencies: GrassDependencies): void {
     mesh.setColorAt(index, new Color(shade(0), shade(1), shade(2)));
   });
   mesh.count = spots.length;
-  instanceCells.split(mesh, { reach: config.reach, shownWithin: config.shownWithin });
+  instanceCells.split(mesh, {
+    kind: 'plants',
+    reach: config.reach,
+    shownWithin: config.shownWithin,
+  });
 }
 
 export function createGrass(dependencies: GrassDependencies): void {

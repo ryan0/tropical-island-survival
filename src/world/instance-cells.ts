@@ -26,7 +26,11 @@ export interface SimplerShape {
   cellSize?: number;
 }
 
+/** What a square's things are: the debug panel can leave a whole kind out, to read what it costs. */
+export type InstanceKind = 'plants' | 'rocks' | 'coral';
+
 export interface SplitOptions {
+  kind: InstanceKind;
   /** How far one instance can reach from its own origin. */
   reach: number;
   /** A square further than this from the camera is not drawn; 0 or nothing for no limit. */
@@ -39,6 +43,9 @@ export interface InstanceCells {
   split(mesh: InstancedMesh, options: SplitOptions): InstancedMesh[];
   /** Picks the full shape, the simpler shape or nothing for every square, by its distance. */
   update(cameraPosition: Vector3): void;
+  /** A debug switch: draws a whole kind of thing, or leaves it out of the picture and the shadows. */
+  show(kind: InstanceKind, isShown: boolean): void;
+  isShown(kind: InstanceKind): boolean;
 }
 
 interface Cell {
@@ -51,6 +58,9 @@ interface Cell {
 }
 
 const USUAL_CELL_SIZE = 64;
+// A layer the camera does not draw: a kind that is left out is put on it. (Not `visible`, which says
+// which of a square's two shapes is drawn.)
+const NOT_DRAWN_LAYER = 31;
 const NUMBERS_IN_A_MATRIX = 16;
 // Where in an instance's matrix its position is.
 const X = 12;
@@ -60,6 +70,8 @@ const Z = 14;
 export function createInstanceCells(scene: Scene): InstanceCells {
   // Only the squares that change with distance; the rest are left to three.js.
   const cells: Cell[] = [];
+  const meshesOfKind: Record<InstanceKind, InstancedMesh[]> = { plants: [], rocks: [], coral: [] };
+  const kindsLeftOut = new Set<InstanceKind>();
 
   /** One mesh of a square. It shares the vertex buffers of `shape` and, for the simpler level, the instance buffers of `full`. */
   function addCellMesh(
@@ -98,7 +110,7 @@ export function createInstanceCells(scene: Scene): InstanceCells {
   }
 
   return {
-    split(whole, { reach, shownWithin = 0, simpler = null }) {
+    split(whole, { kind, reach, shownWithin = 0, simpler = null }) {
       const cellSize = simpler?.cellSize ?? USUAL_CELL_SIZE;
       const matrices = whole.instanceMatrix.array as Float32Array;
       const colours =
@@ -171,6 +183,7 @@ export function createInstanceCells(scene: Scene): InstanceCells {
           });
         }
       }
+      meshesOfKind[kind].push(...made);
       return made;
     },
 
@@ -188,5 +201,12 @@ export function createInstanceCells(scene: Scene): InstanceCells {
         if (cell.simpler !== null) cell.simpler.visible = isShown && !isNear;
       }
     },
+
+    show(kind, isShown) {
+      if (isShown) kindsLeftOut.delete(kind);
+      else kindsLeftOut.add(kind);
+      for (const mesh of meshesOfKind[kind]) mesh.layers.set(isShown ? 0 : NOT_DRAWN_LAYER);
+    },
+    isShown: (kind) => !kindsLeftOut.has(kind),
   };
 }

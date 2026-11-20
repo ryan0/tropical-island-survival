@@ -309,6 +309,7 @@ export function createPlants(dependencies: PlantsDependencies): void {
       mesh.receiveShadow = true;
       if (shadowMaterial !== undefined) mesh.customDepthMaterial = shadowMaterial;
       instanceCells.split(mesh, {
+        kind: 'plants',
         reach: config.reach,
         shownWithin: config.shownWithin,
         simpler:

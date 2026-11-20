@@ -110,6 +110,7 @@ export function createReef(dependencies: ReefDependencies): Reef {
         mesh.setColorAt(index, colour);
       });
       instanceCells.split(mesh, {
+        kind: 'coral',
         reach: isHead ? HEAD_REACH : CORAL_REACH,
         shownWithin: isHead ? reefConfig.headsShownWithin : reefConfig.coralsShownWithin,
         simpler:

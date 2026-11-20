@@ -22,6 +22,11 @@ export interface SkyDomeDependencies {
 }
 
 export interface SkyDome {
+  /**
+   * Its material. With the define SKY_BARE (a debug switch) the dome is one flat colour and
+   * nothing of the sky is worked out, to read what the sky costs.
+   */
+  material: ShaderMaterial;
   update(cameraPosition: Vector3): void;
 }
 
@@ -53,6 +58,7 @@ export function createSkyDome(dependencies: SkyDomeDependencies): SkyDome {
   scene.add(dome);
 
   return {
+    material,
     update(cameraPosition) {
       dome.position.copy(cameraPosition);
     },

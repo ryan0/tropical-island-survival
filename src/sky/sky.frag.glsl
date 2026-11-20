@@ -79,6 +79,11 @@ vec4 lookUpSkyPicture(sampler2D picture, vec3 d, vec2 shift) {
 }
 
 void main() {
+  // (SKY_BARE: a debug switch draws the dome in one colour and works out nothing more, to read what the sky costs.)
+  #ifdef SKY_BARE
+  gl_FragColor = vec4(uSkyHorizon, 1.0);
+  return;
+  #endif
   vec3 direction = normalize(vViewDirection);
   float aboveHorizon = clamp(direction.y, 0.0, 1.0);
 

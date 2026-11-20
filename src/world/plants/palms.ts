@@ -262,6 +262,7 @@ export function createPalms(dependencies: PalmsDependencies): Palms {
     });
     mesh.castShadow = true;
     instanceCells.split(mesh, {
+      kind: 'plants',
       reach,
       simpler: { shape: simplerShape, beyond: simplerBeyond, cellSize },
     });
@@ -269,6 +270,7 @@ export function createPalms(dependencies: PalmsDependencies): Palms {
   frondMesh.castShadow = true;
   frondMesh.customDepthMaterial = frondShadowMaterial;
   instanceCells.split(frondMesh, {
+    kind: 'plants',
     reach,
     simpler: { shape: simplerFrondShape, beyond: simplerBeyond, cellSize },
   });

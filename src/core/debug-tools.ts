@@ -1,4 +1,4 @@
-import type { ShaderMaterial, WebGLRenderer } from 'three';
+import type { DirectionalLight, ShaderMaterial, WebGLRenderer } from 'three';
 import type { Breaker } from '../sea/breaker';
 import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
@@ -10,7 +10,9 @@ import { FULL_TURN } from './maths';
 import type { BuildInfo } from '../ui/build-label';
 import type { DebugAction, DebugSwitch } from '../ui/debug-panel';
 import type { FrameRateLabel } from '../ui/frame-rate-label';
+import type { InstanceCells, InstanceKind } from '../world/instance-cells';
 import type { IslandShape } from '../world/island-shape';
+import type { Terrain } from '../world/terrain';
 import type { AutomaticQuality } from './automatic-quality';
 import type { FrameMeter } from './frame-meter';
 import { SEA_DRAINED, type SharedUniforms } from './shared-uniforms';
@@ -156,6 +158,15 @@ function defineOnTheSea(water: Water, define: string, isDefined: boolean): void 
   }
 }
 
+/** What the cost switches can leave out, or draw plainly, besides the water. */
+export interface LandToLeaveOut {
+  instanceCells: Pick<InstanceCells, 'show' | 'isShown'>;
+  terrain: Terrain;
+  /** The sky dome's material. */
+  sky: ShaderMaterial;
+  sunLight: DirectionalLight;
+}
+
 /** The heading over `frameCostSwitches`. */
 export const FRAME_COST_HEADING = 'what a frame costs: read the frame rate with one on';
 
@@ -170,7 +181,15 @@ export function frameCostSwitches(
   breaker: Breaker,
   spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
   quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
+  land: LandToLeaveOut,
 ): DebugSwitch[] {
+  const leaveOut = (kind: InstanceKind): DebugSwitch => ({
+    label: `hide ${kind}`,
+    set(on) {
+      land.instanceCells.show(kind, !on);
+    },
+    isOn: () => !land.instanceCells.isShown(kind),
+  });
   return [
     {
       // Once the frame rate is at the screen's own 60, which hides what anything costs: half as many dots
@@ -179,6 +198,42 @@ export function frameCostSwitches(
       label: 'more dots',
       set: quality.drawMoreDots,
       isOn: () => quality.isDrawingMoreDots,
+    },
+    // (each kind of thing left out of the picture and of the shadows)
+    leaveOut('plants'),
+    leaveOut('rocks'),
+    leaveOut('coral'),
+    {
+      label: 'hide ground',
+      set(on) {
+        land.terrain.mesh.visible = !on;
+      },
+    },
+    {
+      // What the ground's colouring costs: the ground in the plain colour of its corners, with none of
+      // terrain-colour.glsl worked out (TERRAIN_BARE). What is left is its triangles.
+      label: 'plain ground',
+      set(on) {
+        const { material } = land.terrain;
+        material.defines = { ...material.defines, TERRAIN_BARE: on ? '' : false };
+        material.needsUpdate = true;
+      },
+    },
+    {
+      // What the sky costs: the dome in one flat colour (sky.frag.glsl's SKY_BARE).
+      label: 'plain sky',
+      set(on) {
+        land.sky.defines.SKY_BARE = on ? '' : false;
+        land.sky.needsUpdate = true;
+      },
+    },
+    {
+      // What the sun's shadows cost: none are cast (the same as automatic quality's second step down).
+      label: 'no shadows',
+      set(on) {
+        land.sunLight.castShadow = !on;
+      },
+      isOn: () => !land.sunLight.castShadow,
     },
     {
       label: 'hide wave mesh',

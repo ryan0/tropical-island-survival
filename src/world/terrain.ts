@@ -114,8 +114,17 @@ const LIGHT_UNDER_WATER = `
   transformedNormal = normalize(mix(transformedNormal, (viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz, lightScattered));
 `;
 
+export interface Terrain {
+  mesh: Mesh;
+  /**
+   * Its material. With the define TERRAIN_BARE (a debug switch) none of the colouring is worked
+   * out: the ground is drawn in the plain colour of its corners, to read what the colouring costs.
+   */
+  material: MeshLambertMaterial;
+}
+
 /** The ground and how it is coloured: sand, grass, rock, wet sand, the net of light on the sea floor. */
-export function createTerrain(dependencies: TerrainDependencies): void {
+export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const { scene, random, groundHeight, landmarks, uniforms, windDirection } = dependencies;
   const shape = createTerrainShape(groundHeight);
   const corners = shape.getAttribute('position') as BufferAttribute;
@@ -150,7 +159,9 @@ export function createTerrain(dependencies: TerrainDependencies): void {
         `#include <project_vertex>\n vGroundPosition=(modelMatrix*vec4(transformed,1.)).xyz;\n${swayOf('vGroundPosition')}\n${LIGHT_UNDER_WATER}`,
       );
     shader.fragmentShader =
-      canMeasureAcrossPixel + declarations + withColouring(shader.fragmentShader, colourShader);
+      canMeasureAcrossPixel +
+      declarations +
+      withColouring(shader.fragmentShader, `\n#ifndef TERRAIN_BARE\n${colourShader}\n#endif\n`);
   };
 
   const terrain = new Mesh(shape, material);
@@ -158,4 +169,5 @@ export function createTerrain(dependencies: TerrainDependencies): void {
   // Drawn after the plants, rocks and props: its costly colouring is then skipped wherever they hide the ground.
   terrain.renderOrder = 1;
   scene.add(terrain);
+  return { mesh: terrain, material };
 }

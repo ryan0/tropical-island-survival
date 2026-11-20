@@ -67,6 +67,7 @@ export function createRocks(dependencies: RocksDependencies): Rocks {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     instanceCells.split(mesh, {
+      kind: 'rocks',
       reach: REACH,
       shownWithin: kind === 'cobble' ? rocksConfig.cobblesShownWithin : 0,
       simpler:

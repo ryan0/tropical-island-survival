@@ -116,7 +116,7 @@ const cloudShadeSpan = cloudsConfig.shadeMapSpan * 1000;
 // ---- the land, the lights and the sky ----
 const island = createIslandShape();
 const landmarks = createLandmarks(island.groundHeight, island.radius);
-createTerrain({
+const terrain = createTerrain({
   scene,
   random: randomStream('terrain'),
   groundHeight: island.groundHeight,
@@ -338,7 +338,12 @@ const debugPanel = createDebugPanel(
     },
     {
       heading: FRAME_COST_HEADING,
-      switches: frameCostSwitches(water, uniforms, breaker, spray, quality),
+      switches: frameCostSwitches(water, uniforms, breaker, spray, quality, {
+        instanceCells,
+        terrain,
+        sky: skyDome.material,
+        sunLight: lights.sunLight,
+      }),
     },
     { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
     { heading: 'fly to', actions: placesToFlyTo(player) },
