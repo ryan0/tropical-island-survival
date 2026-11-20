@@ -1613,12 +1613,13 @@ where there were three of the detail texture (and for a dot of a head, six fewer
 took). A head is some 2000 triangles within 32 m and 400 beyond, where it was 700. The ground's shader reads
 no more pictures than after the third sitting: 13 of its own, the grit and the shadow map, 15 of the 16 that
 WebGL 2 promises (`DEVICE_NOTES.md`). The sky's dome reads one picture for a dot of night sky where it worked
-out two sky-cubes and five octaves of noise; the stars are 4200 points. The page's start-up is longer: 5.0 s
+out two sky-cubes and five octaves of noise (`fbm5`, which nothing uses now, is gone from `noise.glsl`); the stars are 4200 points. The page's start-up is longer: 5.0 s
 before the night, 5.7 s now under the test renderer, of which the ground's three pictures are 0.3 s, the
 coral's 0.1 s and the sky's two 0.2 s.
 
-**Known, and left:** a brain coral's ridges blur into a double image where two of the three sides they are
-laid on from meet; warts on a smooth ball can read as pebbled leather, and a cauliflower coral is still a
+**Known, and left:** where two of the three sides a coral's surface is laid on from meet, the pattern has a
+seam (it is taken from the side faced most squarely, nearly alone: blended evenly, a brain coral's ridges
+were a blur there); warts on a smooth ball can read as pebbled leather, and a cauliflower coral is still a
 bunch of balls; the corals on a head are scattered as they were, with no kind keeping to its own depth or
 side; a head's dead top is plain; far heads are a green-blue 30 degrees greener than the photographs' (the
 water's own colour, which the second sitting set); the sea at sunset is a brighter, bluer slate than most of

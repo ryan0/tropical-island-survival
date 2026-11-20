@@ -51,17 +51,3 @@ float fbm(vec2 p) {
   // the three amplitudes add up to 0.875: back to 0..1
   return sum / 0.875;
 }
-
-// The same with five octaves, for patterns that need the finer detail.
-float fbm5(vec2 p) {
-  float sum = 0.0;
-  float amplitude = 0.5;
-  mat2 nextOctave = mat2(1.6, 1.2, -1.2, 1.6);
-  for (int octave = 0; octave < 5; octave++) {
-    sum += amplitude * noise(p);
-    p = nextOctave * p + vec2(3.1, 1.7);
-    amplitude *= 0.5;
-  }
-  // the five amplitudes add up to 0.96875
-  return sum / 0.96875;
-}

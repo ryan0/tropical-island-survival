@@ -40,8 +40,11 @@ diffuseColor.rgb *= (0.9 + 0.2 * broadBlotches) * (0.84 + 0.32 * handBlotches);
 // lights what stands proud, and leaves the coral's shade overall as it was. The picture blurs to nothing with
 // distance by itself. (The three reads are made whatever the coral, and not skipped by a branch: a mipmapped
 // texture read inside one goes wrong on some phones, docs/DEVICE_NOTES.md.)
+// (The side a surface faces most squarely is taken nearly alone: blended evenly, where two sides meet two
+// mazes of a brain coral's ridges lay over one another in a blur.)
 vec3 facing = vSurfaceFacing * vSurfaceFacing;
-facing /= facing.x + facing.y + facing.z + 1e-4;
+facing *= facing * facing;
+facing /= facing.x + facing.y + facing.z + 1e-6;
 vec3 onSurface = vSurfacePosition / CORAL_SURFACE_SPAN;
 vec4 surface = texture2D(uCoralSurface, onSurface.zy) * facing.x
   + texture2D(uCoralSurface, onSurface.xz) * facing.y
