@@ -64,6 +64,8 @@ const vec3 OLIVE_CORAL = vec3(0.13, 0.23, 0.15);
 const vec3 DARK_REEF_ROCK = vec3(0.40, 0.37, 0.31);
 const vec3 PALE_REEF_ROCK = vec3(0.68, 0.64, 0.56);
 const vec3 PINK_CRUST = vec3(0.76, 0.58, 0.60);
+// The old reef round a coral head begins where the water is this deep, and is all there by the second depth (m).
+const vec2 OLD_REEF_BELOW = vec2(0.45, 1.3);
 
 // ---- Where this point is ----
 
@@ -527,7 +529,11 @@ if (waterDepth > 0.0) {
   float apron = texture2D(uReefMap, reefUv).g * step(abs(reefUv.x - 0.5), 0.49) * step(abs(reefUv.y - 0.5), 0.49);
   if (apron > 0.01) {
     float apronEdge = apron + (groundFbm(xz * 0.9 + 5.0) - 0.5) * 0.8 + (groundNoise(xz * 3.7) - 0.5) * 0.25;
-    float oldReef = smoothstep(0.30, 0.62, apronEdge);
+    // (None in the shallows by a beach, where the swash keeps the sand moving: a head that stands near the shore
+    // had its old reef drawn right up to the waterline, where it stopped in a straight line. It comes in with the
+    // depth, sooner here and later there, so that its edge is no line of equal depth either.)
+    float deepEnough = smoothstep(OLD_REEF_BELOW.x, OLD_REEF_BELOW.y, waterDepth + (apronEdge - 0.5) * 0.6);
+    float oldReef = smoothstep(0.30, 0.62, apronEdge) * deepEnough;
     vec3 reefRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, groundNoise(xz * 2.3)) * (0.66 + 0.68 * groundNoise(xz * 7.0));
     reefRock = mix(reefRock, PINK_CRUST, smoothstep(0.55, 0.72, groundNoise(xz * 1.1 + 9.0)) * 0.55);
     vec3 stone = pebble(xz * 4.3 + 2.0, towardsSun, 0.6);

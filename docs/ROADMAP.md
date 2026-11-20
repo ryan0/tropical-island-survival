@@ -1214,6 +1214,18 @@ picture Ryan is shown. The reason for the division: this work is one loop of dra
 and adjusting, and an agent handed that loop reports that it is closer whether it is or not; and what Ryan
 finds wrong is that things do not sit together, which several agents each improving a part makes worse.
 
+### The first sitting (19 November 2026)
+
+Ryan's answers before it: his phone shows Adaptive colour, "though as well I would want this to look good on
+most monitors/devices", so the colours are brought to what the photos measure, which is the same on every
+screen; milestone commits pushed to the branch `look-1-colours`, not merged. He sent three pictures of what
+looks most wrong: the ground and the palms from above, a lime green; the sea at sunset, violet under an orange
+sky; the lagoon from above, a cobalt blue with pastel coral heads.
+
+- *The hard edge at the waterline.* The old reef round a coral head now comes in with the depth: none where the
+  water is under half a metre deep, all of it by 1.3 m, sooner here and later there so that its edge follows no
+  line of equal depth. In six views of heads that stand near a beach the shallows are clean sand.
+
 **Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
 `ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first
 sitting: the ground's shader now includes the shore's formulas alone, not the whole island's). **Open:** which colour mode Ryan's phone shows (Adaptive deepens colours,
