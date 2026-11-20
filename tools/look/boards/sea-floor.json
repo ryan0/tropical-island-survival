@@ -1,0 +1,58 @@
+{
+  "materials": [
+    {
+      "name": "Sand a metre or two under, to an eye under water",
+      "photos": [
+        ["sea-floor/bahamas-rippled-sand-caustics-looking-along.jpg", "A8:C9"],
+        ["sea-floor/maldives-sand-ripples-caustics-sea-cucumber.jpg", "B2:E3"],
+        ["sea-floor/tahiti-lagoon-sand-with-scattered-rubble.jpg", "B6:D6"],
+        ["sea-floor/heron-island-reef-flat-sand-pockets-among-acropora.png", "C7:E8"],
+        ["sea-floor/american-samoa-sand-with-ray-beds-against-reef-rock.jpg", "D3:G4"]
+      ],
+      "ours": [
+        ["floor-reef-flat", "B6:E8"],
+        ["reef-lagoon-floor", "D7:G9"],
+        ["floor-reef-pool", "D7:G9"]
+      ]
+    },
+    {
+      "name": "Reef rock under turf, to an eye under water",
+      "photos": [
+        ["sea-floor/kaneohe-bay-reef-flat-pavement-looking-along.jpg", "C7:H9"],
+        ["sea-floor/palmyra-shallow-reef-terrace-floor-between-corals.png", "D7:F8"],
+        ["sea-floor/midway-back-reef-coralline-rock-and-pale-floor.jpg", "C6:E8"],
+        ["sea-floor/american-samoa-sand-with-ray-beds-against-reef-rock.jpg", "A8:B9"],
+        ["sea-floor/palmyra-lagoon-silted-rubble-floor.png", "C6:H8"]
+      ],
+      "ours": [
+        ["floor-reef-outer-flat", "A4:C5"],
+        ["floor-lagoon-shelf-at-hand", "D1:F3"],
+        ["reef-garden-floor", "C5:E6"]
+      ]
+    },
+    {
+      "name": "Crust of coralline algae, to an eye under water",
+      "photos": [
+        ["sea-floor/rose-atoll-coralline-pink-reef-diver.png", "F7:H8"],
+        ["coral/coralline-algae-encrusted-coral-rose-atoll.jpg", "D3:F6"],
+        ["coral/porolithon-crust-patch-reef-bahamas.jpg", "G4:H5"],
+        ["sea-floor/midway-back-reef-coralline-rock-and-pale-floor.jpg", "D4:E5"]
+      ],
+      "ours": [
+        ["floor-reef-outer-flat", "C7:D7"],
+        ["floor-reef-crest", "I7:J8"]
+      ]
+    },
+    {
+      "name": "Coral rubble under water",
+      "photos": [
+        ["sea-floor/maldives-ari-rubble-and-sand-from-above.jpg", "A1:D3"],
+        ["under-water/hawaii-kona-caustics-on-rubble-close.jpg", "C7:F9"]
+      ],
+      "ours": [
+        ["under-down-at-sand", "E4:F5"],
+        ["reef-lagoon-heads", "F7:H8"]
+      ]
+    }
+  ]
+}

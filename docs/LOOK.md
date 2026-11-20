@@ -267,6 +267,52 @@ sand ripples from under water.
 
 Not found: ripple marks on a sand floor; a microatoll at a useful size.
 
+*Ryan, of that (20 November 2026):* "the under water grounds textures and patterns have a lot more room to be
+improved. Much more variance is needed and as well the patterns we have now do not look natural." The floor
+then was one sheet of pale sand with ripples in combed bunches, soft dark blots where reef was meant, and a
+fuzz of pink and grey on the crest: every pattern a noise, and every edge a blur.
+
+*References for the floor,* in `reference-photos/sea-floor/`: 23 photos from Wikimedia Commons, gathered that
+day (`SOURCES.md` there). Some are Caribbean or the Red Sea, and two reef flats were taken dry at low tide:
+those are for shapes, not colour. What they show:
+
+- *Ripples* (`cuba-shallow-sand-ripples-from-above-water`, `bahamas-rippled-sand-caustics-looking-along`):
+  low ridges a hand's breadth apart, each only a few hand's lengths long before it forks, joins its neighbour
+  or dies: a tight net over the whole of a shallow floor, soft in contrast. Never long combed lines, and never
+  in bunches that fade out.
+- *Rubble* (`maldives-ari-rubble-and-sand-from-above`, `tahiti-lagoon-sand-with-scattered-rubble`): small
+  lumps and sticks a finger to a hand long, packed close, grey-white and nearly as light as the sand, dark only
+  in the crevices between. A few pale pieces lie about on open sand; slabs do not.
+- *Hard floor* (`kaneohe-bay-reef-flat-pavement-looking-along`, `midway-back-reef-coralline-rock-and-pale-floor`,
+  `guam-reef-flat-exposed-pitted-pavement-and-channels`): knobs and humps of old coral cemented together,
+  pitted everywhere, olive to brown under turf, mauve to pink where coralline algae crusts it (very pink at
+  Rose Atoll, grey in the Bahamas).
+- *Where grounds meet* (`heron-island-reef-flat-sand-pockets-among-acropora`,
+  `american-samoa-sand-with-ray-beds-against-reef-rock`): white sand lies in pockets and gutters of the rock
+  and meets it at a crisp edge; knobs of rock stand out of the sand near a reef.
+- *A reef from the air* (`lizard-island-reef-patches-on-sand-from-the-air`): a patch's edge is lace, with
+  islands of rock off it and bays of sand in it.
+- *Sand with life on it* (`raiatea-shallow-lagoon-sand-with-algae-patches-from-above`,
+  `red-sea-sand-with-red-brown-algae-tufts-ray`): blotches and tufts a hand to an arm across, only a shade
+  darker than the sand.
+
+Not found, and so painted from what is known of lagoon floors and not from a photo: the mounds and funnel
+pits that burrowing shrimps and worms make in lagoon sand. Thin: the fore reef's floor in natural light.
+
+*Now (20 November 2026, for Ryan to judge):* the floor is sand, rubble and rock, each laid by how much of it
+belongs in a place. The rock is a painted picture of reef pavement, and the sand floods it to a level, so
+that a reef's edge is knobs of rock standing out of sand and then gutters of sand running into rock. Rubble
+fringes each reef. Shallow sand is a net of ripples; deeper it is humped and pitted by what lives in it, and
+blotched with a film of algae. The lagoon's rock is under turf, the ocean reef's is crusted pink, most of all
+on the crest (`ROADMAP.md`, "After the night").
+
+*Rejected in that pass:* the stones' picture laid twice as large for rubble (slabs on sand); a thin scatter
+of the same over wide stretches (a mosaic with sand in the gaps); a skirt of rubble as wide as the old soft
+halo round a head (the lagoon by home, which is bright sand, became a grey field); the litter's picture,
+bleached, as sticks of broken coral (it read as leaves and straws); the film of algae as one broad even
+stain (a blot again); crust painted as discs (stickers); trails in the sand as smooth arcs (they read as
+drawn rings).
+
 ## Under water
 
 *References,* in `reference-photos/under-water/`: 21 photos from Wikimedia Commons, gathered 19 November 2026 for

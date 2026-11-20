@@ -64,10 +64,12 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   heavy is added or `more dots` is made to draw more (`MORE_DOTS`, `core/automatic-quality.ts`).
 - **A shader may read 16 pictures and no more**: that is all WebGL 2 promises a fragment shader, and many
   phones give exactly that (Ryan's phone's own limit has not been read). The ground's shader is the one near
-  it: since 20 November 2026 it reads 13 pictures of its own, the grit (three.js's `map`) and the sun's shadow
-  map, 15 in all. Nothing has been seen to fail; past the limit three.js only warns in the console and a
-  picture comes out black. So a new picture for the ground goes into a spare channel of one it reads already,
-  as the sand's ripples went into the grit's red and blue (`world/ground-grit.ts`), or another is taken out.
+  it: since 20 November 2026 it reads 14 pictures of its own, the grit (three.js's `map`) and the sun's shadow
+  map, 16 in all (counted in the page, from the program's own list of what it reads): the whole of the limit,
+  with the sea bed's picture the last in. Nothing has been seen to fail; past the limit three.js only warns in
+  the console and a picture comes out black. So the next picture for the ground goes into a spare channel of
+  one it reads already, as the sand's ripples went into the grit's red and blue (`world/ground-grit.ts`) and
+  the lived-in sand's relief into the sea bed's blue, or another is taken out first.
 - The phone reads a picture in the water's vertex shader without trouble, bytes or half floats, smoothly
   filtered (tried on 15 November 2026 with a picture of mounds in place of the waves).
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,

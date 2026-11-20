@@ -8,7 +8,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 **Now (Ryan, 19 November 2026): the look, against references**, in four sittings with his review after each
 ("The look, against references", below). The first two are merged; the third, the ground, is on the branch
 `look-3-ground` and the fourth, coral and the night sky, on `look-4-coral-and-sky`, which begins where the
-third ends, both for his review (20 November 2026). After it comes the much greater variety of plants,
+third ends, both for his review (20 November 2026). His notes on them (soil on the islet; the sea floor's
+patterns) are answered on `look-5-sea-floor`, which begins where the fourth ends ("After the night", below).
+After it comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
 many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
 comes after.
@@ -1642,6 +1644,100 @@ swims; what the coral's shader and the heads' triangles cost beside a reef (read
 by a head, with `more dots` on, then with the coral hidden); and how much longer the start-up is (on the
 desktop the pictures take some 0.7 s to paint in all: on the phone perhaps two or three seconds. If that is
 too long, the first to make smaller are the ground's three, `ground-tiles/*-config.ts`).
+
+### After the night: soil, and the sea floor again (20 November 2026)
+
+Ryan's notes on the two sittings, the morning after: "the ground cover on the island is much better. The only
+thing I would recommend is some smaller patches of dirt as eventually the piling up decaying vegetation and
+such would become dirt"; and "the under water grounds textures and patterns have a lot more room to be
+improved. Much more variance is needed and as well the patterns we have now do not look natural. Could you do
+passes against actual references until this is looking better? 2-3hrs". And while it was in hand: "the
+appearance from far up is important as well but consider the most important is from the players perspective";
+"make sure there is not a hard edge between the shore/sand and rubbly for island in lagoon"; "make sure the
+ripples in sand are in a sensible direction, generally towards the shore". On the branch `look-5-sea-floor`,
+which begins where `look-4-coral-and-sky` ends, and left uncommitted for him.
+
+**Soil** (`terrain-colour.glsl`, "Dry land"). Where litter has lain and rotted longest, the sand is a dark
+crumb of humus: under a crown, in deep shade, on lush ground, in patches a few steps across, and on most of
+the islet not at all. Its colour is measured on the humus-stained sand at the top of a beach at Fakarava (a
+fifth to two fifths as light as the clean sand beside it, and nearly grey); its edge is a crumb's, dark over
+pale in specks; a stone that lies in it is stained, and more litter lies on it. How much of it there is, is
+two numbers (`SOIL_GATHERS`, `SOIL_BETWEEN`).
+
+**What was wrong with the floor.** It was one sheet of pale sand with ripples in combed bunches, laid north
+and south in the lagoon and east and west on the reef whichever way the shore ran; soft dark blots where reef
+was meant; a fuzz of pink and grey on the crest; the land's gravel on the fore reef. Every pattern was a
+noise and every edge a blur. Round the islet in the lagoon the dark ground came up to the waterline and
+stopped at a line.
+
+**The photographs**: 23 of the floor, gathered by an Opus agent from Wikimedia Commons into
+`reference-photos/sea-floor/` (`LOOK.md`, "Reef and sea floor", says what they show). None shows the mounds
+and pits of a lived-in lagoon floor, which are painted from what is known of them.
+
+**The floor, redrawn** (`terrain-colour.glsl`, "The sea floor"):
+
+- *Sand, rubble and rock by amounts.* For each spot the shader works out how much of the floor is rock, how
+  near a reef is, how thickly rubble lies and how lived in the sand is, from the depth, the reef's pictures
+  and single readings of the ground's noise; then it lays pictures of the real things by those amounts, as
+  the land's ground does.
+- *The sea bed's picture* (`world/sea-bed/`, painted once at start-up, 1024 dots for 4 m of floor, by an Opus
+  agent to a brief, in two rounds, and judged against the photographs). Three of its channels are the reef's
+  hard floor: its height as a rank, its fine light and dark, and what covers it as a place on a ramp of
+  colours the shader owns (thick turf, what lives on it, old rock, pink crust, clean and pale). The fourth is
+  the relief of lived-in sand: mounds, funnel pits, trails. (It is named the sea bed's to keep it apart from
+  the waves' pictures of the floor's shape, `sea/sea-floor-pictures.ts`.)
+- *The sand floods the rock to a level.* The more of the floor is rock, the lower the sand lies in it: so a
+  reef's edge is knobs of rock standing out of sand, then gutters of sand running into rock, then pavement
+  with sand in its holes, and never a line. Read a little towards the sun as well, the same height shades
+  the rock's slopes.
+- *Rubble* is the stones' picture laid finer, as a fringe where the rock begins to stand out of the sand, in
+  banks behind the crest, and as a thin scatter of pale pieces on open sand in stretches.
+- *Sand.* Shallow, it is a net of ripples: their picture is now the sum of forty plain waves of nearly one
+  length and direction, which fork and join as real ripples do, and it is laid round the atoll so that the
+  ridges follow the shore everywhere: the ocean's shore on the reef, the lagoon's in the lagoon, circles
+  round the islet in its middle. Deeper, it is humped and pitted, more in one stretch and less in the next,
+  and blotched with a film of algae that the fresh heaps stand out of.
+- *One place differs from another.* The lagoon's rock lies under turf and silt; the ocean reef's is crusted
+  pink, most on the crest; in the shallows inside the gardens the pavement shows through the sand in knobs;
+  the cover's colours wander from stretch to stretch.
+- *The islet in the lagoon.* Its beach runs down into sand, and the reef round it begins further out, sooner
+  here and later there and in stretches not at all.
+- *From far off* the picture fades to its averages (its repeat showed as a lattice over the whole reef from
+  the air), and a reef's edge is cut by the noise at a few metres, as lace: from the air the atoll is as it
+  was, with crisper patches.
+
+**Measured** (`tools/look/boards/sea-floor.json`; the hue as degrees from the photographs', the lightness as
+a difference, to an eye under water):
+
+| Material | Photos | Before | Now |
+|---|---|---|---|
+| Reef rock under turf | lightness 0.45, hue 151 | hue +34, lightness +0.10 | hue -12, lightness -0.02 |
+| Coral rubble | 0.68, hue 207 | hue 0, 0.00 | hue -25, -0.05 |
+| Sand a metre or two under | 0.74, hue 180 | hue +28, -0.04 | hue +27, -0.04 |
+
+The sand is as it was (its blue-green is the water's, which the second sitting set). The crust is not in the
+table: the photographs of it disagree (salmon pink at Rose Atoll, grey in the Bahamas, mauve at Midway), and
+a part of ours always holds turf and holes with the pink; ours lies between them. Soil with its litter is
+0.18 darker than the sand beside it, where Fakarava's is 0.17 to 0.27.
+
+**What it costs.** Three more readings of a picture for every dot of ground (the sea bed's: here, a little
+towards the sun, and once much finer for the rock's grain), and about as many readings of the noise on the
+sea floor as before. The ground's shader now reads 16 pictures, all that WebGL 2 promises
+(`DEVICE_NOTES.md`): the next must share one. Painting the picture takes 0.2 to 0.3 s on the desktop, where
+the page's start-up went from 5.7 s to 6.0 s under the test renderer. No triangles are added.
+
+**Known, and left:** nothing painted stands up, so from a hand's distance the rock is a flat picture of
+knobs and the rubble a flat bed; the bed of rubble is the land's gravel, lumps without the sticks and plates
+of broken branching coral; the picture repeats every 4 m, hidden near to by the amounts' wandering and far
+off by fading; the rock's small pale knobs can read as bubbles; a trail in the sand can loop into a neat
+ring; the film of algae is tufts of one grain; nothing lies on the floor that could be picked up (sea
+cucumbers, shells, clams off the heads); the fore reef's floor has only one photograph behind it.
+
+**Only the phone can say:** what the three new readings cost (read the frame rate under water over a reef
+with `more dots` on; the first thing to lower is the picture's anisotropic filtering, `mostAnisotropy` in
+`sea-bed-config.ts`, then the grain's reading, `ROCK_GRAIN`); how much longer the start-up is (perhaps a
+second; the lever is the picture's size); whether the rock and the ripples shimmer as the eye swims; and
+whether 16 pictures is within the phone's own limit (if it were not, some ground would come out black).
 
 ## Later
 

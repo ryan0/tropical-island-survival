@@ -34,6 +34,7 @@ uniform sampler2D uTreeCover;       // what stands over the ground (tree-cover-m
 uniform sampler2D uGravelTile;      // coral gravel and rubble, seen from above (ground-tiles.ts)
 uniform sampler2D uLitterTile;      // the trees' litter, likewise
 uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
+uniform sampler2D uSeaBed;          // the reef's hard floor and lived-in sand (sea-bed/sea-bed-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
@@ -92,6 +93,12 @@ float coverOf(vec4 tile, float amount, float fullCover, float farOff) {
 // multiply the colour by.
 float litAgainstSun(float relief, float strength) {
   return 1.0 + strength * (0.12 * max(relief, 0.0) + 0.32 * min(relief, 0.0));
+}
+
+// A place on the ground as the sea bed's picture is laid: turned, so that it never repeats in step with the
+// stones' picture.
+vec2 laidTurned(vec2 p) {
+  return vec2(p.x * 0.8 + p.y * 0.6, p.y * 0.8 - p.x * 0.6);
 }
 
 // One layer of dimples in loose sand (footprints, hollows the wind has rounded off): at most one round hollow in each

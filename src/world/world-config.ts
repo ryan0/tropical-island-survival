@@ -76,13 +76,14 @@ export const worldConfig = {
   groundTiles: { fullCover: { gravel: 0.66, litter: 0.64, lowPlants: 0.74 } },
 
   /**
-   * The ripples small waves leave in the sand of a shallow sea floor (sand-ripples.ts; they are
-   * kept in the grit's picture, and are of its size): the metres of floor one repeat of them
-   * covers; how many ridges cross it (so they lie span / ridges apart: a hand's length); how far
-   * a ridge wanders from straight, in ridges; and how much narrower a crest is than a trough (1
-   * is a plain wave).
+   * The ripples in the sand of a shallow sea floor (sand-ripples.ts): how many metres of floor
+   * their picture covers; how many ridges cross it (so they lie span / ridges apart: a hand's
+   * breadth, as in the photographs of rippled sand); how many plain waves the picture is the sum
+   * of, and how far from the middle one they lie in the number of ridges across the picture and
+   * down it (the wider, the shorter a ridge runs before it forks or ends); and how much narrower
+   * a crest is than a trough (1 is a plain wave).
    */
-  sandRipples: { span: 2.4, ridges: 20, wander: 1.6, crestSharpness: 1.6 },
+  sandRipples: { span: 2.4, ridges: 27, waves: 40, spread: [10, 4], crestSharpness: 1.25 },
 
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */

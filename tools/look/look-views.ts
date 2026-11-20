@@ -320,6 +320,13 @@ const ground: ReferenceView[] = [
     aboveGround,
   ),
   view(
+    'ground-soil',
+    'a patch of soil under the trees by home',
+    [-5, 1.6, 137, 0.9, -0.55],
+    {},
+    aboveGround,
+  ),
+  view(
     'ground-grove-at-feet',
     'the floor of the grove at the feet',
     [-2, 1.6, 140, 0.4, -1.0],
@@ -460,6 +467,78 @@ const reef: ReferenceView[] = [
   ),
 ];
 
+/**
+ * The sea floor itself, from a swimmer's eye a metre over it and from above the water: the sand
+ * of the shallows, sand that is lived in, the lagoon's basin, the reef's hard floor, rubble.
+ */
+const seaFloor: ReferenceView[] = [
+  view('floor-lagoon-shallows', "the lagoon's rippled shallows", [-20, -0.6, 91, 0.3, -0.45], calm),
+  view(
+    'floor-lagoon-west-shallows',
+    "the shallows of the lagoon's west shore",
+    [-86, -0.6, 0, -1.571, -0.45],
+    calm,
+  ),
+  view('floor-lagoon-shelf', "a reef on the lagoon's shelf", [0, -2.7, 77, 0, -0.5], calm),
+  view('floor-lagoon-shelf-at-hand', 'the rock of it at the hand', [0, -3.0, 75, 0, -1.1], calm),
+  view('floor-lagoon-basin', "the floor of the lagoon's basin", [0, -3.6, 62, 0.6, -0.4], calm),
+  view('floor-lagoon-deep', "the lagoon's deep floor", [0, -6.8, 42, 0, -0.5], calm),
+  view('floor-lagoon-deep-at-hand', 'the same floor at the hand', [0, -7.0, 41, 0, -1.1], calm),
+  view('floor-reef-flat', "the ocean reef's flat", [0, -0.4, 185, Math.PI, -0.4], calm),
+  view(
+    'floor-reef-flat-at-hand',
+    'its rippled sand at the hand',
+    [0, -0.5, 186, Math.PI, -1.1],
+    calm,
+  ),
+  view('floor-reef-pool', 'a pool in the back reef', [0, -1.6, 232, Math.PI, -0.4], calm),
+  view('floor-reef-outer-flat', 'the flat behind the crest', [0, -0.3, 268, Math.PI, -0.45], calm),
+  view('floor-reef-crest', 'the crest from behind', [0, -0.3, 290, Math.PI, -0.3], calm),
+  view(
+    'floor-islet-from-its-beach',
+    "the lagoon islet's shallows from its beach",
+    [0, 1.9, 9, Math.PI, -0.3],
+    calm,
+  ),
+  view('floor-islet-wading', 'the same from wading out', [0, 0.7, 14.5, Math.PI, -0.5], calm),
+  view(
+    'floor-islet-under-water',
+    "the islet's slope from under water",
+    [3, -1.0, 21, 0.4, -0.25],
+    calm,
+  ),
+  view(
+    'floor-ripples-east-reef',
+    "ripples on the ocean reef's east side",
+    [160, -0.4, 0, -1.571, -0.45],
+    calm,
+  ),
+  view(
+    'floor-ripples-lagoon-east',
+    "ripples in the lagoon's east shallows",
+    [60, -0.5, 60, 0.785, -0.45],
+    calm,
+  ),
+  view('floor-map-lagoon', 'the lagoon by home from straight above', [0, 70, 70, 0, -1.5707], calm),
+  view(
+    'floor-map-reef',
+    "the ocean's reef by home from straight above",
+    [0, 110, 260, 0, -1.5707],
+    {
+      ...calm,
+    },
+  ),
+  view('floor-wading-lagoon', 'the lagoon floor seen from wading', [0, 0.9, 101, 0, -0.5], calm),
+  view(
+    'floor-wading-reef',
+    "the reef flat's floor seen from wading",
+    [0, 0.6, 182, Math.PI, -0.5],
+    {
+      ...calm,
+    },
+  ),
+];
+
 const MIDNIGHT = { ...calm, cloudCover: 0, sun: { dayPhase: 0 } };
 const TOWARDS_THE_MOON = Math.PI + 0.35;
 
@@ -518,6 +597,6 @@ const nightSky: ReferenceView[] = [
   ),
 ];
 
-export const lookViews = { colour, evening, weather, underWater, ground, reef, nightSky };
+export const lookViews = { colour, evening, weather, underWater, ground, reef, seaFloor, nightSky };
 
 export type ViewGroup = keyof typeof lookViews;

@@ -66,6 +66,7 @@ import { createPlants } from './world/plants/plants';
 import { createReef } from './world/reef/reef';
 import { createRocks } from './world/rocks/rocks';
 import { createGroundTiles } from './world/ground-tiles/ground-tiles';
+import { createSeaBedPicture } from './world/sea-bed/sea-bed-picture';
 import { createTerrain } from './world/terrain';
 import { createTreeCoverMap } from './world/tree-cover-map';
 import { worldConfig } from './world/world-config';
@@ -124,6 +125,7 @@ const terrain = createTerrain({
   random: randomStream('terrain'),
   randomOfRipples: randomStream('sand ripples'),
   groundTiles: createGroundTiles(randomStream, maxAnisotropy),
+  seaBed: createSeaBedPicture(randomStream('sea bed'), maxAnisotropy),
   groundHeight: island.groundHeight,
   landmarks,
   uniforms,
