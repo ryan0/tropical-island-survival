@@ -1482,10 +1482,11 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
 - *A stone by itself is pale.* A lone stone on sand is bleached nearly as white as the sand; it is a bank of
   them that is grey. (As dark as the bank's, a scatter of stones on white sand was a leopard's coat.)
 - *What falls from a palm lies under it.* The fallen fronds and the nuts, which are shapes, were scattered
-  anywhere (the nuts on the beach by home alone): they now lie under the palms' crowns, 800 fronds and 600
+  anywhere (the nuts on the beach by home alone): they now lie under the palms' crowns, 800 fronds and 360
   nuts where there were 240 and 70, and most of the nuts are weathered grey (`plants-config.ts`,
-  `fallenFromPalms`). The other things on the ground after them in the plants' stream (vine mats, lumps of
-  coral, stumps) stand in new places for it.
+  `fallenFromPalms`). A nut is drawn within 45 m where it was within 90: further off it is a dot. The other
+  things on the ground after them in the plants' stream (vine mats, lumps of coral, stumps) stand in new
+  places for it.
 - *The modelled vine mats* that stand among the painted creepers were a brighter, purer green than they are,
   with leaves of four straight edges: their leaves are now the creepers' olive and cut rounder
   (`things-on-the-ground.ts`).
@@ -1518,7 +1519,8 @@ litter once more towards the sun), in place of some forty readings of the noise 
 vines and its soil took. The pictures are 1024 dots a side with mipmaps, some 16 MB in all on the graphics
 card, and are read with up to four-fold anisotropic filtering, since the ground is seen at a low angle.
 Painting them takes about 0.1 s each on the desktop, where the page's start-up went from 5.1 s to 5.4 s
-under the test renderer.
+under the test renderer. The fronds, the nuts and the vines' rounder leaves are triangles: a frame in the
+grove from the clearing, the heaviest view on land, draws 773 thousand where it drew 739 thousand.
 
 **Known, and left:** nothing painted stands up, so from an arm's length the stones are flat chips with a
 shadow, and a mat of creepers has none of the depth of real leaves standing off the sand; the leaves of the

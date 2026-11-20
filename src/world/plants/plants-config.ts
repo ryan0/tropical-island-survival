@@ -115,11 +115,11 @@ export const plantsConfig = {
       castsShadow: true,
     },
     coconut: {
-      count: 600,
+      count: 360,
       tries: 40000,
       ground: [1.2, 9],
       reach: 1,
-      shownWithin: 90,
+      shownWithin: 45,
       simplerBeyond: 0,
       castsShadow: true,
     },
