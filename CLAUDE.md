@@ -26,7 +26,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
   the sun sets and crosses the sky through the night.
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
-  `docs/ROADMAP.md`. Read it before starting work.
+  `docs/ROADMAP.md`. Read it before starting work. The work in hand is the look, against reference photos, in
+  four sittings with Ryan's review after each.
 - Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder
   `legacy/` there. Nothing in the repository uses it.
 
@@ -56,7 +57,10 @@ Ryan directs it and judges it on his phone; Claude writes it.
 - **Tests must earn their time.** The project is young and how fast we can iterate matters more than coverage.
   Add a test only where it catches what the existing ones cannot; do not add one for each piece of work.
 - **Delegate when it pays.** Hand a piece of work to a smaller model (Opus, Sonnet) when the saving in time or
-  usage is appreciable and there is no concern that quality would suffer. Otherwise do it yourself.
+  usage is appreciable and there is no concern that quality would suffer. Otherwise do it yourself. For work on
+  the look (agreed 19 November 2026): agents gather references and build what stands by itself to a written
+  brief; Claude does every pass at a look, every change to the water's and the ground's shaders, the merging,
+  and judges every picture Ryan is shown (`docs/ROADMAP.md`, "Who does what").
 - **Reports are short and lead with the result.** One preview picture per visible change. He wants to understand
   what happened at a high level, not read a log.
 - **Every build shows its number on screen**, so a screenshot proves which build is on the phone.

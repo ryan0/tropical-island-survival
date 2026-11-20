@@ -5,6 +5,11 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
+**Now (Ryan, 19 November 2026): the look, against references**, in four sittings with his review after each
+("The look, against references", below). After it comes the much greater variety of plants, rocks, ground and
+props that the groundwork prepared for, by the proposal he has still to decide ("A proposal: many more kinds
+at a flat cost"). The list that follows is the order agreed before that, and stands for what comes after.
+
 1. **The breaking wave, pass 1: its timing, on a picture of the sea floor.** How often waves come, sets and
    lulls, speed from depth, the stand-up, the lip under gravity, the landing, and the break running along the
    crest; drawn with today's mesh and shapes. The section below has the design.
@@ -1081,13 +1086,14 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
   agree to within a few parts in a hundred at every distance the atoll has, so making them one rule would
   move every far colour a little for nothing the eye would see.
 
-**Only the phone can say what any of this gained.** The test renderer times the noise picture at 7 to 16 per
-cent of a frame and the other four pictures at nothing, and it has been wrong about pictures and arithmetic
-every time. The panel's `ground by arithmetic` switch puts all five back to formulas: the frame rate with it
-on and off, with `more dots` on, is the measure. The switch goes once it has been read. If it shows a gain, the
-same picture of noise could serve the water's glitter, sparkle and white horses, which still work theirs out
-(up to four evaluations for a dot of sea in a wind); not tried, since it would move patterns of the water that
-have been tuned over many sittings.
+**What the phone said** (Ryan, 19 November 2026): 60 frames a second with `more dots` on, whatever is switched
+on or off; "you've done a great job getting our performance in check". So the panel can no longer tell one
+cost from another on this phone, and `ground by arithmetic` shows neither a gain nor a loss. The switch and the
+formulas it brings back are to go at the start of the next sitting, the pictures staying: fewer sines for a
+dot, and room for what is to be added. The water's glitter, sparkle and white horses still work their noise
+out (up to four evaluations for a dot of sea in a wind); the ground's picture of noise could serve them, and
+there is no call for it while the phone holds 60. To read a cost again, `more dots` would have to draw more
+than half as many dots again each way (`MORE_DOTS` in `core/automatic-quality.ts`).
 
 ### What a frame spends, and a budget (19 November 2026)
 
@@ -1114,9 +1120,11 @@ time for a frame looking inland is 4 ms on the desktop, 2.4 of it inside three.j
 **The budget.** One place has been read at 60 on the phone: the ocean beach looking out to sea, when it drew
 673 thousand triangles in 144 draws. So until the phone has read the others, that is the budget for any
 view: **700 thousand triangles and 150 draws**. Out to sea is inside it. Inland, the clearing and the lagoon
-are over it, in draws by two to three times; whether that costs frames on the phone is the first thing to
-read (the frame rate, and the panel's `program ... ms a frame`, at the home clearing and wading in the
-lagoon, then with `hide plants`, `hide rocks` and `hide coral`). By class, to hold when kinds are added:
+are over it, in draws by two to three times. The phone has since held 60 with `more dots` on (above), but
+where Ryan stood is not recorded: if that was looking inland too, the scene as it stands is itself inside what
+the phone can do, and the budget is to be set from it. To ask before the proposal below is decided, with the
+panel's `program ... ms a frame` at the home clearing and wading in the lagoon. By class, to hold when kinds
+are added:
 ground 150 thousand, water 100, all plants 300, rocks 60, coral 60 (150 in the lagoon, where there is little
 else), animals 30.
 
@@ -1156,6 +1164,61 @@ Whatever is chosen, the rules for a new kind stay: it uses a material that exist
 leaf, bark, the frond, rock or coral), it has a simpler shape and a distance beyond which it is not drawn,
 and it is counted against its class's line of the budget before it is merged.
 
+## The look, against references (agreed 19 November 2026)
+
+Ryan, on the phone, of the groundwork: the frame rate is in check, and the look is now the matter. His words:
+
+- "the ground textures/cover do not look great we should spend a good number of passes comparing to actual
+  references and refining for a more realistic and aesthetic look"; and where the coral ground meets the beach
+  there is a "weird/hard cutoff";
+- "the coral and other under water textures need refining";
+- "a lot of our colors feel a bit too busy? Or maybe over saturated? (including the water)": several passes
+  against references "to get our colors more spot on";
+- "the same could be said of our sky box/stars/moon";
+- "one big thing we will want to improve is the under water appearance/rendering as well as how the surface
+  looks from underwater. Essentially we want beautiful and realistic underwater scenes as the player will spend
+  decent amount of time there. For example, currently the bubbles and light beams look tacky".
+
+**What his two pictures show.** The hard edge: round a coral head the floor is painted as old reef rock (the
+head's apron, from the reef's map), wherever the ground is under water, and that stops dead at the waterline
+when a head stands near the beach. Under water: one flat blue fog that takes all the colour out of the coral
+within a few metres; light rays that are stripes on an overlay fixed to the screen; 46 ring-shaped bubbles
+that circle the eye for ever; and, looking up, a pale blob where the surface should be a round window of sky.
+
+**There are no reference photos for any of this.** `reference-photos/` holds water and waves only; the photos
+`LOOK.md` describes for the reef, the sand and the plants were sent in the days of the earlier builds and not
+kept. So the work begins by gathering them, and for colour by measuring them.
+
+**The plan**, about 22 hours of work, less by a quarter to a third with the help below:
+
+| | Part | What is done | Hours |
+|---|---|---|---|
+| 1 | References and a colour board | Some 80 freely licensed photos (the ground, the shoreline, under water, coral, the night sky), with what each shows written into `LOOK.md`. A board of swatches (sand, the ground under palms, fronds, the lagoon from shallow to deep, the open sea, the sky) measured from the photos and from our pictures, side by side. | 1.5 |
+| 2 | Colours | Three passes bringing each material to the board: plants, water, sand, sky, light. Fewer patterns competing where the photos show plain surfaces. | 2.5 |
+| 3 | Under water | Water that takes colour away with distance, red first, and is brighter looking up and darker looking down, so that near coral keeps its colour. The surface from below as a round window of sky with the sun in it, bent by the waves. Shafts of light that hang in the water and slant from the sun. Fine drifting specks in place of the ring bubbles; bubbles only under breaking waves. | 6, perhaps 8 |
+| 4 | Ground and cover | The hard edge at the waterline first. Then the ground against photos, its cover painted as real things (fallen leaves, gravel, shells, roots) in place of blotches of noise. Real ground under an atoll's palms is pale coral sand and gravel with brown litter, the green coming from low plants, where ours is lawn: one stretch is shown before and after for Ryan's yes before the island's character is changed. | 5 |
+| 5 | Coral and the reef floor | Surface detail for each kind (a brain coral's grooves, polyps, branch tips), colours from photos, the heads' rock, ripples and rubble on the floor. The kinds there are now; new ones belong to the effort after. | 3.5 |
+| 6 | Sky, stars, moon | Stars as points of varied brightness (they are squares of one size), fewer near a full moon; a Milky Way with structure; the moon's face laid out as the real one; the day sky's blue and the dusk against photos. The clouds stay as approved. | 2.5 |
+| 7 | Checks, the phone's notes, the docs | | 1 |
+
+**In four sittings, one at a time**, each ending with sheets of before and after and a look on the phone, and
+Ryan's notes before the next: (1) parts 1 and 2 and the hard edge; (2) part 3; (3) part 4; (4) parts 5 to 7.
+
+**Who does what** (agreed the same day, on the condition that the quality does not suffer). Opus agents gather
+the references, an agent to a subject, and build what stands by itself to a written brief, each in a worktree
+of its own: the drifting specks, the shafts of light, the painted ground tiles, the coral's surface textures,
+the field of stars. No more than three draw pictures at once (the test renderer is slow, and the machine has
+twelve cores). Claude chooses which photos are kept, does the colour passes and every pass at a look, makes
+every change to the water's and the ground's shaders, keeps the phone's hard rules, merges, and judges every
+picture Ryan is shown. The reason for the division: this work is one loop of drawing, comparing with the photo
+and adjusting, and an agent handed that loop reports that it is closer whether it is or not; and what Ryan
+finds wrong is that things do not sit together, which several agents each improving a part makes worse.
+
+**Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
+`ground by arithmetic` switch goes. **Open:** which colour mode Ryan's phone shows (Adaptive deepens colours,
+and the passes are tuned on stills from the desktop); whether there is a game or a film whose look under water
+is the one to aim at.
+
 ## Later
 
 - More passes on the reef.
@@ -1172,6 +1235,10 @@ and it is counted against its class's line of the budget before it is merged.
 
 - The moonlit night has been judged on stills from the desktop only, against no photos, and the moon's
   crossing of the sky not in motion at all.
+- What "The look, against references" (above) is to cure: colours that are too busy or too deep, the water's
+  among them; ground cover that reads as blotches of noise, and as lawn; the old-reef ground's hard edge at
+  the waterline; coral as smooth lumps in pastel; under water, a flat blue fog, stripes of light fixed to the
+  screen, ring bubbles and a blob for the surface; stars that are squares of one size.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on
@@ -1192,7 +1259,8 @@ and it is counted against its class's line of the budget before it is merged.
   calmer sea", above, has what was done and what is left). So no performance pass was planned then. The debug
   panel (hold the corner button) reports the frame rate, the program's time for a frame, and the draws and
   triangles: read them again when something heavy is added. Still to read: the pixel ratio and the program's
-  time in a high wind at the ocean's edge.
+  time in a high wind at the ocean's edge. After the frame-rate and groundwork passes it holds 60 with `more
+  dots` on, whatever is switched (19 November 2026).
 - Shadows are redrawn on demand, not every frame. Anything that should cast a moving shadow needs thought first.
 - Plants and rocks are instanced in map squares that are skipped when out of view, hidden beyond a distance and
   drawn with a simpler shape beyond a nearer one.

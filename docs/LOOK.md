@@ -16,7 +16,9 @@ photographs are not in the repository (most are other people's); each group is d
 - **Smaller and quieter in sheltered water.** The lagoon and the reef flat get the open sea's effects at a third
   of the size and with less foam.
 - **Colour is checked against the photos.** The reef went too green, then orange, then pink, then "slightly too
-  yellow" before it was right.
+  yellow" before it was right. Ryan, 19 November 2026, of the whole scene: "a lot of our colors feel a bit too
+  busy? Or maybe over saturated? (including the water)". So each material's colour is to be measured in the
+  photos and in our pictures, side by side.
 - **Things move the way they point.** Fish once slid sideways and swam backwards; heading now comes from motion.
 
 ## The atoll from the air
@@ -154,7 +156,18 @@ seen through clear water as brown and olive patches; coral heads rising from san
 several kinds on top; clams; reef fish in small parties that spread through the lagoon; short sea-grass beds.
 Ryan plans more reef passes later.
 
-*Rejected:* kelp (replaced by short sea grass); bare platform tops; heads that sat on the sand without blending in.
+*Rejected:* kelp (replaced by short sea grass); bare platform tops; heads that sat on the sand without blending in;
+the old-reef ground round a head ending in a straight line at the waterline where the head stands near the beach
+("weird/hard cutoff", 19 November 2026).
+
+*Still weak (Ryan, 19 November 2026):* "the coral and other under water textures need refining".
+
+## Under water
+
+*References:* none yet. Ryan, 19 November 2026: "we want beautiful and realistic underwater scenes as the player
+will spend decent amount of time there", and that includes "how the surface looks from underwater".
+
+*Rejected:* bubbles as rings circling the eye, and rays of light as stripes fixed to the screen ("tacky").
 
 *To come:* the coral placed afresh and redesigned, each kind where it grows on a real reef, and the reef made to
 differ along the shore. What belongs in each region is in `REEF.md`.
@@ -181,8 +194,9 @@ vines, fallen fronds and stumps. All sway with the wind.
 *Rejected:* lawn-like grass; bushes that were faceted balls wrapped in a leaf picture ("circular"); fronds folded
 so steeply that they read as bare ribs.
 
-*Still weak:* short turf is sparse flat cut-outs; vine leaves are angular close to; far palms look thinner than
-near ones.
+*Still weak:* short turf is sparse flat cut-outs; vine leaves are angular close to. (Far palms looked thinner
+than near ones until 19 November 2026.) Ryan, the same day: "the ground textures/cover do not look great", to be
+refined over a good number of passes against real references "for a more realistic and aesthetic look".
 
 ## Sky and light
 
@@ -195,7 +209,10 @@ island and the water; clouds mirrored in the sea; golden hour and sunset light o
 *Rejected:* clouds that looked "far too solid"; cumulus that contrasted with the other clouds; noise lumps that
 read as snowy mountains; perfect balls that read as bubbles.
 
-*Night (19 November 2026, for Ryan to judge):* a full moon that rises out of the sea in the east as the sun
+*Still weak (Ryan, 19 November 2026):* the "sky box/stars/moon ... could use refinement for realism and
+aesthetics".
+
+*Night (19 November 2026):* a full moon that rises out of the sea in the east as the sun
 sets, pale in the dusk with a path of glitter under it, crosses the sky at an even pace, stands high over the
 sea from home at midnight and sets in the west at dawn; its disc as wide as the sun's, with grey seas and a
 darker limb; its light cold and strong enough to walk by, with the palms' shadows on pale sand, long while it

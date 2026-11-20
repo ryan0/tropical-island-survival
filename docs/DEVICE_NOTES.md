@@ -61,7 +61,9 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
 - To find where a slow frame goes: switch `more dots` on if the frame rate is at 60, then read it with each of
   the cost switches and each of the colouring's stages on in turn. That is how the frames the water's new look
   cost were found in November 2026; no guess made from the software renderer's timings was right. A switch
-  whose question has been answered is taken out again (the panel had grown to 34).
+  whose question has been answered is taken out again (the panel had grown to 34). Since 19 November 2026 the
+  phone holds 60 with `more dots` on whatever is switched, so the switches tell nothing apart until something
+  heavy is added or `more dots` is made to draw more (`MORE_DOTS`, `core/automatic-quality.ts`).
 - The phone reads a picture in the water's vertex shader without trouble, bytes or half floats, smoothly
   filtered (tried on 15 November 2026 with a picture of mounds in place of the waves).
 - `uDebugMode` (a shared uniform) can switch parts of the water off without recompiling: 1 = waves off, 2 = no falling lip,
