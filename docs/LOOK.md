@@ -37,7 +37,9 @@ from different cameras are averaged for each material, since any one photo's exp
 own.
 
 **What the photos measure, and where ours stood** before and after the first sitting of "The look, against
-references" (`ROADMAP.md`). The last two columns are our saturation as a multiple of the photos'.
+references" (`ROADMAP.md`). The last two columns are our saturation as a multiple of the photos'. (The four
+rows of the ground, from low plants to litter, are before and after the third sitting, when the ground was
+redrawn: `tools/look/boards/ground.json`.)
 
 | Material | Photos | Lightness | Saturation | Hue | Ours before | Ours after |
 |---|---|---|---|---|---|---|
@@ -52,8 +54,10 @@ references" (`ROADMAP.md`). The last two columns are our saturation as a multipl
 | The same sand in a palm's shade | 5 | 0.63 | 0.009 | 194 | 3.0 | 1.8 |
 | Palm crowns in sun | 8 | 0.45 | 0.047 | 146 | 2.3 | 1.3 |
 | Shrubs and trees in sun | 6 | 0.42 | 0.076 | 127 | 1.6 | 1.2 |
-| Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | | |
-| The floor of a coconut grove in sun | 4 | 0.60 | 0.027 | 94 | | |
+| Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | 1.4 | 1.3 |
+| The floor of a coconut grove in sun | 7 | 0.54 | 0.019 | 90 | 3.2 | 0.9 |
+| Coral gravel in sun | 4 | 0.65 | 0.005 | 79 | 8.4 | 2.8 |
+| Litter under the trees | 3 | 0.54 | 0.050 | 106 | 1.5 | 0.7 |
 | Sunset: the sky low, towards the sun | 5 | 0.72 | 0.064 | 67 | 2.0 | 1.3 |
 | Sunset: the sky high | 4 | 0.50 | 0.037 | 247 | 1.9 | 0.9 |
 | Sunset: the water | 6 | 0.45 | 0.023 | 141 | 2.0 | 2.0 |
@@ -325,19 +329,35 @@ Palmyra, Fakarava, Aitutaki, Diego Garcia, the Maldives and Heron Island. What t
 - *The ground under coconut palms* (`majuro-bikrin-coconut-sprout-on-gravel-floor`,
   `majuro-bikrin-coconut-grove-interior`, `rangiroa-coconut-grove-on-white-sand`): pale grey coral gravel and
   sand, strewn with brown husks, grey dead fronds and dry leaves; green comes from scattered herbs, seedlings
-  and vines, not from a lawn. Ours is turf. (For the third sitting: Ryan is to see one stretch before and after
-  before the island's character is changed.)
+  and vines, not from a lawn. (Ours was turf until the third sitting.)
 - *Where plants begin* (`midway-beach-morning-glory-runners-over-sand`, `midway-beach-top-plant-edge-midday`):
   creepers run out over white sand in loose patches from a wall of shrub; the sand between stays clean.
 - *Rubble and reef flat* (`majuro-bikrin-reef-flat-low-tide-meets-beach`,
   `majuro-bikrin-coral-rubble-and-sand-close`): sand, then a band of grey rubble and cemented slabs, then the
   flat.
 
-Not found: a footpath through a coconut grove. A path is taken to be what trodden ground there is: pale sand
-and gravel.
+*More,* gathered 20 November 2026 for the third sitting (12, in the same folder and its `SOURCES.md`):
+
+- *Grove floors from standing height* (five, from Kiribati, Fakarava and Cocos Keeling). Three kinds, all
+  grey: pale coral gravel with a few nuts and a dead frond (`kiribati-coconut-grove-gravel-floor-fallen-nuts`);
+  bare grey-white sand under leaning trunks (`fakarava-farakau-open-coconut-grove-on-sand`); and, where the
+  palms stand thick and nobody clears it, a floor buried in grey-brown fronds
+  (`cocos-keeling-direction-island-coconut-grove-floor`). Litter is grey-brown, not orange.
+- *A track through palms* (`kiribati-sand-track-through-coconut-palms`,
+  `cocos-keeling-west-island-sand-road-through-palms`): smooth pale sand, low green creepers along its edges.
+- *From the air* (`diego-garcia-east-point-coconut-plantation-from-air`,
+  `diego-garcia-west-island-islet-from-air`): canopy from beach to beach, the ground between the crowns a pale
+  grey; a ring of rubble round a small islet.
+- *Nuts and fronds close to* (three): weathered nuts are grey; dead leaflets are grey strips.
+
+*Now (20 November 2026, for Ryan to judge):* the islet's ground is coral sand from shore to shore, with banks
+of grey gravel, the trees' litter under their crowns and creepers running out from the shrubs, each a picture
+of the real thing (`ROADMAP.md`, "The third sitting"; `DECISIONS.md` 20). The lawn is gone. Ryan, before it
+was tried: "judge both what looks best and as well fits a real island".
 
 *Rejected:* tide lines that read as contour lines; one pebble per cell ("polka dots"); rocks made of noise
-("crumpled dark paper"); relief strong enough to read as dirt.
+("crumpled dark paper"); relief strong enough to read as dirt; ground cover as blotches of noise, and as lawn;
+a scatter of grey stones on white sand (a leopard's coat: a lone stone is bleached pale).
 
 ## Plants
 

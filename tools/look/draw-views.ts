@@ -5,7 +5,8 @@
 // <folder> is where the pictures go, each named for its view. --page is the built page to draw:
 // the working files' (dist/index.html, after `npm run build`) unless another is named, such as a
 // reference build kept by the checks (node_modules/.cache/reference-builds/<commit>.html), which
-// is how "before" pictures are made. --group is colour (the default), evening, weather or all.
+// is how "before" pictures are made. --group is one of look-views.ts's groups (colour is the
+// default) or all.
 //
 // The pictures are drawn by the software renderer, as the tests' are: colour and stills can be
 // trusted, motion and frame rate cannot.

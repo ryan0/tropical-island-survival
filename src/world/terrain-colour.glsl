@@ -60,16 +60,20 @@ const vec3 WARM_SAND = vec3(0.722, 0.715, 0.703);
 const vec3 GREY_SAND = vec3(0.706, 0.71, 0.712);
 // Inland the sand is a shade greyer than the beach's, for the dust of old leaves (the sand's colour is multiplied
 // by this); and in deep shade, where what falls rots where it lies, it and the litter are darker and browner.
-const vec3 GROVE_SAND = vec3(0.89, 0.875, 0.845);
+const vec3 GROVE_SAND = vec3(0.85, 0.845, 0.83);
 const vec3 DEEP_SHADE_STAIN = vec3(0.80, 0.76, 0.70);
 // Litter that has lain in the open bleaches to straw and silver (its colour is multiplied by this).
-const vec3 BLEACHED_LITTER = vec3(1.16, 1.16, 1.14);
+const vec3 BLEACHED_LITTER = vec3(1.14, 1.16, 1.18);
 // A path's gravel is trodden a little darker than loose gravel.
 const float PATH_TRODDEN = 0.95;
 // The pictures' own colours are multiplied by these, to bring each to what the photographs measure with the game's
-// light on it (docs/LOOK.md, "Colour, measured"): the gravel a warm mid grey, the litter a browner straw.
-const vec3 GRAVEL_TINT = vec3(0.86, 0.845, 0.80);
-const vec3 LITTER_TINT = vec3(1.02, 0.985, 0.92);
+// light on it (docs/LOOK.md, "Colour, measured"): the gravel a grey with next to no colour in it (the sun's
+// light warms it), the litter a greyer straw.
+const vec3 GRAVEL_TINT = vec3(0.84, 0.845, 0.855);
+// (A stone lying by itself on sand is bleached nearly as pale as the sand: it is a bank of them that is grey.
+// As dark as the bank's, a scatter of stones on white sand was a leopard's coat.)
+const vec3 LONE_STONE_TINT = vec3(1.04, 1.035, 1.03);
+const vec3 LITTER_TINT = vec3(0.99, 0.975, 0.94);
 const vec3 ROCK_GREY = vec3(0.46, 0.44, 0.39);
 const vec3 BROWN_CORAL = vec3(0.30, 0.25, 0.17);
 const vec3 OLIVE_CORAL = vec3(0.13, 0.23, 0.15);
@@ -86,12 +90,12 @@ const vec2 THINGS_SHOW_WITHIN = vec2(9.0, 30.0);
 const vec2 INLAND_BETWEEN = vec2(1.74, 1.84);
 // Stones: a scatter inland; in a bank of gravel; in the band of rubble at the back of the beach. And on a path.
 const vec3 STONES = vec3(0.34, 0.97, 0.9);
-const float STONES_ON_PATH = 0.62;
+const float STONES_ON_PATH = 0.5;
 // A bank of gravel comes in between these values of the land's broad pattern (-1 to 1): the higher, the less of
 // the islet is gravel and the more of it sand.
 const vec2 GRAVEL_BANKS = vec2(0.15, 0.6);
 // In a whole bed of gravel a stone's rank stands for its height: how strongly that is shaded against the sun.
-const float BED_RELIEF = 0.5;
+const float BED_RELIEF = 0.7;
 // Litter: along the back of the beach; everywhere inland; more under a crown.
 const vec3 LITTER = vec3(0.1, 0.28, 0.72);
 // The wrack the sea leaves along the tide line: how thickly, at most; and how much darker than the trees' litter
@@ -446,7 +450,8 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       float stoneRelief = mix(stoneCover - stonesTowardsSun, BED_RELIEF * (gravelTile.a - gravelTileSunward.a),
         wholeBed);
       stoneCover = max(stoneCover, wholeBed);
-      ground = mix(ground, gravelTile.rgb * GRAVEL_TINT * mix(1.0, PATH_TRODDEN, onPath), stoneCover);
+      vec3 stoneTint = mix(LONE_STONE_TINT, GRAVEL_TINT, smoothstep(0.45, 0.9, stones));
+      ground = mix(ground, gravelTile.rgb * stoneTint * mix(1.0, PATH_TRODDEN, onPath), stoneCover);
       float sunOnThings = (1.0 - farOff) * uDaylight;
       ground *= litAgainstSun(stoneRelief, sunOnThings);
 

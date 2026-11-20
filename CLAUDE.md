@@ -22,7 +22,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`src/sea/water.frag.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
   formula out for every dot: its noise and random numbers, the shore, the reef's cover, the turf's patterns
-  (`src/world/terrain-declarations.glsl`). One
+  (`src/world/terrain-declarations.glsl`). The islet's ground is coral sand from shore to shore; stones, the
+  trees' litter and creepers are pictures of the real things laid over it (`src/world/ground-tiles/`), by the
+  land's broad patterns and a map of what stands over each spot (`src/world/tree-cover-map.ts`). One
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
   the sun sets and crosses the sky through the night.
 - To an eye under water, the water between it and a thing takes the thing's colour with distance, red first

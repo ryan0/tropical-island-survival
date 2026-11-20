@@ -91,7 +91,7 @@ float coverOf(vec4 tile, float amount, float fullCover, float farOff) {
 // catches the light, and below it on the ground behind a thing, in its shadow. strength: 0 to 1. Returns what to
 // multiply the colour by.
 float litAgainstSun(float relief, float strength) {
-  return 1.0 + strength * (0.12 * max(relief, 0.0) + 0.27 * min(relief, 0.0));
+  return 1.0 + strength * (0.12 * max(relief, 0.0) + 0.32 * min(relief, 0.0));
 }
 
 // One layer of coral rubble: at most one stone in each square of p - anywhere in it, any size from a chip to a

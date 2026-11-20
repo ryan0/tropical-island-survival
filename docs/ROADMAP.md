@@ -6,7 +6,8 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 ## Next
 
 **Now (Ryan, 19 November 2026): the look, against references**, in four sittings with his review after each
-("The look, against references", below). After it comes the much greater variety of plants, rocks, ground and
+("The look, against references", below). The first two are merged; the third, the ground, is on the branch
+`look-3-ground` for his review (20 November 2026). After it comes the much greater variety of plants, rocks, ground and
 props that the groundwork prepared for, by the proposal he has still to decide ("A proposal: many more kinds
 at a flat cost"). The list that follows is the order agreed before that, and stands for what comes after.
 
@@ -1475,6 +1476,47 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
   band of rubble at the back of the beach is the gravel's picture; and along the tide line the sea leaves a
   thin, broken line of dark wrack with the shells.
 - *A footpath* is trodden sand with a scatter of stones, clear of litter and of plants.
+- *A stone by itself is pale.* A lone stone on sand is bleached nearly as white as the sand; it is a bank of
+  them that is grey. (As dark as the bank's, a scatter of stones on white sand was a leopard's coat.)
+
+**Measured** (`tools/look/boards/ground.json`, a board of the ground's own; saturation as a multiple of the
+photographs', then how much lighter or darker):
+
+| Material | Photos | Before | Now |
+|---|---|---|---|
+| The floor of a grove in sun | lightness 0.54, saturation 0.019 | 3.2 times, +0.09 | 0.9 times, +0.15 |
+| Coral gravel in sun | 0.65, 0.005 | 8.4 times, +0.11 | 2.8 times, +0.05 |
+| Litter under the trees | 0.54, 0.050 | 1.5 times, -0.07 | 0.7 times, -0.02 |
+| Low plants on sand | 0.47, 0.065 | 1.4 times, +0.10 | 1.3 times, +0.04 |
+
+The floor is still lighter than the photographs' (theirs are dappled with shade, and three of the seven are
+of grey gravel alone). Gravel has next to no colour in the photographs, and ours has what the sun's warm light
+gives it. In none of these is ours busier than the photographs: its dots stray from a patch's average 0.6 to
+0.8 times as far as theirs do.
+
+**More photographs**, gathered by an Opus agent from Wikimedia Commons for this sitting and the next: 30, of
+which 12 of the ground (five grove floors from standing height, two sand tracks through palms, two islets
+from the air, three of nuts and dead fronds close to). `LOOK.md` says what they show. They agree with the
+first 26: grey sand and gravel, litter, and green only from what grows low.
+
+**What it costs.** Five readings of a picture for every dot of ground (the three pictures, and stones and
+litter once more towards the sun), in place of some forty readings of the noise picture that the lawn, its
+vines and its soil took. The pictures are 1024 dots a side with mipmaps, some 16 MB in all on the graphics
+card, and are read with up to four-fold anisotropic filtering, since the ground is seen at a low angle.
+Painting them takes about 0.1 s each on the desktop, where the page's start-up went from 5.1 s to 5.4 s
+under the test renderer.
+
+**Known, and left:** nothing painted stands up, so from an arm's length the stones are flat chips with a
+shadow, and a mat of creepers has none of the depth of real leaves standing off the sand; the leaves of the
+litter are of a few shapes, and close to one sees it; a picture repeats every 3 m, which no view has shown
+but a long straight look across bare gravel might; far off a picture blurs to its average, and from the air
+the ground is plain grey and tan; the grass still takes its place and colour from the lawn's patterns, and
+stands as tufts on the sand; husks, nuts and whole dead fronds are the objects there were, no more of them.
+
+**Only the phone can say:** what the ground's five readings and their filtering cost (read the frame rate
+with `more dots` on, then with `plain ground` on as well: if the ground costs frames, the first thing to
+lower is the pictures' anisotropic filtering, `ground-tiles.ts`); how long the start-up now is (some four
+times the desktop's 0.3 s more, by the usual ratio); whether the pictures shimmer as the eye moves.
 
 ## Later
 
@@ -1492,10 +1534,8 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
 
 - The moonlit night has been judged on stills from the desktop only, against no photos, and the moon's
   crossing of the sky not in motion at all.
-- What "The look, against references" (above) is to cure: colours that are too busy or too deep, the water's
-  among them; ground cover that reads as blotches of noise, and as lawn; the old-reef ground's hard edge at
-  the waterline; coral as smooth lumps in pastel; under water, a flat blue fog, stripes of light fixed to the
-  screen, ring bubbles and a blob for the surface; stars that are squares of one size.
+- What is left of what "The look, against references" (above) is to cure: coral as smooth lumps; stars that
+  are squares of one size. (Each sitting's "Known, and left" says what it did not cure in its own subject.)
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on

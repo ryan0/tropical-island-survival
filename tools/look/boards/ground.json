@@ -6,7 +6,9 @@
         ["ground-and-shore/majuro-bikrin-coconut-sprout-on-gravel-floor.jpg", "A2:C4"],
         ["ground-and-shore/rangiroa-coconut-grove-on-white-sand.jpg", "F7:I8"],
         ["ground-and-shore/majuro-bikrin-coconut-grove-interior.jpg", "C7:E8"],
-        ["ground-and-shore/majuro-bikrin-husk-pile-and-fronds-on-floor.jpg", "A7:C8"]
+        ["ground-and-shore/majuro-bikrin-husk-pile-and-fronds-on-floor.jpg", "A7:C8"],
+        ["ground-and-shore/fakarava-farakau-open-coconut-grove-on-sand.jpg", "D7:F7"],
+        ["ground-and-shore/kiribati-coconut-grove-sand-floor-low-sun.jpg", "B8:E9"]
       ],
       "ours": [
         ["ground-grove-ahead", "A6:C9"],
@@ -20,11 +22,12 @@
       "photos": [
         ["ground-and-shore/midway-tree-heliotrope-over-coral-rubble.jpg", "C7:H9"],
         ["ground-and-shore/rangiroa-motu-coarse-coral-sand-top-of-beach.jpg", "E6:H9"],
-        ["ground-and-shore/majuro-bikrin-coconut-sprout-on-gravel-floor.jpg", "F7:I9"]
+        ["ground-and-shore/majuro-bikrin-coconut-sprout-on-gravel-floor.jpg", "F7:I9"],
+        ["ground-and-shore/kiribati-coconut-grove-gravel-floor-fallen-nuts.jpg", "G7:J9"]
       ],
       "ours": [
-        ["ground-grove-at-feet", "A1:C2"],
-        ["ground-beach-top-at-feet", "F7:H9"]
+        ["ground-grove-ahead", "A7:C9"],
+        ["ground-grove-at-feet", "A0:C1"]
       ]
     },
     {
@@ -48,8 +51,8 @@
         ["ground-and-shore/midway-lepturus-bunchgrass-on-litter.jpg", "D3:F6"]
       ],
       "ours": [
-        ["ground-beach-top-inland", "A6:D8"],
-        ["ground-beach-top-along", "B6:E8"]
+        ["inland-from-beach", "B6:D8"],
+        ["ground-beach-top-inland", "A6:C8"]
       ]
     },
     {
