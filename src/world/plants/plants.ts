@@ -189,14 +189,16 @@ export function createPlants(dependencies: PlantsDependencies): void {
         if (random() > 0.4 * fewerFarFromHome(x, z)) return 0;
         return 0.7 + random() * 0.5;
       },
-      // Straw to grey-brown: the picture is green, and this bleaches it.
+      // Straw to grey-brown: the picture is a grey-green, and this bleaches it. (The numbers go with the
+      // frond picture's own colour, palm-pictures.ts: when that was made greyer these had to follow, or a
+      // fallen frond turned violet.)
       chooseColour(colour) {
         const brightness = 0.75 + random() * 0.5;
         const age = random();
         colour.setRGB(
-          brightness * (1.5 - 0.35 * age),
-          brightness * (0.95 - 0.2 * age),
-          brightness * (0.9 + 0.5 * age),
+          brightness * (1.15 - 0.3 * age),
+          brightness * (0.98 - 0.2 * age),
+          brightness * (0.52 + 0.22 * age),
         );
       },
     },
