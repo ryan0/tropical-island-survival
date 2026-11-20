@@ -29,7 +29,7 @@ export interface LightsFrame {
   sunElevation: number;
   /** Red, green, blue. */
   sunColour: readonly [number, number, number];
-  /** How much of the sun gets through the clouds to the camera, 0 to 1. */
+  /** How much of the sun (by night, the moon) gets through the clouds to the camera, 0 to 1. */
   sunThrough: number;
 }
 

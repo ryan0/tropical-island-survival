@@ -97,7 +97,7 @@ export interface Clouds {
   shadeMap: WebGLRenderTarget;
   /** How tall a sky picture is, in dots: an eighth of its width. */
   pictureHeight: number;
-  /** How much of the sun reaches the camera through the clouds, 0 to 1, as of the last update. */
+  /** How much of the sun (by night, the moon) reaches the camera through the clouds, 0 to 1, as of the last update. */
   readonly sunThrough: number;
   update(frame: CloudsFrame): void;
 }
@@ -158,6 +158,11 @@ function createPicture(width: number, height: number): WebGLRenderTarget {
   // Only the strip being redrawn is touched.
   picture.scissorTest = true;
   return picture;
+}
+
+/** Towards the light the clouds are lit by and shade the ground from: the sun, or by night the moon. */
+function lightDirection(frame: CloudsFrame): Vector3 {
+  return frame.night > 0.5 ? frame.moonDirection : frame.sunDirection;
 }
 
 export function createClouds(dependencies: CloudsDependencies): Clouds {
@@ -278,9 +283,7 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
     showMoment(bakeUniforms, drift, now.boil + secondsAhead * boilSpeed(wind));
     // A different grain in each picture, so that it averages away.
     bakeUniforms.uFieldPlace.value.w = (picturesBegun++ * 7.31) % 64;
-    bakeUniforms.uLightDirection.value.copy(
-      frame.night > 0.5 ? frame.moonDirection : frame.sunDirection,
-    );
+    bakeUniforms.uLightDirection.value.copy(lightDirection(frame));
     drawnFor[beingDrawn] = drift;
     stripsDrawn = 0;
   }
@@ -408,10 +411,11 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
       drawShadeMap(frame);
 
       const { cameraPosition } = frame;
+      // (by night it is the moon's light that a cloud crosses)
       const through = field.sunThrough(
         cameraPosition.x / 1000,
         cameraPosition.z / 1000,
-        frame.sunDirection,
+        lightDirection(frame),
         now,
       );
       // Eased, so that a cloud's edge does not flicker the light.
