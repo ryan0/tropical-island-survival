@@ -1478,6 +1478,14 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
 - *A footpath* is trodden sand with a scatter of stones, clear of litter and of plants.
 - *A stone by itself is pale.* A lone stone on sand is bleached nearly as white as the sand; it is a bank of
   them that is grey. (As dark as the bank's, a scatter of stones on white sand was a leopard's coat.)
+- *What falls from a palm lies under it.* The fallen fronds and the nuts, which are shapes, were scattered
+  anywhere (the nuts on the beach by home alone): they now lie under the palms' crowns, 800 fronds and 600
+  nuts where there were 240 and 70, and most of the nuts are weathered grey (`plants-config.ts`,
+  `fallenFromPalms`). The other things on the ground after them in the plants' stream (vine mats, lumps of
+  coral, stumps) stand in new places for it.
+- *How green the floor is* is one number (`terrain-colour.glsl`, `LOW_PLANTS`, its first part): where the
+  ground is lush the creepers close into mats, and elsewhere it is bare gravel and litter. It was raised a
+  step from the first try, which was greyer than most of the photographs' groves.
 
 **Measured** (`tools/look/boards/ground.json`, a board of the ground's own; saturation as a multiple of the
 photographs', then how much lighter or darker):
@@ -1511,7 +1519,8 @@ shadow, and a mat of creepers has none of the depth of real leaves standing off 
 litter are of a few shapes, and close to one sees it; a picture repeats every 3 m, which no view has shown
 but a long straight look across bare gravel might; far off a picture blurs to its average, and from the air
 the ground is plain grey and tan; the grass still takes its place and colour from the lawn's patterns, and
-stands as tufts on the sand; husks, nuts and whole dead fronds are the objects there were, no more of them.
+stands as tufts on the sand; there are no husks, no heaps of fronds and no fallen trunks, only single fronds
+and nuts.
 
 **Only the phone can say:** what the ground's five readings and their filtering cost (read the frame rate
 with `more dots` on, then with `plain ground` on as well: if the ground costs frames, the first thing to

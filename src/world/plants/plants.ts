@@ -18,7 +18,7 @@ import type { Random, Range } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
-import type { Crown, CrownKind } from '../tree-cover-map';
+import { crownsOver, type Crown, type CrownKind } from '../tree-cover-map';
 import { keepCoverageFarOff } from './cut-out-mipmaps';
 import { lightLeavesFromBothSides } from './leaf-light';
 import { FROND_CUTOFF } from './palm-pictures';
@@ -34,6 +34,8 @@ export interface PlantsDependencies {
   isInRock: IsInRock;
   /** The picture of one palm frond, for the fronds lying on the ground. */
   palmFrondPicture: Texture;
+  /** The palms' crowns: what falls from a palm, its fronds and its nuts, lies under it. */
+  palmCrowns: readonly Crown[];
   instanceCells: InstanceCells;
   /** The most anisotropic filtering the graphics card offers. */
   maxAnisotropy: number;
@@ -113,6 +115,11 @@ export function createPlants(dependencies: PlantsDependencies): Plants {
     }),
     'fallen fronds',
   );
+
+  const isUnderAPalm = crownsOver(dependencies.palmCrowns);
+  /** The chance that a thing a palm drops lies at a spot: under a palm, or out in the open. */
+  const fallenHere = (x: number, z: number, [inTheOpen, underAPalm]: Range) =>
+    isUnderAPalm(x, z) ? underAPalm : inTheOpen;
 
   /** Most kinds thin out away from home, to four tenths; a few thin to nothing much at all. */
   const fewerFarFromHome = (x: number, z: number) => 0.4 + 0.6 * landmarks.nearHome(x, z);
@@ -209,7 +216,8 @@ export function createPlants(dependencies: PlantsDependencies): Plants {
       parts: [{ model: models.fallenFrond, material: fallenFronds }],
       sizeAt(x, z, height) {
         if (isOffGround(height, kinds.fallenFrond.ground)) return 0;
-        if (random() > 0.4 * fewerFarFromHome(x, z)) return 0;
+        const chance = fallenHere(x, z, plantsConfig.fallenFromPalms.fronds);
+        if (random() > chance * fewerFarFromHome(x, z)) return 0;
         return 0.7 + random() * 0.5;
       },
       // Straw to grey-brown: the picture is a grey-green, and this bleaches it. (The numbers go with the
@@ -264,16 +272,20 @@ export function createPlants(dependencies: PlantsDependencies): Plants {
       parts: [{ model: models.coconut, material: plainLeaves }],
       sizeAt(x, z, height) {
         if (isOffGround(height, kinds.coconut.ground)) return 0;
-        if (random() > 0.35 * landmarks.nearHome(x, z)) return 0;
+        const chance = fallenHere(x, z, plantsConfig.fallenFromPalms.nuts);
+        if (random() > chance * fewerFarFromHome(x, z)) return 0;
         return 0.13 + random() * 0.04;
       },
+      // A nut lately fallen is a brown-green; one that has lain is a weathered grey, as most are.
       chooseColour(colour) {
         const brightness = 0.3 + random() * 0.2;
         const greenness = random();
+        const weathered = random() < plantsConfig.fallenFromPalms.shareOfNutsWeathered ? 1 : 0;
+        const grey = 1.15 * brightness;
         colour.setRGB(
-          brightness * (1.2 + 0.3 * greenness),
-          brightness * (0.95 + 0.3 * greenness),
-          brightness * 0.55,
+          brightness * (1.2 + 0.3 * greenness) * (1 - weathered) + grey * 1.04 * weathered,
+          brightness * (0.95 + 0.3 * greenness) * (1 - weathered) + grey * weathered,
+          brightness * 0.55 * (1 - weathered) + grey * 0.92 * weathered,
         );
       },
     },
