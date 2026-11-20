@@ -1272,16 +1272,19 @@ grey gravel, husks and litter (third sitting, with Ryan's yes first); coral head
 where the photos have one or two great domes with a grain (fourth); under water nothing was touched (second).
 The night's sky was not touched: the six night photos are for the fourth sitting.
 
-**The tools.** The measuring was done with five small scripts kept in the session's scratch folder, outside
-the repository: a contact sheet with a lettered grid, a measurer of named parts, a board of photos beside ours,
-a measure of busyness, and a converter to and from OKLCH. They will be wanted in every later sitting. Whether
-they belong in the repository (`tools/look/`, say, in Python and Node, nothing installed) is Ryan's to say.
+**The tools.** The measuring was done with small scripts in the session's scratch folder. At Ryan's yes they
+are now in the repository, rewritten in TypeScript like the other tools and reusing the tests' own page helper
+and form of view: `tools/look/` (its `README.md` says how to run a pass). They draw the look's views from a
+build, lay pictures under a lettered grid, measure named parts of photographs and of ours, and draw the board.
+Run from the repository against the last merged build, they give the figures of `LOOK.md`'s table.
 
 **Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
 `ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first sitting:
-the ground's shader now includes the shore's formulas alone, not the whole island's). **Open:** whether there is
-a game or a film whose look under water is the one to aim at; whether the measuring tools should live in the
-repository.
+the ground's shader now includes the shore's formulas alone, not the whole island's); the measuring tools live
+in the repository. And what the look under water is to aim at, in Ryan's words (19 November 2026): "perhaps
+subnautica but mostly we should draw inspiration from nature/real life". So the second sitting goes by the
+photographs in `reference-photos/under-water/`; a game may be looked to for how it solves a thing the
+photographs show (water that stays readable at a distance, say), and is not copied.
 
 ## Later
 

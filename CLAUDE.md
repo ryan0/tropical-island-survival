@@ -50,7 +50,7 @@ Ryan directs it and judges it on his phone; Claude writes it.
 - **Match the references.** Ryan sends photos, phone screenshots and videos; they are kept in `reference-photos/`,
   which git ignores (videos of waves in `reference-photos/waves/`). The look rules and what each reference showed
   are in `docs/LOOK.md`. Colour is measured against the photos, not judged by eye alone (`docs/LOOK.md`,
-  "Colour, measured"). He often asks for several passes in a row at one thing.
+  "Colour, measured"; the tools are in `tools/look/`). He often asks for several passes in a row at one thing.
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. Leave the work uncommitted on a branch
   for him to review; commits, merges, pushes and anything destructive are his. Put each shell command you ask
@@ -143,7 +143,8 @@ they catch only what is broken.
 | `docs/REFACTOR_PLAN.md` | The refactor, finished: the layout, what each step did, the reference views |
 | `docs/CODE_STANDARDS.md` | The agreed code standards with examples |
 | `docs/DECISIONS.md` | Why the project is built the way it is |
-| `docs/LOOK.md` | What it should look like, what was rejected and why |
+| `docs/LOOK.md` | What it should look like, what was rejected and why; what the reference photos measure |
+| `tools/look/README.md` | How to measure our pictures against the reference photos |
 | `docs/ROADMAP.md` | What comes next, in order; the breaking wave's rebuild; known weak points |
 | `docs/REEF.md` | What belongs in each region of the reef and lagoon, from research; the order of the reef's redesign; what a tide would take |
 | `docs/DEVICE_NOTES.md` | What the phone taught us about shaders |

@@ -29,11 +29,12 @@ longer judged by eye alone: parts of the reference photos and the same parts of 
 laid side by side. A photo's numbers are the same on every screen, and a screen that deepens colours deepens
 the photos as it does ours.
 
-**How.** A part of a picture holding one material is averaged (its darkest and brightest fifths left out) and
-given in OKLCH, in which equal steps look equal: lightness 0 to 1, saturation (chroma: 0 is grey, 0.1 a clear
-colour, 0.2 a loud one) and hue in degrees (30 red, 70 orange, 110 yellow-green, 140 green, 200 turquoise, 250
-blue, 300 violet). Several photos from different cameras are averaged for each material, since any one photo's
-exposure and white balance are its own.
+**How.** With the tools in `tools/look/` (their `README.md` says how to run a pass). A part of a picture holding
+one material is averaged (its darkest and brightest fifths left out) and given in OKLCH, in which equal steps
+look equal: lightness 0 to 1, saturation (chroma: 0 is grey, 0.1 a clear colour, 0.2 a loud one) and hue in
+degrees (30 red, 70 orange, 110 yellow-green, 140 green, 200 turquoise, 250 blue, 300 violet). Several photos
+from different cameras are averaged for each material, since any one photo's exposure and white balance are its
+own.
 
 **What the photos measure, and where ours stood** before and after the first sitting of "The look, against
 references" (`ROADMAP.md`). The last two columns are our saturation as a multiple of the photos'.

@@ -1,0 +1,293 @@
+{
+  "materials": [
+    {
+      "name": "Sky, high (midday)",
+      "photos": [
+        ["water-weather/heron-island-ruffled-turquoise-glint.jpg", "A0:J0"],
+        ["water-weather/admiralty-islands-turquoise-lagoon.jpg", "A0:F1"],
+        ["water-weather/maldives-jetty-clear-shallows.jpg", "A0:C1"],
+        ["water-weather/fakarava-pier-clear-shallows.jpg", "A0:J1"],
+        ["atoll-water/aitutaki-lagune-jpg.jpg", "A0:J1"],
+        ["atoll-water/maina-island-aitutaki-lagoon-cook.jpg", "A0:J1"],
+        ["sky-and-colour/south-pacific-open-ocean-clear-sky.jpg", "A0:J1"],
+        ["sky-and-colour/tetiaroa-onetahi-leaning-palm-lagoon.jpg", "A0:B1"],
+        ["sky-and-colour/cocos-keeling-coconut-grove-lagoon-beach.jpg", "A0:B1"],
+        ["sky-and-colour/majuro-bikrin-islet-reef-flat-beach.jpg", "C0:F0"],
+        ["sky-and-colour/midway-coconut-palm-crown-full-sun.jpg", "A0:B0"],
+        ["sky-and-colour/marshall-islands-islet-palms-from-boat.jpg", "A0:J0"]
+      ],
+      "ours": [
+        ["beach-out-to-sea", "A0:J1"],
+        ["beach-along-palms", "A0:D1"],
+        ["lagoon-from-shore", "A0:J1"],
+        ["open-sea", "A0:J0"]
+      ]
+    },
+    {
+      "name": "Sky, at the horizon",
+      "photos": [
+        ["atoll-water/aitutaki-lagune-jpg.jpg", "A4:J4"],
+        ["water-weather/miyako-reef-flat-from-cliff.jpg", "A1:J1"],
+        ["atoll-water/maina-island-aitutaki-lagoon-cook.jpg", "A2:J2"],
+        ["water-weather/heron-island-sand-cay-water-edge.jpg", "A0:J0"],
+        ["sky-and-colour/south-pacific-open-ocean-clear-sky.jpg", "A3:J3"],
+        ["sky-and-colour/tetiaroa-onetahi-leaning-palm-lagoon.jpg", "A4:C4"]
+      ],
+      "ours": [
+        ["beach-out-to-sea", "A4:J4"],
+        ["open-sea", "A4:J4"],
+        ["lagoon-from-shore", "A3:E3"]
+      ]
+    },
+    {
+      "name": "Sea over the reef, far",
+      "photos": [
+        ["water-weather/heron-island-ruffled-turquoise-glint.jpg", "A1:J1"],
+        ["water-weather/miyako-reef-flat-from-cliff.jpg", "A3:J3"],
+        ["atoll-water/maina-island-aitutaki-lagoon-cook.jpg", "A3:J3"],
+        ["sky-and-colour/kiribati-ocean-beach-palms-surf.jpg", "E4:H4"]
+      ],
+      "ours": [
+        ["beach-out-to-sea", "A5:J5"],
+        ["reef-flat-wade", "A2:J2"]
+      ]
+    },
+    {
+      "name": "Deep ocean",
+      "photos": [
+        ["sky-and-colour/south-pacific-open-ocean-clear-sky.jpg", "A5:J7"],
+        ["sky-and-colour/orona-deep-ocean-and-islet-from-boat.jpg", "A8:J9"],
+        ["atoll-water/reef-outside-aitutaki-cook-islands.jpg", "A0:D3"],
+        ["sky-and-colour/maldives-faro-reef-from-seaplane.jpg", "C8:D9"],
+        ["sky-and-colour/tetiaroa-atoll-from-aircraft.jpg", "A2:B4"]
+      ],
+      "ours": [
+        ["open-sea", "A5:J5"],
+        ["aerial", "A8:B9"],
+        ["aerial", "A3:B4"]
+      ]
+    },
+    {
+      "name": "Lagoon, deep",
+      "photos": [
+        ["water-weather/lagoon-ruffled-blue-motu.jpg", "A6:J8"],
+        ["atoll-water/maina-island-aitutaki-lagoon-cook.jpg", "F7:J8"],
+        ["atoll-water/fakarava-lagon-vert-au-motu-farak.jpg", "A7:J8"],
+        ["sky-and-colour/tetiaroa-atoll-from-aircraft.jpg", "F6:G6"],
+        ["sky-and-colour/maldives-faro-reef-from-seaplane.jpg", "F6:G6"]
+      ],
+      "ours": [
+        ["far-grove", "A7:J8"],
+        ["lagoon-from-shore", "A6:D6"],
+        ["lagoon-from-above", "A3:C5"],
+        ["lagoon-from-above", "H3:J5"]
+      ]
+    },
+    {
+      "name": "Shallow water over sand",
+      "photos": [
+        ["water-weather/heron-island-clear-ripples-floor.jpg", "A3:J7"],
+        ["water-weather/heron-island-ruffled-turquoise-glint.jpg", "A3:J6"],
+        ["water-weather/kaimbu-lagoon-calm-turquoise.jpg", "A6:F8"],
+        ["water-weather/admiralty-islands-turquoise-lagoon.jpg", "A5:G6"],
+        ["water-weather/rangiroa-lagoon-glinting-shallows.jpg", "A5:F7"],
+        ["water-weather/lagoon-from-jetty-rail-reef-flat.jpg", "A5:G6"],
+        ["atoll-water/aitutaki-lagune-jpg.jpg", "A7:J9"],
+        ["atoll-water/rangiroa-lagoon-jpg.jpg", "A8:J9"],
+        ["sky-and-colour/cocos-keeling-coconut-grove-lagoon-beach.jpg", "A8:C9"],
+        ["sky-and-colour/cocos-keeling-direction-island-lagoon-beach.jpg", "F5:H5"],
+        ["sky-and-colour/marshall-islands-islet-palms-from-boat.jpg", "A5:J8"],
+        ["sky-and-colour/rangiroa-palm-white-sand-lagoon.jpg", "D5:G5"],
+        ["sky-and-colour/tetiaroa-onetahi-leaning-palm-lagoon.jpg", "A6:D7"]
+      ],
+      "ours": [
+        ["reef-flat-wade", "F7:I8"],
+        ["reef-flat-wade", "F3:I4"],
+        ["beach-out-to-sea", "D6:G6"],
+        ["lagoon-from-shore", "D9:G9"]
+      ]
+    },
+    {
+      "name": "Shallows from the air",
+      "photos": [
+        ["atoll-water/maina-island-aitutaki-lagoon-cook.jpg", "C6:E7"],
+        ["atoll-water/aitutaki-from-top-2006-jpg.jpg", "E6:G6"],
+        ["sky-and-colour/maldives-reef-edge-from-airliner.jpg", "C6:E7"],
+        ["sky-and-colour/maldives-faro-reef-from-seaplane.jpg", "D5:E5"]
+      ],
+      "ours": [
+        ["aerial", "C6:D6"],
+        ["aerial", "G7:H7"]
+      ]
+    },
+    {
+      "name": "Coral sand in sun",
+      "photos": [
+        ["ground-and-shore/rangiroa-motu-palm-shade-on-white-sand.jpg", "G8:I9"],
+        ["ground-and-shore/rangiroa-motu-coarse-coral-sand-top-of-beach.jpg", "F5:H7"],
+        ["ground-and-shore/diego-garcia-lagoon-beach-shade-and-rocks.jpg", "H8:J9"],
+        ["sky-and-colour/cocos-keeling-direction-island-lagoon-beach.jpg", "G8:I9"],
+        ["ground-and-shore/majuro-bikrin-pandanus-roots-on-coral-gravel.jpg", "A1:C2"],
+        ["ground-and-shore/heron-island-coral-sand-beach-footprints.jpg", "F5:J8"]
+      ],
+      "ours": [
+        ["shade-from-above", "A4:B5"],
+        ["shade-beach-top", "A5:B7"],
+        ["beach-out-to-sea", "A8:D8"]
+      ]
+    },
+    {
+      "name": "The same sand in a palm's shade",
+      "photos": [
+        ["ground-and-shore/rangiroa-motu-palm-shade-on-white-sand.jpg", "C6:E7"],
+        ["ground-and-shore/rangiroa-motu-coarse-coral-sand-top-of-beach.jpg", "B2:D3"],
+        ["ground-and-shore/diego-garcia-lagoon-beach-shade-and-rocks.jpg", "F7:G7"],
+        ["sky-and-colour/cocos-keeling-direction-island-lagoon-beach.jpg", "B8:D9"],
+        ["ground-and-shore/majuro-bikrin-pandanus-roots-on-coral-gravel.jpg", "B5:C6"]
+      ],
+      "ours": [
+        ["shade-from-above", "B6:C7"],
+        ["shade-beach-top", "D6:F8"],
+        ["shade-low", "C6:G8"]
+      ]
+    },
+    {
+      "name": "Palm crowns in sun",
+      "photos": [
+        ["sky-and-colour/cocos-keeling-coconut-grove-lagoon-beach.jpg", "E1:H3"],
+        ["sky-and-colour/kiribati-palms-shrubs-lagoon-beach-midday.jpg", "C2:E3"],
+        ["sky-and-colour/kiribati-young-coconut-palms-beach-sun.jpg", "C2:G3"],
+        ["sky-and-colour/midway-coconut-palm-crown-full-sun.jpg", "D2:G3"],
+        ["sky-and-colour/palmyra-palms-lagoon-shore-midday.jpg", "B3:D4"],
+        ["sky-and-colour/tetiaroa-onetahi-leaning-palm-lagoon.jpg", "C3:E4"],
+        ["sky-and-colour/marshall-islands-islet-palms-from-boat.jpg", "A2:J2"],
+        ["atoll-water/rangiroa-lagoon-jpg.jpg", "B5:C6"]
+      ],
+      "ours": [
+        ["above-inland", "D2:F4"],
+        ["inland-from-beach", "F1:H2"],
+        ["far-grove", "D4:G4"],
+        ["beach-along-palms", "G1:H2"]
+      ]
+    },
+    {
+      "name": "Shrubs and trees in sun",
+      "photos": [
+        ["sky-and-colour/laysan-scaevola-on-white-sand.jpg", "C5:G8"],
+        ["sky-and-colour/marshall-islands-scaevola-palm-beach.jpg", "A5:C8"],
+        ["sky-and-colour/midway-coconut-palm-crown-full-sun.jpg", "G7:I8"],
+        ["water-weather/admiralty-islands-turquoise-lagoon.jpg", "E3:H3"],
+        ["water-weather/seychelles-beach-lapping-waves.jpg", "E2:G3"],
+        ["sky-and-colour/kiribati-palms-shrubs-lagoon-beach-midday.jpg", "H2:J4"]
+      ],
+      "ours": [
+        ["beach-along-palms", "G5:I5"],
+        ["inland-from-beach", "F5:H6"],
+        ["home-clearing", "G0:I1"],
+        ["above-inland", "A1:B3"]
+      ]
+    },
+    {
+      "name": "Sunset: sky low, towards the sun",
+      "photos": [
+        ["sky-and-colour/fakarava-sunset-sun-on-horizon.jpg", "A5:F5"],
+        ["sky-and-colour/fakarava-sunset-jetty-sun-rays.jpg", "E5:G5"],
+        ["sky-and-colour/fakarava-afterglow-calm-lagoon.jpg", "E4:G4"],
+        ["water-weather/maldives-sunset-lagoon-glitter.jpg", "A1:E2"],
+        ["sky-and-colour/maldives-low-sun-over-calm-sea.jpg", "A4:C5"]
+      ],
+      "ours": [
+        ["sunset-at-sea", "A4:J4"],
+        ["sunset-from-beach", "A4:G4"]
+      ]
+    },
+    {
+      "name": "Sunset: sky high",
+      "photos": [
+        ["sky-and-colour/fakarava-sunset-sun-on-horizon.jpg", "A1:J2"],
+        ["sky-and-colour/fakarava-sunset-jetty-sun-rays.jpg", "A0:C1"],
+        ["sky-and-colour/fakarava-afterglow-calm-lagoon.jpg", "A2:D3"],
+        ["water-weather/maldives-sunset-jetty-calm.jpg", "A0:J1"]
+      ],
+      "ours": [
+        ["sunset-at-sea", "A0:J0"],
+        ["sunset-from-beach", "A0:J0"],
+        ["sunset-at-sea", "A2:J2"]
+      ]
+    },
+    {
+      "name": "Sunset: the water",
+      "photos": [
+        ["sky-and-colour/fakarava-sunset-sun-on-horizon.jpg", "A7:J9"],
+        ["sky-and-colour/fakarava-sunset-jetty-sun-rays.jpg", "A7:C8"],
+        ["sky-and-colour/fakarava-afterglow-calm-lagoon.jpg", "A7:J9"],
+        ["sky-and-colour/maldives-low-sun-over-calm-sea.jpg", "A8:C9"],
+        ["water-weather/heron-island-sunset-sun-glitter.jpg", "A6:J8"],
+        ["water-weather/maldives-dusk-jetty-calm-lagoon.jpg", "G5:J8"]
+      ],
+      "ours": [
+        ["sunset-at-sea", "A8:C8"],
+        ["sunset-at-sea", "D6:G6"],
+        ["sunset-from-beach", "A6:C6"]
+      ]
+    },
+    {
+      "name": "Lobed and massive corals",
+      "photos": [
+        ["coral/lagoon-coral-head-porites-pocillopora-french-frigate-shoals.jpg", "C3:D5"],
+        ["coral/massive-coral-heads-on-sand-tau-american-samoa.jpg", "D5:G7"],
+        ["coral/porites-lobata-surface-close-hawaii.jpg", "A6:D8"],
+        ["coral/porites-lobata-surface-polyps-hawaii.jpg", "C4:G7"],
+        ["coral/porites-lutea-head-on-sand-reunion.jpg", "C4:G6"],
+        ["coral/leptoria-brain-coral-grooves-reunion.jpg", "C1:G3"]
+      ],
+      "ours": [
+        ["head-top-close", "E5:F5"],
+        ["head-top-close-2", "C3:D4"],
+        ["head-top-close", "D6:E7"],
+        ["head-top-close-2", "C6:D7"],
+        ["head-top-close-2", "E8:F9"]
+      ]
+    },
+    {
+      "name": "Table corals",
+      "photos": [
+        ["coral/table-acropora-field-fagatele-bay-american-samoa.jpg", "B4:F5"],
+        ["coral/table-acropora-hyacinthus-surface-maldives.jpg", "C4:G6"],
+        ["coral/table-acropora-on-porites-poruma-torres-strait.jpg", "D3:G5"]
+      ],
+      "ours": [
+        ["head-top-close", "C1:C2"],
+        ["head-top-close", "F3:G3"],
+        ["head-top-close-2", "G1:G1"],
+        ["head-top-close-2", "H4:H5"]
+      ]
+    },
+    {
+      "name": "The floor of a coconut grove in sun (ours is turf)",
+      "photos": [
+        ["ground-and-shore/majuro-bikrin-coconut-sprout-on-gravel-floor.jpg", "A2:C4"],
+        ["ground-and-shore/rangiroa-coconut-grove-on-white-sand.jpg", "F7:I8"],
+        ["ground-and-shore/majuro-bikrin-coconut-grove-interior.jpg", "C7:E8"],
+        ["ground-and-shore/majuro-bikrin-husk-pile-and-fronds-on-floor.jpg", "A7:C8"]
+      ],
+      "ours": [
+        ["grove-floor", "G2:I4"],
+        ["grove-floor", "H7:J9"]
+      ]
+    },
+    {
+      "name": "Low plants on sand (ours is turf)",
+      "photos": [
+        ["ground-and-shore/midway-beach-morning-glory-runners-over-sand.jpg", "F3:H4"],
+        ["ground-and-shore/midway-beach-morning-glory-driftwood-and-shrubs.jpg", "B7:D9"],
+        ["ground-and-shore/majuro-bikrin-vines-and-husks-on-grove-floor.jpg", "B6:E8"],
+        ["ground-and-shore/midway-lepturus-bunchgrass-on-litter.jpg", "D3:F6"]
+      ],
+      "ours": [
+        ["grove-floor", "G6:H7"],
+        ["shade-beach-top", "E4:F5"]
+      ]
+    }
+  ]
+}
