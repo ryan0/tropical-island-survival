@@ -695,6 +695,54 @@ const flyRound: ReferenceView[] = FLY_ROUND_SPOTS.flatMap(([spot, pose]) =>
   ),
 );
 
+/**
+ * The sand's ripples from straight above, close, in four quarters of the atoll and under water:
+ * for finding a seam or a kink in them, which shows only so (they have been wrong three times).
+ */
+const ripples: ReferenceView[] = [
+  view(
+    'ripples-lagoon-south',
+    "the lagoon's shallows by home, from 3 m up",
+    [-20, 3, 99, 0, -1.5],
+    calm,
+  ),
+  view(
+    'ripples-lagoon-west',
+    "the lagoon's west shallows, from 3 m up",
+    [-86, 3, 0, 0, -1.5],
+    calm,
+  ),
+  view(
+    'ripples-lagoon-north',
+    "the lagoon's north shallows, from 3 m up",
+    [0, 3, -99, 0, -1.5],
+    calm,
+  ),
+  view(
+    'ripples-reef-south',
+    "the ocean reef's flat by home, from 3 m up",
+    [0, 3, 186, 0, -1.5],
+    calm,
+  ),
+  view(
+    'ripples-reef-east',
+    "the ocean reef's flat in the east, from 3 m up",
+    [165, 3, 0, 0, -1.5],
+    calm,
+  ),
+  view(
+    'ripples-reef-west',
+    "the ocean reef's flat in the west, from 3 m up",
+    [-175, 3, 0, 0, -1.5],
+    calm,
+  ),
+  view('ripples-islet', "the lagoon islet's shallows, from 3 m up", [0, 3, 15, 0, -1.5], calm),
+  view('ripples-from-6-m-at-dusk', "the reef's flat from 6 m up at dusk", [0, 6, 190, 0.4, -1.2], {
+    ...calm,
+    sun: { dayPhase: 0.8 },
+  }),
+];
+
 const MIDNIGHT = { ...calm, cloudCover: 0, sun: { dayPhase: 0 } };
 const TOWARDS_THE_MOON = Math.PI + 0.35;
 
@@ -765,6 +813,7 @@ export const lookViews = {
   steepFloor,
   pairs,
   flyRound,
+  ripples,
   nightSky,
 };
 

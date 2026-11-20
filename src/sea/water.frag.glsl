@@ -796,7 +796,9 @@ void main() {
   float nearCoralHead = reefHere.g;
   // (whether the line of sight meets a head, and not the sand)
   float headBehind = 0.0;
-  if (nearCoralHead > 0.0 && waterDepth > 0.05) {
+  // (Not where the picture of what is under the sea is read, below: it holds every thing's own depth.)
+  float readsPicture = uPictureDrawn * (1.0 - uUnderWater);
+  if (nearCoralHead > 0.0 && waterDepth > 0.05 && readsPicture < 0.5) {
     // (how far the line of sight runs along for each metre it goes down)
     vec2 sightRunsAlong = -towardsCamera.xz / max(towardsCamera.y, 1.0 / SIGHT_RUNS_ALONG);
     // The looks go down to the sand, but no further apart along the line than the map can tell a head from the
@@ -1237,7 +1239,6 @@ void main() {
 
   // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one, the
   // line is left unbent. The picture has no mipmaps, so it may be read inside this branch.)
-  float readsPicture = uPictureDrawn * (1.0 - uUnderWater);
   vec4 behind = vec4(0.0, 0.0, 0.0, 1.0);
   if (readsPicture > 0.5) {
     vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;

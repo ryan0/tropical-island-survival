@@ -8,6 +8,7 @@ import { createDolphins } from './dolphins';
 import { createFireflies } from './fireflies';
 import { createFish } from './fish';
 import { createGulls } from './gulls';
+import { lifeConfig } from './life-config';
 import { createReefFish } from './reef-fish';
 import { createTurtle } from './turtle';
 
@@ -66,7 +67,7 @@ export function createLife(dependencies: LifeDependencies): Life {
     home,
     hut,
   });
-  const dolphins = createDolphins({ scene, islandRadius });
+  const dolphins = lifeConfig.dolphins.areOut ? createDolphins({ scene, islandRadius }) : null;
 
   return {
     update({ time, waveTime, dt, daylight, night, waterLevel, player }) {
@@ -78,7 +79,7 @@ export function createLife(dependencies: LifeDependencies): Life {
       turtle.update(time, waterLevel);
       butterflies.update(time, daylight);
       fireflies.update(time, night);
-      dolphins.update(time, waterLevel);
+      dolphins?.update(time, waterLevel);
     },
   };
 }

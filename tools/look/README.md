@@ -75,6 +75,10 @@ node tools/look/draw-views.ts node_modules/.cache/look/fly-round --group flyRoun
 `--bent` draws any group with the trial of the picture of what is under the sea switched on
 (`src/sea/under-water-picture.ts`).
 
+The sand's ripples have a group of their own, `ripples`: straight down from 3 m in every quarter of the atoll,
+and from 6 m at dusk. A fault in them shows only from above and enlarged, and best of all in their picture
+drawn by itself, lit from one side and tiled, which is where to look first.
+
 To move a colour of ours by a measured amount (here: seven tenths of its saturation, ten degrees towards green,
 a little lighter), and get it back as the code writes it:
 
@@ -105,7 +109,7 @@ hair from the same view drawn alone (the sky turns with the day, and the day is 
 
 | File | What it holds |
 |---|---|
-| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `pairs`, `flyRound`, `nightSky` |
+| `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `pairs`, `flyRound`, `ripples`, `nightSky` |
 | `pair-sheets.ts` | Lays each of the pairs' views beside its photograph, one sheet a pair |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |

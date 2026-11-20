@@ -172,6 +172,8 @@ export const lifeConfig = {
   },
 
   dolphins: {
+    /** Left out of the scene for now, at Ryan's word (20 November 2026): they are built when this is true. */
+    areOut: false as boolean,
     colour: 0x6f8796,
     count: 2,
     /** The first leaps this often, and each one after it that much less often and that much later. */

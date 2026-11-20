@@ -78,19 +78,24 @@ export const worldConfig = {
   /**
    * The ripples in the sand of a shallow sea floor (sand-ripples.ts): how many metres of floor
    * their picture covers; how many ridges cross it (so they lie span / ridges apart: a hand's
-   * breadth, as in the photographs of rippled sand); how many plain waves the picture is the sum
-   * of, and how far from the middle one they lie in the number of ridges across the picture and
-   * down it (the wider, the shorter a ridge runs before it forks); how much narrower a crest is
-   * than a trough (1 is a plain wave); and how far round a fork the ridges sink into the sand (as
-   * a share of the waves' usual sum: 0 is ridges of full height right up to the fork).
+   * breadth, as in the photographs of rippled sand); and how much narrower a crest is than a
+   * trough (1 is a plain wave).
    */
   sandRipples: {
     span: 2.4,
     ridges: 27,
-    waves: 28,
-    spread: [10, 4],
     crestSharpness: 1.25,
-    forkSoftening: 0.3,
+    /**
+     * The ridges' slow wander: of how many waves it is the sum; the most turns one makes across
+     * the picture and down it; and how far it carries a ridge from straight, in ridge spacings.
+     */
+    wander: { waves: 7, mostTurns: [4, 2], farthest: 1.1 },
+    /**
+     * The extra lengths of ridge let in, each ending in a fork at both ends: how many; how long,
+     * as a share of the picture (it must stay under a third: sand-ripples.ts); and how near its
+     * end a ridge runs down into the sand, likewise.
+     */
+    extraRidges: { count: 18, length: [0.08, 0.3], sinksWithin: 0.022 },
   },
 
   terrain: {

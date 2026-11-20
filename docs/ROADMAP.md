@@ -1940,6 +1940,29 @@ what is under water` on as well, on the beach, over the lagoon and over the reef
 built on the picture; if not, D goes on each thing as now, and the painted look can be lessened but not
 ended.
 
+**Ryan's notes on it, the same day.** The phone, with `more dots` and the trial both on: 39 to 42 frames a
+second (what it makes with `more dots` alone, and with the trial alone, is still to be read: the first was 60
+on 19 November). The pairs "are good, we could also use them to help with colours if there is time": that is
+stage D's first step. And "still seeing issues in the ripples when I search", with a picture of ridges
+kinked along dotted lines down the screen.
+
+*The ripples, a third time.* The cause named above (the shore's picture) was not it, or not all of it: the
+fault was in the ripples' own picture, and showed as soon as the picture was drawn by itself, which had not
+been done. A sum of plain waves of nearly one length and direction comes to nothing along lines that run
+across the ridges, and on either side of such a line the ridges are out of step: as heights that had been
+bands of ripples and bands of none, and as ridges of one height it was a seam down the picture at which every
+ridge kinked. The picture is now made as real ripples are built: even ridges, a slow wander laid over them,
+and eighteen extra lengths of ridge let in, each ending in a fork at both ends (`world/sand-ripples.ts`).
+Drawn by itself and tiled, it has no seam; in the game, from 3 and 6 m up in every quarter of the atoll, at
+noon and at dusk, with the trial off and on, the ridges run whole (`tools/look`, the group `ripples`).
+
+*The dolphins* are left out of the scene for now, at his word (`life-config.ts`, `dolphins.areOut`).
+
+*The trial, cheaper:* nothing that stands still and wholly above the sea is drawn into the picture (the
+palms, the land's plants, the inland ground), and the surface no longer searches along the line of sight for
+a coral head where the picture answers that. Still to do if the picture stays: the ground under the sea is
+coloured twice, once in the picture and once on the screen, where the surface then covers it.
+
 ## Later
 
 - More passes on the reef.

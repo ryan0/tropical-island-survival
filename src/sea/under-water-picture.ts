@@ -1,5 +1,8 @@
 import {
+  Box3,
+  InstancedMesh,
   LinearFilter,
+  Mesh,
   RGBAFormat,
   Vector2,
   WebGLRenderTarget,
@@ -29,8 +32,15 @@ import type { WaterMaterials } from './water-materials';
 // only the phone can say what that costs. Off, nothing here is drawn and the surface is as before.
 
 // Things on this layer are not drawn into the picture: the sea's surfaces, the sky and all else
-// that takes no fog. The eye sees this layer and the first.
+// that takes no fog, and whatever stands still and wholly above the sea. The eye sees this layer
+// and the first.
 const NOT_IN_PICTURE = 1;
+// The sea is never behind a thing whose lowest point is this far above the still sea (m): no wave
+// stands so high where anything stands.
+const CLEAR_OF_THE_SEA = 1.5;
+// Where in an instance's matrix its height is.
+const HEIGHT_IN_MATRIX = 13;
+const NUMBERS_IN_A_MATRIX = 16;
 // The picture's size as a share of the screen's, each way.
 const SHARE_OF_SCREEN = 0.5;
 
@@ -58,6 +68,28 @@ export interface UnderWaterPicture {
 
 function takesNoFog(material: Material | Material[]): boolean {
   return Array.isArray(material) ? material.every((each) => !each.fog) : !material.fog;
+}
+
+const bounds = new Box3();
+
+/**
+ * The lowest a thing reaches, if it is one that stands still: a mesh that is never moved, or a
+ * square of instances (by where each stands: none here hangs below its own foot). Of anything
+ * that moves, nothing can be said once and for all.
+ */
+function lowestPointOf(thing: Object3D): number | null {
+  if (thing instanceof InstancedMesh) {
+    const places = thing.instanceMatrix.array;
+    let lowest = Infinity;
+    for (let i = 0; i < thing.count; i++) {
+      lowest = Math.min(lowest, places[i * NUMBERS_IN_A_MATRIX + HEIGHT_IN_MATRIX]);
+    }
+    return thing.position.y + lowest;
+  }
+  if (thing instanceof Mesh && !thing.matrixAutoUpdate) {
+    return bounds.setFromObject(thing).min.y;
+  }
+  return null;
 }
 
 export function createUnderWaterPicture(
@@ -90,8 +122,13 @@ export function createUnderWaterPicture(
     },
 
     sortScene() {
+      const clearOfTheSea = uniforms.uSeaLevel.value + CLEAR_OF_THE_SEA;
+      scene.updateMatrixWorld();
       scene.traverse((thing: Object3D & { material?: Material | Material[] }) => {
-        if (thing.material !== undefined && takesNoFog(thing.material)) {
+        if (thing.material === undefined) return;
+
+        const lowest = lowestPointOf(thing);
+        if (takesNoFog(thing.material) || (lowest !== null && lowest > clearOfTheSea)) {
           thing.layers.set(NOT_IN_PICTURE);
         }
       });
