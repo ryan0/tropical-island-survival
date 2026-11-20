@@ -83,6 +83,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   on a branch for him to review; commits, merges, pushes and anything destructive are his. For a long sitting he
   has each time, when asked in its plan, had milestones committed and pushed to a work branch, so that he can
   try them from the Pages preview on the phone: ask in each plan, and never merge into `main` or push to it.
+  He merges in the same checkout the work is done in, and may leave it on `main`: look at which branch is
+  checked out before every commit.
   Put each shell command you ask him to run in its own code block.
 - **Installing is his too.** For a new package or system tool, say what is needed and why, give the command, and
   carry on with whatever does not need it.

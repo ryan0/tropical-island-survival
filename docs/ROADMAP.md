@@ -8,16 +8,14 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 **Where things stand (20 November 2026, evening; Ryan is away for the weekend and may go on from a laptop or
 the phone with another agent).**
 
-- *Branches.* `main` holds the look's first two sittings (colours; under water). Three branches are stacked on
-  it, each begun where the one before ends, all pushed and none merged: `look-3-ground` (the ground and what
-  lies on it), `look-4-coral-and-sky` (coral, the reef's floor, the night sky), `look-5-sea-floor` (soil; the
-  sea floor redrawn; the water drawn over a picture of what is under it). Ryan has looked at all three: of
-  the third and fourth, "much better"; the fifth he has worked through with Claude all day, from the Pages
-  preview (`preview/look-5-sea-floor/`) and the desktop. Merging is his: merging `look-5-sea-floor` brings
-  all three. Work goes on on `look-5-sea-floor` (or a branch from it), committed and pushed at each stopping
-  place, as he has agreed for this effort; `main` is never touched.
-- *The phone:* a steady 60 frames a second on `look-5-sea-floor`, with rare dips, with the picture of what is
-  under the sea drawn every frame.
+- *Branches.* `main` holds all of the look so far: Ryan merged the three stacked branches of 20 November
+  (`look-3-ground`, `look-4-coral-and-sky`, `look-5-sea-floor`) that afternoon, at `2d4a18f`. Work goes on on
+  `look-6-water-colours`, which begins there, committed and pushed at each stopping place, as he has agreed
+  for this effort; `main` is his alone. (He merges in the same checkout the work is done in, and it may be
+  left on `main`: look at which branch is checked out before every commit.)
+- *The phone:* a steady 60 frames a second at `2d4a18f`, with rare dips, with the picture of what is under the
+  sea drawn every frame. "Everywhere else is vastly improved"; one place was not, the lagoon islet's shore
+  seen from the islet (1 below).
 - *The work in hand* is "The water and its floor against matched photographs" (its plan is far below, with a
   section for each day's work after it). Done: the targets (eight pairs and a fly-round); the three faults
   first found; the picture of what is under the sea, now the one way the water is drawn, with every older rule
@@ -42,7 +40,7 @@ the phone with another agent).**
   a cause is named, and two frames a moment apart for anything that moves. The photographs are on his desktop
   only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
   our own views can be drawn and compared anywhere.
-- *Waiting on Ryan:* the three branches to merge; the wording of the standard "One owner for each effect"
+- *Waiting on Ryan:* the wording of the standard "One owner for each effect"
   (`CODE_STANDARDS.md`), which was added at his word but not read by him; whether the water should be as
   clear as a real lagoon's; the proposal "many more kinds at a flat cost" (below); six finished agents'
   worktrees on his desktop to clear away (`.claude/worktrees/`).
