@@ -45,6 +45,12 @@ export const worldConfig = {
      * walls. A lower number cuts more squares, each for six more triangles.
      */
     cutInFourWhereBendsOver: 0.5,
+    /**
+     * The ground is drawn in square tiles this many metres across, each left out when it is out of
+     * view: drawn whole, two thirds and more of its triangles were worked out every frame for
+     * nothing. Smaller tiles leave out more, at one more draw for each tile in view.
+     */
+    tileSide: 80,
     /** The sea floor beyond the reef: the lowest the island's shape goes. */
     seaFloor: -30.49,
     /** Dots along each side of the grit picture, and how many times it repeats across the ground. */

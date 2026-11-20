@@ -180,3 +180,72 @@ export function createTerrainShape(groundHeight: GroundHeight): BufferGeometry {
   shape.setIndex(cornerOrder);
   return shape;
 }
+
+/**
+ * Cuts the whole ground into square tiles, each a shape of its own, so that three.js can leave
+ * out the tiles that are out of view. Every triangle goes to the tile its middle lies in; the sea
+ * floor's two great triangles, far larger than a tile, make a tile of their own. `whole` has all
+ * it needs worked out already (its corners' colours and normals), so that two tiles agree along
+ * the edge they share; and the corners stay where they are in the world, so that a corner two
+ * tiles share is drawn at the very same place by each, and no gap can open between them.
+ */
+export function cutIntoTiles(whole: BufferGeometry): BufferGeometry[] {
+  const corners = whole.getAttribute('position');
+  const order = whole.getIndex();
+  if (order === null) throw new Error('the ground has no triangles');
+  const names = Object.keys(whole.attributes);
+
+  const trianglesOfTile = new Map<string, number[]>();
+  for (let first = 0; first < order.count; first += 3) {
+    const a = order.getX(first);
+    const b = order.getX(first + 1);
+    const c = order.getX(first + 2);
+    const span = Math.max(
+      Math.abs(corners.getX(a) - corners.getX(b)),
+      Math.abs(corners.getX(a) - corners.getX(c)),
+      Math.abs(corners.getZ(a) - corners.getZ(b)),
+      Math.abs(corners.getZ(a) - corners.getZ(c)),
+    );
+    const across = Math.floor(
+      (corners.getX(a) + corners.getX(b) + corners.getX(c)) / 3 / config.tileSide,
+    );
+    const down = Math.floor(
+      (corners.getZ(a) + corners.getZ(b) + corners.getZ(c)) / 3 / config.tileSide,
+    );
+    const tile = span > config.tileSide ? 'sea floor' : `${across},${down}`;
+    const triangles = trianglesOfTile.get(tile);
+    if (triangles === undefined) trianglesOfTile.set(tile, [a, b, c]);
+    else triangles.push(a, b, c);
+  }
+
+  return [...trianglesOfTile.values()].map((wholesCorners) => {
+    // The tile's own corners, numbered as its triangles first name them.
+    const ownNumber = new Map<number, number>();
+    const tilesOrder = wholesCorners.map((corner) => {
+      let own = ownNumber.get(corner);
+      if (own === undefined) {
+        own = ownNumber.size;
+        ownNumber.set(corner, own);
+      }
+      return own;
+    });
+    const used = [...ownNumber.keys()];
+
+    const shape = new BufferGeometry();
+    for (const name of names) {
+      const all = whole.getAttribute(name);
+      const values = all.array;
+      const own = new Float32Array(used.length * all.itemSize);
+      used.forEach((corner, i) => {
+        for (let part = 0; part < all.itemSize; part++) {
+          own[i * all.itemSize + part] = values[corner * all.itemSize + part];
+        }
+      });
+      shape.setAttribute(name, new BufferAttribute(own, all.itemSize));
+    }
+    shape.setIndex(tilesOrder);
+    // (what three.js goes by to tell whether the tile is in view)
+    shape.computeBoundingSphere();
+    return shape;
+  });
+}

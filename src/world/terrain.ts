@@ -1,5 +1,6 @@
 import {
   BufferAttribute,
+  Group,
   Mesh,
   MeshLambertMaterial,
   type BufferGeometry,
@@ -17,7 +18,7 @@ import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { reefConfig } from './reef/reef-config';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
-import { createTerrainShape } from './terrain-shape';
+import { createTerrainShape, cutIntoTiles } from './terrain-shape';
 
 /** The shared uniforms the ground's colouring reads. */
 const SHARED_UNIFORMS = [
@@ -115,7 +116,8 @@ const LIGHT_UNDER_WATER = `
 `;
 
 export interface Terrain {
-  mesh: Mesh;
+  /** Its tiles: each is left out by three.js when it is out of view. */
+  tiles: Group;
   /**
    * Its material. With the define TERRAIN_BARE (a debug switch) none of the colouring is worked
    * out: the ground is drawn in the plain colour of its corners, to read what the colouring costs.
@@ -164,10 +166,16 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
       withColouring(shader.fragmentShader, `\n#ifndef TERRAIN_BARE\n${colourShader}\n#endif\n`);
   };
 
-  const terrain = new Mesh(shape, material);
-  terrain.receiveShadow = true;
-  // Drawn after the plants, rocks and props: its costly colouring is then skipped wherever they hide the ground.
-  terrain.renderOrder = 1;
-  scene.add(terrain);
-  return { mesh: terrain, material };
+  const tiles = new Group();
+  for (const tileShape of cutIntoTiles(shape)) {
+    const tile = new Mesh(tileShape, material);
+    tile.matrixAutoUpdate = false;
+    tile.receiveShadow = true;
+    // Drawn after the plants, rocks and props: its costly colouring is then skipped wherever they hide
+    // the ground.
+    tile.renderOrder = 1;
+    tiles.add(tile);
+  }
+  scene.add(tiles);
+  return { tiles, material };
 }

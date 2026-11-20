@@ -206,7 +206,7 @@ export function frameCostSwitches(
     {
       label: 'hide ground',
       set(on) {
-        land.terrain.mesh.visible = !on;
+        land.terrain.tiles.visible = !on;
       },
     },
     {
