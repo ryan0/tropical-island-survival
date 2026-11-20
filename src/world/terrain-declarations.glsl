@@ -1,7 +1,8 @@
 // What the colouring of the ground (terrain-colour.glsl) needs from outside main(): its uniforms and varying, the
-// chunks it calls, and three patterns of small things lying on the ground. terrain.ts puts this in front of
-// three.js's Lambert fragment shader. The chunks need the defines TERRAIN_FOOTPATHS (footpaths.glsl) and
-// LAGOON_WIND_DIRECTION (lagwave.glsl), which terrain.ts writes.
+// chunks it calls, the noise its patterns are made of, and three patterns of small things lying on the ground.
+// terrain.ts puts this in front of three.js's Lambert fragment shader. The chunks need the defines
+// TERRAIN_FOOTPATHS (footpaths.glsl) and LAGOON_WIND_DIRECTION (lagwave.glsl), and groundNoise needs
+// GROUND_NOISE_PERIOD (world-config.ts), all of which terrain.ts writes.
 
 uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
@@ -16,6 +17,7 @@ uniform sampler2D uDetail;          // the detail texture (detail-texture.ts)
 uniform sampler2D uCaustics;        // the caustics texture (caustics-texture.ts)
 uniform sampler2D uCloudShadeMap;   // the map of the clouds' shadows
 uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
+uniform sampler2D uGroundNoise;     // the noise the ground's patterns are made of (ground-noise.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
@@ -31,6 +33,29 @@ varying vec3 vGroundPosition;   // this point's position in the world
 #include "../shaders/shared/lagwave"
 
 #include "../shaders/shared/light-net"
+
+// The noise the ground's own patterns are made of, 0 to 1 with one rise and fall to a cell of p, as noise() gives:
+// read from a picture of such noise (ground-noise.ts), where every call was worked out by arithmetic. On Ryan's
+// phone that arithmetic, some fifty calls for a dot of turf, was the dearest thing the ground did, and a reading
+// costs next to nothing. The picture repeats every GROUND_NOISE_PERIOD cells, and has no mipmaps, so that it may be
+// read inside a branch. (GROUND_NOISE_BY_ARITHMETIC: a debug switch goes back to noise() itself, whose patches lie
+// elsewhere, to compare the frame rate.)
+float groundNoise(vec2 p) {
+  #ifdef GROUND_NOISE_BY_ARITHMETIC
+  return noise(p);
+  #else
+  return texture2D(uGroundNoise, p * (1.0 / GROUND_NOISE_PERIOD)).r;
+  #endif
+}
+
+// Three octaves of it, as fbm() is of noise(): each at twice the frequency and half the strength of the last,
+// turned so that the octaves' grids never line up.
+float groundFbm(vec2 p) {
+  mat2 nextOctave = mat2(1.6, 1.2, -1.2, 1.6);
+  vec2 second = nextOctave * p + vec2(3.1, 1.7);
+  vec2 third = nextOctave * second + vec2(3.1, 1.7);
+  return (0.5 * groundNoise(p) + 0.25 * groundNoise(second) + 0.125 * groundNoise(third)) / 0.875;
+}
 
 // Bits of leaf litter and twig lying on sand: at most one short dark fleck in each square of p, at its own angle.
 // Returns how much of this spot the fleck covers, 0 to 1.

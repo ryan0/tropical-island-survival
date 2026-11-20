@@ -220,6 +220,17 @@ export function frameCostSwitches(
       },
     },
     {
+      // The ground's patterns made of noise worked out by arithmetic, as they were until 19 November 2026,
+      // where they are now read from a picture of noise (terrain-declarations.glsl's
+      // GROUND_NOISE_BY_ARITHMETIC): the patches lie elsewhere; it is the frame rate that is to compare.
+      label: 'ground noise by arithmetic',
+      set(on) {
+        const { material } = land.terrain;
+        material.defines = { ...material.defines, GROUND_NOISE_BY_ARITHMETIC: on ? '' : false };
+        material.needsUpdate = true;
+      },
+    },
+    {
       // What the sky costs: the dome in one flat colour (sky.frag.glsl's SKY_BARE).
       label: 'plain sky',
       set(on) {

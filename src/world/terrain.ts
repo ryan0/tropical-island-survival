@@ -13,12 +13,14 @@ import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
 import { withColouring } from '../shaders/sunlight-under-water';
 import { SWAY_DECLARATIONS, swayOf } from '../shaders/sway-under-water';
 import { createGroundGrit } from './ground-grit';
+import { createGroundNoise } from './ground-noise';
 import { turfColours } from './ground-patterns';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { reefConfig } from './reef/reef-config';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { createTerrainShape, cutIntoTiles } from './terrain-shape';
+import { worldConfig } from './world-config';
 
 /** The shared uniforms the ground's colouring reads. */
 const SHARED_UNIFORMS = [
@@ -133,6 +135,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   shape.setAttribute('color', new BufferAttribute(cornerColours(corners, shape), 3));
   shape.computeVertexNormals();
   const grit = createGroundGrit(random);
+  const groundNoise = createGroundNoise();
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
@@ -141,6 +144,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
     CAUSTICS_BRIGHTEST: glslFloat(CAUSTICS_BRIGHTEST),
+    GROUND_NOISE_PERIOD: glslFloat(worldConfig.groundNoise.period),
     THIN_TURF: glslVec3(...turfColours.thin),
     LUSH_TURF: glslVec3(...turfColours.lush),
     DRY_TURF: glslVec3(...turfColours.dry),
@@ -149,6 +153,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   material.onBeforeCompile = (shader, renderer) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.uniforms.uGritAverage = { value: grit.mean };
+    shader.uniforms.uGroundNoise = { value: groundNoise };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2

@@ -34,6 +34,13 @@ export const worldConfig = {
     shareFarFromHome: 0.2,
   },
 
+  /**
+   * The picture of noise that the ground's patterns are read from (ground-noise.ts): how many
+   * cells of the noise it holds across before it repeats, and how many dots it gives each cell.
+   * A pattern read at 0.2 cells a metre repeats every 320 m.
+   */
+  groundNoise: { period: 64, dotsACell: 8 },
+
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */
     size: 960,
