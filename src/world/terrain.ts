@@ -6,6 +6,7 @@ import {
   type BufferGeometry,
   type IUniform,
   type Scene,
+  type WebGLRenderer,
 } from 'three';
 import type { Random } from '../core/random';
 import { CAUSTICS_BRIGHTEST } from '../shaders/caustics-texture';
@@ -16,7 +17,9 @@ import { createGroundGrit } from './ground-grit';
 import { createGroundNoise } from './ground-noise';
 import { turfColours } from './ground-patterns';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
+import { seaConfig } from '../sea/sea-config';
 import { reefConfig } from './reef/reef-config';
+import { createReefCoverPicture } from './reef-cover-picture';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { createTerrainShape, cutIntoTiles } from './terrain-shape';
@@ -33,6 +36,7 @@ const SHARED_UNIFORMS = [
   'uCaustics',
   'uCloudShadeMap',
   'uReefMap',
+  'uShoreRound',
   'uWind',
   'uCameraPosition',
   'uSunDirection',
@@ -40,6 +44,8 @@ const SHARED_UNIFORMS = [
 
 export interface TerrainDependencies {
   scene: Scene;
+  /** Draws the picture of the reef's cover, once. */
+  renderer: WebGLRenderer;
   /** The terrain's own stream: it speckles the grit. */
   random: Random;
   groundHeight: GroundHeight;
@@ -129,13 +135,15 @@ export interface Terrain {
 
 /** The ground and how it is coloured: sand, grass, rock, wet sand, the net of light on the sea floor. */
 export function createTerrain(dependencies: TerrainDependencies): Terrain {
-  const { scene, random, groundHeight, landmarks, uniforms, windDirection } = dependencies;
+  const { scene, renderer, random, groundHeight, landmarks, uniforms, windDirection } =
+    dependencies;
   const shape = createTerrainShape(groundHeight);
   const corners = shape.getAttribute('position') as BufferAttribute;
   shape.setAttribute('color', new BufferAttribute(cornerColours(corners, shape), 3));
   shape.computeVertexNormals();
   const grit = createGroundGrit(random);
   const groundNoise = createGroundNoise();
+  const reefCover = createReefCoverPicture(renderer);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
@@ -145,6 +153,8 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
     CAUSTICS_BRIGHTEST: glslFloat(CAUSTICS_BRIGHTEST),
     GROUND_NOISE_PERIOD: glslFloat(worldConfig.groundNoise.period),
+    REEF_COVER_SPAN: glslFloat(worldConfig.reefCoverPicture.span),
+    SHORE_ROUND_FROM: glslFloat(seaConfig.shoreRoundPicture.radiusKeptFrom),
     THIN_TURF: glslVec3(...turfColours.thin),
     LUSH_TURF: glslVec3(...turfColours.lush),
     DRY_TURF: glslVec3(...turfColours.dry),
@@ -154,6 +164,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.uniforms.uGritAverage = { value: grit.mean };
     shader.uniforms.uGroundNoise = { value: groundNoise };
+    shader.uniforms.uReefCover = { value: reefCover };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2

@@ -83,9 +83,18 @@ float cameraDistance = length(toCamera);
 float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail shows: 1 at the camera, gone by 90 m
 
 // Which side of the land this is: lagoonSide is 1 on the lagoon's side (still water, no surf), 0 on the ocean's.
+// (The shore's shape in this direction is read from its picture, which the water's shader reads too: the ocean
+// shoreline's distance from the centre, the reef's share of its full width, the land's width.)
 float directionFromCentre = atan(xz.y, xz.x);
-float metresOffshore = length(xz) - islandR(directionFromCentre);   // outside the ocean beach line (negative inland)
+#ifdef TERRAIN_BY_ARITHMETIC
+float shoreRadius = islandR(directionFromCentre);
 float landWidth = landW(directionFromCentre);
+#else
+vec4 shoreRound = texture2D(uShoreRound, vec2(directionFromCentre / FULL_TURN + 0.5, 0.5));
+float shoreRadius = shoreRound.r + SHORE_ROUND_FROM;
+float landWidth = shoreRound.b;
+#endif
+float metresOffshore = length(xz) - shoreRadius;   // outside the ocean beach line (negative inland)
 float lagoonSide = 1.0 - smoothstep(-0.7, -0.4, metresOffshore / landWidth);
 
 vec2 towardsSun = normalize(uSunDirection.xz + 1e-4);
@@ -448,7 +457,7 @@ if (waterDepth > 0.0) {
       * (1.0 - smoothstep(5.5, 7.9, waterDepth));
     // (and coral covers the tops of the lagoon's patch reefs, which stand up out of its basin: shallow ground well
     // out from the shore, its edge broken up by the pattern)
-    float outInLagoon = -(metresOffshore + landW(directionFromCentre));
+    float outInLagoon = -(metresOffshore + landWidth);
     float onPatchReef = (1.0 - smoothstep(1.5, 2.9, waterDepth + 1.2 * (coralPattern - 0.5)))
       * smoothstep(26.0, 40.0, outInLagoon);
     lagoonCoral = max(lagoonCoral, onPatchReef);
@@ -460,10 +469,19 @@ if (waterDepth > 0.0) {
     float crestRockShows = 0.0;
     float ridgeHere = 0.0;
     if (onTheReef > 0.5) {
+      // (The reef's cover here is read from its picture: how much is high ground, how much bare pavement, how
+      // much of a ridge the crest is.)
+      #ifdef TERRAIN_BY_ARITHMETIC
       float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
+      vec3 reefCover = vec3(reefHighGround(xz.x, xz.y), reefPavement(xz.x, xz.y), ridgeAt(directionFromCentre));
+      #else
+      float beyondBeachShallows = max(metresOffshore - REEF_BEGINS, 0.0);
+      float alongTheReef = clamp(metresOffshore, 0.0, REEF_BEGINS) + beyondBeachShallows / shoreRound.g;
+      vec3 reefCover = texture2D(uReefCover, xz / REEF_COVER_SPAN + 0.5).rgb;
+      #endif
       // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
       float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (groundNoise(xz * 1.3 + 4.0) - 0.5);
-      float onHighGround = smoothstep(0.38, 0.62, reefHighGround(xz.x, xz.y) + ragged);
+      float onHighGround = smoothstep(0.38, 0.62, reefCover.r + ragged);
       float scatteredHeads = 0.7 * smoothstep(0.68, 0.76, coralPattern) * smoothstep(REEF_BEGINS, GARDENS_BEGIN, alongTheReef);
       // (none in the last of the shallows, where the swash runs, and it thins out down the drop-off)
       reefCoral = max(onHighGround, scatteredHeads) * smoothstep(0.3, 0.9, waterDepth)
@@ -473,8 +491,8 @@ if (waterDepth > 0.0) {
       // the same rock, bare. (Both show however shallow they lie, where coral would not.)
       float onCrest = smoothstep(CREST_BEGINS - 8.0, CREST_BEGINS + 4.0, alongTheReef)
         * (1.0 - smoothstep(FORE_REEF_BEGINS - 2.0, FORE_REEF_BEGINS + 14.0, alongTheReef));
-      ridgeHere = ridgeAt(directionFromCentre);
-      bareFlat = reefPavement(xz.x, xz.y) * smoothstep(-0.3, 0.05, ragged);
+      ridgeHere = reefCover.b;
+      bareFlat = reefCover.g * smoothstep(-0.3, 0.05, ragged);
       onCrestRidge = onCrest * ridgeHere * onHighGround;
       crestRockShows = max((0.65 + 0.3 * ridgeHere) * onCrest, 0.85 * bareFlat);
     }

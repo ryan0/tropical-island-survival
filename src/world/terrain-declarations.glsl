@@ -3,6 +3,11 @@
 // terrain.ts puts this in front of three.js's Lambert fragment shader. The chunks need the defines
 // TERRAIN_FOOTPATHS (footpaths.glsl) and LAGOON_WIND_DIRECTION (lagwave.glsl), and groundNoise needs
 // GROUND_NOISE_PERIOD (world-config.ts), all of which terrain.ts writes.
+//
+// Three things the colouring once worked out by arithmetic for every dot it reads from pictures, which Ryan's
+// phone finds far cheaper: its noise (groundNoise, below), the shore's shape (uShoreRound) and the reef's cover
+// (uReefCover). With the define TERRAIN_BY_ARITHMETIC, a debug switch, it works all three out as it did, to
+// compare the frame rate.
 
 uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
@@ -18,6 +23,8 @@ uniform sampler2D uCaustics;        // the caustics texture (caustics-texture.ts
 uniform sampler2D uCloudShadeMap;   // the map of the clouds' shadows
 uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
 uniform sampler2D uGroundNoise;     // the noise the ground's patterns are made of (ground-noise.ts)
+uniform sampler2D uShoreRound;      // the shore in each direction from the centre (sea/shore-round-picture.ts)
+uniform sampler2D uReefCover;       // what covers the reef's floor (reef-cover-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
@@ -38,10 +45,10 @@ varying vec3 vGroundPosition;   // this point's position in the world
 // read from a picture of such noise (ground-noise.ts), where every call was worked out by arithmetic. On Ryan's
 // phone that arithmetic, some fifty calls for a dot of turf, was the dearest thing the ground did, and a reading
 // costs next to nothing. The picture repeats every GROUND_NOISE_PERIOD cells, and has no mipmaps, so that it may be
-// read inside a branch. (GROUND_NOISE_BY_ARITHMETIC: a debug switch goes back to noise() itself, whose patches lie
+// read inside a branch. (TERRAIN_BY_ARITHMETIC: a debug switch goes back to noise() itself, whose patches lie
 // elsewhere, to compare the frame rate.)
 float groundNoise(vec2 p) {
-  #ifdef GROUND_NOISE_BY_ARITHMETIC
+  #ifdef TERRAIN_BY_ARITHMETIC
   return noise(p);
   #else
   return texture2D(uGroundNoise, p * (1.0 / GROUND_NOISE_PERIOD)).r;

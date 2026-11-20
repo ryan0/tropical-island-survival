@@ -118,6 +118,7 @@ const island = createIslandShape();
 const landmarks = createLandmarks(island.groundHeight, island.radius);
 const terrain = createTerrain({
   scene,
+  renderer,
   random: randomStream('terrain'),
   groundHeight: island.groundHeight,
   landmarks,

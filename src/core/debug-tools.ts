@@ -220,13 +220,14 @@ export function frameCostSwitches(
       },
     },
     {
-      // The ground's patterns made of noise worked out by arithmetic, as they were until 19 November 2026,
-      // where they are now read from a picture of noise (terrain-declarations.glsl's
-      // GROUND_NOISE_BY_ARITHMETIC): the patches lie elsewhere; it is the frame rate that is to compare.
-      label: 'ground noise by arithmetic',
+      // The ground's colouring with its noise, the shore's shape and the reef's cover worked out by
+      // arithmetic, as they were until 19 November 2026, where they are now read from pictures
+      // (terrain-declarations.glsl's TERRAIN_BY_ARITHMETIC). The patches of the noise lie elsewhere; it
+      // is the frame rate that is to compare.
+      label: 'ground by arithmetic',
       set(on) {
         const { material } = land.terrain;
-        material.defines = { ...material.defines, GROUND_NOISE_BY_ARITHMETIC: on ? '' : false };
+        material.defines = { ...material.defines, TERRAIN_BY_ARITHMETIC: on ? '' : false };
         material.needsUpdate = true;
       },
     },

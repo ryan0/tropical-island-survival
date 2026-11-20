@@ -41,6 +41,15 @@ export const worldConfig = {
    */
   groundNoise: { period: 64, dotsACell: 8 },
 
+  /**
+   * What covers the reef's floor, as a picture the ground's colouring reads in place of the
+   * island's formulas (reef-cover-picture.ts): the side of the square it covers, in metres, centred
+   * on the atoll (it reaches past the drop-off on every side), and its dots across: a metre each,
+   * where the smallest thing in it, a lump of the reef, is some 4 m across. (At half a metre a dot
+   * no view was any different to the eye, for four times the memory.)
+   */
+  reefCoverPicture: { span: 1024, size: 1024 },
+
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */
     size: 960,
