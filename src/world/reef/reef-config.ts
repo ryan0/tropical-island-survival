@@ -157,9 +157,10 @@ export const reefConfig = {
 
   /**
    * Every coral's tint is multiplied by this: what its colour is out of the water, where the tints
-   * are its colour seen through two or three metres of it. It is a middle course, measured on the
-   * boards: warmer, coral seen from under water goes orange; cooler, coral seen from above the
-   * water goes green.
+   * are its colour seen through two or three metres of it. It is a middle course, measured:
+   * with it coral within three metres of an eye under water has the hues of close photographs of
+   * coral (60 to 100 degrees); warmer, it goes orange; cooler, coral seen from above the water,
+   * which is still 11 to 32 degrees greener than the photographs, goes greener.
    */
   outOfWater: [1.2, 1.05, 0.95],
 

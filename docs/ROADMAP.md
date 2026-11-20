@@ -1561,10 +1561,15 @@ on platforms of cracked rock.
   surface seen edge on is now darker than one seen square on. The net of light falls by the way a surface
   faces, where every coral was taken to face half up.
 - *Colour.* The tints are what photographs taken under water measure, and since the second sitting the water
-  between a coral and the eye takes red of its own: so coral a few metres off was 56 degrees too green. Each
-  tint is now multiplied by what it is out of the water (`reef-config.ts`, `outOfWater`), a middle course:
-  from under water coral two or three metres off measures 15 degrees warmer than the photographs, and from
-  above the water 11 to 32 degrees greener (it was 31 to 51).
+  between a coral and the eye takes red of its own; from above the water the corals measured 31 to 51 degrees
+  too green. Each tint is now multiplied by what it is out of the water (`reef-config.ts`, `outOfWater`), a
+  middle course: from above they are 11 to 32 degrees too green; and coral within three metres of an eye
+  under water has hues of 62 to 101 degrees, where eight close photographs of coral have 58 to 102 (ours had
+  75 to 131).
+- *A correction to the second sitting's record.* It says coral within a few metres was 57 degrees too green.
+  The board's parts for that row lay on heads five to fifteen metres off, where the water has most of the
+  colour, and the photographs' on coral two to five metres off. The row now measures coral that is near
+  (the `reef` views).
 
 **The reef's floor** (`terrain-colour.glsl`, "The reef flat").
 
@@ -1604,7 +1609,7 @@ the night sky in `look-views.ts`):
 
 | Material | Photos | Before | Now |
 |---|---|---|---|
-| Coral a few metres off, from under water | lightness 0.50, hue 110 | hue +56 | hue -15, lightness -0.08 |
+| Coral within three metres, from under water | eight close photos: hue 58 to 102 | hue 75 to 131 | hue 62 to 101 |
 | Lobed and massive corals, from above | 0.40, 114 | hue +31, lightness +0.15 | hue +11, lightness +0.11 |
 | Table corals, from above | 0.58, 82 | hue +51, lightness +0.07 | hue +32, lightness +0.01 |
 
