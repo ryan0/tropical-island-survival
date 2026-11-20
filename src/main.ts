@@ -466,7 +466,7 @@ function frame(now: number): void {
     dayCycle.sunHeight(),
     dayCycle.isMorning(),
     dayCycle.moonHeight(),
-    dayCycle.isMoonRising(),
+    dayCycle.moonAlongArc(),
   );
   timeButton.textContent = light.timeOfDay;
   if (!isClockStopped) uniforms.uTime.value = time;

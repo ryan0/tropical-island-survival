@@ -26,8 +26,11 @@ export interface DayCycle {
   isMorning(): boolean;
   /** The moon's height above the horizon, in radians. */
   moonHeight(): number;
-  /** False once the moon is past its highest, and whenever a test has fixed the sun's height. */
-  isMoonRising(): boolean;
+  /**
+   * How far the moon is along its arc across the sky: -1 as it rises, 0 at its highest, 1 as it
+   * sets (and 0 whenever a test has fixed the sun's height).
+   */
+  moonAlongArc(): number;
 }
 
 const config = skyConfig.day;
@@ -44,6 +47,17 @@ function aheadOf(from: number, to: number): number {
 
 function sunHeightAt(phase: number): number {
   return config.sunHeightAtSix + config.sunHeightSwing * Math.cos(FULL_TURN * (phase - 0.5));
+}
+
+/** How far round the day `phase` is from the moment the moon stands highest: -0.5 before it up to 0.5 after. */
+function fromMoonsHighest(phase: number): number {
+  return aheadOf(config.moonBehindSun, phase) - 0.5;
+}
+
+/** The moon climbs and sinks as the sun does, on an arc of its own, and stays under the horizon the rest of the day. */
+function moonHeightAt(phase: number): number {
+  const alongArc = (Math.PI * Math.abs(fromMoonsHighest(phase))) / config.moonUpShare;
+  return config.moonHighest * Math.cos(Math.min(Math.PI, alongArc));
 }
 
 export function createDayCycle(): DayCycle {
@@ -109,14 +123,15 @@ export function createDayCycle(): DayCycle {
     },
 
     moonHeight() {
-      // (A test that has fixed the sun's height gets the moon opposite it, where a full moon stands.)
-      return fixedSunHeight === null
-        ? sunHeightAt(phase - config.moonBehindSun)
-        : 2 * config.sunHeightAtSix - fixedSunHeight;
+      // (A test that has fixed the sun under the horizon gets the moon at its highest, and none by day.)
+      if (fixedSunHeight !== null)
+        return fixedSunHeight < 0 ? config.moonHighest : -config.moonHighest;
+      return moonHeightAt(phase);
     },
 
-    isMoonRising() {
-      return fixedSunHeight === null && aheadOf(config.moonBehindSun, phase) < 0.5;
+    moonAlongArc() {
+      if (fixedSunHeight !== null) return 0;
+      return Math.max(-1, Math.min(1, fromMoonsHighest(phase) / (0.5 * config.moonUpShare)));
     },
   };
 }

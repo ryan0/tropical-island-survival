@@ -37,8 +37,11 @@ export interface SkyLightUniforms {
 export interface SkyLight {
   uniforms: SkyLightUniforms;
   light: LightOfDay;
-  /** The sun's height and the moon's, in radians above the horizon, and whether each is still climbing. */
-  update(sunHeight: number, isMorning: boolean, moonHeight: number, isMoonRising: boolean): void;
+  /**
+   * The sun's height and the moon's, in radians above the horizon; whether the sun is still
+   * climbing; and how far the moon is along its arc, -1 as it rises to 1 as it sets.
+   */
+  update(sunHeight: number, isMorning: boolean, moonHeight: number, moonAlongArc: number): void;
 }
 
 const { day, light: lightConfig, colours } = skyConfig;
@@ -67,15 +70,11 @@ function nameOf(sunHeight: number, isMorning: boolean): TimeOfDay {
 }
 
 /**
- * Where the sun or the moon stands at a height above the horizon, written into `direction`. Each comes
- * up on one side of its highest bearing and goes down on the other, and is drawn a little lower than
- * it stands.
+ * Where the sun or the moon stands, written into `direction`: at a height above the horizon (it is
+ * drawn a little lower than it stands) and on a bearing.
  */
-function setPlaceInSky(direction: Vector3, height: number, isRising: boolean): void {
+function setPlaceInSky(direction: Vector3, height: number, bearing: number): void {
   const elevation = height - lightConfig.drawnLower;
-  const swing = isRising ? lightConfig.bearingSwing : -lightConfig.bearingSwing;
-  const lowness = 1 - smoothstep(0, lightConfig.fullDaylightAt, height);
-  const bearing = lightConfig.noonBearing + swing * lowness;
   direction
     .set(
       Math.sin(bearing) * Math.cos(elevation),
@@ -111,7 +110,7 @@ export function createSkyLight(): SkyLight {
     uniforms,
     light,
 
-    update(sunHeight, isMorning, moonHeight, isMoonRising) {
+    update(sunHeight, isMorning, moonHeight, moonAlongArc) {
       const daylight = smoothstep(0, lightConfig.fullDaylightAt, sunHeight);
       const night = 1 - smoothstep(lightConfig.nightFrom, lightConfig.nightTo, sunHeight);
       const sunShows = 1 - night;
@@ -139,9 +138,22 @@ export function createSkyLight(): SkyLight {
       light.sunColour[2] = mix(sun.low[2], sun.high[2], sunHigh);
       uniforms.uSunColour.value.setRGB(light.sunColour[0], light.sunColour[1], light.sunColour[2]);
 
+      // The sun comes up on one side of its noon bearing and goes down on the other, and is on that
+      // bearing whenever it is high. The moon crosses from the one side to the other at an even pace,
+      // so that it moves through the night.
       const elevation = sunHeight - lightConfig.drawnLower;
-      setPlaceInSky(uniforms.uSunDirection.value, sunHeight, isMorning);
-      setPlaceInSky(uniforms.uMoonDirection.value, moonHeight, isMoonRising);
+      const { noonBearing, bearingSwing } = lightConfig;
+      const sunsSide = isMorning ? 1 : -1;
+      setPlaceInSky(
+        uniforms.uSunDirection.value,
+        sunHeight,
+        noonBearing + sunsSide * bearingSwing * (1 - daylight),
+      );
+      setPlaceInSky(
+        uniforms.uMoonDirection.value,
+        moonHeight,
+        noonBearing - bearingSwing * moonAlongArc,
+      );
 
       const { sunset, golden, day: whiteDay } = colours.cloudInSun;
       const moonlit = colours.cloudInMoonlight;

@@ -14,10 +14,15 @@ export const skyConfig = {
     sunHeightAtSix: 0.28,
     sunHeightSwing: 0.44,
     /**
-     * The moon keeps to the sun's path across the sky, this share of a day behind it. At a half it
-     * stands opposite the sun, highest at midnight, and is full; its phases will come of this number.
+     * The moon stands highest this share of a day after the sun does: at a half, at midnight, when
+     * it is opposite the sun and full. (Its phases will come of this number.) How high it climbs,
+     * and the share of the day it is above the horizon: a little longer than the sun is below it,
+     * so that a full moon is already up in the east as the sun sets, and sets in the west after
+     * sunrise.
      */
     moonBehindSun: 0.5,
+    moonHighest: 0.72,
+    moonUpShare: 0.36,
     /** The times the day can be hurried on to, one after the next: dawn, day, golden, sunset, night. */
     namedTimes: [0.19, 0.5, 0.754, 0.825, 0.0],
     /** Hurrying to a chosen time: phases a second, at least, and as a multiple of what is left. */

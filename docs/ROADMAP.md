@@ -26,8 +26,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
    and wind systems: overcast sky, darker light, rings on the lagoon, wet sand and leaves, streaks in the air.
    It is also the weather a survival game leans on most: shelter, staying dry, collecting water.
 6. **Night.** A first moonlight is in (19 November 2026, "Groundwork for more life" below): the moon crosses
-   the sky and throws shadows. Still to come: its phases, which the light and the reef's clock both follow
-   (most of the reef's food comes on known nights, `REEF.md`), the moon by day, a night with no moon.
+   the sky from moonrise at dusk to moonset at dawn and throws shadows. Still to come: its phases, which the
+   light and the reef's clock both follow (most of the reef's food comes on known nights, `REEF.md`), the
+   moon by day, a night with no moon.
 7. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
    happen here.
 8. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
@@ -1045,9 +1046,12 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
   dimples are still there where the sand is trodden.
 
 - *The moon.* It was a disc fixed in the north-west with a weak lamp that threw no shadows, and the night was
-  close to black. Now it keeps to the sun's path half a day behind it (`sky-config.ts`, `moonBehindSun`: a
-  half is a full moon, and its phases will come of that number), so at midnight it stands high over the sea
-  from home; the sky, the water's glitter, the clouds and the lamp all go by the one direction. Its disc has
+  close to black. Now it has an arc of its own (`sky-config.ts`: `moonBehindSun`, of which a half is a full
+  moon and of which its phases will come, how high it climbs, and how long it is up): it rises in the east as
+  the sun sets, crosses the sky at an even pace, stands high over the sea from home at midnight and sets in
+  the west at dawn; the sky, the water's glitter, the clouds and the lamp all go by the one direction. (On
+  the sun's own path, tried first, it was already high in the south at dusk and hung there all night: the sun
+  is up for two thirds of the day here.) Its disc has
   grey seas and a darker limb and hides the stars behind it. One lamp serves for sun and moon
   (`sky/lights.ts`): the sun's light has gone before the moon's comes in, so the lamp is dark when it changes
   sides, the moon throws the palms' shadows, and every lit shader lights by one lamp where it had two. The lamp
@@ -1156,9 +1160,8 @@ and it is counted against its class's line of the budget before it is merged.
 
 ## Weak points
 
-- The moonlit night has been judged on stills from the desktop only, against no photos. The moon's path is
-  the sun's own, which is up for two thirds of the day: so the full moon is already high in the south at dusk
-  and still there at dawn, where a real one rises as the sun sets. A truer path can come with its phases.
+- The moonlit night has been judged on stills from the desktop only, against no photos, and the moon's
+  crossing of the sky not in motion at all.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
   tumbling water; the lip's underside, seen from inside the tube, is a flat sheet. Its motion has been judged on

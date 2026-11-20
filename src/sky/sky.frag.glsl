@@ -52,6 +52,8 @@ const float MOON_RADIUS = 0.034;
 const float MOON_EDGE = 0.003;
 const float MOON_SEAS_DARKER = 0.30;
 const float MOON_LIMB_DARKER = 0.16;
+// The disc is drawn in full from this far into the night (uNight, 0 day to 1 night).
+const float MOON_SHOWS_BY_NIGHT = 0.4;
 const vec3 MOON_GLOW_COLOUR = vec3(0.20, 0.26, 0.42);
 // The low sun's light on a cloud's lower parts, as a share of its light on the top.
 const vec3 LOW_SUN_ON_CLOUD = vec3(0.95, 0.66, 0.58);
@@ -164,7 +166,9 @@ void main() {
       float seas = smoothstep(0.40, 0.62, fbm(onDisc * 1.7 + vec2(4.0, 9.0)));
       float towardsLimb = dot(onDisc, onDisc);
       vec3 face = MOON_COLOUR * (1.0 - MOON_SEAS_DARKER * seas) * (1.0 - MOON_LIMB_DARKER * towardsLimb);
-      sky = mix(sky, face, uNight * smoothstep(MOON_RADIUS, MOON_RADIUS - MOON_EDGE, fromMoon));
+      // (it shows before the night has quite come: a full moon is up in the dusk)
+      float moonShows = smoothstep(0.0, MOON_SHOWS_BY_NIGHT, uNight);
+      sky = mix(sky, face, moonShows * smoothstep(MOON_RADIUS, MOON_RADIUS - MOON_EDGE, fromMoon));
     }
   }
 

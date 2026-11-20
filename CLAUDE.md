@@ -22,8 +22,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`src/sea/water.frag.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
   formula out for every dot: its noise, the shore, the reef's cover (`src/world/terrain-declarations.glsl`). One
-  lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); the moon keeps to the
-  sun's path half a day behind it.
+  lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
+  the sun sets and crosses the sky through the night.
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in
   `docs/ROADMAP.md`. Read it before starting work.
 - Build 78, the last build made before this repository existed, is at the git tag `build-78`, in the folder
