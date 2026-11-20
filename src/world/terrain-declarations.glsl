@@ -4,10 +4,11 @@
 // TERRAIN_FOOTPATHS (footpaths.glsl) and LAGOON_WIND_DIRECTION (lagwave.glsl), and groundNoise needs
 // GROUND_NOISE_PERIOD (world-config.ts), all of which terrain.ts writes.
 //
-// Three things the colouring once worked out by arithmetic for every dot it reads from pictures, which Ryan's
-// phone finds far cheaper: its noise (groundNoise, below), the shore's shape (uShoreRound) and the reef's cover
-// (uReefCover). With the define TERRAIN_BY_ARITHMETIC, a debug switch, it works all three out as it did, to
-// compare the frame rate.
+// Four things the colouring once worked out by arithmetic for every dot it reads from pictures, which Ryan's
+// phone finds far cheaper: its noise (groundNoise, below), the shore's shape (uShoreRound), the reef's cover
+// (uReefCover) and the turf's broad patterns (uTurfPatterns). With the define TERRAIN_BY_ARITHMETIC, a debug
+// switch, it works all four out as it did, to compare the frame rate. The pictures' own defines
+// (REEF_COVER_SPAN, SHORE_ROUND_FROM, TURF_PICTURE_SPAN, TURF_WANDER_KEPT) come from terrain.ts.
 
 uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
@@ -25,6 +26,7 @@ uniform sampler2D uReefMap;         // the map of the coral heads (reef-map.ts)
 uniform sampler2D uGroundNoise;     // the noise the ground's patterns are made of (ground-noise.ts)
 uniform sampler2D uShoreRound;      // the shore in each direction from the centre (sea/shore-round-picture.ts)
 uniform sampler2D uReefCover;       // what covers the reef's floor (reef-cover-picture.ts)
+uniform sampler2D uTurfPatterns;    // the turf's broad patterns (turf-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 

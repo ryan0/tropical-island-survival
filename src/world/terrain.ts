@@ -23,6 +23,7 @@ import { createReefCoverPicture } from './reef-cover-picture';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { createTerrainShape, cutIntoTiles } from './terrain-shape';
+import { createTurfPicture, turfPictureDefines } from './turf-picture';
 import { worldConfig } from './world-config';
 
 /** The shared uniforms the ground's colouring reads. */
@@ -144,6 +145,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const grit = createGroundGrit(random);
   const groundNoise = createGroundNoise();
   const reefCover = createReefCoverPicture(renderer);
+  const turfPatterns = createTurfPicture(renderer);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
@@ -154,6 +156,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     CAUSTICS_BRIGHTEST: glslFloat(CAUSTICS_BRIGHTEST),
     GROUND_NOISE_PERIOD: glslFloat(worldConfig.groundNoise.period),
     REEF_COVER_SPAN: glslFloat(worldConfig.reefCoverPicture.span),
+    ...turfPictureDefines,
     SHORE_ROUND_FROM: glslFloat(seaConfig.shoreRoundPicture.radiusKeptFrom),
     THIN_TURF: glslVec3(...turfColours.thin),
     LUSH_TURF: glslVec3(...turfColours.lush),
@@ -165,6 +168,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     shader.uniforms.uGritAverage = { value: grit.mean };
     shader.uniforms.uGroundNoise = { value: groundNoise };
     shader.uniforms.uReefCover = { value: reefCover };
+    shader.uniforms.uTurfPatterns = { value: turfPatterns };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2

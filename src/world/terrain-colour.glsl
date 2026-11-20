@@ -335,15 +335,29 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
     // stop at a line but breaks up into islands and tongues with sand between them. How far this spot is turf
     // (landCover) is worked out first: where it is none, the land's own colour is not worked out at all, and
     // where it is all turf, the beach's fringe is not. (Most of the ground is wholly the one or the other.)
+    // (The turf's broad patterns are read from their picture: how lush, how dried out, the patches of bare soil,
+    // and how far the layers' edges wander.)
+    #ifdef TERRAIN_BY_ARITHMETIC
     float edgeWander = layerEdgeWander(xz.x, xz.y);
+    #else
+    vec4 turfPatterns = texture2D(uTurfPatterns, xz / TURF_PICTURE_SPAN + 0.5);
+    float edgeWander = (turfPatterns.a * 2.0 - 1.0) * TURF_WANDER_KEPT;
+    #endif
     float layerHeight = height + edgeWander + (groundFbm(xz * 1.7) - 0.5) * 0.5;
     float turfEdge = layerHeight + (groundFbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (groundNoise(xz * 3.3) - 0.5) * 0.30;
     float landCover = smoothstep(1.74, 1.84, turfEdge);
 
     vec3 land = vec3(0.0);
     if (landCover > 0.0) {
+      #ifdef TERRAIN_BY_ARITHMETIC
       float lushness = turfLushness(xz.x, xz.y);
       float dryness = turfDryness(xz.x, xz.y);
+      float dirtWaves = soilPatches(xz.x, xz.y);
+      #else
+      float lushness = turfPatterns.r;
+      float dryness = turfPatterns.g;
+      float dirtWaves = turfPatterns.b * 2.0 - 1.0;
+      #endif
       // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
       vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
       turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
@@ -381,7 +395,6 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       float hasSpeck = step(0.975, hash(floor(xz * 18.0) + 9.0));
       float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
       soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
-      float dirtWaves = soilPatches(xz.x, xz.y);
       float dirt = smoothstep(0.66, 0.80, dirtWaves + (groundFbm(xz * 0.6) - 0.5) * 0.5 + (groundNoise(xz * 3.1) - 0.5) * 0.12);
       // under the trees the ground is not lawn: fallen fronds and leaf litter, brown and olive, darker than the grass
       float leafLitter = smoothstep(0.35, 0.7, groundFbm(xz * 0.35 + 70.0));

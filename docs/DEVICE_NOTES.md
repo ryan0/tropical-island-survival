@@ -44,8 +44,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   - *What a frame costs* (read the frame rate with one on): `more dots` draws half as many dots again each way,
     so that costs hidden by the screen's 60 frames a second can be read; hiding the plants, the rocks, the
     coral or the ground; the ground in the plain colour of its corners (`plain ground`), or with its noise,
-    the shore and the reef's cover worked out by formula as they were until 19 November 2026 (`ground by
-    arithmetic`); the sky in one colour; no shadows; hiding the wave mesh, the far sea, the
+    the shore, the reef's cover and the turf's patterns worked out by formula as they were until 19 November
+    2026 (`ground by arithmetic`); the sky in one colour; no shadows; hiding the wave mesh, the far sea, the
     breaker's own mesh or the spray along the breaking crest; the wave mesh drawn no finer than its second
     level (`coarse wave mesh`) or in one flat colour (`bare wave mesh`); the floor's height, or the shore,
     worked out by formula for every dot as they were until 19 November 2026 (`floor from the formula`, `shore

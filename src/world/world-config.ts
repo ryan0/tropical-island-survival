@@ -50,6 +50,15 @@ export const worldConfig = {
    */
   reefCoverPicture: { span: 1024, size: 1024 },
 
+  /**
+   * The turf's broad patterns as a picture the ground's colouring reads in place of turf.glsl's
+   * formulas (turf-picture.ts): the side of the square it covers, in metres,
+   * centred on the atoll (all the land lies inside it); its dots across (under a metre each, where
+   * the shortest of the patterns' waves is 13 m); and how far either way, in metres, it can keep
+   * the wander of the layers' edges (the formula's two waves add up to 0.75).
+   */
+  turfPicture: { span: 400, size: 512, wanderKept: 1 },
+
   terrain: {
     /** The square of ground drawn, and the squares along each side of it. */
     size: 960,

@@ -1041,6 +1041,10 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
   reef's high ground, pavement and ridge from a picture the graphics card draws at start-up from the island's
   formulas (1024 dots across, a metre each; at half a metre nothing looked different). No view differs to the
   eye: the largest difference in 62 is a few faint lines at the edges of patches.
+- *The turf's broad patterns from a picture.* How lush the turf is, how dried out, where bare soil breaks
+  through and how the layers' edges wander: a dozen sines for every dot of land, now one reading of a picture
+  the graphics card draws at start-up from the same formulas the grass is placed by. No view differs to the
+  eye.
 - *A calmer loose sand.* Two layers of dimples where there were three, shaded two thirds as strongly. The beach
   looked pocked, which `LOOK.md` lists among the things rejected ("relief strong enough to read as dirt"); the
   dimples are still there where the sand is trodden.
@@ -1075,8 +1079,8 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
   move every far colour a little for nothing the eye would see.
 
 **Only the phone can say what any of this gained.** The test renderer times the noise picture at 7 to 16 per
-cent of a frame and the other two pictures at nothing, and it has been wrong about pictures and arithmetic
-every time. The panel's `ground by arithmetic` switch puts all three back to formulas: the frame rate with it
+cent of a frame and the other three pictures at nothing, and it has been wrong about pictures and arithmetic
+every time. The panel's `ground by arithmetic` switch puts all four back to formulas: the frame rate with it
 on and off, with `more dots` on, is the measure. The switch goes once it has been read.
 
 ### What a frame spends, and a budget (19 November 2026)
@@ -1194,8 +1198,9 @@ and it is counted against its class's line of the budget before it is merged.
 - The ground's colouring is still the dearest thing per pixel, and is drawn last so that hidden pixels are
   skipped. What it once worked out by arithmetic for every dot it now reads from pictures made at start-up: its
   noise (`world/ground-noise.ts`: some fifty readings for a dot of turf), the shore's shape in its direction (the
-  water's own picture) and what covers the reef (`world/reef-cover-picture.ts`). Its patterns of single things
-  (dimples, pebbles, chips, flecks) and the turf's broad waves are still arithmetic.
+  water's own picture), what covers the reef (`world/reef-cover-picture.ts`) and the turf's broad patterns
+  (`world/turf-picture.ts`). Its patterns of single things (dimples, pebbles, chips, flecks) are still
+  arithmetic.
 - Whitecaps cost up to four noise evaluations per water pixel, only above a medium wind. The lagoon's shore band
   (43,000 triangles) is drawn only in a high wind, in view and within 150 m.
 - Automatic quality lowers resolution, then switches shadows off, below about 28 frames a second.
