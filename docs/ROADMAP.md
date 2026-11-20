@@ -1475,7 +1475,8 @@ foot of the shrubs, from seedlings and from tufts of grass. Ours was a lawn of n
 - *Where the beach meets the plants:* runners reach out over white sand before the plants proper begin; the
   band of rubble at the back of the beach is the gravel's picture; and along the tide line the sea leaves a
   thin, broken line of dark wrack with the shells.
-- *A footpath* is trodden sand with a scatter of stones, clear of litter and of plants.
+- *A footpath* is sand trodden smooth and pale, with few stones and clear of litter and of plants, so that
+  it shows as a track through the gravel and the creepers (as gravel itself it could not be told from a bank).
 - *A stone by itself is pale.* A lone stone on sand is bleached nearly as white as the sand; it is a bank of
   them that is grey. (As dark as the bank's, a scatter of stones on white sand was a leopard's coat.)
 - *What falls from a palm lies under it.* The fallen fronds and the nuts, which are shapes, were scattered

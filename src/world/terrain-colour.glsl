@@ -64,8 +64,9 @@ const vec3 GROVE_SAND = vec3(0.85, 0.845, 0.83);
 const vec3 DEEP_SHADE_STAIN = vec3(0.80, 0.76, 0.70);
 // Litter that has lain in the open bleaches to straw and silver (its colour is multiplied by this).
 const vec3 BLEACHED_LITTER = vec3(1.14, 1.16, 1.18);
-// A path's gravel is trodden a little darker than loose gravel.
-const float PATH_TRODDEN = 0.95;
+// A path is sand trodden smooth and clean, paler than the grove's: the grove's sand is multiplied by this on it.
+// (As gravel like the ground round it, a path could not be told from a bank of gravel.)
+const vec3 PATH_SAND = vec3(1.1, 1.095, 1.08);
 // The pictures' own colours are multiplied by these, to bring each to what the photographs measure with the game's
 // light on it (docs/LOOK.md, "Colour, measured"): the gravel a grey with next to no colour in it (the sun's
 // light warms it), the litter a greyer straw.
@@ -90,7 +91,7 @@ const vec2 THINGS_SHOW_WITHIN = vec2(9.0, 30.0);
 const vec2 INLAND_BETWEEN = vec2(1.74, 1.84);
 // Stones: a scatter inland; in a bank of gravel; in the band of rubble at the back of the beach. And on a path.
 const vec3 STONES = vec3(0.34, 0.97, 0.9);
-const float STONES_ON_PATH = 0.5;
+const float STONES_ON_PATH = 0.22;
 // A bank of gravel comes in between these values of the land's broad pattern (-1 to 1): the higher, the less of
 // the islet is gravel and the more of it sand.
 const vec2 GRAVEL_BANKS = vec2(0.15, 0.6);
@@ -437,7 +438,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       ground *= mix(vec3(1.0), DEEP_SHADE_STAIN, deepShade * inland);
 
       // 1. Stones. A band of rubble at the back of the beach, where storms leave it; inland, banks of gravel
-      // with sand between, and a scatter of stones everywhere. A path is trodden gravel.
+      // with sand between, and a scatter of stones everywhere. A path is trodden sand, with few.
       float rubbleBand = smoothstep(0.95, 1.3, layerHeight) * smoothstep(0.42, 0.6, groundFbm(xz * 0.5 + 13.0))
         * (1.0 - inland);
       float gravelBanks = smoothstep(GRAVEL_BANKS.x, GRAVEL_BANKS.y, broadWaves + patchy * 1.2);
@@ -451,7 +452,8 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
         wholeBed);
       stoneCover = max(stoneCover, wholeBed);
       vec3 stoneTint = mix(LONE_STONE_TINT, GRAVEL_TINT, smoothstep(0.45, 0.9, stones));
-      ground = mix(ground, gravelTile.rgb * stoneTint * mix(1.0, PATH_TRODDEN, onPath), stoneCover);
+      ground *= mix(vec3(1.0), PATH_SAND, onPath);
+      ground = mix(ground, gravelTile.rgb * stoneTint, stoneCover);
       float sunOnThings = (1.0 - farOff) * uDaylight;
       ground *= litAgainstSun(stoneRelief, sunOnThings);
 
