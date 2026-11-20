@@ -5,8 +5,7 @@
 //   EARTH_CURVE      1/(2R) for the small earth the clouds sit on
 //   SLIDE_HEIGHT     the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
 //   HALF_A_DOT       half a dot of a sky picture, across and up
-//   MOON_DIRECTION   towards the moon (normalised where it is used)
-// the varying vViewDirection from sky.vert.glsl, hash and fbm5 from the noise chunk, distanceUpTo
+// the varying vViewDirection from sky.vert.glsl, hash, fbm and fbm5 from the noise chunk, distanceUpTo
 // (distance-up-to.glsl), and skyGradient and sunsBroadGlow (sky-gradient.glsl).
 
 // Seconds on the clock.
@@ -21,6 +20,8 @@ uniform vec3 uUnderWaterColour;
 // The unit vector towards the sun, and the sun's colour.
 uniform vec3 uSunDirection;
 uniform vec3 uSunColour;
+// The unit vector towards the moon.
+uniform vec3 uMoonDirection;
 // The sky's colour overhead and at the horizon.
 uniform vec3 uSkyOverhead;
 uniform vec3 uSkyHorizon;
@@ -45,6 +46,12 @@ varying vec3 vViewDirection;
 const vec3 MILKY_WAY_COLOUR = vec3(0.15, 0.17, 0.26);
 const vec3 SHOOTING_STAR_COLOUR = vec3(1.0, 0.95, 0.8);
 const vec3 MOON_COLOUR = vec3(0.92, 0.95, 1.0);
+// The moon's disc: how far its edge is from its middle (radians: the sun's is drawn as wide), how wide the soft
+// edge is, and how much darker its seas and its limb are than the rest of its face.
+const float MOON_RADIUS = 0.034;
+const float MOON_EDGE = 0.003;
+const float MOON_SEAS_DARKER = 0.30;
+const float MOON_LIMB_DARKER = 0.16;
 const vec3 MOON_GLOW_COLOUR = vec3(0.20, 0.26, 0.42);
 // The low sun's light on a cloud's lower parts, as a share of its light on the top.
 const vec3 LOW_SUN_ON_CLOUD = vec3(0.95, 0.66, 0.58);
@@ -145,12 +152,20 @@ void main() {
     float trail = trailWidth * trailLength * step(0.0, behindHead) * step(age, 1.0);
     sky += trail * uNight * SHOOTING_STAR_COLOUR * 1.6;
 
-    // The moon: its disc and its glow.
-    vec3 towardsMoon = normalize(MOON_DIRECTION);
-    float fromMoon = angleBetween(direction, towardsMoon);
-    vec3 moonDisc = MOON_COLOUR * smoothstep(0.042, 0.034, fromMoon);
-    vec3 moonGlow = MOON_GLOW_COLOUR * exp(-fromMoon * 8.0);
-    sky += uNight * (moonDisc + moonGlow);
+    // The moon: its glow, and its disc, which hides the stars behind it. The disc is as wide as the sun's, as the
+    // real one is; it is paler towards the middle than at the limb, with the grey seas of its face, which keep
+    // their places on it wherever in the sky it stands.
+    float fromMoon = angleBetween(direction, uMoonDirection);
+    sky += uNight * MOON_GLOW_COLOUR * exp(-fromMoon * 8.0);
+    if (fromMoon < MOON_RADIUS) {
+      vec3 acrossMoon = normalize(cross(vec3(0.0, 1.0, 0.0), uMoonDirection));
+      vec3 upMoon = cross(uMoonDirection, acrossMoon);
+      vec2 onDisc = vec2(dot(direction, acrossMoon), dot(direction, upMoon)) / MOON_RADIUS;
+      float seas = smoothstep(0.40, 0.62, fbm(onDisc * 1.7 + vec2(4.0, 9.0)));
+      float towardsLimb = dot(onDisc, onDisc);
+      vec3 face = MOON_COLOUR * (1.0 - MOON_SEAS_DARKER * seas) * (1.0 - MOON_LIMB_DARKER * towardsLimb);
+      sky = mix(sky, face, uNight * smoothstep(MOON_RADIUS, MOON_RADIUS - MOON_EDGE, fromMoon));
+    }
   }
 
   // The clouds: looked up in the two sky pictures the sky is sliding between (clouds.ts), each shifted to where

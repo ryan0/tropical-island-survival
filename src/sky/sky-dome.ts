@@ -7,7 +7,7 @@ import {
   type Scene,
   type Vector3,
 } from 'three';
-import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
+import { glslFloat, glslVec2 } from '../shaders/defines';
 import { cloudsConfig } from './clouds-config';
 import fragmentShader from './sky.frag.glsl';
 import vertexShader from './sky.vert.glsl';
@@ -41,7 +41,6 @@ export function createSkyDome(dependencies: SkyDomeDependencies): SkyDome {
       EARTH_CURVE: glslFloat(cloudsConfig.earthCurve),
       SLIDE_HEIGHT: glslFloat(cloudsConfig.slideHeight),
       HALF_A_DOT: glslVec2(0.5 / cloudPictureWidth, 0.5 / cloudPictureHeight),
-      MOON_DIRECTION: glslVec3(...cloudsConfig.moonDirection),
     },
     side: BackSide,
     depthWrite: false,

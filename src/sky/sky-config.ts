@@ -13,6 +13,11 @@ export const skyConfig = {
      */
     sunHeightAtSix: 0.28,
     sunHeightSwing: 0.44,
+    /**
+     * The moon keeps to the sun's path across the sky, this share of a day behind it. At a half it
+     * stands opposite the sun, highest at midnight, and is full; its phases will come of this number.
+     */
+    moonBehindSun: 0.5,
     /** The times the day can be hurried on to, one after the next: dawn, day, golden, sunset, night. */
     namedTimes: [0.19, 0.5, 0.754, 0.825, 0.0],
     /** Hurrying to a chosen time: phases a second, at least, and as a multiple of what is left. */

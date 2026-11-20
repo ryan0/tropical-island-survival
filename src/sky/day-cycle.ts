@@ -24,6 +24,10 @@ export interface DayCycle {
   sunHeight(): number;
   /** False in the afternoon, and whenever a test has fixed the sun's height. */
   isMorning(): boolean;
+  /** The moon's height above the horizon, in radians. */
+  moonHeight(): number;
+  /** False once the moon is past its highest, and whenever a test has fixed the sun's height. */
+  isMoonRising(): boolean;
 }
 
 const config = skyConfig.day;
@@ -102,6 +106,17 @@ export function createDayCycle(): DayCycle {
 
     isMorning() {
       return fixedSunHeight === null && phase < 0.5;
+    },
+
+    moonHeight() {
+      // (A test that has fixed the sun's height gets the moon opposite it, where a full moon stands.)
+      return fixedSunHeight === null
+        ? sunHeightAt(phase - config.moonBehindSun)
+        : 2 * config.sunHeightAtSix - fixedSunHeight;
+    },
+
+    isMoonRising() {
+      return fixedSunHeight === null && aheadOf(config.moonBehindSun, phase) < 0.5;
     },
   };
 }

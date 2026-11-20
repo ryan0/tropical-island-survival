@@ -24,11 +24,6 @@ export const cloudsConfig = {
   sunriseBearing: 1.5,
   /** 1/(2R): the ground curves away as for a small earth, R = 1200 km, so far clouds sink. */
   earthCurve: 1 / 2400,
-  /**
-   * Towards the moon, which lights the clouds at night and where the sky draws it.
-   * water.frag.glsl has the same direction, for the moon mirrored in the sea: change both together.
-   */
-  moonDirection: [-0.57, 0.63, -0.52],
   /** How fast the clouds drift in a moderate wind, as a multiple of 20 km/h: none in a calm. */
   driftSpeed: 3.25,
   /** How fast they change shape: this in a calm, and that much more in a moderate wind. */

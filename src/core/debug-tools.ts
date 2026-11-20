@@ -164,7 +164,7 @@ export interface LandToLeaveOut {
   terrain: Terrain;
   /** The sky dome's material. */
   sky: ShaderMaterial;
-  sunLight: DirectionalLight;
+  skyLamp: DirectionalLight;
 }
 
 /** The heading over `frameCostSwitches`. */
@@ -243,9 +243,9 @@ export function frameCostSwitches(
       // What the sun's shadows cost: none are cast (the same as automatic quality's second step down).
       label: 'no shadows',
       set(on) {
-        land.sunLight.castShadow = !on;
+        land.skyLamp.castShadow = !on;
       },
-      isOn: () => !land.sunLight.castShadow,
+      isOn: () => !land.skyLamp.castShadow,
     },
     {
       label: 'hide wave mesh',

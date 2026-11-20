@@ -309,7 +309,7 @@ const view = createView(renderer, camera);
 const quality = createAutomaticQuality(
   renderer,
   view,
-  lights.sunLight,
+  lights.skyLamp,
   testHooks.isAutomaticQualityOff,
 );
 const frameMeter = createFrameMeter();
@@ -343,7 +343,7 @@ const debugPanel = createDebugPanel(
         instanceCells,
         terrain,
         sky: skyDome.material,
-        sunLight: lights.sunLight,
+        skyLamp: lights.skyLamp,
       }),
     },
     { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
@@ -382,6 +382,7 @@ testHooks.install({
 // What each system is told every frame. The objects are made once and refilled: a frame must
 // allocate nothing.
 const sunDirection = uniforms.uSunDirection.value;
+const moonDirection = uniforms.uMoonDirection.value;
 const light = skyLight.light;
 const playerFrame: PlayerFrame = { time: 0, dt: 0, cameraOverride: undefined };
 const cloudsFrame: CloudsFrame = {
@@ -390,11 +391,13 @@ const cloudsFrame: CloudsFrame = {
   realSeconds: 0,
   isClockStopped: false,
   sunDirection,
+  moonDirection,
   night: 0,
   cameraPosition: camera.position,
 };
 const lightsFrame: LightsFrame = {
   sunDirection,
+  moonDirection,
   daylight: 1,
   night: 0,
   sunElevation: 0,
@@ -459,7 +462,12 @@ function frame(now: number): void {
 
   // The light of the moment, which most of what follows reads.
   dayCycle.update(dt, realSeconds, isClockStopped);
-  skyLight.update(dayCycle.sunHeight(), dayCycle.isMorning());
+  skyLight.update(
+    dayCycle.sunHeight(),
+    dayCycle.isMorning(),
+    dayCycle.moonHeight(),
+    dayCycle.isMoonRising(),
+  );
   timeButton.textContent = light.timeOfDay;
   if (!isClockStopped) uniforms.uTime.value = time;
   uniforms.uSeaLevel.value = seaConfig.level;

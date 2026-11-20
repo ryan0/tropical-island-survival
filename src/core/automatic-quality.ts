@@ -34,7 +34,7 @@ const MORE_DOTS = 1.5;
 export function createAutomaticQuality(
   renderer: WebGLRenderer,
   view: View,
-  sunLight: DirectionalLight,
+  skyLamp: DirectionalLight,
   isOff: boolean,
 ): AutomaticQuality {
   let stage = isOff ? SETTLED : 0;
@@ -46,7 +46,7 @@ export function createAutomaticQuality(
   function stepDown(): void {
     stage++;
     if (stage === 2) {
-      sunLight.castShadow = false;
+      skyLamp.castShadow = false;
       return;
     }
     renderer.setPixelRatio(stage === 1 ? 1 : 0.75);

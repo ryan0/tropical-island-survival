@@ -195,7 +195,12 @@ island and the water; clouds mirrored in the sea; golden hour and sunset light o
 *Rejected:* clouds that looked "far too solid"; cumulus that contrasted with the other clouds; noise lumps that
 read as snowy mountains; perfect balls that read as bubbles.
 
-*Still weak:* night is close to black when there is no fire.
+*Night (19 November 2026, for Ryan to judge):* a full moon that keeps to the sun's path half a day behind it,
+so it stands high over the sea from home at midnight; its disc as wide as the sun's, with grey seas and a darker
+limb; its light cold and strong enough to walk by, with the palms' shadows on pale sand; the sky's own light
+cold too, where the low sun's warm colours had been kept on through the night; foam cold, not tan. No
+references yet: photos of a moonlit beach would be the thing to tune it against. Phases are to come
+(`sky-config.ts`, `moonBehindSun`).
 
 ## Props
 

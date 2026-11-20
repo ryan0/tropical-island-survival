@@ -28,8 +28,6 @@
 //     CLOUD_SHADE_SPAN_M              the side of the square that the map of the clouds' shadows covers
 //     USUAL_WIND                      the island's usual breeze (sky-config.ts): the ripples are as strong as they
 //                                     were tuned at this wind
-//     MOON_DIRECTION                  towards the moon, where the sky draws it (clouds-config.ts); normalised where
-//                                     it is used
 //     BAND_UP_BEACH                   how far up the beach the lagoon's shore band reaches (water-config.ts)
 //     BAND_SHOWN_WITHIN               the band is drawn within this distance of the eye (water-config.ts)
 //     LAGOON_WIND_DIRECTION           which lagwave.glsl uses;
@@ -54,6 +52,8 @@ uniform float uDebugMode;
 // The unit vector towards the sun, and the sun's colour.
 uniform vec3 uSunDirection;
 uniform vec3 uSunColour;
+// The unit vector towards the moon.
+uniform vec3 uMoonDirection;
 // The sky's colour overhead and at the horizon.
 uniform vec3 uSkyOverhead;
 uniform vec3 uSkyHorizon;
@@ -153,6 +153,7 @@ const vec3 LOW_SUN_WATER_TINT = vec3(0.62, 0.45, 0.55);
 const vec3 UNDER_WHITECAP = vec3(0.34, 0.66, 0.74);
 // Foam: its colour with the sun at the horizon; thin foam; foam turned away from the sun.
 const vec3 LOW_SUN_FOAM = vec3(1.0, 0.8, 0.75);
+const vec3 MOONLIT_FOAM = vec3(0.66, 0.78, 1.0);
 const vec3 THIN_FOAM = vec3(0.66, 0.90, 0.92);
 // How much of what is under it thin foam hides, against thick foam's all.
 const float THIN_FOAM_HIDES = 0.25;
@@ -968,7 +969,7 @@ void main() {
   // (The moon's light on the water is glitter too, round the moon's own small image, with a faint sheen about
   // it: as one broad patch of white it was a floodlight on ice.)
   if (uNight > 0.0) {
-    float towardsMoon = max(dot(mirrored, normalize(MOON_DIRECTION)), 0.0);
+    float towardsMoon = max(dot(mirrored, uMoonDirection), 0.0);
     vec3 moonGlints = MOONLIGHT * pow(towardsMoon, 20.0) * MOON_SHEEN;
     if (towardsMoon > 0.97 && uNight > 0.01) {
       float glitter = smoothstep(0.5, 0.8, noise(xz * 11.0 + vec2(uTime * 2.0, -uTime * 1.6)));
@@ -1319,7 +1320,9 @@ void main() {
       float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
       float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
       float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
-      vec3 foamColour = mix(LOW_SUN_FOAM, vec3(1.0), uDaylight) * (1.0 - 0.75 * uNight) * froth;
+      // (by night it takes the moon's cold light: left the low sun's colour, it was tan against a blue sea)
+      vec3 foamColour = mix(mix(LOW_SUN_FOAM, vec3(1.0), uDaylight), MOONLIT_FOAM, uNight)
+        * (1.0 - 0.75 * uNight) * froth;
       // close up, even thick foam is a mass of bubbles with water showing between them
       // (not the white mass: water showing through it in specks made it look like ice)
       float bubbles = mix(foamFine.a, steepFoam.a, steep);

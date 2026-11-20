@@ -1,6 +1,5 @@
 import { DoubleSide, ShaderMaterial, type IUniform } from 'three';
-import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
-import { cloudsConfig } from '../sky/clouds-config';
+import { glslFloat, glslVec2 } from '../shaders/defines';
 import { skyConfig } from '../sky/sky-config';
 import { reefConfig } from '../world/reef/reef-config';
 import breakerDepthFragmentShader from './breaker-depth.frag.glsl';
@@ -125,7 +124,6 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     OBSTACLE_FOAM_REACH_BY_RADIUS: glslFloat(waterConfig.surfObstacles.foamReachByRadius),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
     USUAL_WIND: glslFloat(skyConfig.wind.usualBreeze),
-    MOON_DIRECTION: glslVec3(...cloudsConfig.moonDirection),
     BAND_UP_BEACH: glslFloat(band.rows.first),
     BAND_SHOWN_WITHIN: glslFloat(band.shownWithin),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),

@@ -42,6 +42,12 @@ export const lightsConfig = {
     /** Light bounced up off the sand, with the sun low and by day. */
     groundInLowSun: [0.62, 0.42, 0.34],
     groundByDay: [0.86, 0.78, 0.6],
+    /**
+     * And at night, from the sky and off the sand: both cold. (With the low sun's colours kept on
+     * through the night, the undersides of leaves and the grass glowed warm in the dark.)
+     */
+    skyAtNight: [0.62, 0.76, 1.25],
+    groundAtNight: [0.34, 0.42, 0.7],
     base: 0.15,
     dayShare: 0.36,
     nightDimming: 0.85,
@@ -68,14 +74,17 @@ export const lightsConfig = {
     /** A cloud across the sun leaves at least this much. */
     cloudFloor: 0.22,
     cloudRange: 0.78,
-    /** Below this the lamp is switched off. */
-    visibleAbove: 0.02,
+    /** Below this strength the lamp throws no shadow worth redrawing. */
+    shadowsAbove: 0.02,
   },
 
   moon: {
     colour: 0x8fa8ff,
-    position: [-60, 66, -54],
-    /** Its strength at full night. */
-    strengthAtNight: 0.34,
+    /** Its strength at full night, high in the sky. */
+    strengthAtNight: 0.5,
+    /** It begins to shine when night is this far come (0 day, 1 night): the sun's light has gone by then. */
+    shinesFromNight: 0.5,
+    /** It is at full strength from this high up (its direction's height, 0 at the horizon to 1 overhead). */
+    fullStrengthAbove: 0.25,
   },
 } as const;

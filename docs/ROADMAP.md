@@ -25,8 +25,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 5. **Rain.** Light rain, then heavy rain, then storm with stronger wind than "high". It reuses the cloud, light
    and wind systems: overcast sky, darker light, rings on the lagoon, wet sand and leaves, streaks in the air.
    It is also the weather a survival game leans on most: shelter, staying dry, collecting water.
-6. **Night.** Close to black today when there is no fire. Moonlight with a phase, stars, a glow on the water.
-   The moon is also the reef's clock: most of its food comes on known nights (`REEF.md`).
+6. **Night.** A first moonlight is in (19 November 2026, "Groundwork for more life" below): the moon crosses
+   the sky and throws shadows. Still to come: its phases, which the light and the reef's clock both follow
+   (most of the reef's food comes on known nights, `REEF.md`), the moon by day, a night with no moon.
 7. **The ground close up.** Short plants, driftwood, coconuts, things to pick up. The first survival actions
    happen here.
 8. **Survival systems.** To be designed with Ryan: needs (thirst, hunger, warmth, rest), gathering, crafting,
@@ -1006,6 +1007,63 @@ water looks right read from the floor's picture (the waterline, the colour's ban
 far water and the softer net of light far off (`sharper filtering` brings the old back, at no cost in frames)
 read better or have lost too much.
 
+## Groundwork for more life (19 November 2026)
+
+Ryan, after merging the frame-rate work: the next main effort is to "refine, improve and simplify as a whole in
+preparation for much greater biodiversity, vegetation, rock and ground structure, props" above the sea and below
+it, and to "buy frames" ahead of them. Three to six hours, from a plan of eight parts agreed first. Branch
+`groundwork`; at his asking it is committed and pushed at each milestone, for him to test from the Pages
+preview, and not merged.
+
+**What a frame draws** (the usual breeze, counted in the test renderer before anything was changed): from the
+ocean beach looking out to sea 673 thousand triangles in 144 draws, of which the ground was 332 thousand in one
+draw and the water 103 thousand; looking inland 1,135 thousand in 405 draws, some 600 thousand of them plants;
+wading in the lagoon 831 thousand in 279, the coral 266 thousand; from the home clearing 1,049 thousand in 361.
+The shadows are redrawn only when the sun or the player has moved, so they are in none of these.
+
+**Done.**
+
+- *Cost switches for the land* (the debug panel's second group): hide plants, hide rocks, hide coral, hide
+  ground, plain ground, plain sky, no shadows. Each kind of instanced thing is named where it is split into map
+  squares (`world/instance-cells.ts`).
+- *The ground in tiles.* 77 of them, 80 m a side; three.js leaves out those out of view. The ground's triangles
+  in a frame fall from 332 thousand to 93 thousand looking out to sea, 157 thousand looking inland, 128
+  thousand in the lagoon, for 20 to 39 draws. The corners stay where they were: 62 views are the same dot for
+  dot. Far tiles are not yet coarser: with the triangles in view already a third of what they were, that waits
+  for the phone to say the ground's triangles still matter.
+- *The ground's noise from a picture.* A 512-dot picture of smooth noise, made once and repeating every 64
+  cells, read where `noise()` was worked out (43 calls and 16 of three octaves in the colouring). The patterns
+  are the same to the eye and their patches lie elsewhere, which Ryan agreed to beforehand; nothing in the
+  program goes by where they lie. The reef's dark and pale ground does not move: it follows the floor's shape,
+  and the noise only breaks up its edges.
+- *The shore and the reef's cover from pictures.* The shore's shape comes from the picture the water reads; the
+  reef's high ground, pavement and ridge from a picture the graphics card draws at start-up from the island's
+  formulas (1024 dots across, a metre each; at half a metre nothing looked different). No view differs to the
+  eye: the largest difference in 62 is a few faint lines at the edges of patches.
+- *A calmer loose sand.* Two layers of dimples where there were three, shaded two thirds as strongly. The beach
+  looked pocked, which `LOOK.md` lists among the things rejected ("relief strong enough to read as dirt"); the
+  dimples are still there where the sand is trodden.
+
+- *The moon.* It was a disc fixed in the north-west with a weak lamp that threw no shadows, and the night was
+  close to black. Now it keeps to the sun's path half a day behind it (`sky-config.ts`, `moonBehindSun`: a
+  half is a full moon, and its phases will come of that number), so at midnight it stands high over the sea
+  from home; the sky, the water's glitter, the clouds and the lamp all go by the one direction. Its disc has
+  grey seas and a darker limb and hides the stars behind it. One lamp serves for sun and moon
+  (`sky/lights.ts`): the sun's light has gone before the moon's comes in, so the lamp is dark when it changes
+  sides, the moon throws the palms' shadows, and every lit shader lights by one lamp where it had two. The lamp
+  is never switched off, so no shader is rebuilt at dusk. The sky's light at night is cold (it had kept the low
+  sun's warm colours, and leaves glowed), and so is foam. By day nothing changes: 61 of 62 views are the same
+  dot for dot, the other being the night.
+- *Looked at and left.* The sky's own cost: a hundredth of a frame in the test renderer; `plain sky` is there
+  for the phone to say otherwise. One haze for sky, sea and land: the land's fog and the sea's haze already
+  agree to within a few parts in a hundred at every distance the atoll has, so making them one rule would
+  move every far colour a little for nothing the eye would see.
+
+**Only the phone can say what any of this gained.** The test renderer times the noise picture at 7 to 16 per
+cent of a frame and the other two pictures at nothing, and it has been wrong about pictures and arithmetic
+every time. The panel's `ground by arithmetic` switch puts all three back to formulas: the frame rate with it
+on and off, with `more dots` on, is the measure. The switch goes once it has been read.
+
 ## Later
 
 - More passes on the reef.
@@ -1020,7 +1078,8 @@ read better or have lost too much.
 
 ## Weak points
 
-- Night without a fire is nearly black.
+- The moonlit night has been judged on stills from the desktop only, against no photos. Under water at night
+  the light still has the low sun's warm cast.
 - Short turf is sparse flat cut-outs; vine leaves are angular close to; the young palm sits low and wide.
 - Far palms and shrubs look thinner than near ones (leaf cut-outs blur together with distance).
 - The breaking wave: close to, the white mass a landed lip throws up is a soft heap, more a cloud bank than
@@ -1049,13 +1108,16 @@ read better or have lost too much.
 - The wave mesh is 16 sectors, each cut across into three tiles, at three levels of detail. Its vertex shader
   evaluates the wave model three times per vertex and is the dearest thing per vertex. The breaker's ribbon is 20
   pieces at three levels of detail.
-- The terrain's colouring is the dearest thing per pixel (about forty noise evaluations on land). It is drawn
-  last so hidden pixels are skipped.
+- The ground is 77 tiles of 80 m (`world/terrain-shape.ts`): three.js leaves out the ones out of view, which is
+  half to three quarters of its 332 thousand triangles from any place a player stands.
+- The ground's colouring is still the dearest thing per pixel, and is drawn last so that hidden pixels are
+  skipped. What it once worked out by arithmetic for every dot it now reads from pictures made at start-up: its
+  noise (`world/ground-noise.ts`: some fifty readings for a dot of turf), the shore's shape in its direction (the
+  water's own picture) and what covers the reef (`world/reef-cover-picture.ts`). Its patterns of single things
+  (dimples, pebbles, chips, flecks) and the turf's broad waves are still arithmetic.
 - Whitecaps cost up to four noise evaluations per water pixel, only above a medium wind. The lagoon's shore band
   (43,000 triangles) is drawn only in a high wind, in view and within 150 m.
 - Automatic quality lowers resolution, then switches shadows off, below about 28 frames a second.
 - The water's shader reads the ground's height from a picture made from the island's formula at start-up
   (`sea/floor-height-picture.ts`): on the phone that gave back ten frames a second of sixty. On this phone
   arithmetic is dear and a texture reading costs next to nothing.
-- Not done: noise from a texture instead of arithmetic in the terrain shader (it would change every pattern on
-  the ground, so weigh that first).

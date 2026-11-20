@@ -68,6 +68,8 @@ export interface CloudsFrame {
   isClockStopped: boolean;
   /** The unit vector towards the sun. */
   sunDirection: Vector3;
+  /** The unit vector towards the moon, which lights the clouds at night. */
+  moonDirection: Vector3;
   /** 0 by day to 1 at night. */
   night: number;
   /** In metres. */
@@ -218,7 +220,6 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
   shadeQuad.frustumCulled = false;
   shadeScene.add(shadeQuad);
 
-  const moonDirection = new Vector3(...config.moonDirection).normalize();
   const field = createCloudField(noise.pixels, weatherMap.pixels);
   const uniforms: CloudUniforms = {
     uSkyPictureFrom: { value: null },
@@ -277,7 +278,9 @@ export function createClouds(dependencies: CloudsDependencies): Clouds {
     showMoment(bakeUniforms, drift, now.boil + secondsAhead * boilSpeed(wind));
     // A different grain in each picture, so that it averages away.
     bakeUniforms.uFieldPlace.value.w = (picturesBegun++ * 7.31) % 64;
-    bakeUniforms.uLightDirection.value.copy(frame.night > 0.5 ? moonDirection : frame.sunDirection);
+    bakeUniforms.uLightDirection.value.copy(
+      frame.night > 0.5 ? frame.moonDirection : frame.sunDirection,
+    );
     drawnFor[beingDrawn] = drift;
     stripsDrawn = 0;
   }
