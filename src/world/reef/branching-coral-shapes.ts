@@ -4,6 +4,8 @@ import type { Random } from '../../core/random';
 import { addStick, joined, lumpyField, shapedAndPainted, type Painter } from './painted-shapes';
 
 const STUBS_ON_A_BUSH = 62;
+/** How many sides a bush's stubs are cut with: with three or four, a stub close to was a splinter. */
+const STUB_SIDES = 5;
 
 function bushDome(radius: number, paint: Painter): BufferGeometry {
   const dome = new SphereGeometry(radius, 9, 5, 0, FULL_TURN, 0, 1.7);
@@ -24,7 +26,7 @@ function addForkedStub(parts: BufferGeometry[], random: Random, index: number): 
       length,
       footRadius: 0.02,
       tipRadius: 0.014,
-      sides: 3,
+      sides: STUB_SIDES,
       footBrightness: 0.6,
       tipBrightness: 0.95,
       capped: false,
@@ -38,8 +40,8 @@ function addForkedStub(parts: BufferGeometry[], random: Random, index: number): 
     addStick(parts, tip, [forkX, rise + 0.7, forkZ], {
       length: forkLength,
       footRadius: 0.013,
-      tipRadius: 0.004,
-      sides: 3,
+      tipRadius: 0.006,
+      sides: STUB_SIDES,
       footBrightness: 0.95,
       tipBrightness: 1.35,
       capped: false,
@@ -62,7 +64,11 @@ export function simpleBushyCoral(random: Random): BufferGeometry {
   ]);
 }
 
-/** Staghorn coral: a thicket of forking branches, pale at the tips. */
+// A staghorn's branches: how many spring from its foot, how thick they are there, and how many
+// sides a branch is cut with (with four, a branch close to was a plank).
+const STAGHORN = { stems: 5, stemRadius: 0.034, sides: 6, tipSides: 5 };
+
+/** Staghorn coral: a thicket of thin forking branches, pale at the tips. */
 export function staghornCoral(random: Random): BufferGeometry {
   const parts: BufferGeometry[] = [];
 
@@ -77,10 +83,10 @@ export function staghornCoral(random: Random): BufferGeometry {
     const tip = addStick(parts, foot, direction, {
       length,
       footRadius: radius,
-      tipRadius: radius * 0.7,
-      sides: isTip ? 4 : 5,
+      tipRadius: radius * (isTip ? 0.5 : 0.72),
+      sides: isTip ? STAGHORN.tipSides : STAGHORN.sides,
       footBrightness: 0.55 + 0.1 * (3 - forksLeft),
-      tipBrightness: isTip ? 1.15 : 0.7 + 0.1 * (3 - forksLeft),
+      tipBrightness: isTip ? 1.3 : 0.7 + 0.1 * (3 - forksLeft),
       capped: isTip,
     });
     if (isTip) return;
@@ -106,14 +112,16 @@ export function staghornCoral(random: Random): BufferGeometry {
     }
   }
 
-  for (let i = 0; i < 3; i++) {
-    const angle = i * 2.1 + random();
-    const length = 0.26 + random() * 0.08;
+  for (let i = 0; i < STAGHORN.stems; i++) {
+    const angle = (i * FULL_TURN) / STAGHORN.stems + random();
+    const length = 0.24 + random() * 0.1;
+    // (the middle ones stand up, the outer ones lean out)
+    const lean = 0.25 + 0.5 * random();
     addBranch(
       [Math.cos(angle) * 0.1, -0.04, Math.sin(angle) * 0.1],
-      [Math.cos(angle) * 0.45, 1, Math.sin(angle) * 0.45],
+      [Math.cos(angle) * lean, 1, Math.sin(angle) * lean],
       length,
-      0.05,
+      STAGHORN.stemRadius,
       2,
     );
   }

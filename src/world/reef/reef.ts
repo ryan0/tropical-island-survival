@@ -6,21 +6,20 @@ import {
   Vector3,
   type DataTexture,
   type IUniform,
-  type MeshLambertMaterial,
 } from 'three';
 import { FULL_TURN } from '../../core/maths';
 import type { RandomStreams } from '../../core/random';
 import type { InstanceCells } from '../instance-cells';
 import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
-import type { RockSurface } from '../rocks/rocks-config';
 import { createCoralShapes } from './coral-shapes';
 import { CORAL_KINDS, reefConfig } from './reef-config';
 import { layOutReef, type CoralHead } from './reef-layout';
 import { createReefMap } from './reef-map';
+import { createCoralSurfacePicture } from './coral-surface-picture';
 import { createCoralMaterial } from './reef-material';
 
-// The coral reef in the lagoon: coral heads (mounds of reef rock, "bommies") scattered over
+// The coral reef in the lagoon: coral heads (great boulder corals, "bommies") scattered over
 // the sandy floor in 1.8 to 7 m of water, each packed with corals of five kinds, and smaller
 // corals on the sand round them. Everything is built from simple shapes with colours painted
 // on their corners; each kind is a few models, drawn many times with their own size, turn and
@@ -33,8 +32,6 @@ export interface ReefDependencies {
   landmarks: Landmarks;
   /** Whether a point is inside a rock or within `margin` of one. */
   isInRock: IsInRock;
-  /** The rocks' material with another surface: the heads are rock. */
-  createRockMaterial: (surface: RockSurface) => MeshLambertMaterial;
   /** The uniforms every shader shares. */
   uniforms: Record<string, IUniform>;
   instanceCells: InstanceCells;
@@ -54,8 +51,10 @@ const CELL_SIZE = 32;
 
 export function createReef(dependencies: ReefDependencies): Reef {
   const { randomStream, groundHeight, landmarks, isInRock, uniforms, instanceCells } = dependencies;
-  const coralMaterial = createCoralMaterial(uniforms);
-  const rockMaterial = dependencies.createRockMaterial(reefConfig.rockSurface);
+  const coralMaterial = createCoralMaterial(
+    uniforms,
+    createCoralSurfacePicture(randomStream('coral surface')),
+  );
 
   const shapes = createCoralShapes(randomStream('coral shapes'));
   const layout = layOutReef({
@@ -67,6 +66,7 @@ export function createReef(dependencies: ReefDependencies): Reef {
   const map = createReefMap(layout.heads, landmarks.home);
   const random = randomStream('coral turns and tints');
 
+  const { outOfWater } = reefConfig;
   const up = new Vector3(0, 1, 0);
   const matrix = new Matrix4();
   const lean = new Quaternion();
@@ -83,11 +83,7 @@ export function createReef(dependencies: ReefDependencies): Reef {
     layout.corals[kind].forEach((corals, model) => {
       if (corals.length === 0) return;
 
-      const mesh = new InstancedMesh(
-        shapes[kind].shapes[model],
-        config.isRock ? rockMaterial : coralMaterial,
-        corals.length,
-      );
+      const mesh = new InstancedMesh(shapes[kind].shapes[model], coralMaterial, corals.length);
       corals.forEach((coral, index) => {
         // It leans outward with the slope of the head it grows on, then turns about its own stem.
         leanAxis.set(Math.sin(coral.bearing), 0, -Math.cos(coral.bearing));
@@ -99,11 +95,17 @@ export function createReef(dependencies: ReefDependencies): Reef {
         matrix.compose(position.set(coral.x, coral.y, coral.z), lean, scale);
         mesh.setMatrixAt(index, matrix);
 
-        // The sea's dimming with depth is done in the shader, as for the sand. (The tints are as photographs
-        // measure them: the warmth once added here made them orange.)
+        // The sea's dimming with depth is done in the shader, as for the sand. The tints are what
+        // photographs taken under water measure, and the water between a coral and the eye now
+        // takes red of its own (through-water.glsl): `outOfWater` gives them back what a few
+        // metres of water take, so that from a few metres they are the photographs' colours again.
         const tint = config.tints[Math.floor(random() * config.tints.length)];
         const brightness = 0.85 + random() * 0.25;
-        colour.setRGB(tint[0] * brightness, tint[1] * brightness, tint[2] * brightness);
+        colour.setRGB(
+          tint[0] * brightness * outOfWater[0],
+          tint[1] * brightness * outOfWater[1],
+          tint[2] * brightness * outOfWater[2],
+        );
         mesh.setColorAt(index, colour);
       });
       instanceCells.split(mesh, {

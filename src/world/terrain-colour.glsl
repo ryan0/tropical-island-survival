@@ -8,11 +8,12 @@
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; groundNoise, groundFbm and
-//   randomsOf; coverOf, pebble and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
+//   randomsOf; coverOf, litAgainstSun and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
 //   openSea and the reef's zones (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
 //   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the
 //   reef's cover, the turf's broad patterns, what stands over the ground and what lies on it, it reads from
-//   pictures (uShoreRound, uReefCover, uTurfPatterns, uTreeCover, uGravelTile, uLitterTile, uLowPlantsTile).
+//   pictures (uShoreRound, uReefCover, uTurfPatterns, uTreeCover, uGravelTile, uLitterTile, uLowPlantsTile,
+//   uSandRipples).
 // Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
 //   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and for each ground tile
 //   its span in metres and the share of it its things cover (GRAVEL_TILE_SPAN, GRAVEL_FULL_COVER and so on),
@@ -110,6 +111,22 @@ const float STONES_STAND = 2.5;
 const float LITTER_STANDS = 1.2;
 const float LOWEST_SUN_FOR_SHADOWS = 0.3;
 
+// The ripples in the sand of a shallow floor: they come in between the first two depths and are gone between
+// the last two (metres of water); and how strongly a ripple is shaded by its slope towards the sun, and how
+// much lighter its crest is than its trough.
+const vec4 RIPPLES_BETWEEN = vec4(0.25, 0.7, 4.0, 7.0);
+const vec2 RIPPLE_SHADE = vec2(0.55, 0.16);
+// The gravel picture's average brightness (ground-tiles/gravel-tile.ts gives about this), and how strongly a
+// stone of it is shaded against the sun on the sea floor.
+const float GRAVEL_AVERAGE = 0.6;
+const float RUBBLE_RELIEF = 0.5;
+// How much of the rubble's light and dark shows on the reef's hard floor; how thickly dead coral lies on the old
+// reef round a head (0 none to 1 a whole bed); and what its colour is multiplied by (it is grey-brown under a
+// fuzz of algae, not the bleached white of the beach's).
+const float RUBBLE_ON_THE_REEF = 0.7;
+const float RUBBLE_ROUND_A_HEAD = 0.55;
+const vec3 DEAD_CORAL_TINT = vec3(0.98, 0.95, 0.86);
+
 // ---- Where this point is ----
 
 float height = vGroundPosition.y;
@@ -164,7 +181,7 @@ float grit = (fineGrit + coarseGrit) * (1.0 - 0.75 * smoothstep(0.0, 0.5, waterD
 
 // What lies on the ground, from its pictures (ground-tiles.ts). They have mipmaps, so they are read here, before
 // any branch. Each is laid at an angle of its own, so that the three never repeat together.
-vec2 onGround = vGroundPosition.xz;
+vec2 onGround = xz;
 vec4 gravelTile = texture2D(uGravelTile, onGround / GRAVEL_TILE_SPAN);
 vec4 litterTile = texture2D(uLitterTile,
   vec2(onGround.x * 0.8 - onGround.y * 0.6, onGround.x * 0.6 + onGround.y * 0.8) / LITTER_TILE_SPAN);
@@ -176,6 +193,10 @@ vec4 lowPlantsTile = texture2D(uLowPlantsTile,
 vec2 shadowOfACentimetre = 0.01 * uSunDirection.xz / max(uSunDirection.y, LOWEST_SUN_FOR_SHADOWS);
 vec2 stonesSunward = onGround + shadowOfACentimetre * STONES_STAND;
 vec4 gravelTileSunward = texture2D(uGravelTile, stonesSunward / GRAVEL_TILE_SPAN);
+// (The ripples that small waves leave in the sand of a shallow floor, likewise a picture: sand-ripples-picture.ts.
+// Their ridges lie across the way the waves come: east and west on the ocean's reef, where the swell comes from
+// the south, and north and south in the lagoon, whose waves the easterly wind drives.)
+vec4 sandRipples = texture2D(uSandRipples, mix(onGround, onGround.yx, lagoonSide) / SAND_RIPPLES_SPAN);
 vec2 litterSunward = onGround + shadowOfACentimetre * LITTER_STANDS;
 vec4 litterTileSunward = texture2D(uLitterTile,
   vec2(litterSunward.x * 0.8 - litterSunward.y * 0.6, litterSunward.x * 0.6 + litterSunward.y * 0.8) / LITTER_TILE_SPAN);
@@ -502,6 +523,22 @@ if (waterDepth > 0.0) {
   // like one from above). On the reef, coral and rock cover the high ground - the gardens' mounds, the crest, the
   // fore reef's spurs - and sand lies in the pools, the grooves and the channel: dark and pale follow the shape of
   // the floor, as they do on a real reef seen from the air. A few heads are scattered over the shallows' sand.
+
+  // First the sand's own ripples, where the water is deep enough to be still at the edge and shallow enough for
+  // the waves to reach the floor: lit on the side towards the sun, in patches that fade out. (Their picture blurs
+  // to flat sand with distance by itself.)
+  float ripplesHere = sandRipples.a * smoothstep(RIPPLES_BETWEEN.x, RIPPLES_BETWEEN.y, waterDepth)
+    * (1.0 - smoothstep(RIPPLES_BETWEEN.z, RIPPLES_BETWEEN.w, waterDepth));
+  // (the picture's slopes are across it and down it: in the lagoon it is laid turned)
+  vec2 rippleSlope = mix(sandRipples.gb, sandRipples.bg, lagoonSide) - 0.5;
+  float rippleLight = dot(rippleSlope, -towardsSun) * RIPPLE_SHADE.x + (sandRipples.r - 0.45) * RIPPLE_SHADE.y;
+  diffuseColor.rgb *= 1.0 + rippleLight * ripplesHere;
+
+  // And broken coral lies on every hard floor of the reef: the gravel's picture (ground-tiles.ts), by how much
+  // lighter or darker than its average each dot of it is, and shaded against the sun as on land.
+  float rubbleShade = dot(gravelTile.rgb, vec3(1.0 / 3.0)) / GRAVEL_AVERAGE
+    + RUBBLE_RELIEF * (gravelTile.a - gravelTileSunward.a);
+
   if (waterDepth > 0.3) {
     float coralPattern = groundFbm(xz * 0.17 + 31.0) + 0.30 * (groundFbm(xz * 0.95 + 7.0) - 0.5);
     float onTheReef = step(0.0, metresOffshore);
@@ -556,6 +593,8 @@ if (waterDepth > 0.0) {
           smoothstep(0.5 - 0.25 * ridgeHere, 0.7, groundNoise(xz * 1.1 + 9.0)) * (0.5 + 0.3 * ridgeHere));
         coralColour = mix(coralColour, crestRock, crestRockShows);
       }
+      // (close to, the hard floor is rubble and crust: its stones show)
+      coralColour *= mix(1.0, rubbleShade, RUBBLE_ON_THE_REEF);
       diffuseColor.rgb = mix(diffuseColor.rgb, coralColour, coral * (0.55 + 0.3 * smoothstep(1.0, 3.0, waterDepth)));
     }
   }
@@ -574,9 +613,9 @@ if (waterDepth > 0.0) {
     float oldReef = smoothstep(0.30, 0.62, apronEdge) * deepEnough;
     vec3 reefRock = mix(DARK_REEF_ROCK, PALE_REEF_ROCK, groundNoise(xz * 2.3)) * (0.66 + 0.68 * groundNoise(xz * 7.0));
     reefRock = mix(reefRock, PINK_CRUST, smoothstep(0.55, 0.72, groundNoise(xz * 1.1 + 9.0)) * 0.55);
-    vec3 stone = pebble(xz * 4.3 + 2.0, towardsSun, 0.6);
-    vec3 stoneColour = mix(vec3(0.50, 0.48, 0.44), vec3(0.88, 0.85, 0.78), stone.z) * stone.y;
-    reefRock = mix(reefRock, stoneColour, stone.x * 0.8);
+    // (strewn with dead coral: the gravel's picture, its stones paler than the rock they lie on)
+    float stones = coverOf(gravelTile, RUBBLE_ROUND_A_HEAD, GRAVEL_FULL_COVER, farOff);
+    reefRock = mix(reefRock * mix(1.0, rubbleShade, 0.6), gravelTile.rgb * DEAD_CORAL_TINT, stones);
     diffuseColor.rgb = mix(diffuseColor.rgb, reefRock, oldReef * 0.9);
   }
 

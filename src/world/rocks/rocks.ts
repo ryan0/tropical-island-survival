@@ -6,7 +6,7 @@ import type { Landmarks } from '../landmarks';
 import { createRockMaterial } from './rock-material';
 import { placeRocks, type RockPlacement } from './rock-placement';
 import { createRockShape } from './rock-shapes';
-import { rocksConfig, type RockKind, type RockSurface } from './rocks-config';
+import { rocksConfig, type RockKind } from './rocks-config';
 
 // Rocks, of five kinds, each in two or three different shapes. They are placed in groups, the
 // way rock lies on a shore - a few big ones, smaller ones round them, cobbles spilling out -
@@ -33,8 +33,6 @@ export interface Rocks {
   isInRock: IsInRock;
   /** Rocks standing in the surf, which throw spray and gather foam. */
   inSurf: RockPlacement['inSurf'];
-  /** The rocks' material with another surface: the coral heads' rock is drawn with it. */
-  createMaterial: (surface: RockSurface) => MeshLambertMaterial;
 }
 
 // How far a rock can reach from its own middle, at most.
@@ -89,10 +87,6 @@ export function createRocks(dependencies: RocksDependencies): Rocks {
         if (Math.hypot(x - spot.x, z - spot.z) < spot.radius + margin) return true;
       }
       return false;
-    },
-
-    createMaterial(surface) {
-      return createRockMaterial(surface, uniforms);
     },
   };
 }

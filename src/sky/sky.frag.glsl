@@ -1,12 +1,16 @@
-// The sky dome: the gradient, the sun, the moon, the stars, the milky way, shooting stars, and the clouds looked
-// up in two sky pictures (clouds.ts, cloud-bake.frag.glsl).
+// The sky dome: the gradient, the sun, the moon, the Milky Way, shooting stars, and the clouds looked up in two sky
+// pictures (clouds.ts, cloud-bake.frag.glsl). The stars are drawn over it (stars.ts).
 //
 // Needs the defines
-//   EARTH_CURVE      1/(2R) for the small earth the clouds sit on
-//   SLIDE_HEIGHT     the height (km) whose drift a sky picture is slid by, as the pictures are drawn with
-//   HALF_A_DOT       half a dot of a sky picture, across and up
-// the varying vViewDirection from sky.vert.glsl, hash, fbm and fbm5 from the noise chunk, distanceUpTo
-// (distance-up-to.glsl), and skyGradient and sunsBroadGlow (sky-gradient.glsl).
+//   EARTH_CURVE, SLIDE_HEIGHT, HALF_A_DOT    for reading the sky pictures (sky-picture.glsl)
+//   MOON_RADIUS      how far the moon's edge is from its middle (radians)
+//   MOON_UP          the moon's height (as a sine) at which its light begins to pale the sky, and at which it has
+//                    paled it in full
+//   SKY_POLE         the unit vector towards the sky's north pole, which the stars turn about
+//   MILKY_WAY_REACHES, MILKY_WAY_COLOUR, MILKY_WAY_LOST_TO_MOONLIGHT    the Milky Way's picture's layout, its
+//                    colour at its brightest, and how much of it a full moon washes out
+// the varying vViewDirection from sky.vert.glsl, hash from the noise chunk, lookUpSkyPicture (sky-picture.glsl),
+// and skyGradient and sunsBroadGlow (sky-gradient.glsl).
 
 // Seconds on the clock.
 uniform float uTime;
@@ -34,58 +38,38 @@ uniform vec4 uSkyPictureDrift;
 // The colours of cloud in the sun and in shade.
 uniform vec3 uCloudInSun;
 uniform vec3 uCloudInShade;
+// The sky's turn of the moment (sky-turn.ts): a direction in the galaxy's frame times this is one from the island.
+uniform mat3 uSkyTurn;
+// The Milky Way's picture (milky-way-picture.ts) and the moon's face (moon-face-picture.ts): no mipmaps, so they
+// may be read inside the night's branch.
+uniform sampler2D uMilkyWay;
+uniform sampler2D uMoonFace;
 // From the camera, which is the dome's middle, towards this dot.
 varying vec3 vViewDirection;
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
-#include "distance-up-to"
+#include "sky-picture"
 #include "sky-gradient"
 #include "../shaders/shared/through-water"
 
 // The colours of the sky's parts (the gradient's are in sky-gradient.glsl).
-const vec3 MILKY_WAY_COLOUR = vec3(0.15, 0.17, 0.26);
 const vec3 SHOOTING_STAR_COLOUR = vec3(1.0, 0.95, 0.8);
 const vec3 MOON_COLOUR = vec3(0.92, 0.95, 1.0);
-// The moon's disc: how far its edge is from its middle (radians: the sun's is drawn as wide), how wide the soft
-// edge is, and how much darker its seas and its limb are than the rest of its face.
-const float MOON_RADIUS = 0.034;
+// The moon's disc: how wide its soft edge is, and how much darker its limb is than its middle.
 const float MOON_EDGE = 0.003;
-const float MOON_SEAS_DARKER = 0.30;
 const float MOON_LIMB_DARKER = 0.16;
 // The disc is drawn in full from this far into the night (uNight, 0 day to 1 night).
 const float MOON_SHOWS_BY_NIGHT = 0.4;
 const vec3 MOON_GLOW_COLOUR = vec3(0.20, 0.26, 0.42);
+// What a full moon's light adds to the air of the sky towards the moon; less away from it.
+const vec3 MOONLIT_AIR = vec3(0.020, 0.030, 0.062);
 // The low sun's light on a cloud's lower parts, as a share of its light on the top.
 const vec3 LOW_SUN_ON_CLOUD = vec3(0.95, 0.66, 0.58);
-// Square to the plane of the milky way (normalised where it is used).
-const vec3 MILKY_WAY_POLE = vec3(0.35, 0.5, -0.79);
 
 // Near enough the angle between two unit directions: the straight line between them across a ball of radius 1.
 float angleBetween(vec3 a, vec3 b) {
   return sqrt(max(0.0, 2.0 - 2.0 * dot(a, b)));
-}
-
-// What a sky picture shows in direction d, the picture having been made `shift` km of wind drift ago: find the
-// spot at the clouds' usual height that d looks at, step back upwind, and look up the direction of that spot.
-vec4 lookUpSkyPicture(sampler2D picture, vec3 d, vec2 shift) {
-  float rise = max(d.y, 0.0);
-  float curve = (1.0 - rise * rise) * EARTH_CURVE;
-  float toSlideHeight = distanceUpTo(SLIDE_HEIGHT, rise, curve);
-  vec3 spot = d * toSlideHeight;
-  spot.xz -= shift;
-  spot.y = SLIDE_HEIGHT - dot(spot.xz, spot.xz) * EARTH_CURVE;
-  vec3 towardsSpot = normalize(spot);
-
-  // Where that direction is in the picture, laid out as cloud-bake.frag.glsl draws it.
-  float across = atan(towardsSpot.z, towardsSpot.x) / FULL_TURN + 0.5;
-  float up = -0.5 + sqrt(0.25 + 2.0 * asin(clamp(towardsSpot.y, 0.0, 1.0)) / QUARTER_TURN);
-  vec2 uv = vec2(across, up);
-  // (read twice, half a dot apart each way, and averaged: that smooths away the grain the picture's stepping
-  // leaves)
-  vec4 halfADotOn = texture2D(picture, uv + HALF_A_DOT);
-  vec4 halfADotBack = texture2D(picture, uv - HALF_A_DOT);
-  return 0.5 * (halfADotOn + halfADotBack);
 }
 
 void main() {
@@ -107,33 +91,18 @@ void main() {
   sky += uSunColour * sunGlow * sunShows;
   sky = mix(sky, uSunColour * 1.5 + 0.3, smoothstep(0.034, 0.026, fromSun));
 
-  // The night sky: stars, the milky way, shooting stars and the moon.
+  // The night sky: the Milky Way, shooting stars and the moon. (The stars are drawn over the dome: stars.ts.)
   if (uNight > 0.004) {
-    float clearOfHorizon = smoothstep(0.0, 0.2, direction.y);
-
-    // Stars: the sky cut into little cubes, with a star in the middle of one in 400.
-    vec3 inStarCells = direction * 180.0;
-    vec3 starCell = floor(inStarCells);
-    vec3 inCell = fract(inStarCells) - 0.5;
-    float isStar = step(0.9975, hash(starCell.xy + starCell.z * vec2(17.3, 31.7)));
-    float starDot = smoothstep(0.45, 0.05, length(inCell));
-    float star = isStar * starDot * uNight * clearOfHorizon;
-    float twinkle = 0.7 + 0.3 * sin(uTime * 2.0 + starCell.x + starCell.z);
-    sky += star * twinkle * 1.4;
-
-    // The milky way: a band round the sky, mottled.
-    vec3 milkyWayPole = normalize(MILKY_WAY_POLE);
-    float acrossMilkyWay = dot(direction, milkyWayPole) * 3.2;
-    float milkyWayBand = exp(-acrossMilkyWay * acrossMilkyWay);
-    float milkyWayMottle = fbm5(direction.xz * 3.0 + direction.y * 2.5);
-    float milkyWayLight = 0.25 + 0.75 * milkyWayMottle;
-    sky += uNight * milkyWayBand * milkyWayLight * smoothstep(-0.05, 0.3, direction.y) * MILKY_WAY_COLOUR;
-
-    // Faint stars, in finer cubes: more of them in the milky way.
-    vec3 faintStarCell = floor(direction * 420.0);
-    float faintStarChance = hash(faintStarCell.xy + faintStarCell.z * vec2(13.1, 29.7));
-    float isFaintStar = step(0.9965 - 0.006 * milkyWayBand * milkyWayMottle, faintStarChance);
-    sky += isFaintStar * uNight * clearOfHorizon * 0.32;
+    // The Milky Way: its picture is laid out in the galaxy's frame, which turns with the stars; across it, the
+    // galactic longitude; up it, the sine of the galactic latitude. A full moon up all but washes it out.
+    vec3 inGalaxy = direction * uSkyTurn;
+    float alongGalaxy = atan(inGalaxy.y, inGalaxy.x + 1e-6) / FULL_TURN + 0.5;
+    float acrossGalaxy = 0.5 + 0.5 * inGalaxy.z / MILKY_WAY_REACHES;
+    float milkyWayGlow = texture2D(uMilkyWay, vec2(alongGalaxy, acrossGalaxy)).r;
+    float moonUp = smoothstep(MOON_UP.x, MOON_UP.y, uMoonDirection.y);
+    float clearOfHorizon = smoothstep(0.0, 0.25, direction.y);
+    float milkyWayShows = uNight * clearOfHorizon * (1.0 - MILKY_WAY_LOST_TO_MOONLIGHT * moonUp);
+    sky += MILKY_WAY_COLOUR * milkyWayGlow * milkyWayShows;
 
     // Shooting stars: a new one every 1/0.12 s, seen only for the first sixth of that (age 0 to 1).
     float shootingStarClock = uTime * 0.12;
@@ -155,18 +124,22 @@ void main() {
     float trail = trailWidth * trailLength * step(0.0, behindHead) * step(age, 1.0);
     sky += trail * uNight * SHOOTING_STAR_COLOUR * 1.6;
 
-    // The moon: its glow, and its disc, which hides the stars behind it. The disc is as wide as the sun's, as the
-    // real one is; it is paler towards the middle than at the limb, with the grey seas of its face, which keep
-    // their places on it wherever in the sky it stands.
+    // The moon: its glow, and its disc. The disc is as wide as the sun's, as the real one is; it is paler towards
+    // the middle than at the limb, with the seas of the real moon's face (moon-face-picture.ts). Its north points
+    // to the sky's pole, as the real one's does: it rises tipped over and stands upright in the south.
     float fromMoon = angleBetween(direction, uMoonDirection);
     sky += uNight * MOON_GLOW_COLOUR * exp(-fromMoon * 8.0);
+    // (And a full moon lights the air of the whole sky a little, most towards itself: a moonlit sky is a deep
+    // blue, not black. The old band of noise had lit most of it by accident.)
+    sky += uNight * moonUp * MOONLIT_AIR * (0.45 + 0.55 * exp(-fromMoon * 1.1));
     if (fromMoon < MOON_RADIUS) {
-      vec3 acrossMoon = normalize(cross(vec3(0.0, 1.0, 0.0), uMoonDirection));
-      vec3 upMoon = cross(uMoonDirection, acrossMoon);
-      vec2 onDisc = vec2(dot(direction, acrossMoon), dot(direction, upMoon)) / MOON_RADIUS;
-      float seas = smoothstep(0.40, 0.62, fbm(onDisc * 1.7 + vec2(4.0, 9.0)));
+      // (the moon never stands near the pole, so its north is never too short to normalise)
+      vec3 northOnMoon = normalize(SKY_POLE - uMoonDirection * dot(SKY_POLE, uMoonDirection));
+      vec3 rightOnMoon = cross(uMoonDirection, northOnMoon);
+      vec2 onDisc = vec2(dot(direction, rightOnMoon), dot(direction, northOnMoon)) / MOON_RADIUS;
+      float ground = texture2D(uMoonFace, 0.5 + 0.5 * onDisc).r;
       float towardsLimb = dot(onDisc, onDisc);
-      vec3 face = MOON_COLOUR * (1.0 - MOON_SEAS_DARKER * seas) * (1.0 - MOON_LIMB_DARKER * towardsLimb);
+      vec3 face = MOON_COLOUR * ground * (1.0 - MOON_LIMB_DARKER * towardsLimb);
       // (it shows before the night has quite come: a full moon is up in the dusk)
       float moonShows = smoothstep(0.0, MOON_SHOWS_BY_NIGHT, uNight);
       sky = mix(sky, face, moonShows * smoothstep(MOON_RADIUS, MOON_RADIUS - MOON_EDGE, fromMoon));

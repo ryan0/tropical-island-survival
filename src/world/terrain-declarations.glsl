@@ -1,6 +1,6 @@
 // What the colouring of the ground (terrain-colour.glsl) needs from outside main(): its uniforms and varying, the
-// chunks it calls, the noise its patterns are made of, how much a ground tile's things cover, and two patterns of
-// small things on the ground.
+// chunks it calls, the noise its patterns are made of, how much a ground tile's things cover and how they are
+// lit, and the dimples of loose sand.
 // terrain.ts puts this in front of three.js's Lambert fragment shader. The chunks need the defines
 // TERRAIN_FOOTPATHS (footpaths.glsl) and LAGOON_WIND_DIRECTION (lagwave.glsl), and groundNoise needs
 // GROUND_NOISE_PERIOD (world-config.ts), all of which terrain.ts writes.
@@ -34,6 +34,7 @@ uniform sampler2D uTreeCover;       // what stands over the ground (tree-cover-m
 uniform sampler2D uGravelTile;      // coral gravel and rubble, seen from above (ground-tiles.ts)
 uniform sampler2D uLitterTile;      // the trees' litter, likewise
 uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
+uniform sampler2D uSandRipples;     // the ripples in the sand of a shallow sea floor (sand-ripples-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
 
@@ -92,31 +93,6 @@ float coverOf(vec4 tile, float amount, float fullCover, float farOff) {
 // multiply the colour by.
 float litAgainstSun(float relief, float strength) {
   return 1.0 + strength * (0.12 * max(relief, 0.0) + 0.32 * min(relief, 0.0));
-}
-
-// One layer of coral rubble: at most one stone in each square of p - anywhere in it, any size from a chip to a
-// fist, oval or angular, at any angle - and many squares empty (density = the share that hold one).
-// Returns (how much of this spot the stone covers, how brightly it is lit by sunAlongGround, its own tone 0 to 1).
-vec3 pebble(vec2 p, vec2 sunAlongGround, float density) {
-  vec2 square = floor(p);
-  // (its middle, across and down, and two for its size; then its angle, how oval, how angular, whether it is there)
-  vec4 placed = randomsOf(square, 3.0);
-  vec4 shaped = randomsOf(square, 4.0);
-  vec2 d = fract(p) - (placed.xy * 0.5 + 0.25);
-  float radius = 0.07 + 0.18 * placed.z * placed.w;
-  float angle = shaped.x * HALF_TURN;
-  float c = cos(angle);
-  float s = sin(angle);
-  float oval = 1.0 + 0.9 * shaped.y;
-  vec2 e = vec2(d.x * c + d.y * s, (-d.x * s + d.y * c) * oval);
-  // between a round pebble and a broken chunk
-  float angularity = 0.75 * shaped.z;
-  float r = mix(length(e), (abs(e.x) + abs(e.y)) * 0.8, angularity) / radius;
-  float isThere = step(1.0 - density, shaped.w);
-  float cover = smoothstep(1.0, 0.78, r) * isThere;
-  float lit = 0.82 + 0.42 * dot(d, sunAlongGround) / radius + 0.12 * (1.0 - r);
-  float tone = randomsOf(square, 5.0).x;
-  return vec3(cover, lit, tone);
 }
 
 // One layer of dimples in loose sand (footprints, hollows the wind has rounded off): at most one round hollow in each

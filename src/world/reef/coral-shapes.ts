@@ -1,8 +1,20 @@
-import { CylinderGeometry, SphereGeometry, type BufferGeometry } from 'three';
+import {
+  CylinderGeometry,
+  Float32BufferAttribute,
+  SphereGeometry,
+  type BufferGeometry,
+} from 'three';
 import { FULL_TURN, smoothstep, type Triple } from '../../core/maths';
 import type { Random } from '../../core/random';
 import { bushyCoral, simpleBushyCoral, staghornCoral } from './branching-coral-shapes';
-import { addStick, joined, lumpyField, shapedAndPainted, type LumpyField } from './painted-shapes';
+import {
+  addStick,
+  joined,
+  lumpyField,
+  shapedAndPainted,
+  type LumpyField,
+  type Move,
+} from './painted-shapes';
 import { reefConfig, type CoralKind } from './reef-config';
 
 // Each model is about a metre across at size 1.
@@ -13,59 +25,140 @@ export interface CoralShapes {
 }
 
 /**
- * A coral head: a platform of old reef rock, steep-sided and nearly flat on top, with an uneven
- * outline; pale, crusted pink and tufted yellow-green in patches, dark low down and under its rim
- * (which is what outlines it from above).
+ * What a coral's surface is like close to, as shares of the three patterns in the corals' surface
+ * picture (coral-surface-picture.ts): a brain coral's winding ridges, a boulder coral's fine
+ * skin, and the warts of the branching, table and cauliflower corals.
  */
-function coralHead(random: Random): BufferGeometry {
+type Surface = Triple;
+const RIDGED: Surface = [1, 0, 0];
+const FINE_SKINNED: Surface = [0, 1, 0];
+const WARTY: Surface = [0, 0, 1];
+const SMOOTH: Surface = [0, 0, 0];
+/** Old dead coral rock, pitted and crusted: a little of the skin and of the warts. */
+const WEATHERED: Surface = [0, 0.35, 0.35];
+
+/** Gives every corner of a model its surface, for the coral's shader (the attribute `surface`). */
+function withSurface(model: BufferGeometry, surfaceAt: Surface | Move): BufferGeometry {
+  const position = model.getAttribute('position');
+  const surfaces = new Float32Array(position.count * 3);
+  for (let corner = 0; corner < position.count; corner++) {
+    const surface =
+      typeof surfaceAt === 'function'
+        ? surfaceAt(position.getX(corner), position.getY(corner), position.getZ(corner))
+        : surfaceAt;
+    surfaces.set(surface, corner * 3);
+  }
+  model.setAttribute('surface', new Float32BufferAttribute(surfaces, 3));
+  return model;
+}
+
+// A coral head's colours, as its tint is multiplied by them: the living boulder coral of its
+// sides is a khaki; its dead top is pale rock, crusted pink in patches and tufted with a
+// yellow-green turf of algae in others.
+const LIVING_SIDE: Triple = [1.04, 1.0, 0.74];
+const DEAD_TOP: Triple = [1.12, 1.1, 1.04];
+const PINK_CRUST: Triple = [1.14, 0.94, 0.98];
+const ALGAL_TURF: Triple = [0.9, 0.96, 0.66];
+
+/**
+ * A head stands on the floor under its middle, and the floor is seldom level: so its sides go on
+ * down below its foot in a skirt, or its downhill side hung in the water. The skirt is cut from
+ * this share more of the ball than its top half, and reaches this many of the head's heights down
+ * for each unit of the ball's.
+ */
+const HEAD_SKIRT = { shareOfBall: 0.25, depth: 1.8 };
+
+/**
+ * A coral head: a great boulder coral that has grown up to the surface and can grow no higher.
+ * Its sides are alive, in big rounded lobes with creases between them; its top, which the low
+ * tides kill, is flat old rock on which other corals stand. (It was a platform of rock with
+ * ledged, buttressed sides, drawn with the rocks' material: "piles of smooth balls" on crumpled
+ * paper, where the photographs have one or two great domes with a grain.)
+ * `segmentsAround` and `segmentsDown` are how finely it is cut: the lobes need the finer cut.
+ */
+function coralHead(random: Random, segmentsAround: number, segmentsDown: number): BufferGeometry {
   const lumps = lumpyField(random, 3);
   const otherLumps = lumpyField(random, 3);
-  const dome = new SphereGeometry(1, 26, 14, 0, FULL_TURN, 0, FULL_TURN / 4);
+  // (A little more than the top half of a ball: what lies below its middle becomes the skirt.)
+  const dome = new SphereGeometry(
+    1,
+    segmentsAround,
+    segmentsDown,
+    0,
+    FULL_TURN,
+    0,
+    (FULL_TURN / 4) * (1 + HEAD_SKIRT.shareOfBall),
+  );
+  const outlinePhase = lumps(1, 2, 3) * 9;
+  // How far out from the middle the dead top reaches, by where the model's corner stood on the
+  // ball it was made from: ragged, so that the living rim is wider here and narrower there.
+  const livingAt = (x: number, y: number, z: number) =>
+    smoothstep(0.62, 0.84, Math.hypot(x, z) + 0.12 * otherLumps(x * 4, y * 4, z * 4));
+  // The lobes of the sides: 1 on a bulge, -1 in a crease.
+  const lobesAt = (x: number, y: number, z: number) =>
+    0.75 * lumps(x * 2.4, y * 2.4, z * 2.4) + 0.25 * otherLumps(x * 5.5, y * 5.5, z * 5.5);
+  // A corner is moved and then painted: these carry what the moving found to the painting.
+  let isLiving = 0;
+  let lobe = 0;
 
   const shape = shapedAndPainted(
     dome,
     (x, y, z) => {
-      const across = Math.hypot(x, z);
+      const isSkirt = y < 0;
+      // (a corner of the skirt stands under the ball's rim)
+      const across = isSkirt ? 1 : Math.hypot(x, z);
+      const rimX = isSkirt ? x / Math.hypot(x, z) : x;
+      const rimZ = isSkirt ? z / Math.hypot(x, z) : z;
       const angle = Math.atan2(z, x);
       const outline =
         1.06 +
-        0.09 * Math.sin(angle * 2 + lumps(1, 2, 3) * 9) +
+        0.09 * Math.sin(angle * 2 + outlinePhase) +
         0.06 * Math.sin(angle * 5 + 1.7) +
-        0.06 * lumps(x * 3, y * 3, z * 3) +
-        0.04 * otherLumps(x * 8, y * 8, z * 8);
+        0.05 * lumps(rimX * 3, y * 3, rimZ * 3);
       const top = Math.pow(Math.max(0, 1 - Math.pow(across, 3.5)), 0.5);
-      const height =
-        top * (0.92 + 0.08 * otherLumps(x * 4, 0, z * 4)) + 0.05 * lumps(x * 6, 1, z * 6) * top;
-      // The foot spreads out in irregular buttresses, so the rock runs into the sea floor rather
-      // than standing on it; the sides are rough and ledged.
-      const foot = Math.max(0, 1 - height / 0.45);
-      const buttresses =
-        foot * (0.12 + 0.26 * Math.abs(Math.sin(angle * 3.5 + lumps(3, 1, 2) * 6)));
-      const roughness =
-        0.07 * (1 - foot) * lumps(x * 7, height * 9, z * 7) * smoothstep(0.7, 1, across);
-      const ledges = 0.05 * Math.sin(height * 21 + angle * 2) * smoothstep(0.75, 1, across);
-      const reach = outline * (1 + buttresses + roughness + ledges);
-      return [x * reach, height, z * reach];
+      const height = top * (0.92 + 0.08 * otherLumps(x * 4, 0, z * 4));
+      const onSide = smoothstep(0.6, 0.92, across);
+      lobe = lobesAt(rimX, y, rimZ);
+      isLiving = livingAt(rimX, y, rimZ);
+      // The foot spreads a little, so that the head runs into the sea floor.
+      const foot = Math.max(0, 1 - height / 0.3);
+      const reach = outline * (1 + onSide * 0.15 * lobe + 0.1 * foot);
+      if (isSkirt) return [rimX * reach, y * HEAD_SKIRT.depth, rimZ * reach];
+      return [x * reach, height * (1 + onSide * 0.1 * lobe), z * reach];
     },
     (x, y, z) => {
+      // Lighter on a bulge and dark in a crease, and darker low down, out of the light.
+      const side =
+        (0.62 + 0.42 * smoothstep(-0.7, 0.7, lobe)) * (0.72 + 0.28 * smoothstep(0, 0.5, y));
       const crust = lumps(x * 3 + 3, y * 4, z * 3 + 1);
       const turf = otherLumps(x * 5, y * 5, z * 5);
-      const brightness =
-        (0.72 + 0.58 * smoothstep(0.2, 0.95, y)) *
-        (0.86 + 0.3 * otherLumps(x * 9, y * 9, z * 9) + 0.2 * lumps(x * 4, y * 6, z * 4));
-      if (crust > 0.3) return [brightness * 1.03, brightness * 0.84, brightness * 0.88];
-      if (turf > 0.45) return [brightness * 0.86, brightness * 0.9, brightness * 0.6];
-      return [brightness, brightness * 0.97, brightness * 0.9];
+      const rock = 0.84 + 0.2 * otherLumps(x * 9, y * 9, z * 9);
+      const dead = crust > 0.3 ? PINK_CRUST : turf > 0.45 ? ALGAL_TURF : DEAD_TOP;
+      return [
+        dead[0] * rock * (1 - isLiving) + LIVING_SIDE[0] * side * isLiving,
+        dead[1] * rock * (1 - isLiving) + LIVING_SIDE[1] * side * isLiving,
+        dead[2] * rock * (1 - isLiving) + LIVING_SIDE[2] * side * isLiving,
+      ];
     },
   );
-  return joined([shape]);
+  const model = joined([shape]);
+  // (The joined model's corners are the ball's, triangle by triangle: where each stood on the
+  // ball is lost, so how far out it is now stands for it.)
+  return withSurface(model, (x, y, z) => {
+    const isLiving = smoothstep(0.66, 0.9, Math.hypot(x, z));
+    return [
+      WEATHERED[0] * (1 - isLiving) + FINE_SKINNED[0] * isLiving,
+      WEATHERED[1] * (1 - isLiving) + FINE_SKINNED[1] * isLiving,
+      WEATHERED[2] * (1 - isLiving) + FINE_SKINNED[2] * isLiving,
+    ];
+  });
 }
 
-/** A lump of broken reef rock, for the rubble that lies round the foot of a head. */
+/** A lump of dead coral, for the rubble that lies round the foot of a head. */
 function rubbleLump(random: Random): BufferGeometry {
   const lumps = lumpyField(random, 3);
   const shape = shapedAndPainted(
-    new SphereGeometry(0.5, 8, 6),
+    new SphereGeometry(0.5, 10, 7),
     (x, y, z) => {
       const k = 1 + 0.34 * lumps(x * 4, y * 4, z * 4) + 0.14 * lumps(x * 9, y * 9, z * 9);
       return [x * k, y * k * 0.7, z * k];
@@ -213,27 +306,41 @@ export function createCoralShapes(random: Random): Record<CoralKind, CoralShapes
   const { kinds, clamLips } = reefConfig;
   const models = (kind: CoralKind, make: (index: number) => BufferGeometry): BufferGeometry[] =>
     Array.from({ length: kinds[kind].shapes }, (_, index) => make(index));
+  // Of the lobed mounds, every other model is a brain coral and the rest are boulder corals: the
+  // shape is the same, and the surface tells them apart.
+  const lobedSurface = (index: number): Surface => (index % 2 === 1 ? RIDGED : FINE_SKINNED);
 
   return {
-    head: { shapes: models('head', () => coralHead(random)) },
-    rubble: { shapes: models('rubble', () => rubbleLump(random)) },
+    head: {
+      shapes: models('head', () => coralHead(random, 48, 22)),
+      fromAfar: coralHead(random, 20, 10),
+    },
+    rubble: { shapes: models('rubble', () => withSurface(rubbleLump(random), WEATHERED)) },
     brain: {
-      shapes: models('brain', () => lobedCoral(random)),
-      fromAfar: simpleLobedCoral(random),
+      shapes: models('brain', (index) => withSurface(lobedCoral(random), lobedSurface(index))),
+      fromAfar: withSurface(simpleLobedCoral(random), FINE_SKINNED),
     },
     bush: {
-      shapes: models('bush', () => bushyCoral(random)),
-      fromAfar: simpleBushyCoral(random),
+      shapes: models('bush', () => withSurface(bushyCoral(random), WARTY)),
+      fromAfar: withSurface(simpleBushyCoral(random), WARTY),
     },
-    stag: { shapes: models('stag', () => staghornCoral(random)) },
+    stag: { shapes: models('stag', () => withSurface(staghornCoral(random), WARTY)) },
     // The first has one plate, the second a smaller one above it too.
-    table: { shapes: models('table', (index) => tableCoral(random, index + 1)) },
-    knob: {
-      shapes: models('knob', () => cauliflowerCoral(random)),
-      fromAfar: simpleCauliflowerCoral(random),
+    table: {
+      shapes: models('table', (index) => withSurface(tableCoral(random, index + 1), WARTY)),
     },
-    smallKnob: { shapes: models('smallKnob', () => simpleCauliflowerCoral(random)) },
-    smallBrain: { shapes: models('smallBrain', () => simpleLobedCoral(random)) },
-    clam: { shapes: clamLips.map((lip) => giantClam(lip)) },
+    knob: {
+      shapes: models('knob', () => withSurface(cauliflowerCoral(random), WARTY)),
+      fromAfar: withSurface(simpleCauliflowerCoral(random), WARTY),
+    },
+    smallKnob: {
+      shapes: models('smallKnob', () => withSurface(simpleCauliflowerCoral(random), WARTY)),
+    },
+    smallBrain: {
+      shapes: models('smallBrain', (index) =>
+        withSurface(simpleLobedCoral(random), lobedSurface(index)),
+      ),
+    },
+    clam: { shapes: clamLips.map((lip) => withSurface(giantClam(lip), SMOOTH)) },
   };
 }

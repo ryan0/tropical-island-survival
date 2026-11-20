@@ -20,6 +20,7 @@ import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { seaConfig } from '../sea/sea-config';
 import { reefConfig } from './reef/reef-config';
 import { createReefCoverPicture } from './reef-cover-picture';
+import { createSandRipplesPicture } from './sand-ripples-picture';
 import colourShader from './terrain-colour.glsl';
 import declarations from './terrain-declarations.glsl';
 import { createTerrainShape, cutIntoTiles } from './terrain-shape';
@@ -51,6 +52,8 @@ export interface TerrainDependencies {
   renderer: WebGLRenderer;
   /** The terrain's own stream: it speckles the grit. */
   random: Random;
+  /** A stream of its own for the ripples in the sea floor's sand. */
+  randomOfRipples: Random;
   /** The pictures of what lies on the ground. */
   groundTiles: GroundTiles;
   groundHeight: GroundHeight;
@@ -152,6 +155,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const groundRandoms = createGroundRandoms();
   const reefCover = createReefCoverPicture(renderer);
   const turfPatterns = createTurfPicture(renderer);
+  const sandRipples = createSandRipplesPicture(dependencies.randomOfRipples);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
@@ -172,6 +176,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     GRAVEL_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.gravel),
     LITTER_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.litter),
     LOW_PLANTS_FULL_COVER: glslFloat(worldConfig.groundTiles.fullCover.lowPlants),
+    SAND_RIPPLES_SPAN: glslFloat(sandRipples.span),
   };
   // The colouring runs inside three.js's own Lambert shader, so its lighting and shadows still apply.
   material.onBeforeCompile = (shader, renderer) => {
@@ -184,6 +189,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     shader.uniforms.uGravelTile = { value: groundTiles.gravel.texture };
     shader.uniforms.uLitterTile = { value: groundTiles.litter.texture };
     shader.uniforms.uLowPlantsTile = { value: groundTiles.lowPlants.texture };
+    shader.uniforms.uSandRipples = { value: sandRipples.texture };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth
     // changes across a pixel, which only WebGL 2 tells without asking.
     const canMeasureAcrossPixel = renderer.capabilities.isWebGL2

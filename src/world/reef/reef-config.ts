@@ -1,5 +1,4 @@
 import type { Rgb } from '../../core/maths';
-import type { RockSurface } from '../rocks/rocks-config';
 
 // Sizes are metres; a model is about a metre across at size 1. Colours are red, green, blue
 // from 0 to 1, as they are before the water dims them. The corals' tints are what photographs
@@ -28,8 +27,6 @@ export type CoralKind = (typeof CORAL_KINDS)[number];
 export interface CoralKindConfig {
   /** How many different models there are of it; each one placed is one of them at random. */
   shapes: number;
-  /** The heads and their rubble are rock, drawn with the rocks' material; the rest are coral. */
-  isRock: boolean;
   /** How tall one of size 1 stands. */
   tall: number;
   /** Each one is tinted with one of these, at random. */
@@ -46,21 +43,23 @@ export const reefConfig = {
   layoutRoll: 1,
 
   kinds: {
-    /** A coral head: a platform of old reef rock, steep-sided and nearly flat on top. */
+    /**
+     * A coral head: a great boulder coral grown up to the surface, its sides alive and its flat
+     * top dead rock on which the others stand.
+     */
     head: {
       shapes: 3,
-      isRock: true,
       tall: 1,
       tints: [
         [0.54, 0.5, 0.41],
         [0.46, 0.45, 0.37],
         [0.59, 0.53, 0.43],
       ],
+      simplerBeyond: 32,
     },
-    /** Lumps of broken reef rock round the foot of a head. */
+    /** Lumps of dead coral round the foot of a head. */
     rubble: {
       shapes: 3,
-      isRock: true,
       tall: 0.4,
       tints: [
         [0.49, 0.45, 0.38],
@@ -72,7 +71,6 @@ export const reefConfig = {
     /** Lobed coral (Porites): a mound of smooth rounded lobes. */
     brain: {
       shapes: 3,
-      isRock: false,
       tall: 0.4,
       tints: [
         [0.58, 0.49, 0.29],
@@ -86,7 +84,6 @@ export const reefConfig = {
     /** Bushy coral (Acropora): a dome of many short fine branches, paler at the tips. */
     bush: {
       shapes: 3,
-      isRock: false,
       tall: 0.5,
       tints: [
         [0.59, 0.48, 0.39],
@@ -100,7 +97,6 @@ export const reefConfig = {
     /** Staghorn coral: a thicket of forking branches, pale at the tips. */
     stag: {
       shapes: 2,
-      isRock: false,
       tall: 0.85,
       tints: [
         [0.5, 0.39, 0.28],
@@ -111,7 +107,6 @@ export const reefConfig = {
     /** Table coral: a wide thin plate on a short stalk; the second model has a smaller plate above. */
     table: {
       shapes: 2,
-      isRock: false,
       tall: 0.6,
       tints: [
         [0.54, 0.47, 0.35],
@@ -122,7 +117,6 @@ export const reefConfig = {
     /** Cauliflower coral: a tight bunch of knobs. */
     knob: {
       shapes: 2,
-      isRock: false,
       tall: 0.45,
       tints: [
         [0.6, 0.55, 0.3],
@@ -133,7 +127,6 @@ export const reefConfig = {
     },
     smallKnob: {
       shapes: 2,
-      isRock: false,
       tall: 0.45,
       tints: [
         [0.6, 0.55, 0.3],
@@ -143,7 +136,6 @@ export const reefConfig = {
     },
     smallBrain: {
       shapes: 2,
-      isRock: false,
       tall: 0.4,
       tints: [
         [0.58, 0.49, 0.29],
@@ -153,7 +145,7 @@ export const reefConfig = {
       ],
     },
     /** Giant clam: two fat ribbed shells a little open, the fleshy lips between them vivid. */
-    clam: { shapes: 3, isRock: false, tall: 0.4, tints: [[0.74, 0.7, 0.62]] },
+    clam: { shapes: 3, tall: 0.4, tints: [[0.74, 0.7, 0.62]] },
   } satisfies Record<CoralKind, CoralKindConfig>,
 
   /** The colour of the lips of each of the clam's models. */
@@ -162,15 +154,14 @@ export const reefConfig = {
     [0.2, 1.0, 0.75],
     [0.75, 0.3, 1.2],
   ],
-  /** The surface of the heads' rock. */
-  rockSurface: {
-    scale: 0.3,
-    crack: 0.7,
-    pit: 1.0,
-    bump: 1.1,
-    bleach: 0,
-    barnacle: 0.35,
-  } satisfies RockSurface,
+
+  /**
+   * Every coral's tint is multiplied by this: what its colour is out of the water, where the tints
+   * are its colour seen through two or three metres of it. It is a middle course, measured on the
+   * boards: warmer, coral seen from under water goes orange; cooler, coral seen from above the
+   * water goes green.
+   */
+  outOfWater: [1.2, 1.05, 0.95],
 
   /** Nothing may stand nearer the surface than this height; what would is made smaller. */
   highestTop: -0.12,

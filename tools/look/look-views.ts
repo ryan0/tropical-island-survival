@@ -248,7 +248,7 @@ const underWater: ReferenceView[] = [
   view('under-head-close', 'two coral heads from a few metres', [14, -1.2, 78, 0.9, -0.1], calm),
   view('under-coral-near', "a head's corals from close by", [68.8, -1.0, 51.8, 3.927, -0.1], calm),
   view('under-reef-flat', 'the shallow reef flat', [5, -0.6, 190, Math.PI, 0.2], calm),
-  view('under-fore-reef', 'the fore reef, 4 m down', [0, -4, 340, Math.PI, -0.1], calm),
+  view('under-fore-reef', 'the fore reef, 3 m down', [0, -3.2, 352, Math.PI, -0.1], calm),
   view('under-drop-off', 'down the drop-off into deep water', [0, -6, 368, Math.PI, -0.3], calm),
   view('under-usual-breeze', 'the lagoon floor in the usual breeze', LAGOON_FLOOR),
   view('under-cloudy', 'the lagoon floor under cloud', LAGOON_FLOOR, { ...calm, cloudCover: 0.95 }),
@@ -269,13 +269,13 @@ const underWater: ReferenceView[] = [
   view(
     'under-deep-towards-sun',
     'the fore reef 5 m down, towards the sun',
-    [0, -5, 345, TOWARDS_THE_NOON_SUN, 0.25],
+    [0, -5, 364, TOWARDS_THE_NOON_SUN, 0.25],
     calm,
   ),
   view(
     'under-deep-up-at-sun',
     'the sun through the surface from 5 m down',
-    [0, -5, 345, TOWARDS_THE_NOON_SUN, 0.75],
+    [0, -5, 364, TOWARDS_THE_NOON_SUN, 0.75],
     calm,
   ),
   view(
@@ -404,6 +404,113 @@ const ground: ReferenceView[] = [
   ),
 ];
 
-export const lookViews = { colour, evening, weather, underWater, ground };
+/** The corals and the reef's floor from under water, close to: what the reef's sitting was judged by. */
+const reef: ReferenceView[] = [
+  view(
+    'reef-corals-on-a-head',
+    "the corals on a head's top, from an arm's length",
+    [71.5, -0.5, 57.5, 0.6, -0.6],
+    calm,
+  ),
+  view('reef-head-from-south', 'a head and its corals from 6 m', [73, -1.0, 62, 0, -0.15], calm),
+  view(
+    'reef-head-from-east',
+    'the same head from the other side, close',
+    [77, -0.9, 55, -1.4, -0.25],
+    calm,
+  ),
+  view(
+    'reef-head-from-north',
+    'the same head from the lagoon side',
+    [72, -0.9, 51.5, 3.0, -0.25],
+    calm,
+  ),
+  view('reef-lagoon-heads', 'two heads across the lagoon floor', [17, -1.3, 79.5, 0.9, -0.2], calm),
+  view(
+    'reef-lagoon-floor',
+    'the lagoon floor and the small corals on it',
+    [10, -1.3, 82, 0.5, -0.35],
+    calm,
+  ),
+  view(
+    'reef-lagoon-floor-at-hand',
+    'the sand of the lagoon floor at the hand',
+    [10, -1.2, 82, 0.5, -1.0],
+    calm,
+  ),
+  view('reef-flat-floor', 'the floor of the reef flat', [5, -0.5, 195, Math.PI, -0.4], calm),
+  view(
+    'reef-garden-floor',
+    'the floor of the back-reef gardens',
+    [0, -1.0, 250, Math.PI, -0.3],
+    calm,
+  ),
+  view(
+    'reef-fore-reef',
+    'the floor of the fore reef, 4 m down',
+    [0, -3.3, 352, Math.PI, -0.35],
+    calm,
+  ),
+];
+
+const MIDNIGHT = { ...calm, cloudCover: 0, sun: { dayPhase: 0 } };
+const TOWARDS_THE_MOON = Math.PI + 0.35;
+
+/** Up into the night sky from home beach: the stars, the Milky Way and the moon. */
+const nightSky: ReferenceView[] = [
+  view('night-sky-north', 'the northern sky at midnight', [3, 2.3, 160, 0, 0.785], MIDNIGHT),
+  view('night-sky-east', 'the eastern sky at midnight', [3, 2.3, 160, -1.571, 0.785], MIDNIGHT),
+  view(
+    'night-sky-south',
+    'the southern sky at midnight, the moon in it',
+    [3, 2.3, 160, Math.PI, 0.785],
+    MIDNIGHT,
+  ),
+  view('night-sky-west', 'the western sky at midnight', [3, 2.3, 160, 1.571, 0.785], MIDNIGHT),
+  view('night-sky-overhead', 'straight up at midnight', [3, 2.3, 160, Math.PI, 1.55], MIDNIGHT),
+  view(
+    'night-sky-south-west',
+    "the Milky Way's bright middle, in the south-west",
+    [3, 2.3, 160, 2.356, 0.7],
+    MIDNIGHT,
+  ),
+  view(
+    'night-sky-over-the-sea',
+    'the sea and the sky over it, towards the moon',
+    [3, 2.3, 160, TOWARDS_THE_MOON, 0.25],
+    MIDNIGHT,
+  ),
+  view(
+    'night-sky-before-dawn',
+    'the eastern sky two hours before dawn',
+    [3, 2.3, 160, -1.571, 0.6],
+    { ...MIDNIGHT, sun: { dayPhase: 0.08 } },
+  ),
+  view(
+    'night-sky-cloudy',
+    'the southern sky at midnight, half cloud',
+    [3, 2.3, 160, Math.PI, 0.6],
+    {
+      ...MIDNIGHT,
+      cloudCover: 0.5,
+    },
+  ),
+  view('night-sky-dusk', 'the first stars at dusk, in the east', [3, 2.3, 160, -1.571, 0.5], {
+    ...MIDNIGHT,
+    sun: { dayPhase: 0.9 },
+  }),
+  view('night-sky-moon', "the moon's face", [3, 2.3, 160, TOWARDS_THE_MOON, 0.63], MIDNIGHT, {
+    fieldOfView: 8,
+  }),
+  view(
+    'night-sky-moonrise',
+    'the moon rising at dusk',
+    [3, 2.3, 160, -1.82, 0.156],
+    { ...MIDNIGHT, sun: { dayPhase: 0.86 } },
+    { fieldOfView: 10 },
+  ),
+];
+
+export const lookViews = { colour, evening, weather, underWater, ground, reef, nightSky };
 
 export type ViewGroup = keyof typeof lookViews;

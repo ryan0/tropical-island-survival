@@ -122,6 +122,7 @@ const terrain = createTerrain({
   scene,
   renderer,
   random: randomStream('terrain'),
+  randomOfRipples: randomStream('sand ripples'),
   groundTiles: createGroundTiles(randomStream, maxAnisotropy),
   groundHeight: island.groundHeight,
   landmarks,
@@ -133,6 +134,7 @@ const lights = createLights({ scene, renderer, camera });
 const skyDome = createSkyDome({
   scene,
   uniforms,
+  randomStream,
   cloudPictureWidth,
   cloudPictureHeight: clouds.pictureHeight,
 });
@@ -231,7 +233,6 @@ const reef = createReef({
   groundHeight: island.groundHeight,
   landmarks,
   isInRock: rocks.isInRock,
-  createRockMaterial: rocks.createMaterial,
   uniforms,
   instanceCells,
 });
@@ -481,7 +482,7 @@ function frame(now: number): void {
   uniforms.uSeaLevel.value = seaConfig.level;
   uniforms.uCameraPosition.value.copy(camera.position);
   fog.color.copy(uniforms.uSkyHorizon.value);
-  skyDome.update(camera.position);
+  skyDome.update(camera.position, dayCycle.phase, renderer.getPixelRatio());
 
   if (isClockStopped) weather.set(testHooks.cloudCover(), testHooks.wind());
   cloudsFrame.time = uniforms.uTime.value;

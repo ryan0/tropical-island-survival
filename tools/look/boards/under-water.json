@@ -72,9 +72,10 @@
         ["under-water/palmyra-reef-bommies-under-surface-blue-distance.jpg", "A5:C6"]
       ],
       "ours": [
-        ["under-coral-near", "E1:G1"],
-        ["under-head-close", "F5:G6"],
-        ["under-level-lagoon", "F5:H6"]
+        ["reef-corals-on-a-head", "B6:D8"],
+        ["reef-head-from-north", "F5:I8"],
+        ["reef-head-from-south", "C6:G8"],
+        ["under-coral-near", "C5:G6"]
       ]
     },
     {
@@ -85,7 +86,11 @@
         ["under-water/kingman-reef-natural-light-red-gone.jpg", "C4:G6"],
         ["under-water/palmyra-shallow-reef-colour-fading-with-distance.jpg", "E5:G6"]
       ],
-      "ours": [["under-head-close", "H5:J5"]]
+      "ours": [
+        ["under-head-close", "F5:G6"],
+        ["under-level-lagoon", "F5:H6"],
+        ["reef-lagoon-heads", "D4:F5"]
+      ]
     }
   ]
 }

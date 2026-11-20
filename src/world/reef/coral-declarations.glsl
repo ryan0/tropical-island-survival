@@ -18,7 +18,14 @@ uniform float uWind;
 // the camera's position: three.js does not fill in cameraPosition for a Lambert material
 uniform vec3 uCameraPosition;
 
-// where the point is in the world
+// the corals' surfaces close to (coral-surface-picture.ts): red a brain coral's ridges, green a boulder coral's
+// skin, blue warts, alpha broad blotches; each 1 where the surface stands proud and 0 in its hollows
+uniform sampler2D uCoralSurface;
+
+// where the point is in the world, and which way the surface faces there
 varying vec3 vSurfacePosition;
+varying vec3 vSurfaceFacing;
+// what the surface is like: the shares of the picture's three patterns (coral-shapes.ts)
+varying vec3 vSurfaceKind;
 
 #include "../../shaders/shared/seatint"

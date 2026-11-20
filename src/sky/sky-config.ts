@@ -119,4 +119,125 @@ export const skyConfig = {
     /** How tightly it keeps to looking straight at the sun: more is tighter. */
     tightness: 8,
   },
+
+  /**
+   * Where the stars stand (sky-turn.ts). The island lies this far north of the equator (radians:
+   * 7 degrees), so the sky's pole stands as high over the northern horizon, and the whole sky
+   * turns about it once a day, east to west. The right ascension (hours) due south at midnight
+   * sets the season. 20 is a night of late July: at dusk the Southern Cross and the Pointers low
+   * in the south-west, Scorpius high in the south and the galaxy's bright middle climbing behind
+   * it; at midnight that middle in the south-west, away from the moon, and the Milky Way over
+   * the top of the sky; before dawn Pegasus, the Pleiades and the first of Orion.
+   */
+  starrySky: {
+    latitude: 0.122,
+    dueSouthAtMidnight: 20,
+  },
+
+  /** The stars (stars.ts): the real ones of star-places.ts, and the rest scattered at random. */
+  stars: {
+    count: 4200,
+    /**
+     * The random ones' magnitudes run from the first to the second, with this many times as many
+     * stars at each magnitude as at the one brighter, as in the real sky.
+     */
+    randomMagnitudes: [2.8, 6],
+    moreAtEachMagnitude: 3,
+    /**
+     * The random ones crowd towards the galaxy's plane: this many times as many in it as towards
+     * its poles, falling off over this angle (radians) to each side.
+     */
+    crowdingInMilkyWay: 2.5,
+    crowdingWidth: 0.35,
+    /** The share of the random stars of each colour class. */
+    colourShares: { B: 0.2, A: 0.25, F: 0.15, G: 0.12, K: 0.24, M: 0.04 },
+    /** The colour of each class in full. The eye sees little of it (`colourShown`). */
+    classColours: {
+      B: [0.78, 0.86, 1],
+      A: [0.9, 0.94, 1],
+      F: [1, 1, 0.95],
+      G: [1, 0.94, 0.82],
+      K: [1, 0.84, 0.64],
+      M: [1, 0.72, 0.5],
+    },
+    /** How much of that colour shows on the faintest stars, and on those of magnitude 0 and brighter. */
+    colourShown: [0.2, 0.8],
+    /**
+     * The faintest magnitude the eye makes out: by day, and on a moonless night; how many
+     * magnitudes a full moon's light takes from that over the whole sky, and how many more near it.
+     */
+    faintestSeen: { byDay: -3, byNight: 6.2, lostToMoonlight: 0.3, lostNearMoon: 2.3 },
+    /** All of `lostNearMoon` is lost within the first angle of the moon, none beyond the second (radians). */
+    nearMoon: [0.15, 0.5],
+    /** A star fades out over this many magnitudes as it nears the faintest seen. */
+    fadesOver: 0.8,
+    /**
+     * Low down the eye looks through more air: below this height (the sine of 15 degrees) a star
+     * loses up to this many magnitudes at the horizon, and takes on this colour.
+     */
+    lowDown: 0.26,
+    lostAtHorizon: 2.2,
+    colourAtHorizon: [1, 0.8, 0.6],
+    /**
+     * How bright a star of magnitude 0 is drawn at its middle; and a magnitude's ratio of light
+     * (2.5) is drawn as that ratio to this power, as a screen cannot show the true range.
+     */
+    brightnessAtMagnitudeZero: 1.8,
+    contrast: 0.32,
+    /**
+     * Each star is a soft spot, a normal curve this wide (its spread, in CSS pixels) on the
+     * faintest and on the brightest, reached at these magnitudes.
+     */
+    spread: [0.6, 1.5],
+    spreadAtMagnitudes: [5, -1],
+    /**
+     * Twinkling: how far the light swings overhead and at the horizon, and the two paces
+     * (radians a second) whose beat makes it, each star at its own pace a little off these.
+     */
+    twinkle: [0.06, 0.4],
+    twinklePaces: [23, 37],
+  },
+
+  /**
+   * The Milky Way (milky-way-picture.ts): its picture, laid out in the galaxy's longitude across
+   * and the sine of its latitude up, to `reaches` (radians) to each side of its plane.
+   */
+  milkyWay: {
+    pictureSize: [512, 128],
+    reaches: 0.5,
+    /**
+     * The band and the glow of its middle are drawn this many times as wide as the tables in
+     * milky-way-picture.ts have them: at their own width the band was a thin scarf, its faint
+     * outer parts lost on a screen.
+     */
+    widened: 1.4,
+    /** Its colour where it is brightest: a pale grey-blue glow to the eye, not a long exposure's. */
+    colour: [0.19, 0.205, 0.26],
+    /**
+     * How much of it a full moon washes out. (A real full moon washes out nearly all of it. The
+     * game's moon is full every night until it has phases, and the Milky Way would never be seen.)
+     */
+    lostToMoonlight: 0.45,
+    /** How much its glow is mottled into knots, and how much the gaps between them darken it. */
+    mottling: 0.55,
+    gaps: 0.6,
+    /** The glow is eased to this power, as the eye takes it: the fainter parts are still made out. */
+    easing: 0.9,
+  },
+
+  moon: {
+    /** How far the disc's edge is from its middle (radians): the sun's is drawn as wide, as the real one is. */
+    radius: 0.034,
+    /**
+     * Its light begins to pale the sky, hiding faint stars and the Milky Way, with the moon this
+     * high (the sine of its height), and has paled it in full this high.
+     */
+    paleningTheSky: [-0.05, 0.1],
+    /** The picture of its face (moon-face-picture.ts), dots a side. */
+    facePictureSize: 256,
+    /** How much darker the seas are than the highlands: a full moon is bright and soft to the eye. */
+    seasDarker: 0.3,
+    /** How much brighter than the highlands the young craters and their rays are. */
+    raysBrighter: 0.08,
+  },
 } as const;
