@@ -1075,6 +1075,73 @@ cent of a frame and the other two pictures at nothing, and it has been wrong abo
 every time. The panel's `ground by arithmetic` switch puts all three back to formulas: the frame rate with it
 on and off, with `more dots` on, is the measure. The switch goes once it has been read.
 
+### What a frame spends, and a budget (19 November 2026)
+
+Thousands of triangles and draws, by the class of thing, as the scene stands after the work above (the usual
+breeze, counted in the test renderer, where these counts are exact):
+
+| | out to sea, from the ocean beach | inland, from the ocean beach | the home clearing | wading in the lagoon | from above |
+|---|---|---|---|---|---|
+| The ground | 93 in 20 | 157 in 39 | 148 in 37 | 128 in 33 | 233 in 55 |
+| The water | 103 in 34 | 73 in 41 | 62 in 36 | 27 in 26 | 76 in 78 |
+| Leaves from the leaf atlas (shrubs, trees) | 20 in 2 | 214 in 51 | 161 in 33 | 21 in 8 | 78 in 27 |
+| Leaves of plain colour | 63 in 10 | 177 in 47 | 165 in 37 | 35 in 8 | 41 in 12 |
+| Palm fronds and grass | 24 in 10 | 152 in 56 | 133 in 49 | 49 in 31 | 81 in 32 |
+| Bark | 3 in 2 | 55 in 103 | 43 in 73 | 8 in 25 | 36 in 103 |
+| Rocks | 37 in 20 | 65 in 57 | 54 in 53 | 66 in 50 | 62 in 66 |
+| Coral | 67 in 50 | 41 in 29 | 73 in 59 | 266 in 110 | under 1 |
+| Animals | 23 in 11 | 23 in 11 | 23 in 11 | 23 in 11 | 23 in 11 |
+| **All** | **434 in 163** | **959 in 443** | **865 in 397** | **626 in 311** | **633 in 393** |
+
+The whole scene holds 2,051 instanced meshes (one for each kind in each map square) of 97 shapes, in seven
+materials; 5.8 million triangles if all of it were drawn at once, 3.3 million of them coral. The program's own
+time for a frame looking inland is 4 ms on the desktop, 2.4 of it inside three.js's drawing.
+
+**The budget.** One place has been read at 60 on the phone: the ocean beach looking out to sea, when it drew
+673 thousand triangles in 144 draws. So until the phone has read the others, that is the budget for any
+view: **700 thousand triangles and 150 draws**. Out to sea is inside it. Inland, the clearing and the lagoon
+are over it, in draws by two to three times; whether that costs frames on the phone is the first thing to
+read (the frame rate, and the panel's `program ... ms a frame`, at the home clearing and wading in the
+lagoon, then with `hide plants`, `hide rocks` and `hide coral`). By class, to hold when kinds are added:
+ground 150 thousand, water 100, all plants 300, rocks 60, coral 60 (150 in the lagoon, where there is little
+else), animals 30.
+
+**Where the draws go.** Looking inland, of 355 draws of instanced things, 67 are of squares within 48 m, 102
+of squares 48 to 96 m off, and 186 of squares beyond 96 m; the triangles are a third each. More than half
+the draws are spent on what is a few dots high. Bark is the dearest class by the draw: 103 for 55 thousand
+triangles. And every kind added today adds one draw for each of its parts in every square in view, near and
+far: today's kinds come to seven draws each in that view, so a hundred more, spread as they are, would add
+some seven hundred.
+
+### A proposal: many more kinds at a flat cost (for Ryan to decide)
+
+The aim is that a new kind of plant, coral or rock costs triangles where it stands near the eye and nothing
+anywhere else. Three steps, each of use without the next, in the order I would take them:
+
+1. **Far things as pictures of themselves.** Beyond a distance set by its size, a thing is drawn as a flat
+   picture of itself: two triangles, turned to the eye, from an atlas of pictures that the graphics card
+   draws at start-up from each kind's own model (so a new kind needs nothing made by hand). All kinds share
+   the atlas and one material, so a far square is **one draw for everything in it**, whatever the number of
+   kinds. Looking inland that is some 260 draws and 480 thousand triangles fewer if the change comes at 48 m,
+   170 and 260 if at 96 m. What it costs: the atlas (a few megabytes), a lit look that is flatter than the
+   model's (far things are in no shadow picture today either), and a change of shape at the distance, which
+   must not be seen: to be judged on the phone before it is kept. This is the step that makes the cost flat.
+2. **Near things of a class in one mesh a square, where they are few.** Bark is 570 instances and 138
+   thousand triangles in the whole scene, drawn as 233 meshes. Baked into one mesh for each square (trunks do
+   not sway), it is a few megabytes and a quarter of the draws, and a new kind of tree adds none. The same for
+   rocks if their 650 thousand triangles are worth 25 MB.
+3. **A cheaper draw.** three.js 0.128 sets up every attribute of an instanced mesh afresh at each draw. Our
+   own instancing (a plain mesh whose shape carries the instances, which our patched shaders can read) would
+   skip that. Worth doing only if the phone shows the program's time, and not the graphics card's, is what
+   holds the frame.
+
+Not proposed: a newer three.js for its batched meshes (its shadows lose the phone's graphics context); baking
+every kind into one mesh a square (the plants sway, and it is some 200 MB).
+
+Whatever is chosen, the rules for a new kind stay: it uses a material that exists (the leaf atlas, the plain
+leaf, bark, the frond, rock or coral), it has a simpler shape and a distance beyond which it is not drawn,
+and it is counted against its class's line of the budget before it is merged.
+
 ## Later
 
 - More passes on the reef.
