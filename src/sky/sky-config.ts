@@ -55,7 +55,7 @@ export const skyConfig = {
     overhead: { lowSun: [0.08, 0.3, 0.55], day: [0.41, 0.62, 0.9], night: [0.01, 0.015, 0.06] },
     /** How fast the overhead colour turns to day as daylight grows: less is sooner. */
     overheadEagerness: 0.55,
-    horizon: { lowSun: [0.88, 0.67, 0.46], day: [0.55, 0.73, 0.89], night: [0.07, 0.09, 0.22] },
+    horizon: { lowSun: [0.83, 0.64, 0.45], day: [0.55, 0.73, 0.89], night: [0.07, 0.09, 0.22] },
     /** The sun itself, and the light it gives. It stays golden well up the sky. */
     sun: { low: [1, 0.6, 0.28], high: [1, 0.96, 0.82] },
     sunGoldenness: 1.6,

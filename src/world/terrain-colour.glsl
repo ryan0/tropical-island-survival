@@ -49,7 +49,7 @@ const float FLOOR_SWIMS = 0.3;
 const float NET_ON_OUTER_REEF = 0.45;
 // How far a shadow on ground as bright as white is filled in by the light the ground round it throws back (sand
 // is about 0.85 as bright, and turf 0.4).
-const float GROUND_FILLS_SHADOWS = 0.38;
+const float GROUND_FILLS_SHADOWS = 0.5;
 
 // The colours of the ground.
 // (The sand is kept well under 1: in full sun the lighting multiplies it by about 1.3, and sand that clips to pure

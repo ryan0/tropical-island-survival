@@ -1246,7 +1246,8 @@ sunset where the photos are blue-grey and slate; pastel in the corals; and far t
   then 1.1.
 - *The plants:* fronds a grey-green (they are glossy, and half of what they show is sky), the leaf atlas, the
   blade plants, the vine, the turf and the dune grass all olive greens with red at three quarters of the green
-  where it was a half or less. Palm crowns 2.3 times the photos' before, 1.4 after; shrubs 1.6, then 1.2.
+  where it was a half or less. Palm crowns 2.3 times the photos' before, 1.3 after; shrubs 1.6, then 1.2. A fallen
+  frond's bleaching had to follow the frond picture's new colour (it turned violet).
 - *The corals* (`reef-config.ts`): each kind's tints taken from the photos, tan, mustard, olive, brown and a
   grey-blue, half as light as sand, where they were lilac, pink and cream. The warmth once added on top of
   every tint is gone.
@@ -1255,8 +1256,8 @@ sunset where the photos are blue-grey and slate; pastel in the corals; and far t
   the evening's ambient light cool where it was mauve (sand at dusk was purple); the water under it tinted grey
   where it was tinted violet.
 - *Shade on the ground* (`terrain-colour.glsl`): a shadow is filled in by the light the sunlit ground round it
-  throws back, the more the paler the ground, as water already fills a shadow under it. Shade on sand was a
-  third as light as the sand in the sun, and blue; it is nearly two thirds, as the photos have it.
+  throws back, the more the paler the ground, as water already fills a shadow under it. Shade on sand measured 0.42
+  in lightness against the photos' 0.63, and blue; it measures 0.58.
 - *The footpath* is pale coral sand and gravel where it was an orange-brown soil; by moonlight it now shows.
 - *Dry sand:* the shaded side of a hollow is a touch cooler and no more, where it was blue, and the low
   hummocks are gentler. This was the one material that measured busier than the photos.

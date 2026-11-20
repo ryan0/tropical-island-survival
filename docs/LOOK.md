@@ -48,13 +48,13 @@ references" (`ROADMAP.md`). The last two columns are our saturation as a multipl
 | Shallow water over sand | 13 | 0.66 | 0.074 | 210 | 1.3 | 1.1 |
 | Shallows from the air | 4 | 0.71 | 0.099 | 211 | 1.0 | 0.9 |
 | Coral sand in sun | 6 | 0.86 | 0.008 | 116 | 2.0 | 1.6 |
-| The same sand in a palm's shade | 5 | 0.63 | 0.009 | 194 | 3.0 | 2.1 |
-| Palm crowns in sun | 8 | 0.45 | 0.047 | 146 | 2.3 | 1.4 |
+| The same sand in a palm's shade | 5 | 0.63 | 0.009 | 194 | 3.0 | 1.8 |
+| Palm crowns in sun | 8 | 0.45 | 0.047 | 146 | 2.3 | 1.3 |
 | Shrubs and trees in sun | 6 | 0.42 | 0.076 | 127 | 1.6 | 1.2 |
 | Low plants on sand (creepers, herbs) | 4 | 0.47 | 0.065 | 124 | | |
 | The floor of a coconut grove in sun | 4 | 0.60 | 0.027 | 94 | | |
-| Sunset: the sky low, towards the sun | 5 | 0.72 | 0.064 | 67 | 2.0 | 1.4 |
-| Sunset: the sky high | 4 | 0.50 | 0.037 | 247 | 1.9 | 0.8 |
+| Sunset: the sky low, towards the sun | 5 | 0.72 | 0.064 | 67 | 2.0 | 1.3 |
+| Sunset: the sky high | 4 | 0.50 | 0.037 | 247 | 1.9 | 0.9 |
 | Sunset: the water | 6 | 0.45 | 0.023 | 141 | 2.0 | 2.0 |
 | Lobed and massive corals | 6 | 0.40 | 0.051 | 114 | 0.4 | 1.1 |
 | Brain corals | 2 | 0.48 | 0.057 | 83 | | |
@@ -69,8 +69,8 @@ Read with these in mind:
   the sunset's sky high up a mauve (355) where the photos have blue-grey (247), and its water violet (289); the
   sand's shade a blue.
 - **Lightness was wrong in two:** the corals, pastels at 0.76 and 0.84 where the photos have earth colours at
-  0.40 to 0.58; and shade on sand, 0.42 where the photos have 0.63, two thirds as light as the sand in the sun
-  beside it.
+  0.40 to 0.58 (they are at 0.55 and 0.66 now, seen through water); and shade on sand, 0.42 where the photos
+  have 0.63, two thirds as light as the sand in the sun beside it (0.58 now).
 - **Sand has next to no colour** (0.008): it is white, a touch warm. The sunset's water has little (0.023), and
   what it has is as often a grey or a dark teal as anything: in our last column it is a slate blue, which two of
   the six photos are.

@@ -37,8 +37,8 @@ function paintLeaflet(
   // glossy, and half of what they show is the sky. With red at six tenths of the green and blue at a third
   // they were a lime.)
   const shade = context.createLinearGradient(x, MIDRIB, x + lean, pointY);
-  shade.addColorStop(0, rgb(green * 0.98, green * 1.17, green * 0.88));
-  shade.addColorStop(1, rgb(green * 0.66, green * 0.85, green * 0.63));
+  shade.addColorStop(0, rgb(green * 0.96, green * 1.17, green * 0.92));
+  shade.addColorStop(1, rgb(green * 0.64, green * 0.85, green * 0.67));
   context.fillStyle = shade;
   context.beginPath();
   context.moveTo(x - 3.1, MIDRIB);
