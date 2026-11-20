@@ -182,6 +182,12 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   in the drawing. Its size is `seaConfig.underWaterPicture.shareOfScreen`. Still to save if it is wanted:
   what lies under the sea is drawn twice, into the picture and onto the screen, where the surface then
   covers all of it but what lies in a hand's depth of water.
+- New on 20 November 2026 and not yet on the phone: every built-in material's vertex shader ends by moving
+  the vertex, while the picture of what is under the sea is drawn (`sea/water-as-fog.ts`, in three.js's
+  `fog_vertex`): up, by how much nearer the surface it seems (`raised-through-surface.glsl`). It is two
+  rounds of plain arithmetic with an inverse square root and a square root of numbers that cannot be nought
+  or less, no loop, no branch, and it moves a vertex by no more than its depth under the sea. On the screen
+  itself nothing is moved.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

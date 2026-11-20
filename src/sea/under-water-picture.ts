@@ -14,7 +14,7 @@ import {
 } from 'three';
 import type { SharedUniforms } from '../core/shared-uniforms';
 import { seaConfig } from './sea-config';
-import type { DepthIntoSeaPicture } from './water-as-fog';
+import type { IntoSeaPicture } from './water-as-fog';
 import type { WaterMaterials } from './water-materials';
 
 // What is under the sea, as a picture drawn before each frame, for the sea's surface to read.
@@ -26,10 +26,11 @@ import type { WaterMaterials } from './water-materials';
 // behind it must be a picture it can read a little to one side: so everything that the water
 // can lie over (everything that takes the scene's fog, but what stands still and clear of the
 // sea) is drawn first into this one, a share of the screen's size, each thing as the light that
-// reaches it leaves it and with its depth under the sea beside its colour (water-as-fog.ts). The
-// surface then draws all that the water does to the look of each thing, by the thing's own depth
-// (water.frag.glsl, shaders/shared/water-veil.glsl): nothing under the sea draws any of it on
-// itself, and the surface need not guess at what lies behind it.
+// reaches it leaves it, with its depth under the sea beside its colour, and raised to where it
+// seems to be through a flat surface (water-as-fog.ts, raised-through-surface.glsl). The surface
+// then draws all that the water does to the look of each thing, by the thing's own depth, and
+// adds its ripples' bending (water.frag.glsl, shaders/shared/water-veil.glsl): nothing under the
+// sea draws any of that on itself, and the surface need not guess at what lies behind it.
 //
 // It costs the scene's triangles under and near the sea drawn twice. No depth texture is read
 // (docs/DEVICE_NOTES.md): the depth is a number each thing writes beside its colour. While the
@@ -50,7 +51,7 @@ export interface UnderWaterPictureDependencies {
   scene: Scene;
   camera: PerspectiveCamera;
   uniforms: SharedUniforms;
-  depthIntoSeaPicture: DepthIntoSeaPicture;
+  intoSeaPicture: IntoSeaPicture;
   waterMaterials: Pick<WaterMaterials, 'show'>;
 }
 
@@ -93,7 +94,7 @@ function lowestPointOf(thing: Object3D): number | null {
 export function createUnderWaterPicture(
   dependencies: UnderWaterPictureDependencies,
 ): UnderWaterPicture {
-  const { renderer, scene, camera, uniforms, depthIntoSeaPicture, waterMaterials } = dependencies;
+  const { renderer, scene, camera, uniforms, intoSeaPicture, waterMaterials } = dependencies;
   const picture = new WebGLRenderTarget(1, 1, {
     format: RGBAFormat,
     minFilter: LinearFilter,
@@ -146,8 +147,7 @@ export function createUnderWaterPicture(
       const clearAlpha = renderer.getClearAlpha();
       renderer.setClearAlpha(1);
       waterMaterials.show(false);
-      depthIntoSeaPicture.setEyeOverSea(camera.position.y - uniforms.uSeaLevel.value);
-      depthIntoSeaPicture.write(true);
+      intoSeaPicture.begin(camera.position.y - uniforms.uSeaLevel.value);
       camera.layers.disable(NOT_IN_PICTURE);
       renderer.setRenderTarget(picture);
 
@@ -155,7 +155,7 @@ export function createUnderWaterPicture(
 
       renderer.setRenderTarget(null);
       camera.layers.enable(NOT_IN_PICTURE);
-      depthIntoSeaPicture.write(false);
+      intoSeaPicture.end();
       waterMaterials.show(true);
       renderer.setClearAlpha(clearAlpha);
       renderer.shadowMap.needsUpdate = shadowsAreDue;

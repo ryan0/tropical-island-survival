@@ -20,9 +20,8 @@ the phone with another agent).**
   section for each day's work after it). Done: the targets (eight pairs and a fly-round); the three faults
   first found; the picture of what is under the sea, now the one way the water is drawn, with every older rule
   it replaced deleted. In hand or next, in this order:
-  1. *What is seen through the surface is where the bent ray lands.* (See "The islet's shore" below, if it is
-     there; if not, it is still to do: from the lagoon islet the water by its shore is a flat cyan band with
-     a dark stepped line at the waterline.)
+  1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore", far below): for
+     Ryan to confirm on the phone, where a new rule in every material's vertex shader has not yet run.
   2. *Colours and clearness against the pairs* (the plan's stage D): shallow water over white sand is all but
      colourless for its first half metre, where ours is turquoise from the first step; far water at a low
      angle is the sky's mirror, where ours shows its floor; a lagoon at dusk is all mirror, where ours is blue
@@ -2066,6 +2065,60 @@ shadow in it, so the shadows must be drawn apart first.
 palms, the land's plants, the inland ground), and the surface no longer searches along the line of sight for
 a coral head where the picture answers that. Still to do if the picture stays: the ground under the sea is
 coloured twice, once in the picture and once on the screen, where the surface then covers it.
+
+### The islet's shore: what is under the sea drawn where it seems to be (20 November 2026, evening)
+
+Ryan, of the build with the picture as the one way: a steady 60 frames a second on the phone; "everywhere
+else is vastly improved"; but "from the island in lagoon the water still looks a bit off": a flat band of
+cyan off the islet's beach, with a dark stepped line along the waterline.
+
+**The cause** (found by drawing what the surface was working from: the raw picture, the depths it read, how
+opaque it came out): nothing bent the eye's line *down* at the surface. The picture was drawn by straight
+lines, and from the islet's top a straight line skims the islet's submerged slope, which falls away at about
+the angle the eye looks down at: the whole slope from the waterline to 2 m down fills 27 dots of the screen's
+height, edge-on, and past it the line lands in the basin, 8 m down. So the surface over the shallows found
+the deep basin behind it and hid it in the water's own colour: a flat band. In life the line is bent steeply
+down as it enters the water, and what is seen through a spot of the surface lies nearly under that spot: the
+sand of the slope. (The dark line was a second thing: the water's colour went partly by the depth 16 m on
+along the line of sight, an older guess of the same kind, which made the shallows of a steep shore the colour
+of the deep beyond. That rule is deleted.)
+
+**What was tried and thrown out:** reading the picture where the bent line would land. What should be seen
+there is edge-on or hidden in a picture drawn by straight lines, and cannot be read out of it: it gave
+streaks, and a ragged edge where the reading ran off the slope.
+
+**What was done** (`shaders/shared/raised-through-surface.glsl`): into the picture, everything under the sea
+is drawn raised to where it seems to be through a flat surface. A thing at depth d, seen at an angle, seems
+to lie at d x cos(angle in air) / (1.33 x cos(angle in water)) under the surface on the same upright: three
+quarters of its depth looking straight down, a third at twenty degrees, less the lower the eye. It is worked
+out for every corner of every thing, in the one place every material's vertex shader passes through
+(`sea/water-as-fog.ts`), so nothing can move against anything else; twice over, with no loop; and it fades
+out between 6 and 10 m of depth, where the water hides all (and where the open sea's floor, one great
+rectangle, would be lifted whole by its far corners). The surface reads the picture straight behind itself,
+as before, and adds only its ripples' bending.
+
+*Into the picture only.* For some minutes it was done on the screen as well, and the far floor of the reef,
+which seems to lie a hand's depth under the sea, stood up out of the troughs of the waves as brown discs:
+Ryan saw it in his dev server, which shows the working files as they are saved.
+
+So that the frame's own drawing (by straight lines) is not mistaken for what the picture holds, it now shows
+through only where a thing lies in under 12 cm of water (it was 30).
+
+**Checked:** every view from under the water and every view of the land is the same to the dot as before;
+the islet's shore from its top, from four sides and in a breeze, shows its sand running down under the water
+and no line; the pairs and the fly-round were looked over at full size. From the fly camera things under
+water sit a little flatter, as they do in life.
+
+**Known, and left:** a thing is raised by its depth under the still sea, not under the wave over it; where a
+tall thing stands close before a deep one, the raising is right for each but the picture's silhouettes are
+its own; a thing under water at the very edge of the screen can be left out of a frame's drawing when only
+its raised place is in view.
+
+**Only the phone can say:** whether the new rule in every vertex shader draws rightly there (it is plain
+arithmetic, with no loop and nothing divided by what could be nought, but this phone has disagreed with the
+desktop about vertex shaders before: `DEVICE_NOTES.md`); and the frame rate, which should not have moved.
+If anything under water or on land looks torn or stretched on the phone, this rule is the first suspect:
+setting `raisedThroughSurface`'s result to nought in `sea/water-as-fog.ts` switches it off.
 
 ## Later
 

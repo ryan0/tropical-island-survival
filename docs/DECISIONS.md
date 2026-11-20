@@ -68,7 +68,10 @@ the git tag `build-78`.
     under the sea that is drawn before each frame (`sea/under-water-picture.ts`): the surface reads the
     picture a little to one side, as its ripples bend the eye's line, and greys each thing, puts the water's
     glow before it and hides it in the water's colour, by that thing's own depth
-    (`shaders/shared/water-veil.glsl`). Other engines measure the water in front of a thing from the scene's
+    (`shaders/shared/water-veil.glsl`). Into that picture every thing under the sea is drawn raised to where
+    it seems to be through a flat surface (`shaders/shared/raised-through-surface.glsl`), since the picture
+    is drawn by straight lines and the eye's line is bent down at the surface: without that, an eye looking
+    down a slope that falls away saw past it to the deep. Other engines measure the water in front of a thing from the scene's
     depth behind the surface, which may not be read here (`DEVICE_NOTES.md`): so each thing writes its depth
     under the sea beside its colour, through the same place in every material that fogs it
     (`sea/water-as-fog.ts`), which needs two numbers three.js does not hand a material: they are one uniform

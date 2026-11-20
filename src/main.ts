@@ -86,7 +86,7 @@ function pageElement(id: string): HTMLElement {
 
 const build = { version: import.meta.env.BUILD_VERSION, commit: import.meta.env.BUILD_COMMIT };
 const testHooks = createTestHooks();
-const { renderer, canvas, scene, camera, fog, depthIntoSeaPicture } = createStage(
+const { renderer, canvas, scene, camera, fog, intoSeaPicture } = createStage(
   pageElement('err'),
   pageElement('hint'),
 );
@@ -294,7 +294,7 @@ const underWaterPicture = createUnderWaterPicture({
   scene,
   camera,
   uniforms,
-  depthIntoSeaPicture,
+  intoSeaPicture,
   waterMaterials,
 });
 const audio = createAudio();

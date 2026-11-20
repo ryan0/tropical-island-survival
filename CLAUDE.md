@@ -22,8 +22,10 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`src/sea/water.frag.glsl`).
 - For an eye above the sea, everything the water does to the look of what is under it is the sea's surface's to
   draw, and nothing else's: what is under the sea is drawn first into a picture, each thing with its depth
-  beside its colour (`src/sea/under-water-picture.ts`), and the surface reads it bent by its ripples, and greys
-  and hides each thing by that thing's own depth (`src/shaders/shared/water-veil.glsl`). A thing's own shader
+  beside its colour and raised to where it seems to be through a flat surface
+  (`src/sea/under-water-picture.ts`, `src/shaders/shared/raised-through-surface.glsl`), and the surface reads it
+  bent by its ripples, and greys and hides each thing by that thing's own depth
+  (`src/shaders/shared/water-veil.glsl`). A thing's own shader
   draws only the light that reaches it (`src/shaders/shared/light-under-sea.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
   formula out for every dot: its noise and random numbers, the shore, the reef's cover, the turf's patterns
@@ -75,6 +77,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   photo from the same height and light) and the fly-round (from 5 to 40 m up, at noon, dusk and under cloud):
   small pictures from chosen poses at noon hid faults he found at once (`tools/look/README.md`).
 - **Discuss first.** Architecture, structure and style changes are agreed before they are made.
+- **He watches as the work is done.** His dev server shows the working files as they are saved: a shader left
+  half changed, or coloured for a test, is on his screen at once. Say so before an experiment that will break
+  the picture, and keep such states short.
 - **Find the cause before mending.** Draw the thing by itself and look, before naming a cause from the code:
   on 20 November 2026 three causes named from reading were wrong, and each cost a round (`docs/ROADMAP.md`,
   "Why the passes went round in circles"). A change to how something is drawn is made across the whole code,

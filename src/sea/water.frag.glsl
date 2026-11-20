@@ -303,26 +303,23 @@ const float MASS_HOLLOWS = 0.17;
 
 // Light bends as it enters water: the sine of its angle to the surface's normal shrinks by this (1 / 1.33).
 const float INTO_WATER = 0.75;
-// How far water's colour goes by its depth averaged round about, and not its own (below); and how far that goes
-// by the depth FLOOR_SOUGHT metres on along the line of sight, where the eye looks low enough to see that far
-// through it.
+// How far water's colour goes by its depth averaged round about, and not its own (below).
 const float DEPTH_SPREADS = 0.8;
-const float DEPTH_AHEAD_COUNTS = 0.6;
-// The surface reads what is behind it from the picture of what is under the sea (under-water-picture.ts), a
-// little to one side: as far as its slope bends the eye's line on the way down. A ray that goes into water
-// through a slope is turned by a quarter of the slope, so it lands that share of the depth to one side; this is
-// that share, and the depth it is taken over at most (m). (At 0.3 a stone's width changed by a third from one
-// moment to the next: if what is under the water still wobbles too much on the phone, this is the number.)
+// The surface reads what is behind it from the picture of what is under the sea (under-water-picture.ts), which
+// holds each thing where it seems to be through a flat sea (raised-through-surface.glsl). The ripples bend the
+// eye's line a little more: a ray that goes into water through a slope is turned by a quarter of the slope, so
+// it lands that share of the thing's depth to one side; this is that share, and the depth it is taken over at
+// most (m). (At 0.3 a stone's width changed by a third from one moment to the next: if what is under the water
+// still wobbles too much on the phone, this is the number.)
 const float BENDS = 0.25;
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (But a thing in next to no water is seen in the frame's own drawing of it, which is sharper than the picture:
-// the picture comes in between these depths of the thing, m.)
-const vec2 PICTURE_FROM_DEPTH = vec2(0.05, 0.3);
+// the picture comes in between these depths of the thing, m. No deeper: the frame's own drawing is by straight
+// lines, and at a low angle a straight line through water even a foot deep runs on to something else.)
+const vec2 PICTURE_FROM_DEPTH = vec2(0.02, 0.12);
 // Where the swell breaks the water is churned up and never quite clear: it is this much cloudier than clear
 // water (water-veil.glsl's hiddenByWater).
 const float CHURNED_CLOUDIER = 0.8;
-// How far on along the line of sight the floor's depth is asked for, for the water's colour (above).
-const float FLOOR_SOUGHT = 16.0;
 // How much of a thing under more than a little water goes to grey (water-veil.glsl's seenDownThroughWater): on
 // the ocean's side, and in the lagoon's glassy water.
 const vec2 GREYS_UNDER_WATER = vec2(0.5, 0.28);
@@ -781,22 +778,16 @@ void main() {
   float liftOverSea = vWaterPosition.y - uSeaLevel;
   float sightLevel = max(length(towardsCamera.xz), 1e-3);
   float hasFloor = uIsFlatSheet < 0.5 || inLagoon > 0.5 ? 1.0 : 0.0;
-  // (Under the far sea there is no floor to ask after, and its water hides everything: nothing is read there. The
-  // picture has no mipmaps, so it may be read inside this branch.)
+  // (Under the far sea there is no floor to ask after: nothing is read there. The picture has no mipmaps, so it
+  // may be read inside this branch.)
+  // (The colour once went by the depth further on along the line of sight as well, for a low eye, as if the line
+  // ran on straight under the surface. It does not: it is bent steeply down, and what is seen through a spot of
+  // the surface lies nearly under it. By that rule the shallows of a shore that falls away steeply were the
+  // colour of the deep beyond: a dark line along the lagoon islet's beach.)
   float depthRound = waterDepth;
-  float floorOnAlongSight = SEA_FLOOR_DEPTH;
-  if (hasFloor > 0.5) {
-    depthRound = texture2D(uSeaFloor, xz / SEA_PICTURE_SPAN + 0.5).z + liftOverSea;
-    // (And by the depth further on along the line of sight, the more the lower the eye looks: what is seen
-    // through the surface there is the water ahead, not that straight under it.)
-    vec2 sightOn = xz - towardsCamera.xz / sightLevel * FLOOR_SOUGHT;
-    floorOnAlongSight = texture2D(uSeaFloor, sightOn / SEA_PICTURE_SPAN + 0.5).z;
-  }
-  float sightRunsOn = clamp(waterDepth * sightLevel / (max(towardsCamera.y, 0.02) * FLOOR_SOUGHT), 0.0, 1.0);
-  float depthSeenThrough = mix(depthRound, max(floorOnAlongSight + liftOverSea, 0.0),
-    DEPTH_AHEAD_COUNTS * sightRunsOn);
+  if (hasFloor > 0.5) depthRound = texture2D(uSeaFloor, xz / SEA_PICTURE_SPAN + 0.5).z + liftOverSea;
   float lightSpreads = DEPTH_SPREADS * smoothstep(0.2, 1.0, waterDepth) * hasFloor;
-  float colouredAsDeep = mix(1.0, max(depthSeenThrough, 0.2) / max(waterDepth, 0.2), lightSpreads);
+  float colouredAsDeep = mix(1.0, max(depthRound, 0.2) / max(waterDepth, 0.2), lightSpreads);
 
   // (WATER_STOPS_AFTER_...: six debug switches end the colouring here and at five places further on, and draw
   // what has been worked out so far as a rough colour, so that nothing before the place is left out and nothing
