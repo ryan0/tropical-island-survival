@@ -13,7 +13,8 @@ import {
   type WebGLRenderer,
 } from 'three';
 import type { SharedUniforms } from '../core/shared-uniforms';
-import type { SeaSeenFromAbove } from './water-as-fog';
+import { seaConfig } from './sea-config';
+import type { DepthIntoSeaPicture } from './water-as-fog';
 import type { WaterMaterials } from './water-materials';
 
 // What is under the sea, as a picture drawn before each frame, for the sea's surface to read.
@@ -23,46 +24,43 @@ import type { WaterMaterials } from './water-materials';
 // the eye's line at every ripple, so what is under it shimmers and its edges break up, and that
 // is most of what makes it look like water. For the surface to bend what is behind it, what is
 // behind it must be a picture it can read a little to one side: so everything that the water
-// veils (everything that takes the scene's fog) is drawn first into this one, half the screen's
-// size, each thing as it is and with its depth under the sea beside its colour
-// (water-as-fog.ts). The surface then draws the water over each thing by the thing's own depth
-// (water.frag.glsl), which also ends its guessing at what lies behind it.
+// can lie over (everything that takes the scene's fog, but what stands still and clear of the
+// sea) is drawn first into this one, a share of the screen's size, each thing as the light that
+// reaches it leaves it and with its depth under the sea beside its colour (water-as-fog.ts). The
+// surface then draws all that the water does to the look of each thing, by the thing's own depth
+// (water.frag.glsl, shaders/shared/water-veil.glsl): nothing under the sea draws any of it on
+// itself, and the surface need not guess at what lies behind it.
 //
-// It is a trial (20 November 2026, docs/ROADMAP.md): the scene's triangles are drawn twice, and
-// only the phone can say what that costs. Off, nothing here is drawn and the surface is as before.
+// It costs the scene's triangles under and near the sea drawn twice. No depth texture is read
+// (docs/DEVICE_NOTES.md): the depth is a number each thing writes beside its colour. While the
+// eye is under the water the picture is not drawn, and the water between the eye and a thing is
+// the fog's (through-water.glsl).
 
+const config = seaConfig.underWaterPicture;
 // Things on this layer are not drawn into the picture: the sea's surfaces, the sky and all else
 // that takes no fog, and whatever stands still and wholly above the sea. The eye sees this layer
 // and the first.
 const NOT_IN_PICTURE = 1;
-// The sea is never behind a thing whose lowest point is this far above the still sea (m): no wave
-// stands so high where anything stands.
-const CLEAR_OF_THE_SEA = 1.5;
 // Where in an instance's matrix its height is.
 const HEIGHT_IN_MATRIX = 13;
 const NUMBERS_IN_A_MATRIX = 16;
-// The picture's size as a share of the screen's, each way.
-const SHARE_OF_SCREEN = 0.5;
 
 export interface UnderWaterPictureDependencies {
   renderer: WebGLRenderer;
   scene: Scene;
   camera: PerspectiveCamera;
   uniforms: SharedUniforms;
-  seaSeenFromAbove: SeaSeenFromAbove;
+  depthIntoSeaPicture: DepthIntoSeaPicture;
   waterMaterials: Pick<WaterMaterials, 'show'>;
 }
 
 export interface UnderWaterPicture {
-  /** Whether the picture is drawn each frame and the sea's surface reads it. */
-  readonly isDrawn: boolean;
-  draw(on: boolean): void;
   /**
    * Sorts the scene into what the picture holds and what it does not. Call once everything is
    * in the scene: a thing added later is drawn into the picture whatever it is.
    */
   sortScene(): void;
-  /** Draws the picture for the frame about to be drawn, if it is wanted and the eye is above the sea. */
+  /** Draws the picture for the frame about to be drawn, while the eye is above a sea that is there. */
   update(isCameraUnderWater: boolean, isSeaDrained: boolean): void;
 }
 
@@ -95,7 +93,7 @@ function lowestPointOf(thing: Object3D): number | null {
 export function createUnderWaterPicture(
   dependencies: UnderWaterPictureDependencies,
 ): UnderWaterPicture {
-  const { renderer, scene, camera, uniforms, seaSeenFromAbove, waterMaterials } = dependencies;
+  const { renderer, scene, camera, uniforms, depthIntoSeaPicture, waterMaterials } = dependencies;
   const picture = new WebGLRenderTarget(1, 1, {
     format: RGBAFormat,
     minFilter: LinearFilter,
@@ -110,19 +108,10 @@ export function createUnderWaterPicture(
   camera.layers.enable(NOT_IN_PICTURE);
 
   const screen = new Vector2();
-  let isWanted = false;
 
   return {
-    get isDrawn() {
-      return isWanted;
-    },
-
-    draw(on) {
-      isWanted = on;
-    },
-
     sortScene() {
-      const clearOfTheSea = uniforms.uSeaLevel.value + CLEAR_OF_THE_SEA;
+      const clearOfTheSea = uniforms.uSeaLevel.value + config.clearOfTheSea;
       scene.updateMatrixWorld();
       scene.traverse((thing: Object3D & { material?: Material | Material[] }) => {
         if (thing.material === undefined) return;
@@ -135,13 +124,13 @@ export function createUnderWaterPicture(
     },
 
     update(isCameraUnderWater, isSeaDrained) {
-      const isDrawnNow = isWanted && !isCameraUnderWater && !isSeaDrained;
-      uniforms.uPictureDrawn.value = isDrawnNow ? 1 : 0;
-      if (!isDrawnNow) return;
+      const isDrawn = !isCameraUnderWater && !isSeaDrained;
+      uniforms.uPictureDrawn.value = isDrawn ? 1 : 0;
+      if (!isDrawn) return;
 
       renderer.getDrawingBufferSize(screen);
-      const width = Math.max(1, Math.round(screen.x * SHARE_OF_SCREEN));
-      const height = Math.max(1, Math.round(screen.y * SHARE_OF_SCREEN));
+      const width = Math.max(1, Math.round(screen.x * config.shareOfScreen));
+      const height = Math.max(1, Math.round(screen.y * config.shareOfScreen));
       if (picture.width !== width || picture.height !== height) picture.setSize(width, height);
       uniforms.uDotOfPicture.value.set(1 / screen.x, 1 / screen.y);
       // (A metre across, a metre from the eye, as a share of the picture: half of what the
@@ -157,7 +146,8 @@ export function createUnderWaterPicture(
       const clearAlpha = renderer.getClearAlpha();
       renderer.setClearAlpha(1);
       waterMaterials.show(false);
-      seaSeenFromAbove.drawIntoPicture(true);
+      depthIntoSeaPicture.setEyeOverSea(camera.position.y - uniforms.uSeaLevel.value);
+      depthIntoSeaPicture.write(true);
       camera.layers.disable(NOT_IN_PICTURE);
       renderer.setRenderTarget(picture);
 
@@ -165,7 +155,7 @@ export function createUnderWaterPicture(
 
       renderer.setRenderTarget(null);
       camera.layers.enable(NOT_IN_PICTURE);
-      seaSeenFromAbove.drawIntoPicture(false);
+      depthIntoSeaPicture.write(false);
       waterMaterials.show(true);
       renderer.setClearAlpha(clearAlpha);
       renderer.shadowMap.needsUpdate = shadowsAreDue;

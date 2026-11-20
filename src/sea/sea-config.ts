@@ -162,6 +162,22 @@ export const seaConfig = {
   fogInAir: [220, 2600],
 
   /**
+   * The picture of what is under the sea, which the sea's surface reads (under-water-picture.ts).
+   */
+  underWaterPicture: {
+    /**
+     * Its size as a share of the screen's, each way. Larger is sharper under shallow water (the
+     * net of light most of all) and dearer: every dot of it is a dot of the scene coloured again.
+     */
+    shareOfScreen: 0.5,
+    /**
+     * A thing whose lowest point is this far above the still sea (m) is never drawn into it: no
+     * wave stands so high where anything stands.
+     */
+    clearOfTheSea: 1.5,
+  },
+
+  /**
    * The water's own colour to an eye under it, looking level: what everything fades into with
    * distance (shaders/shared/through-water.glsl has how fast). Red, green, blue from 0 to 1, as
    * photographs taken under water measure them (docs/LOOK.md, "Under water").

@@ -1,7 +1,7 @@
 // What water does to the light on its way from a thing to an eye that is under the water with it. Every metre takes
 // a share of the light, red first, and puts the water's own light in its place: so a coral near the eye keeps its
 // colour, one ten metres off is green-blue, and by thirty metres there is only the water. (What the water over a
-// thing does to the light that falls on it is another matter: seatint.glsl, terrain-colour.glsl.)
+// thing does to the light that falls on it is another matter: light-under-sea.glsl.)
 //
 // The numbers go by photographs taken under water in daylight without a flash (docs/LOOK.md, "Under water").
 // Needs nothing from outside.

@@ -66,8 +66,6 @@ interface Window {
   __cloudCover?: number;
   /** Read once as the page loads: no automatic quality steps; the width of the cloud pictures. */
   __isAutomaticQualityOff?: boolean;
-  /** Read once as the page loads: the trial of the picture of what is under the sea, on. */
-  __isUnderWaterPictureDrawn?: boolean;
   __cloudPictureWidth?: number;
   /** Added by the tests (scene-page.ts): the only thing that makes time pass in the page. */
   __runFrames(count: number, millisecondsEach: number): void;

@@ -1,6 +1,6 @@
 import { ShaderChunk, ShaderLib } from 'three';
+import depthInSeaPicture from '../shaders/shared/depth-in-sea-picture.glsl';
 import throughWater from '../shaders/shared/through-water.glsl';
-import waterVeil from '../shaders/shared/water-veil.glsl';
 
 // To an eye under water, the water between it and a thing is what fog is in air, with two
 // differences: it takes red long before it takes blue, and its own light is brighter looking up
@@ -15,19 +15,15 @@ import waterVeil from '../shaders/shared/water-veil.glsl';
 // shader again when the kind of fog changes: a long stumble on a phone at every dive.) Under
 // water the fog's colour is the water's colour looking level, and where it ends means nothing.
 //
-// To an eye above the sea, the same rule has a third case: a thing under the sea is veiled by the
-// water its own light comes up through (water-veil.glsl), whatever it is, so that the sea's
-// surface need not hide it by the depth of whatever lies beside it. For that every material must
-// know four numbers more: the daylight, the night, how high the eye is above the sea, and whether
-// there is a sea (it can be drained; and while the picture of what is under it is drawn for the
-// surface to read, under-water-picture.ts, things are drawn into it unveiled). They
-// are given as one uniform, whose value is one array that every material shares: three.js copies
-// a material's uniforms when it first compiles it, but an array of this kind it hands over as it
-// is, so what is written into it each frame reaches them all.
-
-// The fourth of the numbers every material is told of the sea: nought with the sea drained, one
-// with it there, and this while the picture of what is under it is drawn.
-const INTO_THE_PICTURE = 2;
+// The same place in every material does one thing more. For an eye above the sea, what is under
+// it is drawn first into a picture that the sea's surface reads (under-water-picture.ts), and
+// into that picture each thing writes, beside its colour, how deep under the sea it lies
+// (depth-in-sea-picture.glsl): the surface draws the water over each thing by that. For it a
+// material must know two numbers that three.js does not hand it: how high the eye is above the
+// sea, and whether it is the picture that is being drawn. They are one uniform, whose value is one
+// array that every material shares: three.js copies a material's uniforms when it first compiles
+// it, but an array of this kind it hands over as it is, so what is written into it reaches them
+// all (docs/DEVICE_NOTES.md).
 
 /** Where the scene's fog begins while the eye is under water (under-water.ts sets it). */
 export const FOG_BEGINS_UNDER_WATER = -1;
@@ -42,66 +38,43 @@ const PLACE_FROM_EYE = `
 const SEEN_THROUGH_WATER = `
 #ifdef USE_FOG
 	#ifndef FOG_EXP2
-	{
-		float metresFromEye = length( vPlaceFromEye.xyz );
-		float riseFromEye = vPlaceFromEye.w / max( metresFromEye, 1e-3 );
 		if ( fogNear < 0.0 ) {
-			gl_FragColor.rgb = seenThroughWater( gl_FragColor.rgb, fogColor, metresFromEye, riseFromEye );
+			float metresOfWater = length( vPlaceFromEye.xyz );
+			gl_FragColor.rgb = seenThroughWater( gl_FragColor.rgb, fogColor, metresOfWater,
+				vPlaceFromEye.w / max( metresOfWater, 1e-3 ) );
 		} else {
-			float depthUnderSea = - ( vPlaceFromEye.w + seaSeenFromAbove.z ) * min( seaSeenFromAbove.w, 1.0 );
-			if ( seaSeenFromAbove.w > 1.5 ) {
-				// (into the picture of what is under the sea: as it is, with its depth beside its colour)
-				gl_FragColor.a = depthAsHeld( depthUnderSea );
-			} else if ( depthUnderSea > 0.0 ) {
-				float metresOfWater = metresOfWaterOver( depthUnderSea, riseFromEye );
-				// (its colour goes by the depth alone, as the surface's does, whichever way the eye looks)
-				vec3 waterColour = waterBodyColour( depthUnderSea )
-					* waterInThisLight( seaSeenFromAbove.x, seaSeenFromAbove.y );
-				gl_FragColor.rgb = mix( gl_FragColor.rgb, waterColour,
-					hiddenByWater( metresOfWater, 1.0 - SURFACE_DRAWS ) );
-			}
 			gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor, smoothstep( fogNear, fogFar, fogDepth ) );
+			if ( depthIntoSeaPicture.y > 0.5 ) {
+				gl_FragColor.a = depthAsHeld( - ( vPlaceFromEye.w + depthIntoSeaPicture.x ) );
+			}
 		}
-	}
 	#else
 		gl_FragColor.rgb = mix( gl_FragColor.rgb, fogColor,
 			1.0 - exp( - fogDensity * fogDensity * fogDepth * fogDepth ) );
 	#endif
 #endif`;
 
-/** What every material is told of the sea, for a thing under it seen by an eye above it. */
-export interface SeaSeenFromAbove {
-  /**
-   * daylight: 0 with the sun at the horizon to 1 by day. night: 0 by day to 1 at night.
-   * eyeOverSea: how high the eye is above the still sea, in metres (below it, in the trough of a
-   * wave, it is less than nought). isSeaThere: false while the sea is drained, and veils nothing.
-   */
-  set(daylight: number, night: number, eyeOverSea: number, isSeaThere: boolean): void;
-  /**
-   * While on, nothing is veiled, and each thing writes its depth under the sea beside its colour:
-   * for drawing the picture the sea's surface reads (under-water-picture.ts).
-   */
-  drawIntoPicture(on: boolean): void;
+/** What every material is told, so that it can be drawn into the picture of what is under the sea. */
+export interface DepthIntoSeaPicture {
+  /** How high the eye is above the still sea, in metres (in a wave's trough, less than nought). */
+  setEyeOverSea(metres: number): void;
+  /** While on, each thing writes its depth under the sea beside its colour. */
+  write(on: boolean): void;
 }
 
 /**
- * Gives three.js's fog its cases for water, for every material made afterwards. In air, over
- * dry land, nothing changes. If a different three.js is ever loaded and its fog is not written as
- * expected, it is left alone, and what is returned does nothing.
+ * Gives three.js's fog its cases for water, for every material made afterwards. In air, drawn to
+ * the screen, nothing changes. If a different three.js is ever loaded and its fog is not written
+ * as expected, it is left alone, and what is returned does nothing.
  */
-export function useWaterAsFog(): SeaSeenFromAbove {
-  const numbers = new Float32Array(4);
-  let seaIsThere = 1;
-  const seaSeenFromAbove: SeaSeenFromAbove = {
-    set(daylight, night, eyeOverSea, isSeaThere) {
-      numbers[0] = daylight;
-      numbers[1] = night;
-      numbers[2] = eyeOverSea;
-      seaIsThere = isSeaThere ? 1 : 0;
-      numbers[3] = seaIsThere;
+export function useWaterAsFog(): DepthIntoSeaPicture {
+  const numbers = new Float32Array(2);
+  const depthIntoSeaPicture: DepthIntoSeaPicture = {
+    setEyeOverSea(metres) {
+      numbers[0] = metres;
     },
-    drawIntoPicture(on) {
-      numbers[3] = on ? INTO_THE_PICTURE : seaIsThere;
+    write(on) {
+      numbers[1] = on ? 1 : 0;
     },
   };
   const isAsExpected =
@@ -109,15 +82,17 @@ export function useWaterAsFog(): SeaSeenFromAbove {
     ShaderChunk.fog_vertex.includes('fogDepth = - mvPosition.z;') &&
     ShaderChunk.fog_pars_fragment.includes('uniform float fogNear;') &&
     ShaderChunk.fog_fragment.includes('smoothstep( fogNear, fogFar, fogDepth )');
-  if (!isAsExpected) return seaSeenFromAbove;
+  if (!isAsExpected) return depthIntoSeaPicture;
 
   // (Each addition begins on a line of its own: three.js's chunks do not all end with one.)
   const declaration = '\n#ifdef USE_FOG\n\tvarying vec4 vPlaceFromEye;\n#endif\n';
   ShaderChunk.fog_pars_vertex += declaration;
   ShaderChunk.fog_vertex += PLACE_FROM_EYE;
-  ShaderChunk.fog_pars_fragment += `${declaration}#ifdef USE_FOG\n\tuniform vec4 seaSeenFromAbove;\n#endif\n${throughWater}\n${waterVeil}\n`;
+  ShaderChunk.fog_pars_fragment += `${declaration}#ifdef USE_FOG\n\tuniform vec2 depthIntoSeaPicture;\n#endif\n${throughWater}\n${depthInSeaPicture}\n`;
   ShaderChunk.fog_fragment = SEEN_THROUGH_WATER;
   // (every kind of material three.js has: each takes its uniforms from its own list of them)
-  for (const kind of Object.values(ShaderLib)) kind.uniforms.seaSeenFromAbove = { value: numbers };
-  return seaSeenFromAbove;
+  for (const kind of Object.values(ShaderLib)) {
+    kind.uniforms.depthIntoSeaPicture = { value: numbers };
+  }
+  return depthIntoSeaPicture;
 }

@@ -1,19 +1,17 @@
-// How the sea veils what is under it, to an eye above the sea. A thing under water is seen by the light that comes
-// up from it through the water over it: the water takes that light by degrees and puts its own colour in its
-// place. How much goes by how many metres of water the light passes through, which is the thing's own depth,
-// times a little: light leaving the sea bends at the surface, so however far off the eye is and however low, the
-// light it sees by has come up through the water at no more than 49 degrees from straight up, through at most one
-// and a half times the depth. (To an eye under the water with the thing it is the plain distance between them:
-// through-water.glsl.)
+// What the sea does to the look of a thing under it, for an eye above the sea: all of it, and the sea's surface
+// draws all of it (sea/water.frag.glsl), over a picture of what is under the sea (sea/under-water-picture.ts).
+// The thing is in that picture as the light that reaches it leaves it (light-under-sea.glsl), with its depth
+// beside its colour; the surface bends the picture, and by each thing's own depth greys it, puts the water's
+// glow in front of it, and hides it in the water's colour by degrees.
 //
-// Two things draw the veil between them, and both use these rules, so that it is one veil. Each thing under the
-// sea draws most of it on itself, by its own depth (the fog that every material has: sea/water-as-fog.ts). The
-// sea's surface draws the rest, by the depth of the floor under each spot of it, with all that the surface alone
-// knows: the swell's shading, the clouds' shadows, the foam's cloudiness (sea/water.frag.glsl). When the surface
-// drew all of it, it could go only by the depth under each spot of the surface: a coral head was hidden by the
-// depth of the sand beside it, and the rim of a pool was the edge of a lid with clear water under it.
+// (There were once five rules for this in as many files: a tint painted on the ground and another on the rocks
+// and coral, a veil in every material's fog, the surface's own, and the surface's guess at what lay behind it.
+// A thing was hidden by the depth of the sand beside it, the rim of a pool was the edge of a lid, and when one
+// rule was changed the others were not. docs/DECISIONS.md, 16.)
 //
-// Needs nothing from outside.
+// Needs light-under-sea.glsl's numbers, which it includes.
+
+#include "light-under-sea"
 
 // The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue where it is deep.
 const vec3 OVER_SAND_AQUA = vec3(0.24, 0.71, 0.67);
@@ -23,20 +21,18 @@ const vec3 OCEAN_BLUE = vec3(0.0, 0.14, 0.30);
 // and the share of it that goes with the night.
 const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
 const float NIGHT_TAKES_FROM_WATER = 0.82;
-// How many metres of water hide two thirds of what is behind them (half as many hide a fifth, twice as many
-// nearly all). It goes by degrees, with no depth at which the water turns solid.
+// How many metres of clear water hide two thirds of what is behind them (half as many hide a fifth, twice as
+// many nearly all). It goes by degrees, with no depth at which the water turns solid.
 const float HIDES_BY_METRES = 4.6;
-// The share of the veil that the sea's surface draws, by the depth of the floor under it: the rest each thing
-// draws on itself. (Lower, and the swell's shading and the clouds' shadows show less on water of a middling
-// depth; higher, and the surface is a lid again.)
-const float SURFACE_DRAWS = 0.35;
-// Light bends as it leaves water: the sine of its angle to straight up is this many times smaller in the water
-// than in the air (1 / 1.33).
-const float BENT_AT_THE_SURFACE = 0.75;
-// The picture of what is under the sea (sea/under-water-picture.ts) holds each thing's depth beside its colour, as
-// a number 0 to 1: the square root of its depth over this many metres, which keeps the shallows fine (a hand's
-// breadth of depth near the surface, a forearm at ten metres). 1 is this deep or deeper, or nothing at all.
-const float PICTURE_HOLDS_TO = 32.0;
+// A thing under more than a little water is greyer than it is, however clear the water: the grey comes in over
+// this depth (m, from where the sea's tint begins), and is this colour for a white thing.
+const float GREYED_BY_DEPTH = 0.5;
+const vec3 GREY_UNDER_WATER = vec3(1.04, 1.04, 1.02);
+// And the water's own glow lies in front of it: its colour, how fast it comes in with depth (a metre), and how
+// bright it is beside the water's own colour in the same light.
+const vec3 GLOW_OF_THE_WATER = vec3(0.0, 0.075, 0.13);
+const float GLOW_COMES_IN = 0.9;
+const float GLOW_IN_FULL_LIGHT = 1.12;
 
 // The water's own colour over a thing so many metres under it. (By the depth, not by how far the light runs
 // through the water at a slant: a lagoon is one colour from the beach and from above it.)
@@ -51,25 +47,23 @@ vec3 waterInThisLight(float daylight, float night) {
   return mix(LOW_SUN_WATER_TINT, vec3(1.0), daylight) * (1.0 - NIGHT_TAKES_FROM_WATER * night);
 }
 
-// The share of what is behind so many metres of water that the water hides. share: how much of the whole veil is
-// being drawn (SURFACE_DRAWS by the surface, the rest by the thing: together they hide what one veil would).
-float hiddenByWater(float metres, float share) {
+// The share of what is behind so many metres of water that the water hides. cloudiness: 1 for clear water, more
+// where it is churned up.
+float hiddenByWater(float metres, float cloudiness) {
   float veils = metres / HIDES_BY_METRES;
-  return 1.0 - exp(-share * veils * veils);
+  return 1.0 - exp(-cloudiness * veils * veils);
 }
 
-// A depth as the picture of what is under the sea holds it, and back.
-float depthAsHeld(float depth) {
-  return sqrt(clamp(depth / PICTURE_HOLDS_TO, 0.0, 1.0));
-}
-float depthHeld(float held) {
-  return held * held * PICTURE_HOLDS_TO;
-}
-
-// How many metres of water the light from a thing passes through on its way to an eye above the sea. depth: how
-// far under the sea the thing is. rise: the height of the direction from the eye to the thing, -1 straight down
-// to 0 level.
-float metresOfWaterOver(float depth, float rise) {
-  float levelInAir = 1.0 - rise * rise;
-  return depth / sqrt(1.0 - BENT_AT_THE_SURFACE * BENT_AT_THE_SURFACE * levelInAir);
+// A thing's colour as it shows through the water over it, before the water hides it. colour: the thing as the
+// picture of what is under the sea holds it. depth: how far under the still sea it lies. greys: the share of it
+// that goes to grey in water deep enough. light: how bright the water's own light is (waterInThisLight and the
+// clouds' shadow, with the daylight).
+vec3 seenDownThroughWater(vec3 colour, float depth, float greys, vec3 light) {
+  float tintDepth = max(depth - SEA_TINT_STARTS, 0.0);
+  // (The grey keeps the cast of the light that reached the thing: it is the thing's brightness before the water
+  // took the red from that light, with the red taken again.)
+  vec3 lightLeft = exp(-tintDepth * SEA_TAKES_A_METRE);
+  vec3 greyed = dot(colour / max(lightLeft, 0.02), vec3(0.3, 0.5, 0.2)) * GREY_UNDER_WATER * lightLeft;
+  vec3 seen = mix(colour, greyed, greys * smoothstep(0.0, GREYED_BY_DEPTH, tintDepth));
+  return seen + GLOW_OF_THE_WATER * (1.0 - exp(-tintDepth * GLOW_COMES_IN)) * GLOW_IN_FULL_LIGHT * light;
 }

@@ -90,9 +90,8 @@ Build 22 removed all three and the bug was gone. Which of them was the trigger w
   2026; Ryan named no fault in either.
 - New to the phone on 18 November 2026, and seen there since with no fault named. A second small repeating
   texture, the caustics texture (`caustics-texture.ts`), read twice by the ground, the rocks and the coral,
-  outside any branch. The vertex shaders of those three move each vertex under the sea sideways by three sines
-  (`sway-under-water.glsl`): they are three.js's own Lambert shaders, patched after `<project_vertex>`, and they
-  use `uCameraPosition`. The line of three.js's Lambert fragment shader that works out the sun's light is
+  outside any branch. (The vertex shaders of those three also moved each vertex under the sea sideways by
+  three sines, until 20 November 2026, when the sea's surface took over all bending.) The line of three.js's Lambert fragment shader that works out the sun's light is
   replaced in those three materials (`sunlight-under-water.ts`), which names that line as three.js 0.128 writes
   it and stops with an error if it is not there. The water's ripples are read at places that move four times
   as fast, from a clock wrapped every 1000 s. Two branches in the water's fragment shader are taken on arithmetic
@@ -173,16 +172,21 @@ another try when three.js or the phone's driver has moved on: the trial's branch
 
 - `cameraPosition` is only filled in for ShaderMaterial, Phong, Toon and Standard materials. In a patched LAMBERT
   material it stays at the origin and nothing warns you. Use the shared uniform `uCameraPosition`.
-- On trial (20 November 2026, not yet read on the phone): the scene under the sea drawn each frame into a
-  picture half the screen's size, which the sea's surface reads (`sea/under-water-picture.ts`). It is a
-  colour picture with an ordinary depth buffer, as the shadow map is, and no depth texture is read: each
-  thing writes its depth under the sea into the picture's alpha. During that drawing the sea's own materials
-  are hidden, since a material may not be drawn into a picture it reads; and the shadow map is not redrawn,
-  since the first drawing of a frame draws it from what its own camera sees.
+- The scene under the sea is drawn each frame into a picture half the screen's size, which the sea's surface
+  reads (`sea/under-water-picture.ts`), whenever the eye is above the sea. It is a colour picture with an
+  ordinary depth buffer, as the shadow map is, and no depth texture is read: each thing writes its depth under
+  the sea into the picture's alpha. During that drawing the sea's own materials are hidden, since a material
+  may not be drawn into a picture it reads; and the shadow map is not redrawn, since the first drawing of a
+  frame draws it from what its own camera sees. On the phone on 20 November 2026 as a trial: with `more dots`
+  on as well it made 39 to 42 frames a second (its cost by itself has not been read), and Ryan named no fault
+  in the drawing. Its size is `seaConfig.underWaterPicture.shareOfScreen`. Still to save if it is wanted:
+  what lies under the sea is drawn twice, into the picture and onto the screen, where the surface then
+  covers all of it but what lies in a hand's depth of water.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it
-  reaches them all: that is how the fog is told of the sea (`sea/water-as-fog.ts`). It must be put there
+  reaches them all: that is how every material is told to write its depth into the picture of what is under
+  the sea (`sea/water-as-fog.ts`). It must be put there
   before any material is compiled.
 - A texture read inside an `if` may be taken at the wrong level of detail on some GPUs. Read the texture before the
   branch (the terrain shader does this for the detail texture) or use a texture without mipmaps.

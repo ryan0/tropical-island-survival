@@ -1,6 +1,6 @@
 // Draws the look's views (look-views.ts) from a build of the page, one picture each:
 //
-//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b] [--size 1600x900] [--bent] [--later 0.6]
+//   node tools/look/draw-views.ts <folder> [--page <index.html>] [--group colour] [--only a,b] [--size 1600x900] [--later 0.6]
 //
 // <folder> is where the pictures go, each named for its view. --page is the built page to draw:
 // the working files' (dist/index.html, after `npm run build`) unless another is named, such as a
@@ -8,8 +8,7 @@
 // is how "before" pictures are made. --group is one of look-views.ts's groups (colour is the
 // default) or all. --size is the pictures' size in dots: a phone's shape and small unless given;
 // the pairs and the fly-round are for looking at as large as Ryan sees the game (README.md).
-// --bent draws with the trial of the picture of what is under the sea switched on
-// (src/sea/under-water-picture.ts). --later draws each view a second time, that many seconds of
+// --later draws each view a second time, that many seconds of
 // the waves' clock on, as <view>-later.png: a still cannot show one thing sliding over another,
 // and two a moment apart can (README.md).
 //
@@ -35,7 +34,6 @@ const { values, positionals } = parseArgs({
     group: { type: 'string', default: 'colour' },
     only: { type: 'string' },
     size: { type: 'string', default: USUAL_SIZE },
-    bent: { type: 'boolean', default: false },
     later: { type: 'string' },
   },
 });
@@ -59,11 +57,6 @@ if (views.length === 0) throw new Error('no view has any of those names');
 mkdirSync(folder, { recursive: true });
 const browser = await chromium.launch(playwrightConfig.use?.launchOptions);
 const context = await browser.newContext({ viewport: PICTURE });
-if (values.bent) {
-  await context.addInitScript(() => {
-    window.__isUnderWaterPictureDrawn = true;
-  });
-}
 // One page draws every view: each view sets all that it depends on.
 const { page, problems } = await openScenePage(context, path.resolve(values.page));
 for (const view of views) {

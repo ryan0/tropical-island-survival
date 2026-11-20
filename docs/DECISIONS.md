@@ -55,24 +55,33 @@ the git tag `build-78`.
 14. **The sand shader owns the water's edge.** See the hard rule in `CLAUDE.md`. (Build 76.)
 15. **One small repeating texture, read several times** at different sizes and angles, gives ripples, foam lace and
     the net of light on the sea floor without a visible repeat [22_detail.js].
-16. **Everything under water takes the sea's tint by depth**: sand, rock and coral alike [seatint.glsl]. That is
-    the water over a thing, as an eye above the sea sees it.
+16. **What the water does to the look of a thing under it has one owner for each eye.** A thing's own shader
+    draws only the light that reaches it, dimmer and with its red lost by depth: sand, rock and coral alike
+    (`light-under-sea.glsl`).
     **To an eye under water it is the water between the two that counts**, by the distance, red first, with
     the water's own light put in its place (`through-water.glsl`). Everything takes that from three.js's fog,
     which is given a second case (`sea/water-as-fog.ts`), so that no material needs telling. three.js hands a
     material the fog's colour, its near and its far and nothing more, so being under water is said by a fog
     that begins behind the eye; another kind of fog would say it plainly, but three.js compiles every shader
     again when the kind of fog changes. (20 November 2026.)
-    **And to an eye above the sea, each thing under it is veiled by the water its own light comes up
-    through**, drawn on the thing itself by the same fog (`shaders/shared/water-veil.glsl`): its depth, times
-    up to one and a half as the eye looks lower, since light bends at the surface. The sea's surface draws
-    only a share of the veil, by the depth under each spot of it. While the surface drew all of it, a coral
-    head was hidden by the depth of the sand beside it and a pool's rim was the edge of a lid; and the scene's
-    depth behind the surface, by which other engines measure the water in front of a thing, may not be read
-    here (`DEVICE_NOTES.md`). Half-Life 2's engine did the same for the same reason
-    (`docs/research/water-hiding-its-floor.md`). The fog needs four numbers that three.js does not hand a
-    material: they are one uniform whose value is a typed array that every material shares
-    (`sea/water-as-fog.ts`). (20 November 2026.)
+    **To an eye above the sea it is the sea's surface that draws all of it**, over a picture of what is
+    under the sea that is drawn before each frame (`sea/under-water-picture.ts`): the surface reads the
+    picture a little to one side, as its ripples bend the eye's line, and greys each thing, puts the water's
+    glow before it and hides it in the water's colour, by that thing's own depth
+    (`shaders/shared/water-veil.glsl`). Other engines measure the water in front of a thing from the scene's
+    depth behind the surface, which may not be read here (`DEVICE_NOTES.md`): so each thing writes its depth
+    under the sea beside its colour, through the same place in every material that fogs it
+    (`sea/water-as-fog.ts`), which needs two numbers three.js does not hand a material: they are one uniform
+    whose value is a typed array that every material shares.
+    It was arrived at the long way, in one day. First the surface alone hid things, by the depth under each
+    spot of itself: a coral head was hidden by the depth of the sand beside it, and a pool's rim was the edge
+    of a lid. Then each thing drew most of a veil on itself, as Half-Life 2's engine did
+    (`docs/research/water-hiding-its-floor.md`), which cured the lid and left the sea flat, with five rules
+    in five files to keep in step. Then the picture was tried beside all that, and two older rules that moved
+    the things themselves were left running: rocks slid over the ground. Ryan found the picture "much better"
+    and had the older rules deleted, not switched off: the sway of ground, rocks and coral; the ground's
+    markings swimming; the tint painted on each thing for an eye above; the veil in the fog; the surface's
+    search for a coral head and its rule for a low eye. (20 November 2026.)
 
 ## The sky
 

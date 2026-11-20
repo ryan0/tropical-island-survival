@@ -2,7 +2,6 @@ import { MeshLambertMaterial, type IUniform } from 'three';
 import { CAUSTICS_BRIGHTEST } from '../../shaders/caustics-texture';
 import { glslFloat, glslVec3 } from '../../shaders/defines';
 import { withColouring } from '../../shaders/sunlight-under-water';
-import { SWAY_DECLARATIONS, SWAY_UNIFORMS, swayOf } from '../../shaders/sway-under-water';
 import colourShader from './coral-colour.glsl';
 import type { CoralSurfacePicture } from './coral-surface-picture';
 import declarations from './coral-declarations.glsl';
@@ -18,7 +17,6 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uCameraPosition',
   'uWind',
-  ...SWAY_UNIFORMS,
 ] as const;
 
 // Where the coral's surface is in the world, and which way it faces: the mottling, the surface's
@@ -32,7 +30,6 @@ const WORLD_POSITION = [
   ' vSurfacePosition=(modelMatrix*rwp).xyz;',
   ' vSurfaceFacing=inverseTransformDirection(transformedNormal,viewMatrix);',
   ' vSurfaceKind=surface;',
-  swayOf('vSurfacePosition'),
 ].join('\n');
 
 /**
@@ -56,7 +53,7 @@ export function createCoralMaterial(
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.uniforms.uCoralSurface = { value: surface.texture };
     shader.vertexShader =
-      `${SWAY_DECLARATIONS}\nattribute vec3 surface;\nvarying vec3 vSurfacePosition;\n` +
+      `attribute vec3 surface;\nvarying vec3 vSurfacePosition;\n` +
       'varying vec3 vSurfaceFacing;\nvarying vec3 vSurfaceKind;\n' +
       shader.vertexShader.replace('#include <project_vertex>', WORLD_POSITION);
     shader.fragmentShader = declarations + withColouring(shader.fragmentShader, colourShader);

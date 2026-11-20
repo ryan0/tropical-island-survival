@@ -19,9 +19,12 @@ Ryan directs it and judges it on his phone; Claude writes it.
   written once for shader and program (`src/sea/wave-timing/timing.glsl`). The front of a breaking wave, with its
   lip and the white water it throws up, is a mesh of its own that keeps to the crest (`src/sea/breaker.ts`); the
   sea's mesh draws the rest. All water is coloured by one rule, how much of it the eye looks through
-  (`src/sea/water.frag.glsl`). To an eye above the sea, each thing under it is veiled by the water its own
-  light comes up through, drawn on the thing itself; the surface draws only a share
-  (`src/shaders/shared/water-veil.glsl`).
+  (`src/sea/water.frag.glsl`).
+- For an eye above the sea, everything the water does to the look of what is under it is the sea's surface's to
+  draw, and nothing else's: what is under the sea is drawn first into a picture, each thing with its depth
+  beside its colour (`src/sea/under-water-picture.ts`), and the surface reads it bent by its ripples, and greys
+  and hides each thing by that thing's own depth (`src/shaders/shared/water-veil.glsl`). A thing's own shader
+  draws only the light that reaches it (`src/shaders/shared/light-under-sea.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
   formula out for every dot: its noise and random numbers, the shore, the reef's cover, the turf's patterns
   (`src/world/terrain-declarations.glsl`). The islet's ground is coral sand from shore to shore; stones, the
@@ -37,7 +40,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   by the coral's shader, and each model says which surface it has. A coral head is one great boulder coral.
 - To an eye under water, the water between it and a thing takes the thing's colour with distance, red first
   (`src/shaders/shared/through-water.glsl`). Every material gets that from three.js's fog, which has a second
-  case for it (`src/sea/water-as-fog.ts`); the surface from below is a window of sky and a mirror beyond it
+  case for it (`src/sea/water-as-fog.ts`: the same place writes each thing's depth into the picture above); the
+  surface from below is a window of sky and a mirror beyond it
   (`seenFromUnderWater` in `src/sea/water.frag.glsl`); `src/sea/under-water.ts` owns what hangs in the water,
   but for the bubbles a breaking wave drives down, which are the spray's (`src/sea/bubble-plumes.ts`).
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in

@@ -2,7 +2,6 @@ import { MeshLambertMaterial, type IUniform } from 'three';
 import { CAUSTICS_BRIGHTEST } from '../../shaders/caustics-texture';
 import { glslFloat } from '../../shaders/defines';
 import { withColouring } from '../../shaders/sunlight-under-water';
-import { SWAY_DECLARATIONS, SWAY_UNIFORMS, swayOf } from '../../shaders/sway-under-water';
 import colourShader from './rock-colour.glsl';
 import declarations from './rock-declarations.glsl';
 import type { RockSurface } from './rocks-config';
@@ -17,7 +16,6 @@ const SHARED_UNIFORMS = [
   'uDaylight',
   'uDetail',
   'uCaustics',
-  ...SWAY_UNIFORMS,
 ] as const;
 
 // Where the rock's surface is and which way it faces, in the world: the pattern is laid on from
@@ -29,7 +27,6 @@ const WORLD_POSITION_AND_FACING = [
   ' rwp=instanceMatrix*rwp;rwn=mat3(instanceMatrix)*rwn;',
   '#endif',
   ' vSurfacePosition=(modelMatrix*rwp).xyz;vSurfaceNormal=normalize(mat3(modelMatrix)*rwn);',
-  swayOf('vSurfacePosition'),
 ].join('\n');
 
 /**
@@ -55,7 +52,7 @@ export function createRockMaterial(
   material.onBeforeCompile = (shader) => {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.vertexShader =
-      `${SWAY_DECLARATIONS}\nvarying vec3 vSurfacePosition;varying vec3 vSurfaceNormal;\n` +
+      `varying vec3 vSurfacePosition;varying vec3 vSurfaceNormal;\n` +
       shader.vertexShader.replace('#include <project_vertex>', WORLD_POSITION_AND_FACING);
     shader.fragmentShader = declarations + withColouring(shader.fragmentShader, colourShader);
   };

@@ -124,6 +124,7 @@ varying vec2 vWhiteMass;
 #include "../sky/sky-gradient"
 #include "../shaders/shared/through-water"
 #include "../shaders/shared/water-veil"
+#include "../shaders/shared/depth-in-sea-picture"
 #include "torn-edge"
 
 // ---- Numbers to retune ----
@@ -302,41 +303,29 @@ const float MASS_HOLLOWS = 0.17;
 
 // Light bends as it enters water: the sine of its angle to the surface's normal shrinks by this (1 / 1.33).
 const float INTO_WATER = 0.75;
-// A coral head is looked for along the line of sight (below): at these shares of the way down to the sand, no
-// more than this many metres apart along the line (a dot of the reef's map is 1.4 m), and with the line running
-// along no more than this many metres for each metre it goes down.
-const vec4 HEAD_LOOKED_FOR_AT = vec4(0.15, 0.4, 0.7, 1.0);
-const float HEAD_LOOKS_APART = 1.4;
-const float SIGHT_RUNS_ALONG = 10.0;
 // How far water's colour goes by its depth averaged round about, and not its own (below); and how far that goes
 // by the depth FLOOR_SOUGHT metres on along the line of sight, where the eye looks low enough to see that far
 // through it.
 const float DEPTH_SPREADS = 0.8;
 const float DEPTH_AHEAD_COUNTS = 0.6;
-// Where the picture of what is under the sea is drawn, the surface reads what is behind it from the picture, a
+// The surface reads what is behind it from the picture of what is under the sea (under-water-picture.ts), a
 // little to one side: as far as its slope bends the eye's line on the way down. A ray that goes into water
 // through a slope is turned by a quarter of the slope, so it lands that share of the depth to one side; this is
 // that share, and the depth it is taken over at most (m). (At 0.3 a stone's width changed by a third from one
 // moment to the next: if what is under the water still wobbles too much on the phone, this is the number.)
 const float BENDS = 0.25;
 const float BENDS_NO_DEEPER_THAN = 5.0;
-// (But for its first depths at a shore the surface is drawn over the frame's own ground, which is sharper than
-// the picture: the picture comes in between these depths, m.)
+// (But a thing in next to no water is seen in the frame's own drawing of it, which is sharper than the picture:
+// the picture comes in between these depths of the thing, m.)
 const vec2 PICTURE_FROM_DEPTH = vec2(0.05, 0.3);
-// The sea's surface draws a share of the water's veil, by the depth of the floor under it (water-veil.glsl); and
-// where the swell breaks, and the water is churned up and never quite clear, this much of the whole veil more.
-const float CHURNED_VEILS_MORE = 0.8;
-// The floor under the water is drawn straight on behind the surface, not bent down as water bends the eye's
-// line. So where the eye looks along the water, what is behind a spot of the surface is floor a long way on:
-// it is veiled by how far the line runs on under the surface before it meets the floor, to two thirds by this
-// many metres. The floor's depth for that is its depth here, or, where the line runs on as far as FLOOR_SOUGHT
-// metres, its depth there: beyond a reef's edge the line meets nothing, and the water hides all.
-const float VEILED_OVER = 34.0;
+// Where the swell breaks the water is churned up and never quite clear: it is this much cloudier than clear
+// water (water-veil.glsl's hiddenByWater).
+const float CHURNED_CLOUDIER = 0.8;
+// How far on along the line of sight the floor's depth is asked for, for the water's colour (above).
 const float FLOOR_SOUGHT = 16.0;
-// (But not where the line would meet the floor just under the water within this many metres, and the ground is
-// still there this much further on.)
-const float FLOOR_MET_WITHIN = 3.0;
-const float FLOOR_ASKED_PAST = 2.5;
+// How much of a thing under more than a little water goes to grey (water-veil.glsl's seenDownThroughWater): on
+// the ocean's side, and in the lagoon's glassy water.
+const vec2 GREYS_UNDER_WATER = vec2(0.5, 0.28);
 // The floor is never far under a ray that runs along through shallow water, and lights it from below: such a ray
 // counts as going down at least this steeply, or a wave over the reef would be as dark as the open sea.
 const float LEAST_WAY_DOWN = 0.33;
@@ -782,57 +771,13 @@ void main() {
   if (uIsFlatSheet < 0.5 || inLagoon > 0.5) waterDepth = vWaterPosition.y - groundHeightAt(xz);
   // how far the lagoon's shore-wave band stands above still water here
   float bandLift = (vWaterPosition.y - uSeaLevel) * uIsShoreBand;
-  // the depth of still water over the sand itself, coral heads apart
+  // the depth of still water over the sand itself
   float depthOverSand = waterDepth - bandLift;
-  // Over a coral head the water is only as deep as the head (the reef's map: red 0..1 for a top 8 m down .. at the
-  // surface, RED_FROM_DEPTH in reef-map.ts; green how near a head is). The head is under the water, not on it: seen
-  // at a slant it shows through the surface to the eye's side of where it stands. So it is looked for along the
-  // line of sight, at four depths, and the water is as deep as where the line meets it. Only near a head (the map
-  // has no mipmaps, so it may be read inside a branch), and only inside the map's square: outside it the
-  // picture's edge dots would repeat out to the horizon, so there it is not read at all.
-  vec2 reefMapUv = (xz - HOME_ISLET) / REEF_MAP_SPAN + 0.5;
-  vec4 reefHere = vec4(0.0);
-  if (abs(reefMapUv.x - 0.5) < 0.49 && abs(reefMapUv.y - 0.5) < 0.49) reefHere = texture2D(uReefMap, reefMapUv);
-  float nearCoralHead = reefHere.g;
-  // (whether the line of sight meets a head, and not the sand)
-  float headBehind = 0.0;
-  // (Not where the picture of what is under the sea is read, below: it holds every thing's own depth.)
-  float readsPicture = uPictureDrawn * (1.0 - uUnderWater);
-  if (nearCoralHead > 0.0 && waterDepth > 0.05 && readsPicture < 0.5) {
-    // (how far the line of sight runs along for each metre it goes down)
-    vec2 sightRunsAlong = -towardsCamera.xz / max(towardsCamera.y, 1.0 / SIGHT_RUNS_ALONG);
-    // The looks go down to the sand, but no further apart along the line than the map can tell a head from the
-    // sand beside it: at a low angle they reach only the head's top, which is all of it that shows from there.
-    vec4 looksDown = min(waterDepth * HEAD_LOOKED_FOR_AT,
-      vec4(1.0, 2.0, 3.0, 4.0) * HEAD_LOOKS_APART / max(length(sightRunsAlong), 1e-3));
-    vec2 mapRunsAlong = sightRunsAlong / REEF_MAP_SPAN;
-    // (how far the head's top is under each look: under nothing where the line of sight has gone into the head)
-    float overHeadAtSurface = vWaterPosition.y + 8.0 - 8.0 * reefHere.r;
-    vec4 overHead = vWaterPosition.y + 8.0 - 8.0 * vec4(
-      texture2D(uReefMap, reefMapUv + mapRunsAlong * looksDown.x).r,
-      texture2D(uReefMap, reefMapUv + mapRunsAlong * looksDown.y).r,
-      texture2D(uReefMap, reefMapUv + mapRunsAlong * looksDown.z).r,
-      texture2D(uReefMap, reefMapUv + mapRunsAlong * looksDown.w).r) - looksDown;
-    // The line met the head between the last look above it and the first inside it. If none was inside it, the
-    // line is followed on the way the last two looks were closing on the head, for as far again as they were
-    // apart: past that the water is as deep as the sand.
-    float lastStep = max(looksDown.w - looksDown.z, 1e-3);
-    float further = overHead.w * lastStep / max(overHead.z - overHead.w, 0.05 * lastStep);
-    float headDepth = min(waterDepth,
-      mix(looksDown.w + further, waterDepth, smoothstep(0.5, 1.5, further / lastStep)));
-    if (overHead.x <= 0.0) headDepth = looksDown.x * overHeadAtSurface / max(overHeadAtSurface - overHead.x, 1e-3);
-    else if (overHead.y <= 0.0) headDepth = mix(looksDown.x, looksDown.y, overHead.x / (overHead.x - overHead.y));
-    else if (overHead.z <= 0.0) headDepth = mix(looksDown.y, looksDown.z, overHead.y / (overHead.y - overHead.z));
-    else if (overHead.w <= 0.0) headDepth = mix(looksDown.z, looksDown.w, overHead.z / (overHead.z - overHead.w));
-    headBehind = smoothstep(0.0, 0.3, waterDepth - headDepth);
-    waterDepth = max(headDepth, 0.05);
-  }
-
   // Where the floor falls away suddenly the water's colour does not: light spreads sideways in water, so the deep
   // water beside a shallow bank is lit by the bank, and the bank's edge is tinted by the deep beside it. So water
   // more than a little deep is coloured by its depth averaged over some metres round (the waves' picture of the
-  // floor, sea-floor-pictures.ts), and hides what is under it by whichever is the deeper. (Not the far sea, whose
-  // floor is not drawn; nor over a coral head.)
+  // floor, sea-floor-pictures.ts). (Not the far sea, whose floor is not drawn. This is the water's own colour
+  // only: how much it hides goes by the depth of the very thing behind it, below.)
   float liftOverSea = vWaterPosition.y - uSeaLevel;
   float sightLevel = max(length(towardsCamera.xz), 1e-3);
   float hasFloor = uIsFlatSheet < 0.5 || inLagoon > 0.5 ? 1.0 : 0.0;
@@ -843,15 +788,14 @@ void main() {
   if (hasFloor > 0.5) {
     depthRound = texture2D(uSeaFloor, xz / SEA_PICTURE_SPAN + 0.5).z + liftOverSea;
     // (And by the depth further on along the line of sight, the more the lower the eye looks: what is seen
-    // through the surface there is the water and the floor ahead, not those straight under it. The same reading
-    // says, below, whether there is any floor behind the water at all.)
+    // through the surface there is the water ahead, not that straight under it.)
     vec2 sightOn = xz - towardsCamera.xz / sightLevel * FLOOR_SOUGHT;
     floorOnAlongSight = texture2D(uSeaFloor, sightOn / SEA_PICTURE_SPAN + 0.5).z;
   }
   float sightRunsOn = clamp(waterDepth * sightLevel / (max(towardsCamera.y, 0.02) * FLOOR_SOUGHT), 0.0, 1.0);
   float depthSeenThrough = mix(depthRound, max(floorOnAlongSight + liftOverSea, 0.0),
     DEPTH_AHEAD_COUNTS * sightRunsOn);
-  float lightSpreads = DEPTH_SPREADS * smoothstep(0.2, 1.0, waterDepth) * (1.0 - headBehind) * hasFloor;
+  float lightSpreads = DEPTH_SPREADS * smoothstep(0.2, 1.0, waterDepth) * hasFloor;
   float colouredAsDeep = mix(1.0, max(depthSeenThrough, 0.2) / max(waterDepth, 0.2), lightSpreads);
 
   // (WATER_STOPS_AFTER_...: six debug switches end the colouring here and at five places further on, and draw
@@ -1205,8 +1149,7 @@ void main() {
   float pathInLift = min(liftedWater / max(wayDown, LEAST_WAY_DOWN), pathToFarSide);
   float pathSeen = pathInLift + (1.0 - seesThrough) * seaUnderLift / max(wayDown, LEAST_WAY_DOWN);
   float seenDepth = pathSeen * wayDownIfFlat;
-  // (coloured by the depth round about, and hiding by the deeper of that and its own: above)
-  float hidingDepth = seenDepth * max(colouredAsDeep, 1.0);
+  // (coloured by the depth round about: above)
   seenDepth *= colouredAsDeep;
   float lightThrough = seesThrough;
 
@@ -1237,80 +1180,46 @@ void main() {
 
   // ---- What is behind the surface, read bent from its picture ----
 
-  // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one, the
-  // line is left unbent. The picture has no mipmaps, so it may be read inside this branch.)
-  vec4 behind = vec4(0.0, 0.0, 0.0, 1.0);
-  if (readsPicture > 0.5) {
+  // (Not for an eye under the water, for which no picture is drawn: what follows is then for nothing, and the
+  // view from below takes its place at the end. The picture has no mipmaps, so it may be read inside this branch.)
+  vec4 straightBehind = vec4(0.0, 0.0, 0.0, 1.0);
+  vec4 behind = straightBehind;
+  if (uPictureDrawn > 0.5) {
     vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;
     vec3 slopeAsSeen = mat3(viewMatrix) * vec3(surfaceSlope.x, 0.0, surfaceSlope.y);
     vec2 bentAMetreDown = slopeAsSeen.xy * uPictureScale * (BENDS / max(cameraDistance, 0.5));
     // A thing is moved by its own depth under the surface: the top of a coral head hardly at all, the sand at its
-    // foot by more. So the picture is read twice: first as if all behind this spot lay as deep as the floor,
-    // to find what is there and how deep it lies, and then by that depth. (Moved all alike, by the floor's
-    // depth, a head and the ground round it shifted as one flat picture.)
-    vec4 found = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * min(waterDepth, BENDS_NO_DEEPER_THAN));
-    float itsDepth = clamp(depthHeld(found.a) + liftOverSea, 0.0, BENDS_NO_DEEPER_THAN);
+    // foot by more. So the picture is read twice: straight behind this spot, to find how deep what is there
+    // lies, and then to one side by that depth. (Moved all alike, by the floor's depth, a head and the ground
+    // round it shifted as one flat picture.)
+    straightBehind = texture2D(uUnderWaterPicture, onPicture);
+    float itsDepth = clamp(depthHeld(straightBehind.a) + liftOverSea, 0.0, BENDS_NO_DEEPER_THAN);
     behind = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * itsDepth);
-    if (behind.a < 0.004) behind = texture2D(uUnderWaterPicture, onPicture);
+    // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one,
+    // the line is left unbent.)
+    if (behind.a < 0.004) behind = straightBehind;
   }
+  // (how far under the still sea the thing behind this spot lies)
+  float depthBehind = depthHeld(behind.a);
 
   // ---- How much the water hides what is under it ----
 
-  // The surface draws only its share of the water's veil, by the depth of the floor under it: what is under the
-  // sea draws the rest on itself, each thing by its own depth (water-veil.glsl), so that a coral head is not
-  // hidden by the depth of the sand beside it and a pool's rim is not the edge of a lid. (A film of water a few
-  // centimetres deep on the sand is all but invisible: no tint, no dark edge.)
-  // (Where the swell breaks the water is churned up and never quite clear, and the surface veils more: by the
-  // same rule, by degrees. As a veil of its own that came in with the first metre of depth, every swell crossing
-  // the crest turned from clear to turquoise as it passed.)
+  // By degrees, with how much water lies in front of the very thing that is behind this spot (water-veil.glsl):
+  // the wave's own, and then the sea down to the thing, along the bent line. So a coral head is hidden by the
+  // water over the head and not by the depth of the sand beside it, and a pool's walls fade as they go down.
+  // (A film of water a few centimetres deep on the sand is all but invisible: no tint, no dark edge.)
+  // (Where the swell breaks the water is churned up and never quite clear: cloudier, by the same rule. As a veil
+  // of its own that came in with the first metre of depth, every swell crossing the crest turned from clear to
+  // turquoise as it passed.)
   float churnedUp = smoothstep(CREST_BEGINS + 10.0, CREST_BEGINS + 20.0, reefDistance)
     * (1.0 - smoothstep(FORE_REEF_BEGINS + 12.0, FORE_REEF_BEGINS + 24.0, reefDistance));
-  float veilMetres = hidingDepth;
-  float veilDrawn = SURFACE_DRAWS;
-  if (readsPicture > 0.5) {
-    // (With the picture, the surface draws the whole veil, and knows what is behind it: the water in front of
-    // the thing seen is the wave's own and then the sea down to the thing, along the bent line.)
-    veilMetres = pathInLift + (1.0 - seesThrough) * depthHeld(behind.a) / max(wayDown, LEAST_WAY_DOWN);
-    veilDrawn = 1.0;
-  }
-  float opacity = mix(0.07, 1.0, hiddenByWater(veilMetres, veilDrawn + CHURNED_VEILS_MORE * churnedUp))
+  float metresInFront = pathInLift + (1.0 - seesThrough) * depthBehind / max(wayDown, LEAST_WAY_DOWN);
+  float opacity = mix(0.07, 1.0, hiddenByWater(metresInFront, 1.0 + CHURNED_CLOUDIER * churnedUp))
     * smoothstep(0.0, 0.4, waterDepth);
   // (a wave the light comes through still hides what is behind it)
   opacity = max(opacity, lightThrough * 0.95);
   // water with foam on it or bubbles in it is cloudy: it hides the sea floor and the light playing on it
   opacity = max(opacity, smoothstep(0.03, 0.5, waveFoam) * 0.86 * smoothstep(0.06, 0.4, waterDepth));
-  // Water is only see-through where its floor is what lies behind it. Everything under the water is drawn
-  // straight on behind the surface, not bent down as the water bends the eye's line: so where the eye looks along
-  // level over the reef's edge, or through a wave standing in the shallows, what lies behind clear water is not
-  // the floor just under it but floor a long way on, or the open sky. So the water veils what is behind it by
-  // how far the line of sight, not bent, runs on under the surface before it meets the floor: by degrees, over
-  // tens of metres, so that from a low eye the floor fades out with distance and there is no line where the water
-  // turns solid. (That run is the floor's depth over how steeply the line goes down: the depth here, or, where
-  // the line runs on as far as FLOOR_SOUGHT metres, the depth there, floorOnAlongSight, read above. Not where a
-  // coral head lies behind the water, which the waves' picture of the floor knows nothing of.)
-  float depthAhead = max(floorOnAlongSight + liftOverSea, 0.0);
-  float runUnderSurface = mix(max(waterDepth, 0.0), depthAhead, smoothstep(0.6, 1.0, sightRunsOn))
-    * sightLevel / max(towardsCamera.y, 0.02);
-  // (None of this where the picture of what is under the sea is read: it holds what is behind the water.)
-  float noFloorBehind = (1.0 - exp(-runUnderSurface / VEILED_OVER)) * (1.0 - uUnderWater) * (1.0 - headBehind)
-    * (1.0 - readsPicture);
-  // Thin water over a reef top is seen through to that top, however soon the floor falls away beyond it. Where
-  // the line of sight would meet a level floor within a few metres, the ground is asked for a little past there
-  // (the island's formula, as for the depth): if it is still above the line, it is what lies behind the water.
-  // (A little past: at the far edge of a reef top the ground's triangles lie lower than its formula by more than
-  // such a film is deep, and the sky showed along that edge as a hairline.)
-  float meetsFloorIn = waterDepth * sightLevel / max(towardsCamera.y, 0.02);
-  if (noFloorBehind > 0.01 && meetsFloorIn < FLOOR_MET_WITHIN) {
-    float askedAt = meetsFloorIn + FLOOR_ASKED_PAST;
-    vec2 groundAskedAt = xz - towardsCamera.xz / sightLevel * askedAt;
-    float groundAsked = groundHeightAt(groundAskedAt);
-    float sightOverGround = vWaterPosition.y - askedAt * towardsCamera.y / sightLevel - groundAsked;
-    float floorIsThere = (1.0 - smoothstep(0.0, 0.2, sightOverGround))
-      * (1.0 - smoothstep(0.6 * FLOOR_MET_WITHIN, FLOOR_MET_WITHIN, meetsFloorIn));
-    noFloorBehind *= 1.0 - floorIsThere;
-  }
-  // (the two hide together, as two veils do)
-  opacity = 1.0 - (1.0 - opacity) * (1.0 - noFloorBehind * smoothstep(0.0, 0.1, waterDepth));
 
   // ---- The clouds' shadows ----
 
@@ -1593,9 +1502,6 @@ void main() {
   }
   // water under a few cm deep is invisible unless it carries foam
   opacity = max(opacity * smoothstep(0.01, 0.12, waterDepth), foam * smoothstep(0.0, 0.045, waterDepth));
-  // (or unless there is no floor behind it to show: a film of water at the far edge of a bared reef top, with the
-  // trough beyond it, was a window to the sky)
-  opacity = max(opacity, noFloorBehind * smoothstep(0.0, 0.04, waterDepth));
 
   #ifdef WATER_STOPS_AFTER_FOAM
   gl_FragColor = vec4(colour, opacity);
@@ -1639,12 +1545,20 @@ void main() {
   }
   // (a dot's worth of noise: it breaks up the bands a smooth gradient shows in 8-bit colour)
   colour += (hash(gl_FragCoord.xy) - 0.5) * (2.0 / 255.0);
-  if (readsPicture > 0.5) {
-    // The water is drawn over the picture's bent reading here, and the surface whole: not, as without the
-    // picture, laid thinly over whatever the frame has drawn straight behind it.
-    float overPicture = smoothstep(PICTURE_FROM_DEPTH.x, PICTURE_FROM_DEPTH.y, waterDepth);
+  if (uPictureDrawn > 0.5) {
+    // The surface is drawn whole, over the picture's bent reading: what shows through the water is the thing the
+    // picture holds, greyed and behind the water's glow by its own depth (water-veil.glsl), and not whatever the
+    // frame has drawn straight behind this spot.
+    vec3 waterLight = uDaylight * waterInThisLight(uDaylight, uNight) * mix(0.62, 1.0, cloudLight);
+    vec3 seenBehind = seenDownThroughWater(behind.rgb, depthBehind,
+      mix(GREYS_UNDER_WATER.x, GREYS_UNDER_WATER.y, inLagoon), waterLight);
+    // (But where what lies straight behind this spot is in next to no water, the frame's own drawing of it shows
+    // through, which is sharper than the picture and is that very thing: the wet sand at the water's edge, a
+    // rock awash, the top of a coral head. By the thing's depth, not the floor's under this spot of the surface:
+    // by that, a pool's deep wall showed unveiled through the thin water over its rim.)
+    float overPicture = smoothstep(PICTURE_FROM_DEPTH.x, PICTURE_FROM_DEPTH.y, depthHeld(straightBehind.a));
     float drawn = 1.0 - (1.0 - overPicture) * (1.0 - opacity);
-    colour = (colour * opacity + behind.rgb * overPicture * (1.0 - opacity)) / max(drawn, 1e-3);
+    colour = (colour * opacity + seenBehind * overPicture * (1.0 - opacity)) / max(drawn, 1e-3);
     opacity = drawn;
   }
   gl_FragColor = vec4(colour, opacity);

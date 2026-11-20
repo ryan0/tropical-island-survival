@@ -11,8 +11,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 third ends, both for his review (20 November 2026). His notes on them (soil on the islet; the sea floor's
 patterns) are answered on `look-5-sea-floor`, which begins where the fourth ends ("After the night", below).
 That grew into a plan of its own for the water and its floor, in three sittings against matched photographs
-("The water and its floor against matched photographs", below): the first is done, and waits on his review
-and the phone's reading of a trial.
+("The water and its floor against matched photographs", below): the first is done, and the picture of what
+is under the sea that it tried is now the one way the water is drawn. Next: the water's colours and
+clearness against the pairs, then the floor.
 After it comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
 many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
@@ -1997,6 +1998,38 @@ the ground's markings swim and the rocks do not, and the fish and the weed do ne
 has several owners, kept in step by hand: the table's five rows. Both end if the picture becomes the only
 way the water is drawn, since the older rules are then taken out and not switched off, which is the first
 thing stage D would do.
+
+*The picture made the one way the water is drawn, and the older rules deleted* (Ryan, of the trial after
+that: "definitely with the trial on is much better. We should make the trial the default and delete the old
+rules and then perhaps refine a bit before moving on to the next sittings"). Done the same day, by the table
+above:
+
+- *Deleted:* the sway of ground, rocks and coral, and its file; the ground's markings swimming; the greying
+  and the glow painted on the ground, the rocks and the coral for an eye above; the veil in every material's
+  fog; the surface's search for a coral head along the line of sight; its rule for far water and a low eye;
+  the shares that split the veil between the surface and the things; the debug switch, the test hook and the
+  tool's flag that turned the picture on.
+- *What a thing under the sea draws on itself now:* the light that reaches it, dimmer and with its red lost
+  by depth, and nothing of the water between it and the eye (`shaders/shared/light-under-sea.glsl`: one
+  definition, where the ground and the rocks each had their own copy of the numbers).
+- *What the surface draws:* all the rest, by the depth of the very thing behind each spot of it
+  (`shaders/shared/water-veil.glsl`). The greying and the glow are the same formulas as before, moved.
+- *A thing in next to no water* (the wet sand at the water's edge, a rock awash, the top of a coral head) is
+  seen in the frame's own drawing of it, which is sharper than the picture; by the thing's own depth, not by
+  the floor's under that spot of the surface, by which a pool's deep wall would show through the thin water
+  over its rim.
+
+Checked against the trial as he saw it, view by view (a count of dots that differ by more than 8 in 255, and
+the average shift): every view from under the water and every view of the land is the same to the dot; the
+pairs differ in 0 to 6 dots in a hundred, by an average of one or two in 255; a coral head seen from close
+above is some 6 in 255 bluer and a little greyer, because coral was spared part of the tint when it was
+painted on each thing, and the surface greys all things alike. That is left for the colours, next. The frame
+pairs still show the stones and the floor's markings moving as one.
+
+*Still to do if the phone asks for it:* what lies under the sea is drawn twice, into the picture and onto the
+screen, and the surface then covers all of the second but what lies in a hand's depth of water. Leaving the
+deep ground and coral out of the screen's drawing would save that, but a thing left out of a drawing casts no
+shadow in it, so the shadows must be drawn apart first.
 
 *The trial, cheaper:* nothing that stands still and wholly above the sea is drawn into the picture (the
 palms, the land's plants, the inland ground), and the surface no longer searches along the line of sight for

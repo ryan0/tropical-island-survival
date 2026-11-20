@@ -86,7 +86,7 @@ function pageElement(id: string): HTMLElement {
 
 const build = { version: import.meta.env.BUILD_VERSION, commit: import.meta.env.BUILD_COMMIT };
 const testHooks = createTestHooks();
-const { renderer, canvas, scene, camera, fog, seaSeenFromAbove } = createStage(
+const { renderer, canvas, scene, camera, fog, depthIntoSeaPicture } = createStage(
   pageElement('err'),
   pageElement('hint'),
 );
@@ -288,16 +288,15 @@ const footprints = createFootprints({
   waves,
   player,
 });
-const underWater = createUnderWater({ scene, camera, waves, fog, seaSeenFromAbove, uniforms });
+const underWater = createUnderWater({ scene, camera, waves, fog, uniforms });
 const underWaterPicture = createUnderWaterPicture({
   renderer,
   scene,
   camera,
   uniforms,
-  seaSeenFromAbove,
+  depthIntoSeaPicture,
   waterMaterials,
 });
-underWaterPicture.draw(testHooks.isUnderWaterPictureDrawn);
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
 const rocksInSurf = [...rocks.inSurf].sort((a, b) => b.radius - a.radius);
@@ -360,19 +359,6 @@ const debugPanel = createDebugPanel(
       }),
     },
     { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
-    {
-      // (under-water-picture.ts: read the frame rate with it on and off)
-      heading: 'on trial',
-      switches: [
-        {
-          label: 'bend what is under water',
-          set(on) {
-            underWaterPicture.draw(on);
-          },
-          isOn: () => underWaterPicture.isDrawn,
-        },
-      ],
-    },
     { heading: 'fly to', actions: placesToFlyTo(player) },
   ],
 );

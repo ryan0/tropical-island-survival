@@ -46,10 +46,8 @@ const float LOOSE_SAND_TO = 2.1;
 // The share of the light left where the clouds let no sunlight through.
 const float CLOUD_SHADOW_LIGHT = 0.45;
 
-// The sea floor seen through ripples: how far its markings swim under them (metres, in water over a metre deep);
-// and how much of the net of light they throw on it (light-net.glsl) there is out on the ocean's reef, against
-// the middle of the lagoon.
-const float FLOOR_SWIMS = 0.3;
+// How much of the net of light that ripples throw on the sea floor (light-net.glsl) there is out on the ocean's
+// reef, against the middle of the lagoon.
 const float NET_ON_OUTER_REEF = 0.45;
 // How far a shadow on ground as bright as white is filled in by the light the ground round it throws back (sand
 // is about 0.85 as bright, and turf 0.4).
@@ -254,13 +252,6 @@ vec2 towardsSun = normalize(uSunDirection.xz + 1e-4);
 vec2 lightNetUv = lightNetUvAt(xz, uTime);
 vec4 smallWaves = texture2D(uDetail, smallWavesUvAt(lightNetUv, uTime));
 vec2 lightNetWobble = netWobbleOf(smallWaves);
-// The floor is seen through those small waves, and each bends the eye's line a little as it passes: the floor's
-// markings swim under them, further the deeper the water. (Only its markings: the ground's shape, and the shadows
-// on it, stay where they are. And only for an eye above the water, with the sea not drained: uDebugMode 5.)
-// (And only where the things under the sea stand for the surface's bending themselves, seen-through-surface.glsl:
-// where the surface bends a picture of them, the markings swimming as well slid about under the rocks.)
-xz += (smallWaves.rg - 0.5) * FLOOR_SWIMS * smoothstep(0.1, 1.2, waterDepth) * thingsBendThemselves();
-
 // Grit: the ground's speckle picture (the material's own map, which three.js has already read into texelColor).
 // Everything below replaces the colour outright, so the speckle is put back at the end; it fades out with distance.
 // It is read twice: grain close up (a dot is 1.4 cm), and the same picture four times larger for mottling further
@@ -864,21 +855,11 @@ if (waterDepth > 0.0) {
   // The strip the waves run up and drain off (down to 20 cm below the still sea) is bare sand half the time, so the
   // underwater look starts below it: standingDepth is the depth of the water that is always there.
   // (with the sea drained, uDebugMode 5, the ground is drawn as if no water stood over it)
-  float standingDepth = max(waterDepth - 0.2, 0.0) * step(uDebugMode, 4.5);
-  // under water: sand reads paler, red is absorbed with depth, and the water column adds its own blue-green glow
-  // (The paling and the glow are the water over the floor as an eye above the sea looks down through it. To an
-  // eye under the water there is no such veil: the water between the two is another rule's, through-water.glsl.)
-  float seenFromAbove = 1.0 - uUnderWater;
-  vec3 greyed = vec3(dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2))) * vec3(1.04, 1.04, 1.02);
-  // (less so in the lagoon's glassy shallows)
-  float greying = mix(0.5, 0.28, lagoonSide) * smoothstep(0.0, 0.5, standingDepth) * seenFromAbove;
-  diffuseColor.rgb = mix(diffuseColor.rgb, greyed, greying);
-  // (the dimming must start at exactly 1: a step here draws a dark line along the waterline)
-  float dimming = mix(1.0, 0.87, smoothstep(0.0, 0.7, standingDepth));
-  vec3 throughWater = exp(-standingDepth * vec3(0.36, 0.085, 0.045)
-    * mix(1.0, TAKEN_TO_AN_EYE_UNDER_WATER, uUnderWater));
-  diffuseColor.rgb *= dimming * throughWater;
-  diffuseColor.rgb += vec3(0.0, 0.075, 0.13) * (1.0 - exp(-standingDepth * 0.9)) * uDaylight * seenFromAbove;
+  float standingDepth = max(waterDepth - SEA_TINT_STARTS, 0.0) * step(uDebugMode, 4.5);
+  // The light that reaches the floor is dimmer, and has lost its red with depth (light-under-sea.glsl). That is
+  // all of the water that the floor draws on itself: what the water between it and an eye does to the look of it
+  // is the sea's surface's to draw, for an eye above (water-veil.glsl), and the fog's, for an eye under water.
+  diffuseColor.rgb *= lightLeftUnderSea(standingDepth, 1.0, uUnderWater);
 
   // The net of light that ripples throw on the sea floor (light-net.glsl). Ankle-deep water is too thin to bend the
   // light into a net, so it fades in between 10 and 80 cm; and where the swell breaks, the surface is too broken and

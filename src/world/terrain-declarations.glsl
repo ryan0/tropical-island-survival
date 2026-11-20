@@ -15,7 +15,6 @@ uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its f
 uniform float uTime;       // seconds on the clock the waves run by
 uniform float uSeaLevel;      // the height of the still sea surface
 uniform float uUnderWater;    // 1 while the eye is under water
-uniform float uPictureDrawn;  // 1 while the sea's surface bends a picture of what is under it (seen-through-surface.glsl)
 uniform float uDaylight;        // daylight, 0 at night to 1 by day
 uniform float uGritAverage;   // the grit picture's average brightness (ground-grit.ts)
 uniform float uWind;       // the wind's strength, 0 (none) to 1 (high)
@@ -40,7 +39,6 @@ uniform sampler2D uSeaBed;          // the reef's hard floor and lived-in sand (
 varying vec3 vGroundPosition;   // this point's position in the world
 
 #include "../shaders/shared/turns"
-#include "../shaders/shared/seen-through-surface"
 #include "../shaders/shared/noise"
 
 #include "footpaths"
@@ -50,6 +48,7 @@ varying vec3 vGroundPosition;   // this point's position in the world
 #include "../shaders/shared/lagwave"
 
 #include "../shaders/shared/light-net"
+#include "../shaders/shared/light-under-sea"
 
 // The noise the ground's own patterns are made of, 0 to 1 with one rise and fall to a cell of p, as noise() gives:
 // read from a picture of such noise (ground-noise.ts), where every call was worked out by arithmetic. On Ryan's

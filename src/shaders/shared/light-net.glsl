@@ -49,12 +49,6 @@ const float WATER_FILLS_SHADOWS = 0.3;
 const vec2 NO_SHADOWS_BELOW = vec2(3.5, 9.0);
 const vec2 NO_SHADOWS_UNDER_WATER_BY_DAYLIGHT = vec2(0.9, 0.45);
 
-// An eye under water gets used to the light there, as a camera's white balance does: the red that the water over a
-// thing has taken from the light on it is missed far less than an eye above the sea misses it. (Photographs taken
-// a few metres down in daylight show corals tan and sand pale, not green.) So to an eye under water, the water
-// over a thing takes this share of what it takes to an eye above.
-const float TAKEN_TO_AN_EYE_UNDER_WATER = 0.15;
-
 // How far a shadow is filled in, in water so deep. (Needs uDaylight, as the net itself does.)
 float shadowFilledAt(float depth) {
   float inWater = smoothstep(0.1, 1.0, depth);
