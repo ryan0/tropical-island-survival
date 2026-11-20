@@ -1084,7 +1084,10 @@ The shadows are redrawn only when the sun or the player has moved, so they are i
 **Only the phone can say what any of this gained.** The test renderer times the noise picture at 7 to 16 per
 cent of a frame and the other four pictures at nothing, and it has been wrong about pictures and arithmetic
 every time. The panel's `ground by arithmetic` switch puts all five back to formulas: the frame rate with it
-on and off, with `more dots` on, is the measure. The switch goes once it has been read.
+on and off, with `more dots` on, is the measure. The switch goes once it has been read. If it shows a gain, the
+same picture of noise could serve the water's glitter, sparkle and white horses, which still work theirs out
+(up to four evaluations for a dot of sea in a wind); not tried, since it would move patterns of the water that
+have been tuned over many sittings.
 
 ### What a frame spends, and a budget (19 November 2026)
 
