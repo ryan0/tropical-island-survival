@@ -21,7 +21,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   sea's mesh draws the rest. All water is coloured by one rule, how much of it the eye looks through
   (`src/sea/water.frag.glsl`).
 - The ground is drawn in tiles, and its colouring reads pictures made at start-up wherever it once worked a
-  formula out for every dot: its noise, the shore, the reef's cover (`src/world/terrain-declarations.glsl`). One
+  formula out for every dot: its noise and random numbers, the shore, the reef's cover, the turf's patterns
+  (`src/world/terrain-declarations.glsl`). One
   lamp lights the scene, the sun's by day and the moon's by night (`src/sky/lights.ts`); a full moon rises as
   the sun sets and crosses the sky through the night.
 - The refactor is finished (`docs/REFACTOR_PLAN.md` is its record). What comes next, in the order agreed, is in

@@ -1,4 +1,11 @@
-import { DataTexture, LinearFilter, LuminanceFormat, RepeatWrapping } from 'three';
+import {
+  DataTexture,
+  LinearFilter,
+  LuminanceFormat,
+  NearestFilter,
+  RepeatWrapping,
+  RGBAFormat,
+} from 'three';
 import { worldConfig } from './world-config';
 
 // The noise the ground's patterns are made of, as a picture. The ground's colouring asks for noise
@@ -8,8 +15,18 @@ import { worldConfig } from './world-config';
 // here; it repeats, every `period` cells.
 
 const config = worldConfig.groundNoise;
-// A number of its own, so that nothing else's pattern moves.
+// Numbers of their own, so that nothing else's pattern moves.
 const SEED = 20261119;
+const RANDOMS_SEED = 19112026;
+
+/** A stream of numbers at random, 0 up to 1, the same every time from the same seed. */
+function numbersFrom(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
 
 /** The smooth step that carries the slope, too, on across a cell's edge (as noise.glsl's does). */
 function fade(t: number): number {
@@ -24,11 +41,7 @@ function fade(t: number): number {
  */
 export function createGroundNoise(): DataTexture {
   const { period, dotsACell } = config;
-  let state = SEED;
-  const random = () => {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
+  const random = numbersFrom(SEED);
   // A slope at each corner of the grid of cells, as gradient noise has.
   const slopes = new Float32Array(period * period * 2);
   for (let i = 0; i < slopes.length; i++) slopes[i] = random() * 2 - 1;
@@ -59,6 +72,26 @@ export function createGroundNoise(): DataTexture {
   const picture = new DataTexture(dots, size, size, LuminanceFormat);
   picture.wrapS = picture.wrapT = RepeatWrapping;
   picture.minFilter = picture.magFilter = LinearFilter;
+  picture.needsUpdate = true;
+  return picture;
+}
+
+/**
+ * A picture of plain random numbers, four to a dot, for the ground's single things (a dimple, a
+ * pebble, a chip, a fleck: at most one to a square of a grid), which take their place, size, turn
+ * and shade from them: each such number was worked out with a sine. It is read dot for dot,
+ * unsmoothed and without mipmaps (so it may be read inside a branch), and repeats every
+ * `config.randomsSize` squares.
+ */
+export function createGroundRandoms(): DataTexture {
+  const size = config.randomsSize;
+  const random = numbersFrom(RANDOMS_SEED);
+  const dots = new Uint8Array(size * size * 4);
+  // (the high bits of each number: the low ones of this kind of stream repeat too soon)
+  for (let i = 0; i < dots.length; i++) dots[i] = Math.floor(random() * 256);
+  const picture = new DataTexture(dots, size, size, RGBAFormat);
+  picture.wrapS = picture.wrapT = RepeatWrapping;
+  picture.minFilter = picture.magFilter = NearestFilter;
   picture.needsUpdate = true;
   return picture;
 }

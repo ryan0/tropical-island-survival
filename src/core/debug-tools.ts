@@ -220,9 +220,9 @@ export function frameCostSwitches(
       },
     },
     {
-      // The ground's colouring with its noise, the shore's shape, the reef's cover and the turf's broad
-      // patterns worked out by arithmetic, as they were until 19 November 2026, where they are now read
-      // from pictures
+      // The ground's colouring with its noise, its random numbers, the shore's shape, the reef's cover
+      // and the turf's broad patterns worked out by arithmetic, as they were until 19 November 2026,
+      // where they are now read from pictures
       // (terrain-declarations.glsl's TERRAIN_BY_ARITHMETIC). The patches of the noise lie elsewhere; it
       // is the frame rate that is to compare.
       label: 'ground by arithmetic',

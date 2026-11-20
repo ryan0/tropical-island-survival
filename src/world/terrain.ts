@@ -14,7 +14,7 @@ import { glslFloat, glslVec2, glslVec3 } from '../shaders/defines';
 import { withColouring } from '../shaders/sunlight-under-water';
 import { SWAY_DECLARATIONS, swayOf } from '../shaders/sway-under-water';
 import { createGroundGrit } from './ground-grit';
-import { createGroundNoise } from './ground-noise';
+import { createGroundNoise, createGroundRandoms } from './ground-noise';
 import { turfColours } from './ground-patterns';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { seaConfig } from '../sea/sea-config';
@@ -144,6 +144,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   shape.computeVertexNormals();
   const grit = createGroundGrit(random);
   const groundNoise = createGroundNoise();
+  const groundRandoms = createGroundRandoms();
   const reefCover = createReefCoverPicture(renderer);
   const turfPatterns = createTurfPicture(renderer);
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
@@ -155,6 +156,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),
     CAUSTICS_BRIGHTEST: glslFloat(CAUSTICS_BRIGHTEST),
     GROUND_NOISE_PERIOD: glslFloat(worldConfig.groundNoise.period),
+    GROUND_RANDOMS_SIZE: glslFloat(worldConfig.groundNoise.randomsSize),
     REEF_COVER_SPAN: glslFloat(worldConfig.reefCoverPicture.span),
     ...turfPictureDefines,
     SHORE_ROUND_FROM: glslFloat(seaConfig.shoreRoundPicture.radiusKeptFrom),
@@ -167,6 +169,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     for (const name of SHARED_UNIFORMS) shader.uniforms[name] = uniforms[name];
     shader.uniforms.uGritAverage = { value: grit.mean };
     shader.uniforms.uGroundNoise = { value: groundNoise };
+    shader.uniforms.uGroundRandoms = { value: groundRandoms };
     shader.uniforms.uReefCover = { value: reefCover };
     shader.uniforms.uTurfPatterns = { value: turfPatterns };
     // The lines of equal depth, drawn when the sea is drained, need to know how much the depth

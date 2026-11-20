@@ -7,8 +7,8 @@
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
 // Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; fleck, pebble and dimples; and from the
-//   groundNoise and groundFbm; and from the
-//   chunks it includes: footpathDistance (footpaths.glsl); hash (noise.glsl); islandR, openSea and
+//   groundNoise, groundFbm and randomsOf; and from the
+//   chunks it includes: footpathDistance (footpaths.glsl); islandR, openSea and
 //   landW (island-shape/shore.glsl and island.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
 //   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl); turfLushness, turfDryness,
 //   soilPatches and layerEdgeWander (ground-patterns/turf.glsl), which the grass follows.
@@ -304,24 +304,27 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
   if (height > 0.2 && height < 2.2 && cameraDistance < SHELLS_WITHIN) {
     vec2 grid = xz * 3.3;
     vec2 square = floor(grid);
-    vec2 middle = vec2(hash(square + 31.0), hash(square + 47.0)) * 0.7 + 0.15;
+    // (its middle, across and down; whether there is one; its kind; then how oval, and two for its colour)
+    vec4 placed = randomsOf(square, 8.0);
+    vec4 shaped = randomsOf(square, 9.0);
+    vec2 middle = placed.xy * 0.7 + 0.15;
     // (the lagoon's tide line is low and thin)
     float driftLine = mix(0.85, 0.34, lagoonSide);
     float driftWander = 0.25 * groundNoise(xz * 0.21) * (1.0 - 0.6 * lagoonSide);
     float driftWidth = mix(0.13, 0.07, lagoonSide);
     float onDrift = exp(-pow((height - driftLine - driftWander) / driftWidth, 2.0));
     float shareWithChips = 0.02 + mix(0.42, 0.16, lagoonSide) * onDrift;
-    float hasChip = step(1.0 - shareWithChips, hash(square + 17.0));
-    float kind = hash(square + 5.0);
+    float hasChip = step(1.0 - shareWithChips, placed.z);
+    float kind = placed.w;
     float radius = 0.05 + 0.10 * kind * kind;
     vec2 fromMiddle = fract(grid) - middle;
-    fromMiddle.x *= 1.0 + 0.6 * hash(square + 9.0);
+    fromMiddle.x *= 1.0 + 0.6 * shaped.x;
     float chip = smoothstep(radius, radius * 0.55, length(fromMiddle)) * hasChip;
     vec2 fromShadow = fromMiddle + sunAlongGround * radius * 0.8;
     float chipShadow = smoothstep(radius * 1.5, radius * 0.6, length(fromShadow)) * hasChip;
     vec3 paleOrPink = mix(vec3(0.96, 0.94, 0.90), vec3(0.86, 0.62, 0.52), step(0.62, kind));
-    vec3 greyOrTan = mix(vec3(0.62, 0.60, 0.58), vec3(0.74, 0.60, 0.42), step(0.5, hash(square + 2.0)));
-    vec3 chipColour = mix(paleOrPink, greyOrTan, step(0.8, hash(square + 71.0)));
+    vec3 greyOrTan = mix(vec3(0.62, 0.60, 0.58), vec3(0.74, 0.60, 0.42), step(0.5, shaped.y));
+    vec3 chipColour = mix(paleOrPink, greyOrTan, step(0.8, shaped.z));
     vec3 shadowed = sand * (1.0 - 0.45 * chipShadow * (1.0 - chip) * nearness);
     vec3 litChip = chipColour * (0.85 + 0.3 * dot(fromMiddle, sunAlongGround) / radius);
     sand = mix(shadowed, litChip, chip * nearness);
@@ -392,7 +395,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       turf = mix(turf, BARE_SOIL * (0.85 + 0.3 * groundNoise(xz * 5.0)), bare * 0.85);
 
       vec3 soil = SOIL_BROWN * (0.75 + 0.5 * groundFbm(xz * 1.3));
-      float hasSpeck = step(0.975, hash(floor(xz * 18.0) + 9.0));
+      float hasSpeck = step(0.975, randomsOf(floor(xz * 18.0), 10.0).x);
       float inSpeck = smoothstep(0.5, 0.2, length(fract(xz * 18.0) - 0.5));
       soil *= 1.0 - 0.25 * hasSpeck * inSpeck * nearness;
       float dirt = smoothstep(0.66, 0.80, dirtWaves + (groundFbm(xz * 0.6) - 0.5) * 0.5 + (groundNoise(xz * 3.1) - 0.5) * 0.12);
@@ -426,7 +429,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
         float flecks = max(fleck(xz * 6.0), fleck(turned * 9.0 + 3.0));
         litter = flecks * backOfBeach * smoothstep(0.2, 0.55, groundNoise(xz * 0.6 + 17.0)) * exp(-cameraDistance * 0.025);
       }
-      fringe = mix(fringe, vec3(0.34, 0.25, 0.15) * (0.7 + 0.6 * hash(floor(xz * 6.0))), litter * 0.85);
+      fringe = mix(fringe, vec3(0.34, 0.25, 0.15) * (0.7 + 0.6 * randomsOf(floor(xz * 6.0), 11.0).x), litter * 0.85);
       // 3. round every patch of turf, a rim of sand stained dark by roots and humus
       float stainedRim = smoothstep(1.45, 1.74, turfEdge) * 0.7;
       fringe = mix(fringe, vec3(0.52, 0.45, 0.34) * (0.85 + 0.3 * groundNoise(xz * 4.0)), stainedRim);

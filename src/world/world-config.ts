@@ -37,9 +37,11 @@ export const worldConfig = {
   /**
    * The picture of noise that the ground's patterns are read from (ground-noise.ts): how many
    * cells of the noise it holds across before it repeats, and how many dots it gives each cell.
-   * A pattern read at 0.2 cells a metre repeats every 320 m.
+   * A pattern read at 0.2 cells a metre repeats every 320 m. And the dots across of the picture of
+   * plain random numbers that the ground's single things are placed by: pebbles, at 15 squares a
+   * metre, repeat every 17 m.
    */
-  groundNoise: { period: 64, dotsACell: 8 },
+  groundNoise: { period: 64, dotsACell: 8, randomsSize: 256 },
 
   /**
    * What covers the reef's floor, as a picture the ground's colouring reads in place of the
