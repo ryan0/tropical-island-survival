@@ -53,7 +53,7 @@ const float NET_ON_OUTER_REEF = 0.45;
 // white shows no relief.)
 const vec3 WARM_SAND = vec3(0.725, 0.715, 0.69);
 const vec3 GREY_SAND = vec3(0.71, 0.71, 0.70);
-const vec3 VINE_GREEN = vec3(0.17, 0.36, 0.12);
+const vec3 VINE_GREEN = vec3(0.25, 0.34, 0.19);
 const vec3 BARE_SOIL = vec3(0.80, 0.73, 0.56);
 const vec3 SOIL_BROWN = vec3(0.50, 0.38, 0.25);
 const vec3 LITTER_BROWN = vec3(0.50, 0.40, 0.25);
@@ -355,7 +355,7 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
       vec2 streakUv = vec2(dot(xz, streakDirection) * 1.7, dot(xz, vec2(-streakDirection.y, streakDirection.x)) * 10.0);
       float streaks = groundNoise(streakUv + 3.0 * groundNoise(xz * 0.7));
       float greenerPatches = smoothstep(0.55, 0.68, groundFbm(xz * 0.8 + 21.0));
-      vec3 greener = turfTint * vec3(1.05, 1.18, 0.95) + 0.03;
+      vec3 greener = turfTint * vec3(1.03, 1.10, 0.97) + 0.02;
       float mottle = 0.80 + 0.40 * groundFbm(xz * 2.2);
       float streaked = 1.0 + (streaks - 0.5) * 0.45 * nearness;
       vec3 turf = mix(turfTint, greener, greenerPatches * 0.6) * vec3(0.90, 0.92, 0.82) * mottle * streaked;

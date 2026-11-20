@@ -33,10 +33,11 @@ function paintLeaflet(
   const lean = 14 + random() * 8;
   const wobble = (random() - 0.5) * 5;
   const pointY = MIDRIB + side * length;
-  // Pale and yellow-green at the midrib, darker towards its point.
+  // Pale and yellow-green at the midrib, darker towards its point. (An olive green, as fronds measure in
+  // photographs: with red at six tenths of the green and blue at a third they were a lime.)
   const shade = context.createLinearGradient(x, MIDRIB, x + lean, pointY);
-  shade.addColorStop(0, rgb(green * 0.78, green * 1.26, green * 0.44));
-  shade.addColorStop(1, rgb(green * 0.42, green * 0.92, green * 0.34));
+  shade.addColorStop(0, rgb(green * 0.97, green * 1.18, green * 0.76));
+  shade.addColorStop(1, rgb(green * 0.64, green * 0.86, green * 0.54));
   context.fillStyle = shade;
   context.beginPath();
   context.moveTo(x - 3.1, MIDRIB);

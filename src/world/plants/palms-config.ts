@@ -159,7 +159,7 @@ export const palmsConfig = {
     apart: 2.1,
     out: 0.3,
     belowTop: 0.4,
-    colour: [0.76, 0.82, 0.42],
+    colour: [0.76, 0.8, 0.56],
   },
 
   fronds: {
@@ -181,11 +181,11 @@ export const palmsConfig = {
       { pitch: 0.95, size: 0.72, tint: [1.05, 1.08, 0.86] },
       { pitch: 0.48, size: 1, tint: [1, 1, 0.92] },
       { pitch: 0.05, size: 1, tint: [1, 1, 0.92] },
-      { pitch: -0.62, size: 0.86, tint: [1.08, 1.0, 0.7] },
+      { pitch: -0.62, size: 0.86, tint: [1.06, 1.0, 0.8] },
     ] satisfies readonly FrondTier[],
     /** On this share of palms every other old frond is dead and brown. */
     shareOfPalmsWithDeadFronds: 0.6,
-    deadTint: [1.5, 0.92, 0.5],
+    deadTint: [1.3, 0.92, 0.72],
     /** Each frond is pitched and rolled at random by up to half these either way... */
     pitchSpread: 0.36,
     rollSpread: 0.5,

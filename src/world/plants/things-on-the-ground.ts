@@ -155,7 +155,7 @@ function addRunner(
         turn,
         tiltX,
         tiltZ,
-        colour: [0.15 * g, 0.36 * g, 0.1 * g],
+        colour: [0.22 * g, 0.34 * g, 0.17 * g],
       });
     }
   }

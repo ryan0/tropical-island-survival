@@ -140,15 +140,15 @@ const float CRESTS_B_SPACING = 10.5;
 const float CRESTS_B_SPEED = 3.5;
 
 // The colour of the water itself: pale aqua over the sand, turquoise where it deepens, blue where it is deep.
-const vec3 OVER_SAND_AQUA = vec3(0.15, 0.74, 0.72);
-const vec3 TURQUOISE = vec3(0.03, 0.55, 0.70);
-const vec3 OCEAN_BLUE = vec3(0.006, 0.12, 0.34);
+const vec3 OVER_SAND_AQUA = vec3(0.34, 0.75, 0.71);
+const vec3 TURQUOISE = vec3(0.22, 0.52, 0.61);
+const vec3 OCEAN_BLUE = vec3(0.01, 0.18, 0.34);
 // Added where the ripples face the sun.
 const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
 // Water full of bubbles where waves have just broken.
 const vec3 AERATED_WATER = vec3(0.52, 0.87, 0.85);
 // The water's colour multiplied by this with the sun at the horizon.
-const vec3 LOW_SUN_WATER_TINT = vec3(0.62, 0.45, 0.55);
+const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
 // The water under a white horse's foam.
 const vec3 UNDER_WHITECAP = vec3(0.34, 0.66, 0.74);
 // Foam: its colour with the sun at the horizon; thin foam; foam turned away from the sun.

@@ -148,7 +148,7 @@ function createFrondMaterial(
       shader.vertexShader.replace('#include <begin_vertex>', FROND_SWAY);
   };
   // A frond is thin: sunlight on its upper side glows through, yellow-green, when you look up at it from below.
-  return lightLeavesFromBothSides(material, 'palm fronds', [0.5, 0.62, 0.16]);
+  return lightLeavesFromBothSides(material, 'palm fronds', [0.52, 0.6, 0.36]);
 }
 
 /** A palm on its spot: its kind, size and lean. `index` is its place among all the palms. */

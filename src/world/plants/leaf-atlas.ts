@@ -42,9 +42,9 @@ const SPRIGS: readonly Sprig[] = [
 const SPRIG_RADIUS = 120;
 // From the outside in: fewer and shorter leaves, and paler, for the new ones in the middle.
 const SPRIG_RINGS = [
-  { leaves: 9, reach: 1, green: 96 },
-  { leaves: 7, reach: 0.72, green: 116 },
-  { leaves: 5, reach: 0.42, green: 150 },
+  { leaves: 9, reach: 1, green: 90 },
+  { leaves: 7, reach: 0.72, green: 110 },
+  { leaves: 5, reach: 0.42, green: 143 },
 ] as const;
 
 /**
@@ -108,10 +108,12 @@ function drawSprig(context: CanvasRenderingContext2D, random: Random, sprig: Spr
       context.save();
       context.translate(sprig.x, sprig.y);
       context.rotate(angle);
+      // (red at three quarters of the green and blue at a half, as leaves in the sun measure in photographs:
+      // with less of both they were a pure, loud green)
       drawLeaf(context, length, ringReach * 0.24, [
-        g * (0.46 + 0.14 * sprig.hue + 0.1 * ring),
+        g * (0.74 + 0.08 * sprig.hue + 0.05 * ring),
         g,
-        g * (0.3 + 0.06 * ring),
+        g * (0.54 + 0.04 * ring),
       ]);
       context.restore();
     }
@@ -124,7 +126,7 @@ function drawDarkCore(random: Random): HTMLCanvasElement {
   for (let x = 0; x < 64; x++) {
     for (let y = 0; y < 64; y++) {
       const dark = 34 + Math.floor(random() * 26);
-      context.fillStyle = `rgb(${Math.floor(dark * 0.55)},${dark},${Math.floor(dark * 0.45)})`;
+      context.fillStyle = `rgb(${Math.floor(dark * 0.76)},${dark},${Math.floor(dark * 0.6)})`;
       context.fillRect(x, y, 1, 1);
     }
   }

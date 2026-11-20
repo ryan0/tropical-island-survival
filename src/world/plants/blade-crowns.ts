@@ -61,8 +61,8 @@ function growBlade(random: Random, crown: BladeCrown, i: number): Blade {
     sinRise: Math.sin(el),
     length: bladeLength,
     droop,
-    baseColour: isDead ? DEAD_BASE_COLOUR : [0.09 * g, 0.22 * g, 0.07 * g],
-    tipColour: isDead ? DEAD_TIP_COLOUR : [(0.22 + 0.1 * f) * g, 0.42 * g, 0.13 * g],
+    baseColour: isDead ? DEAD_BASE_COLOUR : [0.13 * g, 0.2 * g, 0.11 * g],
+    tipColour: isDead ? DEAD_TIP_COLOUR : [(0.28 + 0.07 * f) * g, 0.4 * g, 0.21 * g],
   };
 }
 
