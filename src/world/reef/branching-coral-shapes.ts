@@ -4,8 +4,9 @@ import type { Random } from '../../core/random';
 import { addStick, joined, lumpyField, shapedAndPainted, type Painter } from './painted-shapes';
 
 const STUBS_ON_A_BUSH = 62;
-/** How many sides a bush's stubs are cut with: with three or four, a stub close to was a splinter. */
-const STUB_SIDES = 5;
+/** How many sides a bush's stubs, and the two tips each forks into, are cut with. */
+const STUB_SIDES = 4;
+const STUB_TIP_SIDES = 3;
 
 function bushDome(radius: number, paint: Painter): BufferGeometry {
   const dome = new SphereGeometry(radius, 9, 5, 0, FULL_TURN, 0, 1.7);
@@ -41,7 +42,7 @@ function addForkedStub(parts: BufferGeometry[], random: Random, index: number): 
       length: forkLength,
       footRadius: 0.013,
       tipRadius: 0.006,
-      sides: STUB_SIDES,
+      sides: STUB_TIP_SIDES,
       footBrightness: 0.95,
       tipBrightness: 1.35,
       capped: false,
@@ -65,9 +66,10 @@ export function simpleBushyCoral(random: Random): BufferGeometry {
 }
 
 // A staghorn's branches: how many spring from its foot, how thick they are there, how many sides a
-// branch is cut with (with four, a branch close to was a plank), and how many each forks into,
-// twice over: a thicket, not a candelabrum.
-const STAGHORN = { stems: 5, stemRadius: 0.034, sides: 6, tipSides: 5, forks: 3 };
+// branch and a tip are cut with, and how many a branch forks into, the first time and the second.
+// (It is drawn at any distance, and there are many: with five stems of six sides forking in three
+// twice it was three times the triangles for little more to see.)
+const STAGHORN = { stems: 4, stemRadius: 0.034, sides: 5, tipSides: 4, forks: [3, 2] };
 
 /** Staghorn coral: a thicket of thin forking branches, pale at the tips. */
 export function staghornCoral(random: Random): BufferGeometry {
@@ -94,7 +96,7 @@ export function staghornCoral(random: Random): BufferGeometry {
 
     const [dx, dy, dz] = direction;
     const directionLength = Math.hypot(dx, dy, dz);
-    const forkCount = STAGHORN.forks;
+    const forkCount = STAGHORN.forks[forksLeft > 1 ? 0 : 1];
     for (let i = 0; i < forkCount; i++) {
       const angle = (i * FULL_TURN) / forkCount + random() * 1.3;
       const spread = 0.5 + random() * 0.35;

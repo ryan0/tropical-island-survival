@@ -20,7 +20,7 @@ export interface CoralShapes {
 }
 
 /** A table coral's plate: how thick it is at its middle, and how finely the ball it is made from is cut. */
-const TABLE_PLATE = { thickness: 0.035, around: 16, rings: 6 };
+const TABLE_PLATE = { thickness: 0.035, around: 14, rings: 5 };
 
 /**
  * What a coral's surface is like close to, as shares of the three patterns in the corals' surface
@@ -156,7 +156,7 @@ function coralHead(random: Random, segmentsAround: number, segmentsDown: number)
 function rubbleLump(random: Random): BufferGeometry {
   const lumps = lumpyField(random, 3);
   const shape = shapedAndPainted(
-    new SphereGeometry(0.5, 10, 7),
+    new SphereGeometry(0.5, 8, 6),
     (x, y, z) => {
       const k = 1 + 0.34 * lumps(x * 4, y * 4, z * 4) + 0.14 * lumps(x * 9, y * 9, z * 9);
       return [x * k, y * k * 0.7, z * k];
@@ -249,18 +249,31 @@ interface Knob {
   height: number;
 }
 
+/** A knob's lobes: how many times the lumpy field is crossed in a knob's radius, and how deep they are. */
+const KNOB_LOBES = { across: 1.3, deep: 0.3 };
+
 function knob(lumps: LumpyField, { angle, distance, radius, height }: Knob): BufferGeometry {
+  // A corner is moved and then painted: this carries what the moving found to the painting.
+  let lobe = 0;
   return shapedAndPainted(
     new SphereGeometry(radius, 8, 5),
     (x, y, z) => {
-      const k = 1 + 0.14 * lumps(x * 14, y * 14, z * 14);
+      // Lobes two or three to a knob, so that it is a clump and not a ball: broad enough for the
+      // few corners a knob has to follow.
+      lobe = lumps(
+        (x / radius) * KNOB_LOBES.across,
+        (y / radius) * KNOB_LOBES.across,
+        (z / radius) * KNOB_LOBES.across,
+      );
+      const k = 1 + KNOB_LOBES.deep * lobe;
       return [
         x * k + Math.cos(angle) * distance,
         y * k * 0.85 + height,
         z * k + Math.sin(angle) * distance,
       ];
     },
-    (x, y, z) => 0.62 + 1.1 * y + 0.14 * lumps(x * 20, y * 20, z * 20),
+    // (darker in the creases between the lobes)
+    (x, y) => 0.62 + 1.1 * y + 0.3 * lobe,
   );
 }
 

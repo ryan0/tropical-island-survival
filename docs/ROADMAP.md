@@ -1555,8 +1555,9 @@ on platforms of cracked rock.
   coral, likewise). Its sides go on down in a skirt, so that a head on a slope does not hang in the water on
   its downhill side.
 - *Shapes.* A table's plate is thin, dished and uneven in outline, with a pale growing rim (it was a disc of
-  sixteen straight sides in one shade, a counter from above); a staghorn has five thin stems where it had
-  three thick ones, cut round; a bush's stubs are cut with five sides where they had three.
+  sixteen straight sides in one shade, a counter from above); a staghorn has four thin stems where it had
+  three thick ones; a bush's stubs are cut with four sides where they had three; a cauliflower coral's knobs
+  are lobed clumps where they were balls.
 - *Round things look round.* Under water the light comes from all sides and a branch was a flat plank: a
   surface seen edge on is now darker than one seen square on. The net of light falls by the way a surface
   faces, where every coral was taken to face half up.
@@ -1615,7 +1616,10 @@ the night sky in `look-views.ts`):
 
 **What it costs.** For a dot of coral, three readings of the surface picture and two of the detail texture,
 where there were three of the detail texture (and for a dot of a head, six fewer than the rocks' material
-took). A head is some 2000 triangles within 32 m and 400 beyond, where it was 700. The ground's shader reads
+took). A head is some 2000 triangles within 32 m and 400 beyond, where it was 700. A first cut of the new
+shapes drew a fifth more triangles beside a reef (staghorns of 1100 triangles where they had 400, bushes of
+1900 where they had 1200): they were trimmed where it bought little, and a frame under water by two heads
+now draws 691 thousand triangles where it drew 656 thousand, and one on a head 622 thousand where it drew 595. The ground's shader reads
 no more pictures than after the third sitting: 13 of its own, the grit and the shadow map, 15 of the 16 that
 WebGL 2 promises (`DEVICE_NOTES.md`). The sky's dome reads one picture for a dot of night sky where it worked
 out two sky-cubes and five octaves of noise (`fbm5`, which nothing uses now, is gone from `noise.glsl`); the stars are 4200 points. The page's start-up is longer: 5.0 s
@@ -1624,8 +1628,7 @@ coral's 0.1 s and the sky's two 0.2 s.
 
 **Known, and left:** where two of the three sides a coral's surface is laid on from meet, the pattern has a
 seam (it is taken from the side faced most squarely, nearly alone: blended evenly, a brain coral's ridges
-were a blur there); warts on a smooth ball can read as pebbled leather, and a cauliflower coral is still a
-bunch of balls; the corals on a head are scattered as they were, with no kind keeping to its own depth or
+were a blur there); warts on a smooth knob can read as pebbled leather; the corals on a head are scattered as they were, with no kind keeping to its own depth or
 side; a head's dead top is plain; far heads are a green-blue 30 degrees greener than the photographs' (the
 water's own colour, which the second sitting set); the sea at sunset is a brighter, bluer slate than most of
 the photographs (the water was not to be touched in this sitting); the moon is full every night and its path
