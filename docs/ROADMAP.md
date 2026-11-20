@@ -1215,7 +1215,8 @@ and adjusting, and an agent handed that loop reports that it is closer whether i
 finds wrong is that things do not sit together, which several agents each improving a part makes worse.
 
 **Settled:** textures are painted by the program at start-up, as everything is, not shipped as photographs; the
-`ground by arithmetic` switch goes. **Open:** which colour mode Ryan's phone shows (Adaptive deepens colours,
+`ground by arithmetic` switch goes (gone, with the formulas it brought back, at the start of the first
+sitting: the ground's shader now includes the shore's formulas alone, not the whole island's). **Open:** which colour mode Ryan's phone shows (Adaptive deepens colours,
 and the passes are tuned on stills from the desktop); whether there is a game or a film whose look under water
 is the one to aim at.
 

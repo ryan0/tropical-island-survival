@@ -6,12 +6,11 @@
 // and shadowFilledIn, which say what the water does to the sun's light (shaders/sunlight-under-water.ts).
 // Needs from three.js: diffuseColor, and the ground's grit picture: the material's map, vUv, and texelColor (the map
 //   already read at vUv).
-// Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; fleck, pebble and dimples; and from the
-//   groundNoise, groundFbm and randomsOf; and from the
-//   chunks it includes: footpathDistance (footpaths.glsl); islandR, openSea and
-//   landW (island-shape/shore.glsl and island.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
-//   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl); turfLushness, turfDryness,
-//   soilPatches and layerEdgeWander (ground-patterns/turf.glsl), which the grass follows.
+// Needs from terrain-declarations.glsl: the uniforms and the varying vGroundPosition; groundNoise, groundFbm and
+//   randomsOf; fleck, pebble and dimples; and from the chunks it includes: footpathDistance (footpaths.glsl);
+//   openSea and the reef's zones (island-shape/shore.glsl); lagHi, lagEx, lagExposure, lagWave, lagFoam and LW_T
+//   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the reef's
+//   cover and the turf's broad patterns it reads from pictures (uShoreRound, uReefCover, uTurfPatterns).
 // Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
 //   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and THIN_TURF, LUSH_TURF and
 //   DRY_TURF (the turf's colours, which the grass shares: ground-patterns.ts), written by terrain.ts.
@@ -86,14 +85,9 @@ float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail show
 // (The shore's shape in this direction is read from its picture, which the water's shader reads too: the ocean
 // shoreline's distance from the centre, the reef's share of its full width, the land's width.)
 float directionFromCentre = atan(xz.y, xz.x);
-#ifdef TERRAIN_BY_ARITHMETIC
-float shoreRadius = islandR(directionFromCentre);
-float landWidth = landW(directionFromCentre);
-#else
 vec4 shoreRound = texture2D(uShoreRound, vec2(directionFromCentre / FULL_TURN + 0.5, 0.5));
 float shoreRadius = shoreRound.r + SHORE_ROUND_FROM;
 float landWidth = shoreRound.b;
-#endif
 float metresOffshore = length(xz) - shoreRadius;   // outside the ocean beach line (negative inland)
 float lagoonSide = 1.0 - smoothstep(-0.7, -0.4, metresOffshore / landWidth);
 
@@ -340,27 +334,17 @@ if (waterDepth > PLAIN_FLOOR_DEPTH) {
     // where it is all turf, the beach's fringe is not. (Most of the ground is wholly the one or the other.)
     // (The turf's broad patterns are read from their picture: how lush, how dried out, the patches of bare soil,
     // and how far the layers' edges wander.)
-    #ifdef TERRAIN_BY_ARITHMETIC
-    float edgeWander = layerEdgeWander(xz.x, xz.y);
-    #else
     vec4 turfPatterns = texture2D(uTurfPatterns, xz / TURF_PICTURE_SPAN + 0.5);
     float edgeWander = (turfPatterns.a * 2.0 - 1.0) * TURF_WANDER_KEPT;
-    #endif
     float layerHeight = height + edgeWander + (groundFbm(xz * 1.7) - 0.5) * 0.5;
     float turfEdge = layerHeight + (groundFbm(xz * 0.9 + 3.0) - 0.5) * 1.3 + (groundNoise(xz * 3.3) - 0.5) * 0.30;
     float landCover = smoothstep(1.74, 1.84, turfEdge);
 
     vec3 land = vec3(0.0);
     if (landCover > 0.0) {
-      #ifdef TERRAIN_BY_ARITHMETIC
-      float lushness = turfLushness(xz.x, xz.y);
-      float dryness = turfDryness(xz.x, xz.y);
-      float dirtWaves = soilPatches(xz.x, xz.y);
-      #else
       float lushness = turfPatterns.r;
       float dryness = turfPatterns.g;
       float dirtWaves = turfPatterns.b * 2.0 - 1.0;
-      #endif
       // short sun-bleached turf: yellow-green where it is thin, greener where it is lush, straw where it has dried out
       vec3 turfTint = mix(THIN_TURF, LUSH_TURF, lushness);
       turfTint = mix(turfTint, DRY_TURF, dryness * dryness * 0.7);
@@ -499,14 +483,9 @@ if (waterDepth > 0.0) {
     if (onTheReef > 0.5) {
       // (The reef's cover here is read from its picture: how much is high ground, how much bare pavement, how
       // much of a ridge the crest is.)
-      #ifdef TERRAIN_BY_ARITHMETIC
-      float alongTheReef = alongReef(max(metresOffshore, 0.0), directionFromCentre);
-      vec3 reefCover = vec3(reefHighGround(xz.x, xz.y), reefPavement(xz.x, xz.y), ridgeAt(directionFromCentre));
-      #else
       float beyondBeachShallows = max(metresOffshore - REEF_BEGINS, 0.0);
       float alongTheReef = clamp(metresOffshore, 0.0, REEF_BEGINS) + beyondBeachShallows / shoreRound.g;
       vec3 reefCover = texture2D(uReefCover, xz / REEF_COVER_SPAN + 0.5).rgb;
-      #endif
       // (the pattern breaks up the edges of the high ground, so that no patch has the outline of its mound)
       float ragged = 0.55 * (coralPattern - 0.5) + 0.3 * (groundNoise(xz * 1.3 + 4.0) - 0.5);
       float onHighGround = smoothstep(0.38, 0.62, reefCover.r + ragged);

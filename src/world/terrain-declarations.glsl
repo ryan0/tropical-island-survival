@@ -7,9 +7,8 @@
 // Five things the colouring once worked out by arithmetic for every dot it reads from pictures, which Ryan's
 // phone finds far cheaper: its noise (groundNoise, below), the random numbers its single things are placed by
 // (randomsOf, below), the shore's shape (uShoreRound), the reef's cover (uReefCover) and the turf's broad patterns
-// (uTurfPatterns). With the define TERRAIN_BY_ARITHMETIC, a debug switch, it works all five out as it did, to
-// compare the frame rate. The pictures' own defines (GROUND_RANDOMS_SIZE, REEF_COVER_SPAN, SHORE_ROUND_FROM,
-// TURF_PICTURE_SPAN, TURF_WANDER_KEPT) come from terrain.ts.
+// (uTurfPatterns). The pictures' own defines (GROUND_NOISE_PERIOD, GROUND_RANDOMS_SIZE, REEF_COVER_SPAN,
+// SHORE_ROUND_FROM, TURF_PICTURE_SPAN, TURF_WANDER_KEPT) come from terrain.ts.
 
 uniform float uDebugMode;      // a debug switch: 5 drains the sea, to see its floor
 uniform float uTime;       // seconds on the clock the waves run by
@@ -37,9 +36,7 @@ varying vec3 vGroundPosition;   // this point's position in the world
 
 #include "footpaths"
 
-#include "island-shape/island"
-
-#include "ground-patterns/turf"
+#include "island-shape/shore"
 
 #include "../shaders/shared/lagwave"
 
@@ -49,14 +46,9 @@ varying vec3 vGroundPosition;   // this point's position in the world
 // read from a picture of such noise (ground-noise.ts), where every call was worked out by arithmetic. On Ryan's
 // phone that arithmetic, some fifty calls for a dot of turf, was the dearest thing the ground did, and a reading
 // costs next to nothing. The picture repeats every GROUND_NOISE_PERIOD cells, and has no mipmaps, so that it may be
-// read inside a branch. (TERRAIN_BY_ARITHMETIC: a debug switch goes back to noise() itself, whose patches lie
-// elsewhere, to compare the frame rate.)
+// read inside a branch.
 float groundNoise(vec2 p) {
-  #ifdef TERRAIN_BY_ARITHMETIC
-  return noise(p);
-  #else
   return texture2D(uGroundNoise, p * (1.0 / GROUND_NOISE_PERIOD)).r;
-  #endif
 }
 
 // Three octaves of it, as fbm() is of noise(): each at twice the frequency and half the strength of the last,
@@ -72,15 +64,9 @@ float groundFbm(vec2 p) {
 // same `set` (a whole number: another set is another four). The ground's single things, of which there is at most
 // one to a square, take their place, size, turn and shade from these. They are read from a picture of random
 // numbers (ground-noise.ts), dot for dot, where each was worked out with a sine; the picture repeats every
-// GROUND_RANDOMS_SIZE squares. (TERRAIN_BY_ARITHMETIC: by sines again; the compiler drops those a caller does not
-// use.)
+// GROUND_RANDOMS_SIZE squares.
 vec4 randomsOf(vec2 square, float set) {
-  #ifdef TERRAIN_BY_ARITHMETIC
-  vec2 p = square + set * 17.0;
-  return vec4(hash(p), hash(p + 3.0), hash(p + 8.0), hash(p + 15.0));
-  #else
   return texture2D(uGroundRandoms, (square + set * vec2(37.0, 59.0) + 0.5) * (1.0 / GROUND_RANDOMS_SIZE));
-  #endif
 }
 
 // Bits of leaf litter and twig lying on sand: at most one short dark fleck in each square of p, at its own angle.
