@@ -5,14 +5,16 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
-**Where things stand (26 November 2026; Ryan came back from the weekend on the 24th, and no work was done
-while he was away).**
+**Where things stand (26 November 2026, after a night's sitting; Ryan came back from the weekend on the
+24th).**
 
 - *Branches.* `main` holds all of the look so far: Ryan merged the three stacked branches of 20 November
   (`look-3-ground`, `look-4-coral-and-sky`, `look-5-sea-floor`) that afternoon, at `2d4a18f`. Work goes on on
   `look-6-water-colours`, which begins there, committed and pushed at each stopping place, as he has agreed
   for this effort; `main` is his alone. (He merges in the same checkout the work is done in, and it may be
-  left on `main`: look at which branch is checked out before every commit.)
+  left on `main`: look at which branch is checked out before every commit.) A second branch,
+  `reef-2-deeper-gardens`, is stacked on it: the reef's new shape, so that the water and the reef can be
+  looked at and merged apart.
 - *The phone:* a steady 60 frames a second at `2d4a18f`, with rare dips, with the picture of what is under the
   sea drawn every frame. "Everywhere else is vastly improved"; one place was not, the lagoon islet's shore
   seen from the islet (1 below).
@@ -24,13 +26,14 @@ while he was away).**
      waterline, and a calmer bending" and, for a seam he found along the lagoon's shore on his return, "After
      the weekend", all far below). He has seen it ("this is looking amazing"); whether on the phone, where a
      new rule in every material's vertex shader had not yet run, he did not say.
-  2. *Softer water.* His one note on his return: the refraction and the water in general are "a bit busy for
-     eyes and disorienting", and he wants it softer without losing it. What moves was measured ("After the
-     weekend"): the wobble and the net of light on the floor are nearly all of it, and the fine ripples'
-     share of the wobble is what shivers. The two changes he chose are made ("Softer and clearer water", far
-     below): the wobble by the broad and middling ripples only, the net of light fainter. About half of
-     what moved in shallow water is gone; **the phone is to say** whether it is restful. If not: a slight
-     softening of what lies deeper, and sliders in the debug panel, both proposed and neither made.
+  2. *Water that does not turn the stomach.* His note on his return: the refraction and the water in general
+     "a bit busy for eyes and disorienting"; then, of a first softening that missed, that moving through
+     water in a full screen made him queasy. What did it was found with the eye moving, by his eyes on
+     switches and by measure ("Wading made him queasy", far below, with all that was built): the pace, the
+     eye's rise and fall, a raising that was up to two degrees from the law of refraction and heaved with
+     every wave, and a floor drawn sharp to the horizon from a low eye where real water smears it. All four
+     are mended. **His eyes are to say** whether it is so, in a full screen on the desktop and on the
+     phone; the debug panel has sliders for the levels that are a matter of his comfort.
   3. *Colours and clearness against the pairs* (the plan's stage D). Measured ("The water's colours,
      measured on the pairs", far below): by day our water is within the photographs' own spread. The water is
      two steps clearer at his word (`HIDES_BY_METRES` in `src/shaders/shared/water-veil.glsl`, 4.6 to 6 and,
@@ -48,17 +51,21 @@ while he was away).**
   a cause is named, and two frames a moment apart for anything that moves. The photographs are on his desktop
   only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
   our own views can be drawn and compared anywhere.
-- *In hand: wading through the water made him queasy,* in a full screen on the desktop, and the softening of
-  2 above did not help ("Wading made him queasy", far below, has the plan agreed and why the softening missed
-  it). Step 1 is his: to wade and swim the shallows with each of the six switches under "what makes wading
-  queasy" in the debug panel on in turn, and say which take the sickness away. Measured meanwhile, with the
-  eye moving: it is the eye's own rise and fall (a step's bob, a wave ridden, and the raising worked out
-  afresh for each height) far more than the ripples' bending, and the floor streams past a swimmer twice as
-  fast as a floor at its true depth would. Step 2 waits for his word on the switches.
-- *Waiting on Ryan,* all of it on the phone: whether the water is now soft enough, and clear enough; the
-  frame rate with the rule that raises what is under the sea ("The islet's shore"); footprints and spray by
-  night, which glowed and are mended ("Softer and clearer water"). And the wording of the standard "One owner
-  for each effect" (`CODE_STANDARDS.md`, line 95), which he has said he will read.
+- *What moves is measured with the eye moving* (`tools/look/wade.ts`, `wade-flow.ts`; their README): a walk
+  through the water drawn frame by frame, as a clip at full speed, as how the image under the water flows and
+  wobbles, and as how far it lies from what the law of refraction would show. The first softening was aimed
+  by a measure that held the eye still, and missed.
+- *Waiting on Ryan.* **His stomach,** wading and swimming in a full screen: the paces (2 m/s swimming with
+  the head up, 3 dived, wading from 4.2 knee deep down to 2), and the sliders under "what is seen through the
+  water" for the raising's strength, the ripples' bending, the smear and the net of light. **The phone's
+  frame rate,** which nothing here can say: every corner drawn into the under-water picture now takes three
+  of Newton's steps, every dot of the ground in that picture works the law out for itself, and the picture
+  keeps softer copies of itself made every frame (`DEVICE_NOTES.md` has each, and what to try first if it has
+  fallen). Whether the water is clear enough; footprints and spray by night ("Softer and clearer water").
+  The wording of the standard "One owner for each effect" (`CODE_STANDARDS.md`, line 95). And what to do
+  next of: the floor against the pairs (4 above: measured, not changed, "Not done of the night's plan" on
+  the reef's branch says why); the coral placed round the atoll; "a first piece of the game", which settles
+  the shape of `src/game/` and is his to discuss first.
 - *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
   and clearer water" has it, and the mending), and pass again from `886698e`. A test that fails there is now
   named on the run's page: look there first if one does.
