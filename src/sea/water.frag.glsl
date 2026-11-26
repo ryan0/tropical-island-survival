@@ -350,6 +350,7 @@ const float SMEARED_BY_FINE_RIPPLES = 0.08;
 // where it looks down less steeply than the first: the sand's ripples and the net of light at a wader's feet
 // are what Ryan liked best in the water, and it is the far floor that crawled.)
 const vec2 SMEARED_LOOKING_DOWN = vec2(0.22, 0.6);
+const float MOST_SMEARED_OVER = 8.0;
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (Wherever the surface is drawn, it is drawn whole, over the picture: only the picture holds what is seen
 // through water. The frame's own drawing, straight behind the surface, was let show through the shallowest
@@ -1280,12 +1281,19 @@ void main() {
       * SMEARED_BY_FINE_RIPPLES * uSmearingShare * min(ruffling, SMALL_RIPPLES_STEEPEST) * (1.0 - 0.65 * slick)
       * (1.0 - smoothstep(SMEARED_LOOKING_DOWN.x, SMEARED_LOOKING_DOWN.y, looksDown))
       * itsDepth / max(cameraDistance + itsDepth / goesDown, 0.5);
-    float dotsAcross = smearedBy * uPictureScale.x / uDotOfPicture.x * UNDER_WATER_PICTURE_SHARE;
-    vec4 smeared = texture2DLodEXT(uUnderWaterPicture, bentTo, log2(max(dotsAcross, 1.0)));
+    // (Not on a wave's steep face, which is lifted far over what is behind it; and no further than
+    // MOST_SMEARED_OVER dots of the picture: its smallest copies are a few dots each, and showed as blocks of
+    // one colour, a head's pale top spread over the face of the wave in front of it.)
+    float dotsAcross = smearedBy * (1.0 - smoothstep(0.02, 0.12, steep))
+      * uPictureScale.x / uDotOfPicture.x * UNDER_WATER_PICTURE_SHARE;
+    vec4 smeared = texture2DLodEXT(uUnderWaterPicture, bentTo, log2(clamp(dotsAcross, 1.0, MOST_SMEARED_OVER)));
     // (A softer copy has run together what stands out of the sea, whose depth is nought, with the floor round
     // it: where its depth reads shallower than the picture's own, by a third and more, it is left unread, or a
     // rock's colour would spread over the water beside it and the beach's over the shallows.)
-    float standsNear = clamp(3.0 * (behind.a - smeared.a) / max(behind.a, 0.02), 0.0, 1.0);
+    // (Nor is anything smeared that lies in less than a hand's breadth of water: a head whose top a trough of
+    // the waves had bared showed as a block of the softer copy's dots.)
+    float standsNear = max(clamp(3.0 * (behind.a - smeared.a) / max(behind.a, 0.02), 0.0, 1.0),
+      1.0 - smoothstep(0.02, 0.06, behind.a));
     behind = mix(smeared, behind, standsNear);
     #endif
   }
