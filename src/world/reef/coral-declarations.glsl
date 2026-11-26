@@ -15,6 +15,8 @@ uniform float uUnderWater;   // 1 while the eye is under water
 uniform float uDebugMode;
 // wind strength, 0..1
 uniform float uWind;
+// how much of the net of light is drawn: 1 but for a debug switch
+uniform float uLightNetShare;
 // the camera's position: three.js does not fill in cameraPosition for a Lambert material
 uniform vec3 uCameraPosition;
 

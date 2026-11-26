@@ -42,6 +42,7 @@ const SHARED_UNIFORMS = [
   'uTreeCover',
   'uShoreRound',
   'uWind',
+  'uLightNetShare',
   'uCameraPosition',
   'uSunDirection',
 ] as const;

@@ -48,6 +48,10 @@ while he was away).**
   a cause is named, and two frames a moment apart for anything that moves. The photographs are on his desktop
   only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
   our own views can be drawn and compared anywhere.
+- *In hand: wading through the water made him queasy,* in a full screen on the desktop, and the softening of
+  2 above did not help ("Wading made him queasy", far below, has the plan agreed and why the softening missed
+  it). Step 1 is his: to wade and swim the shallows with each of the six switches under "what makes wading
+  queasy" in the debug panel on in turn, and say which take the sickness away.
 - *Waiting on Ryan,* all of it on the phone: whether the water is now soft enough, and clear enough; the
   frame rate with the rule that raises what is under the sea ("The islet's shore"); footprints and spray by
   night, which glowed and are mended ("Softer and clearer water"). And the wording of the standard "One owner
@@ -2339,6 +2343,60 @@ five minutes and nothing shorter (`takePicture`, `tests/scene-page.ts`). And a f
 the run's page on GitHub (Playwright's `github` reporter, `playwright.config.ts`), where it can be read
 without the log: by Ryan, and from here through GitHub's public API. The first push with both, `886698e`,
 passed there: 52 tests in 10.4 minutes.
+
+### Wading made him queasy (26 November 2026)
+
+Ryan, of the softening above, in a browser window filling his desktop's screen: "I don't think this addressed
+the disorienting issue. When wading through water the refraction is very disorienting and causing motion
+sickness... I do like the refraction effect as it gives us much more realistic look but we need to
+refine/soften somehow to reduce the motion sickness it can cause. Let's make a plan first." Standing still
+in the water and looking round it happens "to a lesser extent but not so noticeable".
+
+**Why the softening missed it.** What moves was measured with the eye standing still, as how much of the
+picture changes from one frame to the next. That counts fast shimmer most, so the fine ripples were taken
+out of the bending and the slow, broad sway was kept: and a slow sway of much of the view is what turns a
+stomach. And an eye that moves through the ripples makes a wobble of its own: even a frozen pattern bends
+the floor differently at each spot, so wading through it wobbles the floor over the lower half of the
+screen, by arithmetic half a degree to two degrees, one to four times a second. **A measure of what moves
+must move the eye as the player does.**
+
+*What the code says of a wader:* 4.2 m/s (a run: a person wades at 1 to 1.5); the eye 1.7 m above the floor,
+so 0.5 to 1.5 m above the water, bobbing 3.5 cm either way 1.4 times a second; through the water that bob
+moves the floor's image 1.2 to 1.6 times as far as it moves what is in air. The picture of what is under
+the sea is drawn from the frame's own eye (after the player has moved), so it does not lag when the view
+turns.
+
+*And most of the shallows are not waded but swum.* The player wades only where the water is 0.2 to 1.2 m
+deep: a band five metres wide off the lagoon's beach, fifteen off the ocean's. Deeper, and nearly all the
+reef flat and the lagoon's shelf are 1.2 to 1.7 m deep, the eye is half a metre above the water, rising and
+falling 4 cm every four seconds, and on the ocean side riding every wave (the lagoon's water is still to the
+wave model). So low an eye sees the floor squeezed most, and the raising answers most sharply to its
+height: lifted a hand's breadth (0.2 m) by a wave, the floor three metres off moves 5.1 degrees as drawn,
+where through water lifted with the eye it would move 1.9, and in air 2.7; twelve metres off, 1.1 degrees
+where real water would show 0.06. The raising is worked out for the eye's height over the *still* sea each
+frame, as if the sea had stayed down and the eye alone gone up.
+
+**The plan, agreed.** Milestones committed and pushed to `look-6-water-colours`, as before.
+
+1. *Find which part does it.* Only his eyes can say. Six switches in the debug panel, under "what makes
+   wading queasy", all off unless pressed (and with all off every picture is as it was, to the pixel): `no
+   bending` (the ripples' bending of what is under them), `no raising` (what is under the sea drawn where
+   it is: the look before 20 November, with its faults), `steady raising` (the raising worked out for an
+   eye at a steady height over the water, which follows the real one slowly: a bob or a wave ridden then
+   moves the floor as it moves everything else and no further), `no light net`, `steady eye` (no bob with
+   each step, no rise and fall afloat, no riding of waves), `slow wading` (slower the deeper, from 4.2 m/s
+   at the water's edge to 2.2 where swimming begins). He wades and swims the shallows with each on in
+   turn, full screen, and says which take the sickness away. Meanwhile a measure with the eye moving, and short
+   clips at full speed (the software renderer draws them frame by frame and they are joined afterwards).
+2. *Soften what step 1 points to.* The candidates, in the order expected to matter: the bending calm while
+   the eye moves and close to the eye, full when standing and looking in; a steadier eye in water (no step
+   bob, the eye following floor and waves more slowly, the raising worked out from a smoothed eye height);
+   slower wading (his word: "yes, slower wading would make sense in general for realism"); more mirror and
+   less window looking along the water from a low eye, where the floor's image is most squeezed and moves
+   fastest. Where the level is a matter of his comfort, a slider first, and his setting made the rule.
+3. *Finish:* his levels become the rule, switches that proved nothing go, checks, docs. **From now on the
+   water is judged in a full screen on the desktop as well as on the phone:** the larger view is the harder
+   test.
 
 ## Later
 

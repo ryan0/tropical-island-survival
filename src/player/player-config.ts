@@ -46,8 +46,12 @@ export const playerConfig = {
     stepRate: 9,
   },
 
-  /** Over ground lower than this the player wades, slower. */
-  wading: { below: -0.2, speed: 4.2 },
+  /**
+   * Over ground lower than this the player wades, slower. With the debug panel's `slow wading`
+   * on, slower still the deeper the water: from `speed` at its edge down to `slowestSpeed` where
+   * swimming begins, as a wader pushing against water to the chest does.
+   */
+  wading: { below: -0.2, speed: 4.2, slowestSpeed: 2.2 },
 
   swimming: {
     /** Over ground lower than this the player swims. */

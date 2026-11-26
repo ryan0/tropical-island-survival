@@ -17,6 +17,7 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uCameraPosition',
   'uWind',
+  'uLightNetShare',
 ] as const;
 
 // Where the coral's surface is in the world, and which way it faces: the mottling, the surface's

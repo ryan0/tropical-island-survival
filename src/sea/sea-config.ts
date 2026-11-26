@@ -175,6 +175,12 @@ export const seaConfig = {
      * wave stands so high where anything stands.
      */
     clearOfTheSea: 1.5,
+    /**
+     * With the debug panel's `steady raising` on, the raising is worked out for an eye that
+     * follows the real one's height over the water under it this slowly (the share of the way a
+     * second, at first): a step's bob and a wave ridden are over before it has moved.
+     */
+    steadyRaisingFollows: 0.35,
   },
 
   /**

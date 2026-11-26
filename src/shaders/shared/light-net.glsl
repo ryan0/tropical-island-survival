@@ -8,7 +8,8 @@
 // Each shader makes the three readings itself, where the rules about reading textures let it
 // (docs/DEVICE_NOTES.md), at the places these functions give, and hands them to lightOfNet.
 //
-// Needs CAUSTICS_BRIGHTEST, a define from caustics-texture.ts.
+// Needs CAUSTICS_BRIGHTEST, a define from caustics-texture.ts, and the uniform uLightNetShare (how much of the
+// net is drawn: 1 but for a debug switch, shared-uniforms.ts).
 
 // How many rounds of the caustics texture the broad net makes in a metre (its meshes are a forearm or so across),
 // and how many times finer the second reading is (a hand across).
@@ -104,5 +105,5 @@ float lightOfNet(vec4 smallWaves, vec4 broadNet, vec4 fineNet, float depth, floa
 
 // How much of the net there is in a wind (0 none to 1 high): fainter in a calm, not gone.
 float netInWind(float wind) {
-  return mix(NET_IN_A_CALM, 1.0, smoothstep(0.0, 0.45, wind));
+  return mix(NET_IN_A_CALM, 1.0, smoothstep(0.0, 0.45, wind)) * uLightNetShare;
 }

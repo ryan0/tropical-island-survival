@@ -47,7 +47,13 @@ interface SceneDebugHooks {
   };
   /** The directions the breaker's own mesh covers, which the wave model reads too (radians). */
   breakerArc: { middle: number; halfWidth: number };
-  camera: { fov: number; updateProjectionMatrix(): void };
+  camera: {
+    fov: number;
+    updateProjectionMatrix(): void;
+    position: { x: number; y: number; z: number };
+    /** Its pitch is its turn about x, its yaw about y. */
+    rotation: { x: number; y: number };
+  };
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {
     compile(scene: object, camera: object): void;

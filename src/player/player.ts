@@ -57,6 +57,16 @@ export interface Player {
    */
   readonly isFlying: boolean;
   setFlying(isFlying: boolean): void;
+  /**
+   * Two debug switches, for finding what makes wading through water queasy. A steady eye does
+   * not bob with each step, nor rise and fall while afloat, nor ride the waves (one higher than
+   * the swimmer's eye goes over it). Wading slowly goes slower the deeper the water
+   * (player-config.ts).
+   */
+  readonly isEyeSteady: boolean;
+  setEyeSteady(isSteady: boolean): void;
+  readonly isWadingSlowly: boolean;
+  setWadingSlowly(isSlow: boolean): void;
   /** Flies the eye to a place, looking a given way. */
   flyTo(x: number, y: number, z: number, yaw: number, pitch: number): void;
   /** Walking, swimming and diving, or flying; the opening fly-in; and the camera. */
@@ -71,10 +81,13 @@ export interface Player {
 
 const { start, walking, wading, swimming, flying } = playerConfig;
 
-function speedOver(ground: number): number {
+function speedOver(ground: number, isWadingSlowly: boolean): number {
   if (ground < swimming.below) return swimming.speed;
-  if (ground < wading.below) return wading.speed;
-  return walking.speed;
+  if (ground >= wading.below) return walking.speed;
+  if (!isWadingSlowly) return wading.speed;
+
+  const howDeep = (wading.below - ground) / (wading.below - swimming.below);
+  return wading.speed + (wading.slowestSpeed - wading.speed) * howDeep;
 }
 
 export function createPlayer(dependencies: PlayerDependencies): Player {
@@ -104,6 +117,8 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
 
   let groundHeight = 0;
   let isFlying = false;
+  let isEyeSteady = false;
+  let isWadingSlowly = false;
   let stepPhase = 0;
   let swimmingEyeHeight: number = swimming.surfaceEyeHeight;
   let isSwimmingHintShown = false;
@@ -161,17 +176,18 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
       Math.min(swimming.surfaceEyeHeight, dived),
     );
     const surface =
-      swimmingEyeHeight > swimming.ridesWavesAbove
+      swimmingEyeHeight > swimming.ridesWavesAbove && !isEyeSteady
         ? waves.heightAt(position.x, position.z, time)
         : 0;
     const float = swimmingEyeHeight > swimming.floatsAbove ? swimming.float : swimming.floatDived;
-    return swimmingEyeHeight + surface + Math.sin(time * swimming.floatRate) * float;
+    const floated = isEyeSteady ? 0 : Math.sin(time * swimming.floatRate) * float;
+    return swimmingEyeHeight + surface + floated;
   }
 
   function walkOrSwim(time: number, dt: number, forward: number, sideways: number): void {
     const groundBefore = island.groundHeight(position.x, position.z);
     const isSwimming = groundBefore < swimming.below;
-    const speed = speedOver(groundBefore);
+    const speed = speedOver(groundBefore, isWadingSlowly);
     move(forward, sideways, speed, dt, playerConfig.farthestFromCentre);
     const effort = Math.min(1, Math.hypot(forward, sideways));
     stepPhase += dt * effort * (isSwimming ? swimming.strokeRate : walking.stepRate);
@@ -181,7 +197,8 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     if (groundHeight > swimming.below) {
       // The next swim starts at the surface.
       swimmingEyeHeight = swimming.surfaceEyeHeight;
-      eyeHeight = groundHeight + walking.eyeHeight + Math.sin(stepPhase) * walking.bob * effort;
+      const bobbed = isEyeSteady ? 0 : Math.sin(stepPhase) * walking.bob * effort;
+      eyeHeight = groundHeight + walking.eyeHeight + bobbed;
     } else {
       eyeHeight = swimmingEye(time, dt, forward, speed);
       showSwimmingHintOnce();
@@ -209,6 +226,19 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     },
 
     setFlying,
+
+    get isEyeSteady() {
+      return isEyeSteady;
+    },
+    setEyeSteady(isSteady) {
+      isEyeSteady = isSteady;
+    },
+    get isWadingSlowly() {
+      return isWadingSlowly;
+    },
+    setWadingSlowly(isSlow) {
+      isWadingSlowly = isSlow;
+    },
 
     flyTo(x, y, z, yaw, pitch) {
       setFlying(true);

@@ -4,6 +4,7 @@ import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { Spray } from '../sea/spray';
+import type { UnderWaterPicture } from '../sea/under-water-picture';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
@@ -283,6 +284,44 @@ export function frameCostSwitches(
       },
       isOn: () => water.waveMaterial.defines.WATER_SHORE_FROM_PICTURE !== '',
     },
+  ];
+}
+
+/** The heading over `queasinessSwitches`. */
+export const QUEASINESS_HEADING = 'what makes wading queasy: wade with one on';
+
+/**
+ * Switches for finding what it is about wading through the water that turns the stomach, which
+ * nothing but a person's eyes can say (docs/ROADMAP.md, "Wading made him queasy"): each takes away
+ * one thing that moves what is seen under the sea, or how the eye moves over it.
+ */
+export function queasinessSwitches(
+  uniforms: SharedUniforms,
+  player: Pick<Player, 'isEyeSteady' | 'setEyeSteady' | 'isWadingSlowly' | 'setWadingSlowly'>,
+  underWaterPicture: Pick<UnderWaterPicture, 'isRaisingSteady' | 'setRaisingSteady'>,
+): DebugSwitch[] {
+  const leaveOut = (share: { value: number }) => ({
+    set(on: boolean) {
+      share.value = on ? 0 : 1;
+    },
+    isOn: () => share.value === 0,
+  });
+  return [
+    // (the ripples no longer move what is under them from side to side)
+    { label: 'no bending', ...leaveOut(uniforms.uBendingShare) },
+    // (what is under the sea is drawn where it is, not where it seems to be through the surface:
+    // the look before 20 November 2026, with the faults that had)
+    { label: 'no raising', ...leaveOut(uniforms.uRaisingShare) },
+    // (the raising worked out for an eye at a steady height: a bob or a wave ridden does not
+    // heave the floor)
+    {
+      label: 'steady raising',
+      set: underWaterPicture.setRaisingSteady,
+      isOn: () => underWaterPicture.isRaisingSteady,
+    },
+    { label: 'no light net', ...leaveOut(uniforms.uLightNetShare) },
+    { label: 'steady eye', set: player.setEyeSteady, isOn: () => player.isEyeSteady },
+    { label: 'slow wading', set: player.setWadingSlowly, isOn: () => player.isWadingSlowly },
   ];
 }
 

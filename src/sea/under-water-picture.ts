@@ -55,6 +55,14 @@ export interface UnderWaterPictureDependencies {
   waterMaterials: Pick<WaterMaterials, 'show'>;
 }
 
+export interface UnderWaterPictureFrame {
+  dt: number;
+  isCameraUnderWater: boolean;
+  isSeaDrained: boolean;
+  /** The height of the water's surface under the eye, as the waves have it now. */
+  waterUnderEye: number;
+}
+
 export interface UnderWaterPicture {
   /**
    * Sorts the scene into what the picture holds and what it does not. Call once everything is
@@ -62,7 +70,16 @@ export interface UnderWaterPicture {
    */
   sortScene(): void;
   /** Draws the picture for the frame about to be drawn, while the eye is above a sea that is there. */
-  update(isCameraUnderWater: boolean, isSeaDrained: boolean): void;
+  update(frame: UnderWaterPictureFrame): void;
+  /**
+   * A debug switch, for finding what makes wading queasy: the raising is worked out for an eye
+   * at a steady height over the water, which follows the real eye slowly. So a step's bob, the
+   * rise and fall of an eye afloat and a wave ridden move what is under the sea as they move
+   * everything else, and no further. (Worked out for the eye's own height each frame, a swimmer
+   * lifted a hand's breadth by a wave sees the whole floor heave by five degrees.)
+   */
+  readonly isRaisingSteady: boolean;
+  setRaisingSteady(isSteady: boolean): void;
 }
 
 function takesNoFog(material: Material | Material[]): boolean {
@@ -109,8 +126,18 @@ export function createUnderWaterPicture(
   camera.layers.enable(NOT_IN_PICTURE);
 
   const screen = new Vector2();
+  let isRaisingSteady = false;
+  // (kept up whether or not the switch is on, so that switching it on moves nothing at once)
+  let steadyEyeOverWater = camera.position.y - uniforms.uSeaLevel.value;
 
   return {
+    get isRaisingSteady() {
+      return isRaisingSteady;
+    },
+    setRaisingSteady(isSteady) {
+      isRaisingSteady = isSteady;
+    },
+
     sortScene() {
       const clearOfTheSea = uniforms.uSeaLevel.value + config.clearOfTheSea;
       scene.updateMatrixWorld();
@@ -124,7 +151,14 @@ export function createUnderWaterPicture(
       });
     },
 
-    update(isCameraUnderWater, isSeaDrained) {
+    update({ dt, isCameraUnderWater, isSeaDrained, waterUnderEye }) {
+      const eyeOverSea = camera.position.y - uniforms.uSeaLevel.value;
+      steadyEyeOverWater +=
+        (camera.position.y - waterUnderEye - steadyEyeOverWater) *
+        Math.min(1, dt * config.steadyRaisingFollows);
+      const eyeForRaising = isRaisingSteady ? steadyEyeOverWater : eyeOverSea;
+      uniforms.uEyeForRaising.value = eyeForRaising;
+
       const isDrawn = !isCameraUnderWater && !isSeaDrained;
       uniforms.uPictureDrawn.value = isDrawn ? 1 : 0;
       if (!isDrawn) return;
@@ -147,7 +181,7 @@ export function createUnderWaterPicture(
       const clearAlpha = renderer.getClearAlpha();
       renderer.setClearAlpha(1);
       waterMaterials.show(false);
-      intoSeaPicture.begin(camera.position.y - uniforms.uSeaLevel.value);
+      intoSeaPicture.begin(eyeOverSea, eyeForRaising, uniforms.uRaisingShare.value);
       camera.layers.disable(NOT_IN_PICTURE);
       renderer.setRenderTarget(picture);
 

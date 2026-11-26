@@ -13,6 +13,7 @@ const SHARED_UNIFORMS = [
   'uDebugMode',
   'uTime',
   'uWind',
+  'uLightNetShare',
   'uDaylight',
   'uDetail',
   'uCaustics',

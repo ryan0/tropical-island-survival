@@ -87,6 +87,24 @@ of a second on (`--later 0.1`), with one thing switched off at a time in a scrat
 wobble, the net of light), says how much of what moves is each one's (`docs/ROADMAP.md`, "After the
 weekend"). It measures change, not comfort: that is the phone's to say.
 
+### What moves as the eye moves
+
+All of that holds the eye still, and so it missed what turned Ryan's stomach: wading and swimming through
+the shallows (`docs/ROADMAP.md`, "Wading made him queasy"). A slow sway of much of the view counts for
+little in a frame-to-frame difference and for most in a stomach; and an eye that moves through the ripples,
+or rises on a wave, moves everything under the water in ways no still eye sees. `wade.ts` draws what the
+player sees as the keys walk him through the water, a frame at a time on the page's stepped clock, and joins
+the frames into a clip that plays at full speed:
+
+```
+node tools/look/wade.ts node_modules/.cache/look/wade --walk lagoon-swim --seconds 3
+```
+
+`--switches "no bending,steady eye"` turns on switches of the debug panel by their labels. The walks are
+named in the tool: wading the lagoon's shore and the ocean beach's swash, and swimming the lagoon's shelf
+and the reef flat, where the eye is half a metre over the water. A clip shows motion; whether it is easy on
+the eye is his to say, in a full screen on the desktop and on the phone.
+
 To see whether what is seen through the water lies where the screen's own drawing has it (at a waterline, at
 the edge of a wave's run up a beach), paint stripes across the ground in a scratch copy of the code, a line
 at the end of `terrain-colour.glsl` that darkens every other half metre of `xz.x + xz.y`: a stripe must run
@@ -130,6 +148,7 @@ hair from the same view drawn alone (the sky turns with the day, and the day is 
 | `look-views.ts` | The views the look is measured through, in groups: `colour`, `evening`, `weather`, `underWater`, `ground`, `reef`, `seaFloor`, `waterDepth`, `steepFloor`, `pairs`, `flyRound`, `ripples`, `nightSky` |
 | `pair-sheets.ts` | Lays each of the pairs' views beside its photograph, one sheet a pair |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
+| `wade.ts` | Draws the player's own view as he wades or swims, frame by frame, and joins the frames into a clip |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |
 | `colour-board.ts` | A board's colours measured, the photographs' beside ours, as a picture and as figures |

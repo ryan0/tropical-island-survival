@@ -24,8 +24,10 @@ import throughWater from '../shaders/shared/through-water.glsl';
 // stands a little out of the sea lower by the same rule (raised-through-surface.glsl), so that
 // the picture holds what the eye would see through a flat sea. (In the picture only. On the screen things stand where they are: raised there, the
 // far floor of the reef stood up out of the troughs of the waves.) For these a material must know
-// two numbers that three.js does not hand it: how high the eye is above the sea, and whether it is
-// the picture that is being drawn. They are one uniform, whose value is one array that every material shares: three.js copies a
+// four numbers that three.js does not hand it: how high the eye is above the sea, whether it is
+// the picture that is being drawn, how much of the raising to draw (all of it, but for a debug
+// switch), and the height of the eye that the raising is worked out for (the eye's own, but for
+// another debug switch). They are one uniform, whose value is one array that every material shares: three.js copies a
 // material's uniforms when it first compiles it, but an array of this kind it hands over as it
 // is, so what is written into it reaches them all (docs/DEVICE_NOTES.md).
 
@@ -43,8 +45,8 @@ const PLACE_FROM_EYE = `
 	vec3 worldUpFromEye = viewMatrix[ 1 ].xyz;
 	vPlaceFromEye = vec4( mvPosition.xyz, dot( mvPosition.xyz, worldUpFromEye ) );
 	vec3 alongLevel = mvPosition.xyz - worldUpFromEye * vPlaceFromEye.w;
-	mvPosition.xyz += worldUpFromEye * ( intoSeaPicture.y * raisedThroughSurface(
-		dot( alongLevel, alongLevel ), - ( vPlaceFromEye.w + intoSeaPicture.x ), intoSeaPicture.x ) );
+	mvPosition.xyz += worldUpFromEye * ( intoSeaPicture.y * intoSeaPicture.z * raisedThroughSurface(
+		dot( alongLevel, alongLevel ), - ( vPlaceFromEye.w + intoSeaPicture.x ), intoSeaPicture.w ) );
 	gl_Position = projectionMatrix * mvPosition;
 #endif`;
 
@@ -72,9 +74,10 @@ export interface IntoSeaPicture {
   /**
    * While the picture is drawn: `eyeOverSea` is how high the eye is above the still sea, in
    * metres. Then each thing writes its depth under the sea beside its colour, and is drawn where
-   * it seems to be through the surface.
+   * it seems to be through the surface to an eye `eyeForRaising` above the sea (the same height,
+   * but for a debug switch): `raisingShare` of the way there, which is 1 but for another.
    */
-  begin(eyeOverSea: number): void;
+  begin(eyeOverSea: number, eyeForRaising: number, raisingShare: number): void;
   end(): void;
 }
 
@@ -84,11 +87,13 @@ export interface IntoSeaPicture {
  * as expected, it is left alone, and what is returned does nothing.
  */
 export function useWaterAsFog(): IntoSeaPicture {
-  const numbers = new Float32Array(2);
+  const numbers = new Float32Array(4);
   const intoSeaPicture: IntoSeaPicture = {
-    begin(eyeOverSea) {
+    begin(eyeOverSea, eyeForRaising, raisingShare) {
       numbers[0] = eyeOverSea;
       numbers[1] = 1;
+      numbers[2] = raisingShare;
+      numbers[3] = eyeForRaising;
     },
     end() {
       numbers[1] = 0;
@@ -103,7 +108,7 @@ export function useWaterAsFog(): IntoSeaPicture {
 
   // (Each addition begins on a line of its own: three.js's chunks do not all end with one.)
   const declarations =
-    '\n#ifdef USE_FOG\n\tvarying vec4 vPlaceFromEye;\n\tuniform vec2 intoSeaPicture;\n#endif\n';
+    '\n#ifdef USE_FOG\n\tvarying vec4 vPlaceFromEye;\n\tuniform vec4 intoSeaPicture;\n#endif\n';
   ShaderChunk.fog_pars_vertex += `${declarations}${raisedThroughSurface}\n`;
   ShaderChunk.fog_vertex += PLACE_FROM_EYE;
   ShaderChunk.fog_pars_fragment += `${declarations}${throughWater}\n${depthInSeaPicture}\n`;

@@ -62,6 +62,20 @@ export type SharedUniforms = Record<string, IUniform> &
     uPictureDrawn: { value: number };
     uDotOfPicture: { value: Vector2 };
     uPictureScale: { value: Vector2 };
+    /**
+     * How much is drawn of three things that move what is seen under the sea, each 1 as designed:
+     * the ripples' bending of it, its raising to where it seems to be through the surface, and
+     * the net of light on it. The debug panel's switches for finding what makes wading queasy
+     * set one to nought (core/debug-tools.ts).
+     */
+    uBendingShare: { value: number };
+    uRaisingShare: { value: number };
+    uLightNetShare: { value: number };
+    /**
+     * The height above the sea of the eye that the raising is worked out for, in metres: the eye's
+     * own, but for a debug switch (sea/under-water-picture.ts sets it as it draws the picture).
+     */
+    uEyeForRaising: { value: number };
     /** The biggest things standing in the surf: x, z, radius. The water draws foam round them. */
     uSurfObstacles: { value: Vector3[] };
     /** A circle round each group of them that holds all its foam: x, z, radius (sea/surf-obstacles.ts). */
@@ -100,6 +114,10 @@ export function createSharedUniforms(
     uPictureDrawn: { value: 0 },
     uDotOfPicture: { value: new Vector2(1, 1) },
     uPictureScale: { value: new Vector2(1, 1) },
+    uBendingShare: { value: 1 },
+    uRaisingShare: { value: 1 },
+    uLightNetShare: { value: 1 },
+    uEyeForRaising: { value: 1 },
     uSurfObstacles: { value: noObstacles },
     uSurfObstacleGroups: { value: noGroups },
     ...skyLight,

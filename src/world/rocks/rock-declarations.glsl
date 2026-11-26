@@ -13,6 +13,8 @@ uniform float uDaylight;
 uniform float uTime;
 // wind strength, 0..1
 uniform float uWind;
+// how much of the net of light is drawn: 1 but for a debug switch
+uniform float uLightNetShare;
 // the detail texture: red and green the slope of small waves, blue soft blotches, alpha a net of thin lines
 uniform sampler2D uDetail;
 // the caustics texture: the net of light on what lies under the water

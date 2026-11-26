@@ -9,6 +9,8 @@ import {
   FRAME_COST_HEADING,
   frameCostSwitches,
   placesToFlyTo,
+  QUEASINESS_HEADING,
+  queasinessSwitches,
   WATER_STAGES_HEADING,
   waterStageSwitches,
 } from './core/debug-tools';
@@ -24,7 +26,7 @@ import { createPlayer, type PlayerFrame } from './player/player';
 import { seaConfig } from './sea/sea-config';
 import { createSpray, type SprayFrame } from './sea/spray';
 import { createUnderWater, type UnderWaterFrame } from './sea/under-water';
-import { createUnderWaterPicture } from './sea/under-water-picture';
+import { createUnderWaterPicture, type UnderWaterPictureFrame } from './sea/under-water-picture';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
 import { createCrestLine } from './sea/crest-line';
@@ -350,6 +352,10 @@ const debugPanel = createDebugPanel(
       switches: debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine),
     },
     {
+      heading: QUEASINESS_HEADING,
+      switches: queasinessSwitches(uniforms, player, underWaterPicture),
+    },
+    {
       heading: FRAME_COST_HEADING,
       switches: frameCostSwitches(water, uniforms, breaker, spray, quality, {
         instanceCells,
@@ -454,6 +460,12 @@ const glareFrame: SunGlareFrame = {
   viewHeight: 0,
 };
 const waterFrame: WaterFrame = { player: player.position, wind: 0, isCameraUnderWater: false };
+const underWaterPictureFrame: UnderWaterPictureFrame = {
+  dt: 0,
+  isCameraUnderWater: false,
+  isSeaDrained: false,
+  waterUnderEye: 0,
+};
 // The turtle and the dolphins break the surface at the height the sea has off the pier's end.
 const waterLevelX = landmarks.pier.x + 2.3;
 const waterLevelZ = landmarks.pier.z0 + landmarks.pier.length - 3;
@@ -558,7 +570,16 @@ function frame(now: number): void {
 
   instanceCells.update(camera.position);
 
-  underWaterPicture.update(underWater.isCameraUnder, isSeaDrained);
+  underWaterPictureFrame.dt = dt;
+  underWaterPictureFrame.isCameraUnderWater = underWater.isCameraUnder;
+  underWaterPictureFrame.isSeaDrained = isSeaDrained;
+  // (by the clock the drawn waves run by)
+  underWaterPictureFrame.waterUnderEye = waves.heightAt(
+    camera.position.x,
+    camera.position.z,
+    uniforms.uTime.value,
+  );
+  underWaterPicture.update(underWaterPictureFrame);
   renderer.render(scene, camera);
   frameMeter.update(realSeconds, (performance.now() - begunAt) / 1000);
   frameRateLabel.update(frameMeter.framesPerSecond);
