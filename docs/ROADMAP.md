@@ -5,8 +5,8 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
 
 ## Next
 
-**Where things stand (20 November 2026, evening; Ryan is away for the weekend and may go on from a laptop or
-the phone with another agent).**
+**Where things stand (26 November 2026; Ryan came back from the weekend on the 24th, and no work was done
+while he was away).**
 
 - *Branches.* `main` holds all of the look so far: Ryan merged the three stacked branches of 20 November
   (`look-3-ground`, `look-4-coral-and-sky`, `look-5-sea-floor`) that afternoon, at `2d4a18f`. Work goes on on
@@ -20,38 +20,46 @@ the phone with another agent).**
   section for each day's work after it). Done: the targets (eight pairs and a fly-round); the three faults
   first found; the picture of what is under the sea, now the one way the water is drawn, with every older rule
   it replaced deleted. In hand or next, in this order:
-  1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore" and "The
-     waterline, and a calmer bending", far below): for Ryan to confirm on the phone, where a new rule in
-     every material's vertex shader has not yet run. If what is under the water is still too busy to the eye,
-     lower `BENDS` in `src/sea/water.frag.glsl`; do not lessen the raising.
-  2. *Colours and clearness against the pairs* (the plan's stage D). Begun, by measuring ("The water's
-     colours, measured on the pairs", far below), and what was measured says to change nothing by day: our
-     water is within the photographs' own spread. What is left is two things for Ryan to say, not passes to
-     make: whether the land and the shallows at dusk should be lighter, and whether the water should be as
-     clear as a real lagoon's (`HIDES_BY_METRES` in `src/shaders/shared/water-veil.glsl`: ours hides two
-     thirds by 4.6 m, a real lagoon shows its sand at 10 to 20 m; the research is
-     `docs/research/water-hiding-its-floor.md`).
-  3. *The floor against the pairs* (stage E): patches of reef that are soft and mottled, not cut out; the
+  1. *What is under the sea is seen where the bent ray shows it.* Done ("The islet's shore", "The
+     waterline, and a calmer bending" and, for a seam he found along the lagoon's shore on his return, "After
+     the weekend", all far below). He has seen it ("this is looking amazing"); whether on the phone, where a
+     new rule in every material's vertex shader had not yet run, he did not say.
+  2. *Softer water.* His one note on his return: the refraction and the water in general are "a bit busy for
+     eyes and disorienting", and he wants it softer without losing it. What moves was measured ("After the
+     weekend"): the wobble and the net of light on the floor are nearly all of it, and the fine ripples'
+     share of the wobble is what shivers. The two changes he chose are made ("Softer and clearer water", far
+     below): the wobble by the broad and middling ripples only, the net of light fainter. About half of
+     what moved in shallow water is gone; **the phone is to say** whether it is restful. If not: a slight
+     softening of what lies deeper, and sliders in the debug panel, both proposed and neither made.
+  3. *Colours and clearness against the pairs* (the plan's stage D). Measured ("The water's colours,
+     measured on the pairs", far below): by day our water is within the photographs' own spread. The water is
+     two steps clearer at his word (`HIDES_BY_METRES` in `src/shaders/shared/water-veil.glsl`, 4.6 to 6 and,
+     "still a bit clearer", to 8: a real lagoon shows its sand at 10 to 20 m; the research is
+     `docs/research/water-hiding-its-floor.md`), for him to judge. The dusk he calls "fine right now",
+     perhaps a little lighter, to refine later.
+  4. *The floor against the pairs* (stage E): patches of reef that are soft and mottled, not cut out; the
      ripples' size and evenness from standing height; rubble painted for the reef (the bed of it is the land's
-     gravel and reads as crazy paving); structure at the middle distance. The ground's shader reads 16
+     gravel and reads as crazy paving); structure at the middle distance; two straight ledges of rock on the
+     side of the lagoon's basin, which the clearer water shows from the air. The ground's shader reads 16
      pictures, all there are (`DEVICE_NOTES.md`): more would mean stacking them in one.
-  4. *Checks, the phone, the docs* (stage F).
+  5. *Checks, the phone, the docs* (stage F).
 - *How a pass is judged*, since judging it otherwise cost a day: at the size Ryan sees the game, on the pairs
   and the fly-round (`tools/look/README.md`), with the thing in question drawn by itself and enlarged before
   a cause is named, and two frames a moment apart for anything that moves. The photographs are on his desktop
   only (`docs/reference-photos/README.md`): without them the pairs' sheets and the boards cannot be made, but
   our own views can be drawn and compared anywhere.
-- *Waiting on Ryan:* the wording of the standard "One owner for each effect"
-  (`CODE_STANDARDS.md`), which was added at his word but not read by him; a look on the phone at the islet's
-  shore and at anything under water, since the rule that draws it is new to the phone ("The islet's shore");
-  whether the land and the shallows should be lighter at dusk; whether the water should be as clear as a
-  real lagoon's; the proposal "many more kinds at a flat cost" (below); six finished agents'
-  worktrees on his desktop to clear away (`.claude/worktrees/`).
+- *Waiting on Ryan,* all of it on the phone: whether the water is now soft enough, and clear enough; the
+  frame rate with the rule that raises what is under the sea ("The islet's shore"); footprints and spray by
+  night, which glowed and are mended ("Softer and clearer water"). And the wording of the standard "One owner
+  for each effect" (`CODE_STANDARDS.md`, line 95), which he has said he will read.
+- *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
+  and clearer water" has it, and the mending). Look at the run's page after each push until a few have
+  passed: a test that fails there is now named on it.
 
 After the look comes the much greater variety of plants,
-rocks, ground and props that the groundwork prepared for, by the proposal he has still to decide ("A proposal:
-many more kinds at a flat cost"). The list that follows is the order agreed before that, and stands for what
-comes after.
+rocks, ground and props that the groundwork prepared for, by the proposal "A proposal: many more kinds at a
+flat cost", all three steps of which he has said are worth trying when we get there (26 November 2026). The
+list that follows is the order agreed before that, and stands for what comes after.
 
 1. **The breaking wave, pass 1: its timing, on a picture of the sea floor.** How often waves come, sets and
    lulls, speed from depth, the stand-up, the lip under gravity, the landing, and the break running along the
@@ -1180,6 +1188,9 @@ some seven hundred.
 
 ### A proposal: many more kinds at a flat cost (for Ryan to decide)
 
+*Ryan, 26 November 2026, pointed to it again:* all three steps "sound useful or at least worth trying when we
+get there". So: after the look, in the order below, each judged on the phone before the next.
+
 The aim is that a new kind of plant, coral or rock costs triangles where it stands near the eye and nothing
 anywhere else. Three steps, each of use without the next, in the order I would take them:
 
@@ -2192,6 +2203,140 @@ the code. What it showed:
 
 Two views were added to the group `waterDepth` for the faults he found from the ground that day:
 `depth-from-the-islet` and `depth-from-the-ocean-beach`.
+
+### After the weekend: clearer water, a seam along the lagoon's shore, what makes the water busy (24 November 2026)
+
+Ryan, back: "This is looking amazing, one thing I would say is the refraction effect (flatness of things
+under water) and water in general is a bit busy for eyes and disorienting. I do not want it gone as it looks
+amazing and realistic but perhaps we could consider how to make things softer". The dusk: "maybe a bit
+lighter but honestly I would say it is fine right now, we can refine this later". The clearness: "yes let's
+try a bit clearer". And then a screenshot of a seam along the lagoon's shore.
+
+**Clearer.** `HIDES_BY_METRES` 4.6 to 6 (`water-veil.glsl`): the water hides two thirds of what is behind 6 m
+of it, where it was 4.6 m. From above, the floor and the reef's patches show about a third further out, and
+the deep lagoon keeps its blue. Nothing else was touched. It shows more of the floor's dark patches at the
+middle distance, which is more for the eye to take in: to be weighed with the softness he asks for.
+
+**The seam.** Looking along the lagoon's shore from standing height, a straight line lay where the water
+meets the sand, and the palms' shadows on the sand under the water stood a hand's breadth off the same
+shadows on the dry sand. *Cause,* shown by switching things off: with the raising off the seam was gone. Only
+a thing's corners are raised, and what lies between them goes in proportion. A triangle of the ground that
+crosses the waterline has one corner under the sea, which was raised, and one out of it, which was not: so
+the sand at the waterline itself, which should not move at all, was raised with a share of the wet corner's
+rise. *Mended in two halves, which must stay together:*
+
+- What stands out of the sea, within 0.6 m of it, is drawn into the picture lower by the same rule carried on
+  up through the surface (`raised-through-surface.glsl`): the sand is squeezed towards the sea's level from
+  both sides, a triangle across the waterline is moved in proportion along its whole length, and the
+  waterline stays where it is.
+- That half alone moved the sand that a wave has run up over on the ocean beach, which stands above the still
+  sea under a sheet of water: its markings broke along the sheet's edge. So where the water is a sheet on the
+  sand the surface reads its picture as much lower (or, where the wave has drawn back below the still sea,
+  higher) as the sand was drawn (`water.frag.glsl`, `A_SHEET_ON_THE_SAND`). Not in deeper water: read so
+  under a swell, the whole floor would heave with it.
+
+*Shown by* stripes painted across the ground in a scratch copy of the code (`tools/look/README.md`): before,
+they broke at the lagoon's waterline; with the first half alone, at the edge of the run-up on the ocean
+beach; with both, they run unbroken across both, bent at the waterline as a stick in water is. The pairs, the
+fly-round and the depth views are otherwise as they were, but for a shift of less than a dot on the reef's
+crest.
+
+**What makes the water busy.** Measured, since motion cannot be judged from a still: each view drawn twice, a
+tenth of a second apart, and the mean difference between the two frames taken, with one thing switched off
+at a time. (The measure is how much of the picture changes from frame to frame; what the eye finds restful
+is his to say, on the phone.)
+
+| view | as it is | wobble from the broad ripples only | and the net at five eighths | no wobble | no net | neither |
+|---|---|---|---|---|---|---|
+| rippled sand, standing in the shallows | 4.75 | 2.98 | 2.39 | 2.28 | 3.11 | 0.45 |
+| a patch reef from a boat | 3.04 | 1.81 | 1.41 | 1.53 | 2.02 | 0.41 |
+| the lagoon's shallows from its beach | 1.15 | 1.02 | 0.75 | 1.00 | 0.50 | 0.28 |
+| the lagoon's shelf from 8 m up | 1.15 | 0.79 | 0.68 | 0.72 | 0.87 | 0.45 |
+| across the lagoon, standing | 0.57 | 0.45 | 0.39 | 0.41 | 0.39 | 0.24 |
+| the islet's shore from its top | 0.36 | 0.35 | 0.34 | 0.35 | 0.33 | 0.33 |
+
+- Looking down into shallow water, the wobble and the net of light are 70 to 90% of what moves. The
+  surface's own streaks of sky and glints are the small remainder ("neither").
+- *The fine ripples' share of the wobble is what shivers.* Bent by the broad and middling ripples only, the
+  picture changes from frame to frame hardly more than with no wobble at all, and the slow sway of what is
+  under the water stays. (The wobble takes every size of ripple today; the fine ones are small, and one passes a
+  spot in a fraction of the time a broad one takes.)
+- The net of light is the larger share from a beach, where the eye looks along the floor.
+
+*Proposed, for Ryan to choose among; none is made:*
+
+1. The wobble from the broad and middling ripples only. In real water the fine ripples are many small
+   lenses whose bending the eye takes as a slight softness, not as movement: so in their place, perhaps, a
+   slight softening of what lies deeper (a few more readings of the picture: its cost to be read on the
+   phone).
+2. The net of light a little fainter (`NET_OF_LIGHT`, `light-net.glsl`, 0.8 to about 0.5), or slower: it is
+   a second pattern moving over the first.
+3. The "flatness" is the raising, and how far things are raised is not a matter of taste (at four fifths a
+   blue band lay along the beach). What can be tuned is how much shows where things are squeezed most, at a
+   low angle far off, where real water is mostly the sky's mirror: to be looked at on the pairs before
+   anything is proposed.
+
+A slider for each in the debug panel would let him find the level on the phone in one go, where rounds of
+builds would take several.
+
+**Cleared away:** the six agents' worktrees and their branches, every file of which is in the repository
+(the folder `sea-floor/` under its merged name, `sea-bed/`).
+
+### Softer and clearer water; prints and spray by night; GitHub's checks (26 November 2026)
+
+Ryan's answers to the above: "still a bit clearer"; "take the fine ripples out of the wobble and light net
+fainter"; of the proposal's three steps, "all sound useful or at least worth trying when we get there"; "feel
+free to commit and push". And two faults he found at night, and one in the checks.
+
+**Softer.** The two changes he chose, and no more: the surface bends what is under it by the broad and
+middling ripples only (`broadRipplesSlope` where the picture is read, `water.frag.glsl`; its streaks of sky
+and its glints still go by every ripple), and the net of light is five eighths as bright (`NET_OF_LIGHT`,
+`light-net.glsl`, 0.8 to 0.5). Measured as before, a view against itself a tenth of a second on:
+
+| view | 24 November | now |
+|---|---|---|
+| rippled sand, standing in the shallows | 4.72 | 2.54 |
+| a patch reef from a boat | 3.06 | 1.54 |
+| the lagoon's shallows from its beach | 1.17 | 0.80 |
+| the lagoon's shelf from 8 m up | 1.19 | 0.74 |
+| across the lagoon, standing | 0.62 | 0.45 |
+| the islet's shore from its top | 0.39 | 0.38 |
+
+About half of what moved in shallow water is gone, and what is left is the slow sway and a fainter net.
+Whether it is restful is the phone's to say. If it is still busy: the softening of what lies deeper, and a
+slider for each in the debug panel (both proposed above, neither made).
+
+**Clearer again.** `HIDES_BY_METRES` 6 to 8. The lagoon's floor now shows across most of it from the air,
+and its deep keeps its blue. *It shows two straight ledges of bare rock on the side of the lagoon's basin,
+north-west of the islet:* they are the floor's own (ground too steep for sand is rock, and the basin's side
+there is a straight step), seen with the sea drained, and belong to the floor's stage (4 above), with the
+patches that are cut out.
+
+**A footprint glowed at night.** It was a disc painted over the sand in a tan of its own at one strength
+(an unlit material): a third tan over dark blue sand is paler than the sand (his screenshot's figures match
+that sum to a level or two of 255). A print is a hollow, light and shade and no colour (`LOOK.md`, the sand):
+it now multiplies what is drawn under it (`footprints.ts`; `shade` in `player-config.ts`), so it is as much
+darker than its sand by moonlight, at dusk and in a palm's shade as at noon. It takes no fog, which also
+keeps it out of the picture of what is under the sea. (Nothing else in the scene is unlit but the fire's
+coals and sparks and the fireflies, which are lights.)
+
+**Spray glowed orange at night.** The foam was cured of this before ("left the low sun's colour, it was tan
+against a blue sea") and the spray, which had the same rule written a second time in `spray-droplets.ts`,
+was not: warm whenever the sun was down, the moon or no. One owner now: `foamInThisLight`
+(`src/sea/foam-in-this-light.glsl`), which the water's shader and the spray's both use, by the light every
+shader shares. (The bubbles under water have a rule of their own still, without the warmth: they are seen
+through water, whose colour the fog gives them.)
+
+**GitHub's checks failed on every push** since the under-water picture went in, and on and off before it.
+The log cannot be read from here (it needs a login; `gh` is not installed), but the run's steps and times
+can: the same commit passed on one branch and failed on another, so nothing in the code was broken. The
+cause, reproduced here three times by giving the tests few processor threads: a picture is taken only once
+the software renderer has drawn every frame run before it, and the controls' tests allowed 20 seconds for
+anything on the page ("a control that is not there is given up on"), the picture included. Twelve frames at
+sunset in a high wind take longer than that on a small machine. A picture is now bounded by the test's own
+five minutes and nothing shorter (`takePicture`, `tests/scene-page.ts`). And a failed test is written onto
+the run's page on GitHub (Playwright's `github` reporter, `playwright.config.ts`), where it can be read
+without the log: by Ryan, and from here through GitHub's public API.
 
 ## Later
 

@@ -125,7 +125,9 @@ varying vec2 vWhiteMass;
 #include "../shaders/shared/through-water"
 #include "../shaders/shared/water-veil"
 #include "../shaders/shared/depth-in-sea-picture"
+#include "../shaders/shared/raised-through-surface"
 #include "torn-edge"
+#include "foam-in-this-light"
 
 // ---- Numbers to retune ----
 
@@ -156,9 +158,7 @@ const vec3 SUNLIT_RIPPLE_TINT = vec3(0.0, 0.10, 0.08);
 const vec3 AERATED_WATER = vec3(0.52, 0.87, 0.85);
 // The water under a white horse's foam.
 const vec3 UNDER_WHITECAP = vec3(0.34, 0.66, 0.74);
-// Foam: its colour with the sun at the horizon; thin foam; foam turned away from the sun.
-const vec3 LOW_SUN_FOAM = vec3(1.0, 0.86, 0.74);
-const vec3 MOONLIT_FOAM = vec3(0.66, 0.78, 1.0);
+// Foam (its colour in the light of the hour is foam-in-this-light.glsl's): thin foam; foam turned away from the sun.
 const vec3 THIN_FOAM = vec3(0.66, 0.90, 0.92);
 // How much of what is under it thin foam hides, against thick foam's all.
 const float THIN_FOAM_HIDES = 0.25;
@@ -311,6 +311,9 @@ const float DEPTH_SPREADS = 0.8;
 // it lands that share of the thing's depth to one side; this is that share, and the depth it is taken over at
 // most (m). (At 0.3 a stone's width changed by a third from one moment to the next: if what is under the water
 // still wobbles too much on the phone, this is the number.)
+// It is the broad and middling ripples that bend it, and not the fine ones: bent by those too, everything under
+// shallow water shivered, which was a third of all that moved on the screen there and tiring to look into; the
+// slow sway is the others'. (The surface's own streaks of sky and its glints still go by every ripple.)
 const float BENDS = 0.14;
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (Wherever the surface is drawn, it is drawn whole, over the picture: only the picture holds what is seen
@@ -325,6 +328,12 @@ const float BENDS_NO_DEEPER_THAN = 5.0;
 // picture is looked at this many dots of the screen to each side, and the deepest of what is found is taken.
 const vec2 OUTLINE_SUSPECTED = vec2(0.12, 0.25);
 const float OUTLINE_LOOKED_PAST = 4.0;
+// The picture is drawn for a flat sea at its still level. Where a wave has run up a beach the surface lies on
+// sand that stands above that level, and where it has drawn back, on sand below it: that sand is in the picture
+// lower or higher than it is, by its height from the still sea (raised-through-surface.glsl), and the surface
+// reads it from there. Only where the water is a sheet on the sand, thinner than the first of these (m), and
+// not at all where it is deeper than the second: read so under a swell, the whole floor would heave with it.
+const vec2 A_SHEET_ON_THE_SAND = vec2(0.15, 0.6);
 // Where the swell breaks the water is churned up and never quite clear: it is this much cloudier than clear
 // water (water-veil.glsl's hiddenByWater).
 const float CHURNED_CLOUDIER = 0.8;
@@ -919,7 +928,6 @@ void main() {
   vec2 f3 = foamSmall.rg - 0.5;
   vec2 f4 = foamFine.rg - 0.5;
   vec2 foamSlope = vec2(f3.x * 0.28 - f3.y * 0.96, f3.x * 0.96 + f3.y * 0.28) + vec2(-f4.x - f4.y, f4.x - f4.y) * 0.71;
-  vec2 surfaceSlope = largeRipples + smallRipples;
   // The wind ruffles the surface (windOverUsual = 1 in the island's usual breeze): none of it in a calm - the water
   // is glass - and more than usual when it blows fresh. The swell below is not the wind's and stays.
   // (A light air ruffles it nearly as steeply as a breeze does, only in smaller ripples: the steepness of a real
@@ -931,8 +939,9 @@ void main() {
   // lies in the water in long lazy shapes.)
   // (And the small ripples are never steeper than SMALL_RIPPLES_STEEPEST times the usual: in a gale it is the
   // waves that grow, not the ripples on them.)
+  vec2 broadRipplesSlope = largeRipples * max(ruffling, NEVER_QUITE_STILL);
   vec2 smallRipplesSlope = smallRipples * min(ruffling, SMALL_RIPPLES_STEEPEST);
-  surfaceSlope = largeRipples * max(ruffling, NEVER_QUITE_STILL) + smallRipplesSlope;
+  vec2 surfaceSlope = broadRipplesSlope + smallRipplesSlope;
 
   // ---- Swell lines ----
 
@@ -1185,7 +1194,17 @@ void main() {
   vec4 behind = straightBehind;
   if (uPictureDrawn > 0.5) {
     vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;
-    vec3 slopeAsSeen = mat3(viewMatrix) * vec3(surfaceSlope.x, 0.0, surfaceSlope.y);
+    // (the sand under a sheet of water that lies above or below the still sea: A_SHEET_ON_THE_SAND, above)
+    float sheetFromStillSea = clamp(liftOverSea, -LOWERED_OUT_OF_SEA_WITHIN, LOWERED_OUT_OF_SEA_WITHIN)
+      * (1.0 - smoothstep(A_SHEET_ON_THE_SAND.x, A_SHEET_ON_THE_SAND.y, waterDepth));
+    float drawnLower = sheetFromStillSea
+      * raisedShareAtSurface(dot(toCamera.xz, toCamera.xz), cameraPosition.y - uSeaLevel);
+    vec3 hereAsSeen = (viewMatrix * vec4(vWaterPosition, 1.0)).xyz;
+    vec3 sandAsDrawn = hereAsSeen - viewMatrix[1].xyz * drawnLower;
+    onPicture += (sandAsDrawn.xy / max(-sandAsDrawn.z, 0.05) - hereAsSeen.xy / max(-hereAsSeen.z, 0.05))
+      * uPictureScale;
+    // (by the broad and middling ripples alone: BENDS, above)
+    vec3 slopeAsSeen = mat3(viewMatrix) * vec3(broadRipplesSlope.x, 0.0, broadRipplesSlope.y);
     vec2 bentAMetreDown = slopeAsSeen.xy * uPictureScale * (BENDS / max(cameraDistance, 0.5));
     // A thing is moved by its own depth under the surface: the top of a coral head hardly at all, the sand at its
     // foot by more. So the picture is read twice: straight behind this spot, to find how deep what is there
@@ -1463,9 +1482,7 @@ void main() {
       float laidFromAbove = (1.0 - steep) * (1.0 - steep) * (1.0 - whiteMass);
       float frothTilt = dot(foamSlope, uSunDirection.xz) * 1.1 * closeUp * laidFromAbove;
       float froth = clamp(0.97 + frothTilt, 0.84, 1.07);
-      // (by night it takes the moon's cold light: left the low sun's colour, it was tan against a blue sea)
-      vec3 foamColour = mix(mix(LOW_SUN_FOAM, vec3(1.0), uDaylight), MOONLIT_FOAM, uNight)
-        * (1.0 - 0.75 * uNight) * froth;
+      vec3 foamColour = foamInThisLight(uDaylight, uNight) * froth;
       // close up, even thick foam is a mass of bubbles with water showing between them
       // (not the white mass: water showing through it in specks made it look like ice)
       float bubbles = mix(foamFine.a, steepFoam.a, steep);

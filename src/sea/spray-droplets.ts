@@ -1,10 +1,16 @@
-import { BufferAttribute, BufferGeometry, Color, Points, ShaderMaterial, type Scene } from 'three';
+import { BufferAttribute, BufferGeometry, Points, ShaderMaterial, type Scene } from 'three';
 import { sprayConfig } from './spray-config';
 import fragmentShader from './spray.frag.glsl';
 import vertexShader from './spray.vert.glsl';
 
 // The spray is a pool of point sprites: droplets, which fall, and puffs of mist, which grow and
 // hang in the air. Once all of them are in the air, each one thrown takes the place of the oldest.
+
+/** The light of the hour, as every shader shares it: the spray is lit as the foam is. */
+export interface LightOfTheHourUniforms {
+  uDaylight: { value: number };
+  uNight: { value: number };
+}
 
 export interface SprayDroplets {
   /**
@@ -25,16 +31,13 @@ export interface SprayDroplets {
   ): void;
   /** Moves every one in the air on by `dt` seconds. */
   move(dt: number): void;
-  /**
-   * `focalLength` is in pixels: how many a metre spans at a metre away. `daylight` is 0 at night
-   * and 1 in full day, `night` 0 by day and 1 at night.
-   */
-  show(focalLength: number, daylight: number, night: number): void;
+  /** `focalLength` is in pixels: how many a metre spans at a metre away. */
+  show(focalLength: number): void;
 }
 
 const config = sprayConfig.flight;
 
-export function createSprayDroplets(scene: Scene): SprayDroplets {
+export function createSprayDroplets(scene: Scene, light: LightOfTheHourUniforms): SprayDroplets {
   const count = sprayConfig.poolSize;
   const positions = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
@@ -53,7 +56,11 @@ export function createSprayDroplets(scene: Scene): SprayDroplets {
   shape.setAttribute('aSize', sizeAttribute);
   const alphaAttribute = new BufferAttribute(alphas, 1);
   shape.setAttribute('aAlpha', alphaAttribute);
-  const uniforms = { uPixelsPerMetre: { value: 600 }, uSprayColour: { value: new Color(1, 1, 1) } };
+  const uniforms = {
+    uPixelsPerMetre: { value: 600 },
+    uDaylight: light.uDaylight,
+    uNight: light.uNight,
+  };
   const points = new Points(
     shape,
     new ShaderMaterial({
@@ -119,15 +126,8 @@ export function createSprayDroplets(scene: Scene): SprayDroplets {
       alphaAttribute.needsUpdate = true;
     },
 
-    show(focalLength, daylight, night) {
+    show(focalLength) {
       uniforms.uPixelsPerMetre.value = focalLength;
-      // White by day, warmer with the sun low, and dim at night.
-      const dimmed = 1 - 0.75 * night;
-      uniforms.uSprayColour.value.setRGB(
-        dimmed,
-        (0.8 + 0.2 * daylight) * dimmed,
-        (0.75 + 0.25 * daylight) * dimmed,
-      );
     },
   };
 }

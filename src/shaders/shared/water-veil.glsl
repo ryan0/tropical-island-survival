@@ -23,7 +23,7 @@ const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
 const float NIGHT_TAKES_FROM_WATER = 0.82;
 // How many metres of clear water hide two thirds of what is behind them (half as many hide a fifth, twice as
 // many nearly all). It goes by degrees, with no depth at which the water turns solid.
-const float HIDES_BY_METRES = 4.6;
+const float HIDES_BY_METRES = 8.0;
 // A thing under more than a little water is greyer than it is, however clear the water: the grey comes in over
 // this depth (m, from where the sea's tint begins), and is this colour for a white thing.
 const float GREYED_BY_DEPTH = 0.5;

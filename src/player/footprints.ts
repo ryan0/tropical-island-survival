@@ -4,6 +4,7 @@ import {
   InstancedMesh,
   Matrix4,
   MeshBasicMaterial,
+  MultiplyBlending,
   Quaternion,
   Vector3,
   type Scene,
@@ -54,11 +55,16 @@ export function createFootprints(dependencies: FootprintsDependencies): Footprin
   const printAt = new Vector3();
   const hidden = new Matrix4().makeScale(0, 0, 0);
   const shape = footprintShape();
+  // A print is a hollow in the sand: it darkens what is drawn under it, in whatever light that
+  // lies in. (Painted over the sand in a colour of its own, it was a pale disc by night.)
   const material = new MeshBasicMaterial({
-    color: config.colour,
+    color: config.shade,
+    blending: MultiplyBlending,
     transparent: true,
-    opacity: config.opacity,
     depthWrite: false,
+    // The sand under it has taken the air's haze already; and a print is no part of the picture
+    // of what is under the sea (under-water-picture.ts).
+    fog: false,
     // Drawn on the sand they lie in, never behind it.
     polygonOffset: true,
     polygonOffsetFactor: -2,

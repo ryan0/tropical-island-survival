@@ -321,7 +321,18 @@ drawn where it stands and not where it seems to (from a shore that falls away, i
 band of the water's colour); the screen's own drawing let show through the shallowest water (a dark line
 along the beach's edge, things showing in it a second time); things raised less than the whole way to
 where they seem (a blue band at the beach's edge); the ripples bending what is under them by a quarter of
-their slope, as real water does ("slightly too busy and disorienting on eyes": it is 0.14 now).
+their slope, as real water does ("slightly too busy and disorienting on eyes": it is 0.14 now); only what
+is under the sea moved in its picture, and nothing out of it (a seam along the lagoon's waterline, the
+shadows on the sand under the water a hand's breadth off the same shadows on dry sand). On his return, 24
+November 2026: "looking amazing", and still "a bit busy for eyes and disorienting", to be made softer and
+not taken away (`ROADMAP.md`, "After the weekend", has what moves, measured); the water a step clearer at
+his word (two thirds hidden by 6 m of it, where it was 4.6). 26 November 2026: "still a bit clearer" (8 m);
+and the two softenings he chose from those proposed are made: what is under the water is bent by the broad
+and middling ripples and not the fine ones (which made it shiver), and the net of light is fainter (five
+eighths of what it was). Rejected with them: a footprint painted on the sand in a colour of its own (a pale
+tan disc by night: a print is light and shade, and now darkens the sand under it in whatever light that is
+in), and spray with a colour rule of its own (warm whenever the sun was down, so tan against a blue sea at
+night, as the foam had been before it: the two now share one rule, `src/sea/foam-in-this-light.glsl`).
 
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A

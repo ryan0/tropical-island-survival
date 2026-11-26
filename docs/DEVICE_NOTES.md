@@ -187,7 +187,9 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   `fog_vertex`): up, by how much nearer the surface it seems (`raised-through-surface.glsl`). It is two
   rounds of plain arithmetic with an inverse square root and a square root of numbers that cannot be nought
   or less, no loop, no branch, and it moves a vertex by no more than its depth under the sea. On the screen
-  itself nothing is moved.
+  itself nothing is moved. Since 24 November 2026 it also moves what stands out of the sea, within 0.6 m of
+  it, down, by at most that much (one more inverse square root, square root and division, as safe): so that
+  a triangle across a waterline is moved in proportion along its whole length.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

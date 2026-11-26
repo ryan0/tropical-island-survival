@@ -71,7 +71,9 @@ the git tag `build-78`.
     (`shaders/shared/water-veil.glsl`). Into that picture every thing under the sea is drawn raised to where
     it seems to be through a flat surface (`shaders/shared/raised-through-surface.glsl`), since the picture
     is drawn by straight lines and the eye's line is bent down at the surface: without that, an eye looking
-    down a slope that falls away saw past it to the deep. Other engines measure the water in front of a thing from the scene's
+    down a slope that falls away saw past it to the deep. (And what stands a little out of the sea is drawn
+    lower by the same rule, so that the sand at a waterline, between a corner that is moved and one that is
+    not, stays where it is; the surface allows for it where a wave has run up a beach.) Other engines measure the water in front of a thing from the scene's
     depth behind the surface, which may not be read here (`DEVICE_NOTES.md`): so each thing writes its depth
     under the sea beside its colour, through the same place in every material that fogs it
     (`sea/water-as-fog.ts`), which needs two numbers three.js does not hand a material: they are one uniform

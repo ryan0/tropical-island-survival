@@ -129,8 +129,11 @@ export const playerConfig = {
     aboveGround: 0.025,
     halfWidth: 0.075,
     lengthToWidth: 1.9,
-    colour: 0x7a6646,
-    opacity: 0.34,
+    /**
+     * What a print multiplies the colour of the sand under it by: a hollow is a little darker
+     * than the sand round it, and a little warmer.
+     */
+    shade: 0xd6cfc4,
     /** The swash washes a print away once it runs this high over the sand there. */
     washedAwayBy: 0.02,
   },

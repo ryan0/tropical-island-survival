@@ -9,7 +9,7 @@ import {
 import { seaConfig } from './sea-config';
 import { createSprayBursts, type BreakingSpot } from './spray-bursts';
 import { sprayConfig } from './spray-config';
-import { createSprayDroplets } from './spray-droplets';
+import { createSprayDroplets, type LightOfTheHourUniforms } from './spray-droplets';
 import type { WaveModel } from './wave-model';
 
 // Spray thrown up where waves break on the reef and where water hits rocks and posts standing in
@@ -35,8 +35,8 @@ export interface SprayDependencies {
   randomOnCrest: Random;
   /** A stream of its own for the bubbles breaking water drives under, seen from under water. */
   randomUnderWater: Random;
-  /** Two of the uniforms every shader shares, for the bubbles. */
-  uniforms: BubblePlumeUniforms;
+  /** Of the uniforms every shader shares: the bubbles' two, and the light of the hour for the spray. */
+  uniforms: BubblePlumeUniforms & LightOfTheHourUniforms;
   waves: WaveModel;
   /**
    * How far outside the line its waves break on the main swell's crest lies in a direction, at a
@@ -85,7 +85,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
     dependencies;
   const { randomOnCrest, crestOutsideLine, randomUnderWater, uniforms } = dependencies;
   const facing = new Vector3();
-  const droplets = createSprayDroplets(scene);
+  const droplets = createSprayDroplets(scene, uniforms);
   const bursts = createSprayBursts(random, droplets);
   const burstsOnCrest = createSprayBursts(randomOnCrest, droplets);
   const plumes = createBubblePlumes({ scene, uniforms, random: randomUnderWater, waves });
@@ -249,7 +249,7 @@ export function createSpray(dependencies: SprayDependencies): Spray {
       droplets.move(dt);
       plumes.move(dt, time);
       const focalLength = pixelsPerMetreAtAMetre(camera.fov, frame.pixelRatio * frame.viewHeight);
-      droplets.show(focalLength, frame.daylight, frame.night);
+      droplets.show(focalLength);
       plumes.show(focalLength, frame.daylight, frame.night);
     },
 

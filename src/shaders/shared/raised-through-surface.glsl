@@ -33,10 +33,30 @@ const float BENT_LEAVING_WATER = 0.75;
 // deep is hidden by the water, and the floor of the open sea is one great rectangle whose corners, far off and
 // raised each by its own amount, would lift the whole of it to the surface.
 const vec2 NOT_RAISED_BELOW = vec2(6.0, 10.0);
+// What stands out of the sea, within this height of it (m), is drawn lower by the same rule carried on up
+// through the surface: all of it within that height is squeezed towards the sea's level, from both sides. Only
+// a thing's corners are moved, and what lies between two corners goes in proportion. So where a triangle of the
+// ground crosses the waterline, with one corner under the sea and raised and one out of it and left where it
+// was, the sand at the waterline itself, which should not move at all, was raised with a share of the wet
+// corner's rise: looking along the lagoon's shore, the sand in the picture and the shadows on it stood a
+// hand's breadth off the screen's own, along a line as straight as the triangle's edge. (What is drawn lower
+// is out of the water, and the surface reads nothing of it, but for the sand a wave has run up over: the
+// surface allows for that, sea/water.frag.glsl.)
+const float LOWERED_OUT_OF_SEA_WITHIN = 0.6;
 
-// How far up a thing under the sea is to be drawn from where it is, in metres. levelFromEyeSquared: the square of
-// how far off it is along the level, from under the eye. depth: how far under the still sea it lies (nought or
-// less out of the water). eyeOverSea: how high the eye is above the still sea.
+// The share of its depth by which a thing just under the surface is drawn higher than it is (and of its height,
+// one just over it lower). The same two things are given as below.
+float raisedShareAtSurface(float levelFromEyeSquared, float eyeOverSea) {
+  float eye = max(eyeOverSea, 0.02);
+  float looksDown = eye * inversesqrt(levelFromEyeSquared + eye * eye);
+  float goesDown = sqrt(1.0 - BENT_LEAVING_WATER * BENT_LEAVING_WATER * (1.0 - looksDown * looksDown));
+  return 1.0 - BENT_LEAVING_WATER * looksDown / goesDown;
+}
+
+// How far up a thing is to be drawn from where it is, in metres: up for a thing under the sea, down (less than
+// nought) for one a little out of it. levelFromEyeSquared: the square of how far off it is along the level, from
+// under the eye. depth: how far under the still sea it lies (less than nought out of the water). eyeOverSea:
+// how high the eye is above the still sea.
 // (Where the thing seems to be depends on the angle the eye looks at, which depends on where it seems to be: it
 // is worked out twice over, each time from the last answer, which is enough to settle it. No loop, and nothing
 // is divided by what could be nought: docs/DEVICE_NOTES.md.)
@@ -55,5 +75,7 @@ float raisedThroughSurface(float levelFromEyeSquared, float depth, float eyeOver
   goesDown = sqrt(1.0 - BENT_LEAVING_WATER * BENT_LEAVING_WATER * (1.0 - looksDown * looksDown));
   seemsUnder = under * BENT_LEAVING_WATER * looksDown / goesDown;
 
-  return (under - seemsUnder) * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under));
+  float outOfSea = min(max(-depth, 0.0), LOWERED_OUT_OF_SEA_WITHIN);
+  return (under - seemsUnder) * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under))
+    - outOfSea * raisedShareAtSurface(levelFromEyeSquared, eyeOverSea);
 }

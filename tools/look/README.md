@@ -82,6 +82,17 @@ A board's figure for a row is the average of its photographs. Where they differ 
 under storm cloud, in a pink calm, under an orange sky) the average is a colour none of them has, and the
 row cannot steer: measure it photograph by photograph (`picture-parts.ts`) before acting on it.
 
+The same pairs of frames measure how busy the water is: the mean difference between a view and itself a tenth
+of a second on (`--later 0.1`), with one thing switched off at a time in a scratch copy of the code (the
+wobble, the net of light), says how much of what moves is each one's (`docs/ROADMAP.md`, "After the
+weekend"). It measures change, not comfort: that is the phone's to say.
+
+To see whether what is seen through the water lies where the screen's own drawing has it (at a waterline, at
+the edge of a wave's run up a beach), paint stripes across the ground in a scratch copy of the code, a line
+at the end of `terrain-colour.glsl` that darkens every other half metre of `xz.x + xz.y`: a stripe must run
+unbroken across the water's edge, bent there and not stepped. A seam along the lagoon's shore was found and
+its mending proved so; sand has no markings bold enough to show it.
+
 The sand's ripples have a group of their own, `ripples`: straight down from 3 m in every quarter of the atoll,
 and from 6 m at dusk. A fault in them shows only from above and enlarged, and best of all in their picture
 drawn by itself, lit from one side and tiled, which is where to look first.

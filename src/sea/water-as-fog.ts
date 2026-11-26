@@ -20,9 +20,9 @@ import throughWater from '../shaders/shared/through-water.glsl';
 // sea is drawn for the sea's surface to read (under-water-picture.ts). Into that picture each
 // thing writes, beside its colour, how deep under the sea it lies (depth-in-sea-picture.glsl):
 // the surface draws the water over each thing by that. And in that picture every corner of every
-// thing under the sea is drawn raised to where it seems to be through the surface
-// (raised-through-surface.glsl), so that the picture holds what the eye would see through a
-// flat sea. (In the picture only. On the screen things stand where they are: raised there, the
+// thing under the sea is drawn raised to where it seems to be through the surface, and what
+// stands a little out of the sea lower by the same rule (raised-through-surface.glsl), so that
+// the picture holds what the eye would see through a flat sea. (In the picture only. On the screen things stand where they are: raised there, the
 // far floor of the reef stood up out of the troughs of the waves.) For these a material must know
 // two numbers that three.js does not hand it: how high the eye is above the sea, and whether it is
 // the picture that is being drawn. They are one uniform, whose value is one array that every material shares: three.js copies a
