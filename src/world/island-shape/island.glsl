@@ -518,8 +518,9 @@ float hgt(float x, float z) {
   // The patch reefs, in the basin only: knolls with flat tops and steep sides, some eight metres across, in
   // clusters where an uneven pattern of mounds stands high (docs/REEF.md: a lagoon's patch reefs are
   // steep-sided and flat-topped, not domes).
-  float knolls = smoothstep(0.15, 0.4, reefLumps(x * 0.42 + 9.0, z * 0.42 - 4.0));
-  float patchReefs = PATCH_REEF_HEIGHT * knolls * smoothstep(0.1, 0.3, gardenMounds(x - 211.0, z + 97.0)) * inBasin;
+  // (few enough that the ground, which is cut finer wherever it bends sharply, costs the lagoon's views little)
+  float knolls = smoothstep(0.38, 0.62, reefLumps(x * 0.36 + 9.0, z * 0.36 - 4.0));
+  float patchReefs = PATCH_REEF_HEIGHT * knolls * smoothstep(0.15, 0.35, gardenMounds(x - 211.0, z + 97.0)) * inBasin;
   // The deep hole: steep-sided, its rim a little out of round.
   float holeAcross = x - holeX();
   float holeAlong = z - holeZ();

@@ -357,7 +357,9 @@ squeezed lines, then soft mottle, then plain tone, then the sky's mirror, and ev
 change of depth. The far water is the sky's mirror or the water's own colour. A breeze breaks up the near
 floor but hardly shortens the reach; glassy water under a low sun is mirror almost at once. Rejected by
 it: **the floor drawn sharp to the horizon from a low eye** (squeezed up under the surface, it crawled as
-the eye moved, and no photograph shows it). The fine ripples now smear it, by the law's own measure.
+the eye moved, and no photograph shows it). The fine ripples now smear it, by the law's own measure. Dusk
+is a step lighter (the water's own colour with the sun at the horizon, 0.54 of its day colour where it was
+0.46): his "maybe a bit lighter".
 
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A

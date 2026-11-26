@@ -2585,6 +2585,32 @@ deeper, with basins", and items 7 and 8 of the shape list):
   it. **Not looked at one by one:** the next part places the coral afresh in any case.
 - More of the shallows are now swum than waded, at the swimmer's 2 m/s: across the reef flat from the home
   beach to the crest is about a minute.
+- *What it costs,* counted in the test renderer: the ground holds 367 thousand triangles where it held 332
+  (it is cut finer wherever it bends sharply, and the heads, potholes and knolls bend it). A frame draws 4
+  to 8 percent more triangles looking out to sea, inland and from above, 19 percent more behind the crest
+  (245 thousand, from 206), and 16 percent more wading in the lagoon (563 thousand, from 486): there it is
+  the coral, whose heads the layout finds afresh on the new floor and more of which now stand in that view.
+  **For the phone to read.**
+
+**Dusk a step lighter** (his "maybe a bit lighter... we can refine this later"): the water's own colour with
+the sun at the horizon is multiplied by 0.54 where it was 0.46 (`LOW_SUN_WATER_TINT`, `water-veil.glsl`).
+The dark sand under the water at the feet at dusk is the light under water's, and is as it was.
+
+**Not done of the night's plan, and why.**
+
+- *The floor against the pairs* (stage E) got a measurement and no change. Reef rock seen through a metre or
+  two of water from above is 0.24 as bright as the sand beside it in ours, and 0.24 in the one photograph of
+  dark reef patches from a boat that could be measured (Kalpeni; `reference-photos/low-eye-water/`): the
+  "cut out" look is not the patches' darkness. What differs is their hue (ours teal, the photograph's olive:
+  the water's glow over dark things is blue where a sandy lagoon's is green) and their edges and mottle
+  close to; far off the new smear softens them. Each is a judgement of look, to make with his eyes on the
+  pairs, and the rest of stage E's list with it.
+- *The coral placed by exposure and by the reef's curve* (`REEF.md`'s order, 2) is not begun. The coral is
+  already the dearest thing in the lagoon's views (266 thousand triangles of 626 when last counted, where
+  the budget above is 150), it stands only within 150 m of home, and placing it all round the atoll before
+  the phone has read tonight's costs, and before "many more kinds at a flat cost" has made far things
+  cheap, would be building on a frame rate nobody has measured. The basin off home lies within the
+  layout's reach and has its heads; the basins further round have none yet.
 
 ## Later
 

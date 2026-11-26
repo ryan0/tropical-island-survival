@@ -19,7 +19,7 @@ const vec3 TURQUOISE = vec3(0.11, 0.49, 0.58);
 const vec3 OCEAN_BLUE = vec3(0.0, 0.14, 0.30);
 // What the water's colour is multiplied by when the sun is at the horizon (full daylight leaves it as it is),
 // and the share of it that goes with the night.
-const vec3 LOW_SUN_WATER_TINT = vec3(0.46, 0.45, 0.48);
+const vec3 LOW_SUN_WATER_TINT = vec3(0.54, 0.53, 0.56);
 const float NIGHT_TAKES_FROM_WATER = 0.82;
 // How many metres of clear water hide two thirds of what is behind them (half as many hide a fifth, twice as
 // many nearly all). It goes by degrees, with no depth at which the water turns solid.
