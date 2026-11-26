@@ -42,8 +42,8 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
      perhaps a little lighter, to refine later.
   4. *The floor against the pairs* (stage E): patches of reef that are soft and mottled, not cut out; the
      ripples' size and evenness from standing height; rubble painted for the reef (the bed of it is the land's
-     gravel and reads as crazy paving); structure at the middle distance; two straight ledges of rock on the
-     side of the lagoon's basin, which the clearer water shows from the air. The ground's shader reads 16
+     gravel and reads as crazy paving); structure at the middle distance. (The two straight ledges of rock
+     on the side of the lagoon's basin are gone: this branch, "The night's third part".) The ground's shader reads 16
      pictures, all there are (`DEVICE_NOTES.md`): more would mean stacking them in one.
   5. *Checks, the phone, the docs* (stage F).
 - *How a pass is judged*, since judging it otherwise cost a day: at the size Ryan sees the game, on the pairs
@@ -66,6 +66,10 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
   next of: the floor against the pairs (4 above: measured, not changed, "Not done of the night's plan" on
   the reef's branch says why); the coral placed round the atoll; "a first piece of the game", which settles
   the shape of `src/game/` and is his to discuss first.
+- *On this branch, for him to look at:* **the reef's new shape** ("The night's third part", far below, and
+  `REEF.md`): the gardens deeper, half a dozen basins 4.5 to 6.5 m deep (the debug panel flies to `home
+  basin` and `east basin`), heads and potholes behind the crest, the lagoon's knolls. And **what it costs
+  on the phone**: 4 to 19 percent more triangles by the view, counted in the test renderer.
 - *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
   and clearer water" has it, and the mending), and pass again from `886698e`. A test that fails there is now
   named on the run's page: look there first if one does.
