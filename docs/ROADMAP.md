@@ -51,7 +51,10 @@ while he was away).**
 - *In hand: wading through the water made him queasy,* in a full screen on the desktop, and the softening of
   2 above did not help ("Wading made him queasy", far below, has the plan agreed and why the softening missed
   it). Step 1 is his: to wade and swim the shallows with each of the six switches under "what makes wading
-  queasy" in the debug panel on in turn, and say which take the sickness away.
+  queasy" in the debug panel on in turn, and say which take the sickness away. Measured meanwhile, with the
+  eye moving: it is the eye's own rise and fall (a step's bob, a wave ridden, and the raising worked out
+  afresh for each height) far more than the ripples' bending, and the floor streams past a swimmer twice as
+  fast as a floor at its true depth would. Step 2 waits for his word on the switches.
 - *Waiting on Ryan,* all of it on the phone: whether the water is now soft enough, and clear enough; the
   frame rate with the rule that raises what is under the sea ("The islet's shore"); footprints and spray by
   night, which glowed and are mended ("Softer and clearer water"). And the wording of the standard "One owner
@@ -2397,6 +2400,49 @@ frame, as if the sea had stayed down and the eye alone gone up.
 3. *Finish:* his levels become the rule, switches that proved nothing go, checks, docs. **From now on the
    water is judged in a full screen on the desktop as well as on the phone:** the larger view is the harder
    test.
+
+**Step 1, measured with the eye moving** (`tools/look/wade-flow.ts`; its README says how). The player is
+walked through the water by the keys, a frame at a time, in a build that colours every thing by where in
+the world it lies: so each dot of water says which point of the floor is seen there, and the same point can
+be found in the next frame. That is the image's flow at each spot of the screen. A steady eye over a level
+floor sees the same flow from frame to frame; what changes is *wobble*, here in degrees a second (root mean
+square, by the feet at the foot of the screen; the flow itself in brackets). Three walks: wading the
+lagoon's shore (floor 0.7 m down, eye 1 m over the water), swimming the lagoon's shelf (floor 1.65 m, eye
+0.5 m, still water), swimming the reef flat (floor 1.3 m, the eye riding the waves between 0.33 and 0.74 m
+over the still sea in three seconds).
+
+| | wading, lagoon | swimming, lagoon | swimming, reef flat |
+|---|---|---|---|
+| as it is | 4.4 (96) | 1.7 (57) | 7.1 (66) |
+| `no bending` | 4.3 | 1.0 | 6.4 |
+| `steady raising` | 4.5 | 1.6 | 3.4 |
+| `steady eye` | 1.5 | 1.5 | 1.4 |
+| `slow wading` | 4.0 (72) | | |
+| `no bending`, `steady raising` and `steady eye` together | 1.9 | 0.9 | 1.5 |
+| `no raising` | 3.5 (90) | 2.2 (27) | 2.0 (32) |
+| nothing bent or raised, and a steady eye | 0.4 (74) | 0.2 (27) | 0.4 (32) |
+
+- **It is the eye's own rise and fall, far more than the ripples.** A wader's step bob is two thirds of his
+  wobble. A swimmer on the reef flat rides every wave, and that is nearly all of his: half of it because the
+  raising is worked out afresh for the eye's height over the still sea (`steady raising` halves it), half
+  the plain rise and fall of an eye so near the water.
+- **The ripples' bending is a small part** everywhere but in the still lagoon, where little else moves.
+  (Expected by arithmetic to be the most of it: it is not. The softening of 26 November took the fine
+  ripples out of it, which this says was beside the point.)
+- **The raising makes the floor stream past much faster**: twice as fast for a swimmer (57 degrees a second
+  against 27; the floor seems half as deep from so low an eye), a third faster for a wader. The player
+  swims at 3.6 m/s and wades at 4.2, three or four times a person's pace, with the eye half a metre to a
+  metre over the water: the floor goes by the foot of the screen at 60 to 100 degrees a second.
+- The last row is the floor's own unevenness and the measure's blur: what no change can go below.
+
+*So the remedies to try in step 2, if his eyes agree:* the eye steadier in water (no step bob while wading;
+riding the waves more gently, or the eye carried higher over them); the raising worked out for a steady
+height over the water under the eye, which is also truer to water lifted with the swimmer; and a slower
+pace through water, which he has agreed to in principle. Which of these it is that eases him, the switches
+are to say: a degree a second on this table is not a measure of comfort.
+
+*Clips,* of each walk as it is and of the reef flat with the eye and the raising steadied, are in
+`node_modules/.cache/look/wade-clips/` on the desktop (`tools/look/wade.ts` draws them).
 
 ## Later
 

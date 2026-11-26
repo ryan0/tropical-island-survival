@@ -36,16 +36,17 @@ interface Walk {
 }
 
 // The player wades where the water is 0.2 to 1.2 m deep, and swims where it is deeper: most of
-// the shallows are swum, with the eye half a metre over the water.
+// the shallows are swum, with the eye half a metre over the water. (A swimmer looks level: one
+// who pushes forward looking down dives.)
 const WALKS: Record<string, Walk> = {
   // along the lagoon's south shore, knee to waist deep
   'lagoon-wade': { from: [2, 100], yaw: -1.03, pitch: -0.25 },
   // along the lagoon's shelf off that shore, 1.6 m deep
-  'lagoon-swim': { from: [-28, 96], yaw: -Math.PI / 2, pitch: -0.25 },
+  'lagoon-swim': { from: [-28, 96], yaw: -Math.PI / 2, pitch: 0 },
   // along the ocean beach off home, in the swash
   'reef-wade': { from: [-25, 172], yaw: -Math.PI / 2, pitch: -0.25 },
   // along the reef flat, 1.3 to 1.5 m deep, riding what the swell sends over it
-  'reef-swim': { from: [-28, 200], yaw: -Math.PI / 2, pitch: -0.25 },
+  'reef-swim': { from: [-28, 200], yaw: -Math.PI / 2, pitch: 0 },
 };
 
 // Frames run before the first is kept: the eye settles to its height and the walk to its pace.

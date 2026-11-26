@@ -105,6 +105,44 @@ named in the tool: wading the lagoon's shore and the ocean beach's swash, and sw
 and the reef flat, where the eye is half a metre over the water. A clip shows motion; whether it is easy on
 the eye is his to say, in a full screen on the desktop and on the phone.
 
+`wade-flow.ts` puts a figure on it: how the image of what is under the water moves at each spot of the
+screen (its flow), and how much that changes from frame to frame (its wobble), in degrees a second. It reads
+frames drawn from a *measuring build*: a scratch copy of the code (`git worktree add --detach <folder>
+HEAD`, with `node_modules` linked into it) in which three things are changed and `npx vite build` run:
+
+1. `src/sea/water-as-fog.ts`, in `SEEN_THROUGH_WATER`, straight after the fog is mixed into the colour of an
+   eye in air: every thing is coloured by where in the world it lies, a metre to a round of colour.
+
+   ```glsl
+   vec3 fromEyeInWorld = ( vec4( vPlaceFromEye.xyz, 0.0 ) * viewMatrix ).xyz;
+   vec3 eyeInWorld = - ( vec4( viewMatrix[ 3 ].xyz, 0.0 ) * viewMatrix ).xyz;
+   gl_FragColor.rgb = vec3( fract( eyeInWorld.xz + fromEyeInWorld.xz ), 0.0 );
+   ```
+
+2. `src/sea/water.frag.glsl`, as the last line of `main`: the surface shows only what it reads from behind
+   itself, and marks itself in blue.
+
+   ```glsl
+   if (uPictureDrawn > 0.5) gl_FragColor = vec4(behind.rg, 1.0, 1.0);
+   ```
+
+3. `index.html`: the canvas's `filter` taken out, and `#vig` and `#glare` given `display: none`. They
+   change the colours the measure reads.
+
+```
+node tools/look/wade.ts <frames> --page <the measuring build's dist/index.html> --walk reef-swim --size 960x540 --no-clip
+```
+
+```
+node tools/look/wade-flow.ts <frames>
+```
+
+Draw each walk as it is and with each switch on, and one with nothing bent or raised and a steady eye, which
+gives the floor's own unevenness and the measure's blur (0.2 to 0.4 degrees a second): the differences say
+whose the wobble is. On 26 November 2026 they said it was the eye's own rise and fall, a step's bob and a
+wave ridden, far more than the ripples' bending, which arithmetic had made the most of it. The figure is how
+much moves, not how it feels: his eyes decide, and the switches are for that.
+
 To see whether what is seen through the water lies where the screen's own drawing has it (at a waterline, at
 the edge of a wave's run up a beach), paint stripes across the ground in a scratch copy of the code, a line
 at the end of `terrain-colour.glsl` that darkens every other half metre of `xz.x + xz.y`: a stripe must run
@@ -149,6 +187,7 @@ hair from the same view drawn alone (the sky turns with the day, and the day is 
 | `pair-sheets.ts` | Lays each of the pairs' views beside its photograph, one sheet a pair |
 | `draw-views.ts` | Draws those views from a built page, one picture each |
 | `wade.ts` | Draws the player's own view as he wades or swims, frame by frame, and joins the frames into a clip |
+| `wade-flow.ts` | From such frames of a measuring build: how the image under the water flows and wobbles, in degrees a second |
 | `contact-sheet.ts` | Pictures on one sheet under a lettered grid, for naming parts of them |
 | `boards/*.json` | Materials, and the parts of photographs and of our views that show each |
 | `colour-board.ts` | A board's colours measured, the photographs' beside ours, as a picture and as figures |
