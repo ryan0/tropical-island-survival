@@ -348,7 +348,7 @@ const float SMEARED_BY_FINE_RIPPLES = 0.08;
 // (And a liberty: real ripples smear the floor by the feet a little too. Ours is left sharp where the eye looks
 // down on it more steeply than the second of these, the sine of the angle below level, and smeared in full
 // where it looks down less steeply than the first: the sand's ripples and the net of light at a wader's feet
-// are what Ryan liked best in the water, and it is the far floor that crawled.)
+// are the best of the water's look, and it is the far floor that crawled.)
 const vec2 SMEARED_LOOKING_DOWN = vec2(0.22, 0.6);
 const float MOST_SMEARED_OVER = 8.0;
 const float BENDS_NO_DEEPER_THAN = 5.0;

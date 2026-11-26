@@ -2574,6 +2574,14 @@ panel** ("what is seen through the water"), for his eyes to set: the middle of e
 switches `no bending`, `no raising` and `no light net` are those sliders at nought; `steady eye` is kept
 for comparing.
 
+*Measured at the night's end, as it now is* (the smear set to nought for the measure, which cannot follow a
+smeared floor; wobble by the feet in degrees a second, the flow in brackets): wading the lagoon 2.2 (77),
+where the day began at 4.4 (96); swimming the lagoon 1.5 (37), from 1.7 (57); swimming the reef flat 2.1
+(40), from 7.1 (66). A wader's wobble is now his step's bob, which was kept at his word ("we would not want
+to remove the effect"), and a swimmer's the ripples' sway and the waves he rides. Clips of each walk as it
+now is are in `node_modules/.cache/look/wade-clips/night-*/` on the desktop, and the sheets in
+`node_modules/.cache/look/night-26-nov/`.
+
 *Found by the way:* the lists in `docs/reference-photos/` had never been in the repository. The rule that
 keeps the photographs out (`reference-photos/`) also matched the folder of their lists; it now names the
 top folder only, and the ten lists are in.

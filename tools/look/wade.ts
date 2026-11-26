@@ -50,6 +50,8 @@ const WALKS: Record<string, Walk> = {
   'reef-wade': { from: [-25, 172], yaw: -Math.PI / 2, pitch: -0.25 },
   // along the reef flat, 1.3 to 1.5 m deep, riding what the swell sends over it
   'reef-swim': { from: [-28, 200], yaw: -Math.PI / 2, pitch: 0 },
+  // out from the shallows off home over the rim of the basin there
+  'basin-swim': { from: [-15, 206], yaw: Math.PI, pitch: 0 },
 };
 
 // Frames run before the first is kept: the eye settles to its height and the walk to its pace.
