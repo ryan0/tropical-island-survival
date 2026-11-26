@@ -28,20 +28,13 @@ jobs:
 
   # Not gated on the checks: the site shows every branch that builds, so that a branch can be
   # looked at on the phone while its checks are still being put right.
-  publish:
+  # The site is assembled by one job and published by the next. Published by a later step of the
+  # same job, a second after the site was handed over, GitHub's publishing step now and then
+  # found nothing to publish ("No artifacts named github-pages were found"), and the run ended
+  # red with every check passed.
+  assemble:
     if: github.event_name != 'delete' || github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}${{ github.ref_name != 'main' && format('preview/{0}/', github.ref_name) || '' }}
-    # Each run publishes the whole site, so runs go one at a time and the newest one waiting wins.
-    concurrency:
-      group: pages
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
         with:
@@ -55,5 +48,21 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
+
+  publish:
+    needs: assemble
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}${{ github.ref_name != 'main' && format('preview/{0}/', github.ref_name) || '' }}
+    # Each run publishes the whole site, so runs go one at a time and the newest one waiting wins.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v5
