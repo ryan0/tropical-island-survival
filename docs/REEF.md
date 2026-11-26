@@ -47,9 +47,10 @@ The shape and depth work. Ryan agreed items 1 to 6 on 16 November 2026 and they 
 5. The pass: a flat scoured floor, a low ridge of coral across it, and a lobe of sand off its seaward mouth.
 6. The lee: a wall below the sill, not a slope, and no spurs.
 7. Behind the crest: a lower strip of flat-topped heads and pothole pools (1.5-3 m across, 1-1.5 m deep).
-   Built 26 November 2026, at the least size the ground's squares draw: heads some 6 m across standing to half
-   a metre under the sea, potholes some 5 m across and 1.3 m deep, crowded here and few there, on the sides
-   the sea beats on.
+   Built 26 November 2026, at the least size the ground's squares draw: heads some 6 m across standing to
+   0.85 m under the sea, with sloping sides (flat-topped and half a metre down they were white slabs with
+   stepped outlines from the air), potholes some 5 m across and 1.3 m deep, crowded here and few there, on
+   the sides the sea beats on.
 8. The lagoon: patch reefs steep-sided and flat-topped, 3-9 m across; the shelf's edge in lobes; the hole's
    walls steep. Built 26 November 2026: the patch reefs are clusters of flat-topped knolls some 8 m across
    (they were broad domes), the shelf's edge has a second, finer wander, and the hole's walls were steep

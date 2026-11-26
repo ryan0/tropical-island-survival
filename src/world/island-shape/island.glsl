@@ -49,11 +49,13 @@ const float BASIN_DEPTH = 2.8;
 // it is flat rock CREST_DEPTH down.
 const float RIDGE_TOP = 0.4;
 const float BEHIND_RIDGE = 1.5;
-// Just behind the crest, on the sides the sea beats on, lies a strip of flat-topped heads that stand to
-// HEAD_TOPS under the sea (awash at low water), with pothole pools between them, POTHOLE_DEPTH deeper than the
-// floor round them (docs/REEF.md, the gardens). A real head is 1 to 8 m across and a pothole 1.5 to 3: ours are
-// some 6 and 5, the least the ground's squares can draw.
-const float HEAD_TOPS = 0.5;
+// Just behind the crest, on the sides the sea beats on, lies a strip of low heads that stand to HEAD_TOPS under
+// the sea, with pothole pools between them, POTHOLE_DEPTH deeper than the floor round them (docs/REEF.md, the
+// gardens). A real head is 1 to 8 m across, flat-topped and awash at low water, and a pothole 1.5 to 3: ours
+// are some 6 and 5, the least the ground's squares can draw, and their sides slope. (Flat-topped and half a
+// metre down, they were white slabs with stepped outlines from the air: the ground's squares cannot draw a
+// round rim, and so near the surface the floor is drawn as sand.)
+const float HEAD_TOPS = 0.85;
 const float POTHOLE_DEPTH = 1.3;
 const float ARCH_TOP = 0.55;
 const float BEHIND_ARCH = 0.8;
@@ -407,7 +409,7 @@ float stripHeads(float x, float z) {
   // (crowded here and few there, by the gardens' broad pattern: evenly spaced, they were a string of beads
   // from the air)
   float crowding = 0.3 * gardenMounds(x * 1.4 + 50.0, z * 1.4 - 20.0);
-  return smoothstep(0.2, 0.42, reefLumps(x * 0.62 + 3.0, z * 0.62 + 11.0) + crowding);
+  return smoothstep(0.05, 0.6, reefLumps(x * 0.62 + 3.0, z * 0.62 + 11.0) + crowding);
 }
 
 float stripPotholes(float x, float z) {
