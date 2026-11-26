@@ -60,8 +60,8 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
   water" for the raising's strength, the ripples' bending, the smear and the net of light. **The phone's
   frame rate,** which nothing here can say: every corner drawn into the under-water picture now takes three
   of Newton's steps, every dot of the ground in that picture works the law out for itself, and the picture
-  keeps softer copies of itself made every frame (`DEVICE_NOTES.md` has each, and what to try first if it has
-  fallen). Whether the water is clear enough; footprints and spray by night ("Softer and clearer water").
+  keeps softer copies of itself made every frame (`DEVICE_NOTES.md` has each; the cost switches `ground by
+  its corners` and `no softer copies` say what the last two cost). Whether the water is clear enough; footprints and spray by night ("Softer and clearer water").
   The wording of the standard "One owner for each effect" (`CODE_STANDARDS.md`, line 95). And what to do
   next of: the floor against the pairs (4 above: measured, not changed, "Not done of the night's plan" on
   the reef's branch says why); the coral placed round the atoll; "a first piece of the game", which settles

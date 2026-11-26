@@ -4,6 +4,7 @@ import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { Spray } from '../sea/spray';
+import type { UnderWaterPicture } from '../sea/under-water-picture';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
@@ -182,6 +183,7 @@ export function frameCostSwitches(
   spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
   quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
   land: LandToLeaveOut,
+  underWaterPicture: Pick<UnderWaterPicture, 'hasSofterCopies' | 'keepSofterCopies'>,
 ): DebugSwitch[] {
   const leaveOut = (kind: InstanceKind): DebugSwitch => ({
     label: `hide ${kind}`,
@@ -198,6 +200,25 @@ export function frameCostSwitches(
       label: 'more dots',
       set: quality.drawMoreDots,
       isOn: () => quality.isDrawingMoreDots,
+    },
+    {
+      // What it costs that every dot of the ground, in the picture of what is under the sea, works out
+      // by the law of refraction which point it shows: with this on only its corners are raised, and
+      // the sand between them goes in proportion (a level floor then works like dough under a wader).
+      label: 'ground by its corners',
+      set(on) {
+        uniforms.uGroundSeenDotByDot.value = on ? 0 : 1;
+      },
+      isOn: () => uniforms.uGroundSeenDotByDot.value === 0,
+    },
+    {
+      // What the under-water picture's softer copies of itself cost, made every frame: with this on
+      // none is made, and the ripples smear nothing.
+      label: 'no softer copies',
+      set(on) {
+        underWaterPicture.keepSofterCopies(!on);
+      },
+      isOn: () => !underWaterPicture.hasSofterCopies,
     },
     // (each kind of thing left out of the picture and of the shadows)
     leaveOut('plants'),

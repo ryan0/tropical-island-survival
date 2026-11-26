@@ -222,7 +222,7 @@ const vec3 DEAD_CORAL_TINT = vec3(1.16, 1.15, 1.11);
 // (shaders/shared/seen-through-surface.glsl; intoSeaPicture and vRaisedBy are sea/water-as-fog.ts's). The
 // ground's height there is taken to be its height here: the sea floor is gentle where it is seen clearly.
 vec3 groundPoint = vGroundPosition;
-if (intoSeaPicture.y > 0.5) {
+if (intoSeaPicture.y * uGroundSeenDotByDot > 0.5) {
   float raisingLevel = uCameraPosition.y - intoSeaPicture.w;
   float under = raisingLevel - vGroundPosition.y;
   // (by as much of the raising as the corners were given: none out of the sea, less and less in the deep)

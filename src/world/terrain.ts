@@ -44,6 +44,7 @@ const SHARED_UNIFORMS = [
   'uShoreRound',
   'uWind',
   'uLightNetShare',
+  'uGroundSeenDotByDot',
   'uCameraPosition',
   'uSunDirection',
 ] as const;
