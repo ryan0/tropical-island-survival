@@ -53,8 +53,8 @@ while he was away).**
   night, which glowed and are mended ("Softer and clearer water"). And the wording of the standard "One owner
   for each effect" (`CODE_STANDARDS.md`, line 95), which he has said he will read.
 - *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
-  and clearer water" has it, and the mending). Look at the run's page after each push until a few have
-  passed: a test that fails there is now named on it.
+  and clearer water" has it, and the mending), and pass again from `886698e`. A test that fails there is now
+  named on the run's page: look there first if one does.
 
 After the look comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal "A proposal: many more kinds at a
@@ -2327,7 +2327,8 @@ was not: warm whenever the sun was down, the moon or no. One owner now: `foamInT
 shader shares. (The bubbles under water have a rule of their own still, without the warmth: they are seen
 through water, whose colour the fog gives them.)
 
-**GitHub's checks failed on every push** since the under-water picture went in, and on and off before it.
+**GitHub's checks failed on every push** from the morning of 20 November (sixteen runs), and on and off
+before it.
 The log cannot be read from here (it needs a login; `gh` is not installed), but the run's steps and times
 can: the same commit passed on one branch and failed on another, so nothing in the code was broken. The
 cause, reproduced here three times by giving the tests few processor threads: a picture is taken only once
@@ -2336,7 +2337,8 @@ anything on the page ("a control that is not there is given up on"), the picture
 sunset in a high wind take longer than that on a small machine. A picture is now bounded by the test's own
 five minutes and nothing shorter (`takePicture`, `tests/scene-page.ts`). And a failed test is written onto
 the run's page on GitHub (Playwright's `github` reporter, `playwright.config.ts`), where it can be read
-without the log: by Ryan, and from here through GitHub's public API.
+without the log: by Ryan, and from here through GitHub's public API. The first push with both, `886698e`,
+passed there: 52 tests in 10.4 minutes.
 
 ## Later
 
