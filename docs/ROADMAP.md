@@ -2617,13 +2617,25 @@ The dark sand under the water at the feet at dusk is the light under water's, an
 
 **Not done of the night's plan, and why.**
 
-- *The floor against the pairs* (stage E) got a measurement and no change. Reef rock seen through a metre or
-  two of water from above is 0.24 as bright as the sand beside it in ours, and 0.24 in the one photograph of
-  dark reef patches from a boat that could be measured (Kalpeni; `reference-photos/low-eye-water/`): the
-  "cut out" look is not the patches' darkness. What differs is their hue (ours teal, the photograph's olive:
-  the water's glow over dark things is blue where a sandy lagoon's is green) and their edges and mottle
-  close to; far off the new smear softens them. Each is a judgement of look, to make with his eyes on the
-  pairs, and the rest of stage E's list with it.
+- *The floor against the pairs* (stage E) got a measurement and no change. Reef rock and the sand beside it,
+  seen from above through a metre or three of water, in five photographs (four from a boat in
+  `reference-photos/low-eye-water/`, and the pair's own from Palmyra) and in four of our views, as the
+  darker and the lighter of each picture's dots:
+
+  | | rock's lightness | rock as bright as its sand | rock's hue | sand's hue |
+  |---|---|---|---|---|
+  | the photographs | 0.49 to 0.57 | 0.28 to 0.60 (0.44 on average) | 177 to 229 | 175 to 210 |
+  | ours, in the lagoon | 0.39 to 0.43 | 0.23 to 0.30 | 198 to 225 | 213 to 226 |
+  | ours, on the reef flat | 0.63 | 0.51 | 211 | 209 |
+
+  So **in the lagoon our reef patches are darker against their sand than four photographs of five**, and
+  darker than any; that is some of why they look cut out. The water's glow is not the lever (made paler by
+  half as much again, rock and sand both rose and the rock stayed a quarter as bright). The rock's own cover
+  is: but to an eye under water our rock under turf measures as the photographs' does (lightness 0.45), so
+  lightening it for the eye above the water trades against that, and whether the patches should be lighter
+  is a judgement of the look to make with his eyes on the pairs. Where to turn it: `KIND_IN_LAGOON` and
+  `ROCK_SHADE`, `terrain-colour.glsl`. Our sand under the water is also bluer than the photographs' (hue 213
+  to 226 against 175 to 210). The rest of stage E's list is untouched.
 - *The coral placed by exposure and by the reef's curve* (`REEF.md`'s order, 2) is not begun. The coral is
   already the dearest thing in the lagoon's views (266 thousand triangles of 626 when last counted, where
   the budget above is 150), it stands only within 150 m of home, and placing it all round the atoll before
