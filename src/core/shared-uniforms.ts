@@ -84,6 +84,12 @@ export type SharedUniforms = Record<string, IUniform> &
     uSmearingShare: { value: number };
     uLightNetShare: { value: number };
     /**
+     * 1 while each dot of the ground works out for itself, in the picture of what is under the
+     * sea, which point of the ground it shows (world/terrain-colour.glsl); 0 with the cost switch
+     * `ground by its corners` on, to read on the phone what that costs.
+     */
+    uGroundSeenDotByDot: { value: number };
+    /**
      * How high the eye is above the level the raising takes the sea to lie at, in metres: the
      * still sea's, lifted with a swimmer whom a wave lifts (sea/under-water-picture.ts sets it).
      */
@@ -131,6 +137,7 @@ export function createSharedUniforms(
     uFineRipplesBend: { value: FINE_RIPPLES_BEND },
     uSmearingShare: { value: 1 },
     uLightNetShare: { value: 1 },
+    uGroundSeenDotByDot: { value: 1 },
     uEyeOverRaisingLevel: { value: 1 },
     uSurfObstacles: { value: noObstacles },
     uSurfObstacleGroups: { value: noGroups },

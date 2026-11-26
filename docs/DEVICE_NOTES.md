@@ -206,6 +206,10 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   other readings of the picture name the picture's own dots likewise. The copies are made whatever the
   slider says (a picture that is to have copies and has none reads as nothing): at nought what is saved is
   only the reading of a softer copy.
+- **To read these on the phone,** two cost switches (the debug panel, "what a frame costs"): `ground by its
+  corners` leaves out the dot-by-dot working of the ground in the under-water picture, and `no softer copies`
+  stops the picture's copies being made (and with them the smear). The three Newton steps in every vertex
+  shader have no switch: if the frame rate has fallen and neither switch gives it back, they are next.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

@@ -19,6 +19,7 @@ uniform float uDaylight;        // daylight, 0 at night to 1 by day
 uniform float uGritAverage;   // the grit picture's average brightness (ground-grit.ts)
 uniform float uWind;       // the wind's strength, 0 (none) to 1 (high)
 uniform float uLightNetShare; // how much of the net of light is drawn: 1 but for a debug switch
+uniform float uGroundSeenDotByDot; // 1, but 0 with the cost switch `ground by its corners` on
 uniform vec3 uCameraPosition;         // the camera's position
 uniform vec3 uSunDirection;      // the unit vector towards the sun
 uniform vec3 uSkyHorizon;         // the sky's colour at the horizon
