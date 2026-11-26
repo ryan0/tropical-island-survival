@@ -75,10 +75,11 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
   on the phone**: 4 to 19 percent more triangles by the view, counted in the test renderer.
 - *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
   and clearer water" has it, and the mending), and pass again from `886698e`. A test that fails there is now
-  named on the run's page: look there first if one does. (A run can still end red with every check passed:
-  on 26 November 2026 the *publish* job's last step failed three times in eleven runs with "No artifacts
-  named github-pages were found", GitHub's own fault by its message, when pushes came close together. The
-  site then keeps what the last good run published; the next push, or re-running the job, publishes.)
+  named on the run's page: look there first if one does. (Runs also ended red with every check passed, four
+  of thirteen on 26 November 2026: the *publish* job's last step asked for the site a second after an
+  earlier step of the same job had handed it over, and was told there was none, "No artifacts named
+  github-pages were found". The site is now assembled by one job and published by the next
+  (`.github/workflows/checks-and-publish.yml`), and three pushes at once all published.)
 
 After the look comes the much greater variety of plants,
 rocks, ground and props that the groundwork prepared for, by the proposal "A proposal: many more kinds at a
