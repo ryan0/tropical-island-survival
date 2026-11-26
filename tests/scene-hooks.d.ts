@@ -53,6 +53,9 @@ interface SceneDebugHooks {
     position: { x: number; y: number; z: number };
     /** Its pitch is its turn about x, its yaw about y. */
     rotation: { x: number; y: number };
+    /** Where it is and how it is turned, as three.js keeps it: sixteen numbers, column by column. */
+    matrixWorld: { elements: ArrayLike<number> };
+    aspect: number;
   };
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {

@@ -353,7 +353,7 @@ const debugPanel = createDebugPanel(
     },
     {
       heading: QUEASINESS_HEADING,
-      switches: queasinessSwitches(uniforms, player, underWaterPicture),
+      switches: queasinessSwitches(uniforms, player),
     },
     {
       heading: FRAME_COST_HEADING,
@@ -461,10 +461,9 @@ const glareFrame: SunGlareFrame = {
 };
 const waterFrame: WaterFrame = { player: player.position, wind: 0, isCameraUnderWater: false };
 const underWaterPictureFrame: UnderWaterPictureFrame = {
-  dt: 0,
   isCameraUnderWater: false,
   isSeaDrained: false,
-  waterUnderEye: 0,
+  eyeLiftedByWaves: 0,
 };
 // The turtle and the dolphins break the surface at the height the sea has off the pier's end.
 const waterLevelX = landmarks.pier.x + 2.3;
@@ -570,15 +569,11 @@ function frame(now: number): void {
 
   instanceCells.update(camera.position);
 
-  underWaterPictureFrame.dt = dt;
   underWaterPictureFrame.isCameraUnderWater = underWater.isCameraUnder;
   underWaterPictureFrame.isSeaDrained = isSeaDrained;
-  // (by the clock the drawn waves run by)
-  underWaterPictureFrame.waterUnderEye = waves.heightAt(
-    camera.position.x,
-    camera.position.z,
-    uniforms.uTime.value,
-  );
+  // (a camera the tests have placed is no swimmer's eye)
+  underWaterPictureFrame.eyeLiftedByWaves =
+    playerFrame.cameraOverride === undefined ? player.liftedByWaves : 0;
   underWaterPicture.update(underWaterPictureFrame);
   renderer.render(scene, camera);
   frameMeter.update(realSeconds, (performance.now() - begunAt) / 1000);

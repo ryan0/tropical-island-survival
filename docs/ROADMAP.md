@@ -2444,6 +2444,86 @@ are to say: a degree a second on this table is not a measure of comfort.
 *Clips,* of each walk as it is and of the reef flat with the eye and the raising steadied, are in
 `node_modules/.cache/look/wade-clips/` on the desktop (`tools/look/wade.ts` draws them).
 
+**What his eyes said of the switches** (26 November 2026, a full screen on the desktop):
+
+- *Very large benefit:* `slow wading`. "Swimming with head above water would be even slower than wading
+  probably, or at least different; the occasional sudden jump in speed from walking/wading/swimming can be
+  jarring."
+- *Large benefit:* `no raising`: "without it there is definitely less disorientation; without it the scene
+  does not look realistic though. With it too something feels off. I think the main issue is the effect is
+  overdone and something about it seems off, something about the way we do this is far from natural. What we
+  need to do is refine, probably lessen the effect, and as well research what we can do to make the effect
+  truly realistic/accurate."
+- *Some benefit:* `steady raising` ("hard to tell but I think this helps some"); `steady eye` ("a slight
+  benefit; we would not want to remove the effect though, maybe just reduce slightly").
+- *No apparent benefit:* `no bending`, `no light net`.
+
+**The night's plan, signed off** (26 November 2026; he is away some ten hours, "it is okay if you go over",
+"let's be far more ambitious", "bring more from our roadmap in the plan, whatever you wish"). Each part its
+own commits, pushed; the reef's work on a second branch stacked on `look-6-water-colours`.
+
+1. *Moving through water.* The pace one rule by the water's depth, eased so that it never jumps: 6.5 m/s on
+   land, easing to 4.2 knee deep, 4.2 down to 2 chest deep, 2 swimming with the head up (it was 3.6), 3 dived
+   ("sounds good, let's try and see"). The raising made accurate: by arithmetic the two-round rule falls up
+   to 1.9 degrees short of the law of refraction at middle distance from a low eye, and raising only the
+   corners of the ground's 2 m squares misplaces the sand between them by up to a degree, in a pattern that
+   slides as the eye moves; both to be measured dot by dot against the law before anything is mended, and
+   the raising worked out for the water under the eye. The eye a little steadier in water. Then research
+   into what real water shows from a low eye (mirror against angle, what ripples do to what is seen through
+   them, photographs from wading and swimming height), and ours brought towards it; a slider for the
+   raising's strength for him.
+2. *The two softenings of 26 November* (the fine ripples out of the bending, the net of light fainter): "spend
+   some time to see if some middle ground would be better or if worth putting back".
+3. *The gardens deeper and more varied.* His words: "I would like the garden area between the breaking waves
+   and shore to be slightly deeper. And as well I would like the depth of this area to vary a bit more, just
+   so there are deeper areas here (think 10-20 ft) for the player to explore while protected from the open
+   ocean." With it the two items of the reef's shape still owed (`REEF.md`, 7 and 8): the strip of flat-topped
+   heads and potholes behind the crest, and the lagoon's patch reefs steep-sided, its shelf's edge in lobes
+   (the two straight ledges). The swell is to break where it does.
+4. *The floor against the pairs* (stage E, agreed before), on the new shape.
+5. *The coral placed by exposure and by the reef's curve* (`REEF.md`'s order, 2), so that the basins hold
+   something. Dusk a little lighter if time remains.
+
+Not begun, for him to discuss first: "a first piece of the game" (it settles the shape of `src/game/`).
+
+**The night's first part, built: the pace, and the raising made accurate** (26 November 2026).
+
+*The pace* is one rule by the water's depth (`paceOver`, `src/player/player.ts`; the numbers in
+`player-config.ts`), followed over about half a second, with slower steps at a slower pace and a smaller bob
+the deeper the wader stands; a swimmer's eye follows the water under it a little more gently and floats a
+little less. `slow wading` is the rule now and its switch is gone.
+
+*The raising, measured against the law of refraction* (`tools/look/wade.ts --truth`, then `wade-flow.ts`: for
+spots of the screen, the point of the floor that the law shows there through a flat still sea, beside the
+point the picture shows; degrees on the screen, the middle spot and the one nine tenths are within):
+
+| | wading (eye 1 m, floor 0.7 m) | swimming (eye 0.5 m, floor 1.65 m) |
+|---|---|---|
+| as it was | 0.24, nine tenths within 0.60 | 1.4, nine tenths within 1.95 |
+| now | 0.03, within 0.07 | 0.04, within 0.19 |
+
+Three things were wrong, and each is mended where it lay:
+
+- *The rule had not settled.* It worked the angle out twice over from its own last answer, which settles
+  slowly from a low eye: up to 7 degrees out at the worst (an eye 0.3 m up, 6 m of water, 9 m off). It is now
+  Newton's method on the spot where the light leaves the water, three steps from the nearer of two first
+  guesses: within a twentieth of a degree for any eye 0.3 m or more above the sea
+  (`raised-through-surface.glsl`).
+- *Only the ground's corners were raised,* and they are 2 m apart. Each dot of the ground now finds for
+  itself, in the picture, the point it shows: for one dot the law needs no searching, since the eye's line
+  through it is known (`seen-through-surface.glsl`, `terrain-colour.glsl`), and its shadow is looked up at
+  that point. A rock's or a coral's corners are close together and go by the rule alone.
+- *The raising took the sea to lie at the still level whatever lifted the eye.* It now takes it to lie as
+  far under a swimmer's eye as the water he floats on (`liftedByWaves`, `under-water-picture.ts`).
+  `steady raising` is this, made the rule, and its switch is gone.
+
+The wobble of what is under the water, by the feet, in degrees a second, with `no bending` on (the flow in
+brackets): wading the lagoon 2.2 (77), where it was 4.3 (96); swimming the lagoon 0.8 (36), from 1.0 (56);
+swimming the reef flat 2.3 (40), from 6.4 (66). With a steady eye besides, a level floor's wobble is 0.6
+wading and 0.4 swimming, where it was 1.9 and 0.9: what is left is the floor's own. Stripes painted on the
+ground run unbroken across the water's edge on both shores, and lie straight on the floor from a swimmer's
+eye.
+
 ## Later
 
 - More passes on the reef.

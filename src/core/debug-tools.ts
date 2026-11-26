@@ -4,7 +4,6 @@ import type { CrestLine } from '../sea/crest-line';
 import type { CrestPicture } from '../sea/crest-picture';
 import type { SeaFloorPictures } from '../sea/sea-floor-pictures';
 import type { Spray } from '../sea/spray';
-import type { UnderWaterPicture } from '../sea/under-water-picture';
 import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
@@ -297,8 +296,7 @@ export const QUEASINESS_HEADING = 'what makes wading queasy: wade with one on';
  */
 export function queasinessSwitches(
   uniforms: SharedUniforms,
-  player: Pick<Player, 'isEyeSteady' | 'setEyeSteady' | 'isWadingSlowly' | 'setWadingSlowly'>,
-  underWaterPicture: Pick<UnderWaterPicture, 'isRaisingSteady' | 'setRaisingSteady'>,
+  player: Pick<Player, 'isEyeSteady' | 'setEyeSteady'>,
 ): DebugSwitch[] {
   const leaveOut = (share: { value: number }) => ({
     set(on: boolean) {
@@ -312,16 +310,8 @@ export function queasinessSwitches(
     // (what is under the sea is drawn where it is, not where it seems to be through the surface:
     // the look before 20 November 2026, with the faults that had)
     { label: 'no raising', ...leaveOut(uniforms.uRaisingShare) },
-    // (the raising worked out for an eye at a steady height: a bob or a wave ridden does not
-    // heave the floor)
-    {
-      label: 'steady raising',
-      set: underWaterPicture.setRaisingSteady,
-      isOn: () => underWaterPicture.isRaisingSteady,
-    },
     { label: 'no light net', ...leaveOut(uniforms.uLightNetShare) },
     { label: 'steady eye', set: player.setEyeSteady, isOn: () => player.isEyeSteady },
-    { label: 'slow wading', set: player.setWadingSlowly, isOn: () => player.isWadingSlowly },
   ];
 }
 

@@ -23,7 +23,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
 - For an eye above the sea, everything the water does to the look of what is under it is the sea's surface's to
   draw, and nothing else's: what is under the sea is drawn first into a picture, each thing with its depth
   beside its colour and raised to where it seems to be through a flat surface
-  (`src/sea/under-water-picture.ts`, `src/shaders/shared/raised-through-surface.glsl`), and the surface reads it
+  (`src/sea/under-water-picture.ts`, `src/shaders/shared/raised-through-surface.glsl`; the ground, whose
+  corners are far apart, finds dot by dot the point it shows, `seen-through-surface.glsl`), and the surface reads it
   bent by its ripples, and greys and hides each thing by that thing's own depth
   (`src/shaders/shared/water-veil.glsl`). A thing's own shader
   draws only the light that reaches it (`src/shaders/shared/light-under-sea.glsl`).
@@ -55,7 +56,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
 
 ## How we work with Ryan
 
-- **The phone is the judge.** The test renderer is software GL at under one frame a second. It can show a still
+- **The phone is the judge, and for what turns the stomach a full screen on the desktop:** the larger view is
+  the harder test. The test renderer is software GL at under one frame a second. It can show a still
   picture and catch shader errors; it cannot show motion or frame rate. Say plainly what only the phone can confirm.
   The frame rate shows in the corner of the screen. The debug panel (hold the corner button) reports it too, with
   the program's time for a frame, the draws and triangles, where the eye is and how deep the floor is under it. Its `fly` switch (or F) lets the stick move the
@@ -82,7 +84,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   the picture, and keep such states short.
 - **Find the cause before mending.** Draw the thing by itself and look, before naming a cause from the code:
   on 20 November 2026 three causes named from reading were wrong, and each cost a round (`docs/ROADMAP.md`,
-  "Why the passes went round in circles"). A change to how something is drawn is made across the whole code,
+  "Why the passes went round in circles"). What moves is measured with the eye moving as the player's does
+  (`tools/look/wade.ts`, `wade-flow.ts`): measured with the eye still, on 26 November, the wrong thing was
+  softened. A change to how something is drawn is made across the whole code,
   not in the file in hand (`docs/CODE_STANDARDS.md`, "One owner for each effect").
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. By default leave the work uncommitted
   on a branch for him to review; commits, merges, pushes and anything destructive are his. For a long sitting he

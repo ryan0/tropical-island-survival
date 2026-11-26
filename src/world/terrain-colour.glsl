@@ -216,8 +216,28 @@ const vec3 DEAD_CORAL_TINT = vec3(1.16, 1.15, 1.11);
 
 // ---- Where this point is ----
 
-float height = vGroundPosition.y;
-vec2 xz = vGroundPosition.xz;
+// The point of the ground that this dot shows. On the screen it is the one drawn here. In the picture of what is
+// under the sea the ground's corners are drawn raised to where they seem to be, and each dot between them works
+// out for itself which point the law of refraction shows along the eye's line through it
+// (shaders/shared/seen-through-surface.glsl; intoSeaPicture and vRaisedBy are sea/water-as-fog.ts's). The
+// ground's height there is taken to be its height here: the sea floor is gentle where it is seen clearly.
+vec3 groundPoint = vGroundPosition;
+if (intoSeaPicture.y > 0.5) {
+  float raisingLevel = uCameraPosition.y - intoSeaPicture.w;
+  float under = raisingLevel - vGroundPosition.y;
+  // (by as much of the raising as the corners were given: none out of the sea, less and less in the deep)
+  float raised = intoSeaPicture.z * step(0.0, under)
+    * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under));
+  vec2 seenAt = seenThroughSurface(uCameraPosition, vGroundPosition + vec3(0.0, vRaisedBy, 0.0), raisingLevel,
+    vGroundPosition.y);
+  groundPoint.xz = mix(vGroundPosition.xz, seenAt, raised);
+  // (and the sun's shadow is looked up at that point, not at the triangle's)
+  #if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0
+  groundShadowShift = directionalShadowMatrix[ 0 ] * vec4(groundPoint - vGroundPosition, 0.0);
+  #endif
+}
+float height = groundPoint.y;
+vec2 xz = groundPoint.xz;
 float waterDepth = max(uSeaLevel - height, 0.0);
 // (how much the depth changes across a pixel, for the lines of equal depth: worked out here, before any branch)
 #ifdef CAN_MEASURE_ACROSS_A_PIXEL
@@ -226,7 +246,7 @@ float depthAcrossPixel = max(fwidth(waterDepth), 1e-5);
 
 // (uCameraPosition, not three.js's cameraPosition: three.js does not fill that in for this kind of material, and for a long time
 // every close-up detail below was faded out as if the camera stood in the middle of the lagoon)
-vec3 toCamera = uCameraPosition - vGroundPosition;
+vec3 toCamera = uCameraPosition - groundPoint;
 float cameraDistance = length(toCamera);
 float nearness = exp(-cameraDistance * 0.05);   // how much close-up detail shows: 1 at the camera, gone by 90 m
 // (and for the pictures of what lies on the ground: 0 where their single things show, 1 where they have blurred)
@@ -871,7 +891,7 @@ if (waterDepth > 0.0) {
   float surfZone = surfBand * openSea(directionFromCentre);
   float notInSurf = 1.0 - 0.7 * surfZone;
   // strongest in the middle of the lagoon, gentler towards the outer reef
-  float nearCentre = mix(NET_ON_OUTER_REEF, 1.0, exp(-length(vGroundPosition) * 0.012));
+  float nearCentre = mix(NET_ON_OUTER_REEF, 1.0, exp(-length(groundPoint) * 0.012));
   float netLight = lightOfNet(smallWaves, lightNetRead, turnedLightNetRead, standingDepth,
     exp(-cameraDistance * 0.03))
     * fadeIn * lagoonShallows * netInWind(uWind) * fadeWithDepth * notInSurf * uDaylight * nearCentre;

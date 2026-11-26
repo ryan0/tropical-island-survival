@@ -38,6 +38,13 @@ uniform sampler2D uLowPlantsTile;   // creepers and seedlings, likewise
 uniform sampler2D uSeaBed;          // the reef's hard floor and lived-in sand (sea-bed/sea-bed-picture.ts)
 
 varying vec3 vGroundPosition;   // this point's position in the world
+// How far the place a dot's shadow is looked up at lies from the place its triangle has for it, in the shadow
+// picture's own measure: nought, but where a dot shows another point of the ground than the one drawn
+// (terrain-colour.glsl, "Where this point is"). terrain.ts adds it to three.js's own reckoning.
+vec4 groundShadowShift = vec4(0.0);
+#if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0
+uniform mat4 directionalShadowMatrix[ NUM_DIR_LIGHT_SHADOWS ];
+#endif
 
 #include "../shaders/shared/turns"
 #include "../shaders/shared/noise"
@@ -50,6 +57,7 @@ varying vec3 vGroundPosition;   // this point's position in the world
 
 #include "../shaders/shared/light-net"
 #include "../shaders/shared/light-under-sea"
+#include "../shaders/shared/seen-through-surface"
 
 // The noise the ground's own patterns are made of, 0 to 1 with one rise and fall to a cell of p, as noise() gives:
 // read from a picture of such noise (ground-noise.ts), where every call was worked out by arithmetic. On Ryan's

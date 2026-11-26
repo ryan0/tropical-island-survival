@@ -1,4 +1,5 @@
 import type { PerspectiveCamera } from 'three';
+import { mix } from '../core/maths';
 import type { WaveModel } from '../sea/wave-model';
 import { createCaptions } from '../ui/captions';
 import { createFlyButtons } from '../ui/fly-buttons';
@@ -47,6 +48,11 @@ export interface Player {
   readonly position: { x: number; y: number; z: number };
   /** The height of the ground under the player, as of the last update. */
   readonly groundHeight: number;
+  /**
+   * How far the waves a swimmer rides have lifted his eye above where it would be on a still
+   * sea, in metres: nought for anyone not afloat.
+   */
+  readonly liftedByWaves: number;
   readonly isIntroRunning: boolean;
   /**
    * Flying: the stick moves the eye the way it looks, over land and sea alike, and nothing holds
@@ -58,15 +64,11 @@ export interface Player {
   readonly isFlying: boolean;
   setFlying(isFlying: boolean): void;
   /**
-   * Two debug switches, for finding what makes wading through water queasy. A steady eye does
-   * not bob with each step, nor rise and fall while afloat, nor ride the waves (one higher than
-   * the swimmer's eye goes over it). Wading slowly goes slower the deeper the water
-   * (player-config.ts).
+   * A debug switch, kept for comparing: a steady eye does not bob with each step, nor rise and
+   * fall while afloat, nor ride the waves (one higher than the swimmer's eye goes over it).
    */
   readonly isEyeSteady: boolean;
   setEyeSteady(isSteady: boolean): void;
-  readonly isWadingSlowly: boolean;
-  setWadingSlowly(isSlow: boolean): void;
   /** Flies the eye to a place, looking a given way. */
   flyTo(x: number, y: number, z: number, yaw: number, pitch: number): void;
   /** Walking, swimming and diving, or flying; the opening fly-in; and the camera. */
@@ -81,13 +83,30 @@ export interface Player {
 
 const { start, walking, wading, swimming, flying } = playerConfig;
 
-function speedOver(ground: number, isWadingSlowly: boolean): number {
-  if (ground < swimming.below) return swimming.speed;
-  if (ground >= wading.below) return walking.speed;
-  if (!isWadingSlowly) return wading.speed;
+const SWIMMING_DEPTH = -swimming.below;
 
-  const howDeep = (wading.below - ground) / (wading.below - swimming.below);
-  return wading.speed + (wading.slowestSpeed - wading.speed) * howDeep;
+/**
+ * The pace the player settles to over ground so high (under nought is a depth of water), with a
+ * swimmer's eye so high over the still sea.
+ */
+function paceOver(ground: number, swimmersEye: number): number {
+  const depth = -ground;
+  if (depth <= 0) return walking.speed;
+  if (depth < wading.kneeDeep) {
+    return mix(walking.speed, wading.kneeDeepSpeed, depth / wading.kneeDeep);
+  }
+  if (depth < SWIMMING_DEPTH) {
+    const howDeep = (depth - wading.kneeDeep) / (SWIMMING_DEPTH - wading.kneeDeep);
+    return mix(wading.kneeDeepSpeed, swimming.speed, howDeep);
+  }
+  const dived = Math.max(0, Math.min(1, -swimmersEye / swimming.divedBy));
+  return mix(swimming.speed, swimming.divedSpeed, dived);
+}
+
+/** The share of a walker's bob that a wader's step has, over ground so high. */
+function bobOver(ground: number): number {
+  const howDeep = Math.max(0, Math.min(1, -ground / SWIMMING_DEPTH));
+  return mix(1, wading.bobChestDeep, howDeep);
 }
 
 export function createPlayer(dependencies: PlayerDependencies): Player {
@@ -118,7 +137,9 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
   let groundHeight = 0;
   let isFlying = false;
   let isEyeSteady = false;
-  let isWadingSlowly = false;
+  let pace: number = walking.speed;
+  // The height of the water under a swimmer, as his eye rides it.
+  let ridden = 0;
   let stepPhase = 0;
   let swimmingEyeHeight: number = swimming.surfaceEyeHeight;
   let isSwimmingHintShown = false;
@@ -175,32 +196,36 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
       groundHeight + swimming.aboveSeaFloor,
       Math.min(swimming.surfaceEyeHeight, dived),
     );
-    const surface =
-      swimmingEyeHeight > swimming.ridesWavesAbove && !isEyeSteady
-        ? waves.heightAt(position.x, position.z, time)
-        : 0;
+    const isRiding = swimmingEyeHeight > swimming.ridesWavesAbove && !isEyeSteady;
+    const surface = isRiding ? waves.heightAt(position.x, position.z, time) : 0;
+    ridden += (surface - ridden) * Math.min(1, dt * swimming.rideFollows);
     const float = swimmingEyeHeight > swimming.floatsAbove ? swimming.float : swimming.floatDived;
     const floated = isEyeSteady ? 0 : Math.sin(time * swimming.floatRate) * float;
-    return swimmingEyeHeight + surface + floated;
+    const eye = swimmingEyeHeight + ridden + floated;
+    return isRiding ? Math.max(eye, surface + swimming.leastOverWater) : eye;
   }
 
   function walkOrSwim(time: number, dt: number, forward: number, sideways: number): void {
     const groundBefore = island.groundHeight(position.x, position.z);
     const isSwimming = groundBefore < swimming.below;
-    const speed = speedOver(groundBefore, isWadingSlowly);
-    move(forward, sideways, speed, dt, playerConfig.farthestFromCentre);
+    pace +=
+      (paceOver(groundBefore, swimmingEyeHeight) - pace) *
+      Math.min(1, dt * playerConfig.paceFollows);
+    move(forward, sideways, pace, dt, playerConfig.farthestFromCentre);
     const effort = Math.min(1, Math.hypot(forward, sideways));
-    stepPhase += dt * effort * (isSwimming ? swimming.strokeRate : walking.stepRate);
+    const stepRate = isSwimming ? swimming.strokeRate : (walking.stepRate * pace) / walking.speed;
+    stepPhase += dt * effort * stepRate;
 
     groundHeight = island.groundHeight(position.x, position.z);
     let eyeHeight: number;
     if (groundHeight > swimming.below) {
       // The next swim starts at the surface.
       swimmingEyeHeight = swimming.surfaceEyeHeight;
-      const bobbed = isEyeSteady ? 0 : Math.sin(stepPhase) * walking.bob * effort;
-      eyeHeight = groundHeight + walking.eyeHeight + bobbed;
+      ridden -= ridden * Math.min(1, dt * swimming.rideFollows);
+      const bob = isEyeSteady ? 0 : walking.bob * bobOver(groundHeight) * effort;
+      eyeHeight = groundHeight + walking.eyeHeight + Math.sin(stepPhase) * bob;
     } else {
-      eyeHeight = swimmingEye(time, dt, forward, speed);
+      eyeHeight = swimmingEye(time, dt, forward, pace);
       showSwimmingHintOnce();
     }
     position.y += (eyeHeight - position.y) * Math.min(1, dt * playerConfig.eyeFollowRate);
@@ -218,6 +243,9 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     get groundHeight() {
       return groundHeight;
     },
+    get liftedByWaves() {
+      return isFlying ? 0 : ridden;
+    },
     get isIntroRunning() {
       return intro.isRunning;
     },
@@ -233,13 +261,6 @@ export function createPlayer(dependencies: PlayerDependencies): Player {
     setEyeSteady(isSteady) {
       isEyeSteady = isSteady;
     },
-    get isWadingSlowly() {
-      return isWadingSlowly;
-    },
-    setWadingSlowly(isSlow) {
-      isWadingSlowly = isSlow;
-    },
-
     flyTo(x, y, z, yaw, pitch) {
       setFlying(true);
       position.x = x;

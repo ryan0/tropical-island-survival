@@ -128,6 +128,16 @@ HEAD`, with `node_modules` linked into it) in which three things are changed and
 
 3. `index.html`: the canvas's `filter` taken out, and `#vig` and `#glare` given `display: none`. They
    change the colours the measure reads.
+4. The ground shows, dot by dot, another point than the one its triangle has for it
+   (`terrain-colour.glsl`, "Where this point is"), and that is the point to colour it by: in
+   `terrain-declarations.glsl`, `#define SHOWS_ANOTHER_PLACE` and `vec2 placeShownInstead = vec2(0.0);`; in
+   `terrain-colour.glsl`, `placeShownInstead = xz;` straight after `xz` is set; and in the first edit,
+   `placeShown = placeShownInstead;` under `#ifdef SHOWS_ANOTHER_PLACE` before the colour is written.
+
+With `--truth`, `wade.ts` also records, for spots of every tenth frame, the point of the floor that the law
+of refraction shows there through a flat, still sea (the eye's line bent at the surface and followed down
+to the ground), and `wade-flow.ts` then says how far the picture lies from it, in degrees on the screen.
+Draw such a walk with `no bending` on.
 
 ```
 node tools/look/wade.ts <frames> --page <the measuring build's dist/index.html> --walk reef-swim --size 960x540 --no-clip

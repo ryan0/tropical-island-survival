@@ -26,6 +26,12 @@
 // Light bends as it leaves water: the sine of its angle to straight up is this many times smaller in the water
 // than in the air (1 / 1.33).
 const float BENT_LEAVING_WATER = 0.75;
+// The tangent of the flattest way light can come up through water and still leave it: the sine of that angle
+// to straight up is BENT_LEAVING_WATER.
+const float STEEPEST_WAY_OUT = 1.134;
+// No eye is taken to be nearer the sea than this (m): the rule settles less well the lower the eye, and a
+// swimmer's is never so low.
+const float LOWEST_EYE_RAISED_FOR = 0.1;
 // (The whole of the way, and no less. Raised four fifths of the way, to see whether that was easier on the eye,
 // the floor lay too low for a line of sight that skims the sea: looking along a shore, the line ran on under the
 // surface over the floor again and found the deep, and a blue band lay along the beach's edge.)
@@ -47,33 +53,50 @@ const float LOWERED_OUT_OF_SEA_WITHIN = 0.6;
 // The share of its depth by which a thing just under the surface is drawn higher than it is (and of its height,
 // one just over it lower). The same two things are given as below.
 float raisedShareAtSurface(float levelFromEyeSquared, float eyeOverSea) {
-  float eye = max(eyeOverSea, 0.02);
+  float eye = max(eyeOverSea, LOWEST_EYE_RAISED_FOR);
   float looksDown = eye * inversesqrt(levelFromEyeSquared + eye * eye);
   float goesDown = sqrt(1.0 - BENT_LEAVING_WATER * BENT_LEAVING_WATER * (1.0 - looksDown * looksDown));
   return 1.0 - BENT_LEAVING_WATER * looksDown / goesDown;
 }
 
+// One step nearer to the spot of the surface that the light from a thing comes out at on its way to the eye:
+// comesOut is how far that spot lies from under the eye, along the level, as last reckoned. At the true spot the
+// sine of the light's angle in the air is 1 / BENT_LEAVING_WATER times its sine in the water; this is Newton's
+// step towards that. (Nothing is divided by what could be nought: the eye is above the sea.)
+float nearerToWhereLightComesOut(float comesOut, float away, float under, float eye) {
+  float toGo = away - comesOut;
+  float inAir = inversesqrt(comesOut * comesOut + eye * eye);
+  float inWater = inversesqrt(toGo * toGo + under * under + 1e-8);
+  float wrongBy = comesOut * inAir - toGo * inWater / BENT_LEAVING_WATER;
+  float changesBy = eye * eye * inAir * inAir * inAir
+    + under * under * inWater * inWater * inWater / BENT_LEAVING_WATER;
+  return clamp(comesOut - wrongBy / changesBy, 0.0, away);
+}
+
 // How far up a thing is to be drawn from where it is, in metres: up for a thing under the sea, down (less than
 // nought) for one a little out of it. levelFromEyeSquared: the square of how far off it is along the level, from
-// under the eye. depth: how far under the still sea it lies (less than nought out of the water). eyeOverSea:
-// how high the eye is above the still sea.
-// (Where the thing seems to be depends on the angle the eye looks at, which depends on where it seems to be: it
-// is worked out twice over, each time from the last answer, which is enough to settle it. No loop, and nothing
-// is divided by what could be nought: docs/DEVICE_NOTES.md.)
+// under the eye. depth: how far under the sea it lies (less than nought out of the water). eyeOverSea: how high
+// the eye is above the sea.
+// (Where the thing seems to be depends on where its light leaves the water, and that has to be searched for: from
+// the nearer of two first guesses, the one that is right looking straight down and the one that is right
+// looking along the sea, three of Newton's steps come within a twentieth of a degree on the screen of the law
+// of refraction, for any eye a hand's breadth or more above the water. The rule before this one worked the
+// angle out twice over from its own last answer, which settles slowly from a low eye: a swimmer's floor was
+// drawn up to two degrees from where it should be, measured, and a level floor seemed to heave as he moved.
+// No loop, and nothing is divided by what could be nought: docs/DEVICE_NOTES.md.)
 float raisedThroughSurface(float levelFromEyeSquared, float depth, float eyeOverSea) {
   float under = max(depth, 0.0);
-  float eye = max(eyeOverSea, 0.02);
-  float seemsUnder = under * BENT_LEAVING_WATER;
+  float eye = max(eyeOverSea, LOWEST_EYE_RAISED_FOR);
+  float away = sqrt(levelFromEyeSquared);
 
-  float down = eye + seemsUnder;
-  float looksDown = down * inversesqrt(levelFromEyeSquared + down * down);
-  float goesDown = sqrt(1.0 - BENT_LEAVING_WATER * BENT_LEAVING_WATER * (1.0 - looksDown * looksDown));
-  seemsUnder = under * BENT_LEAVING_WATER * looksDown / goesDown;
-
-  down = eye + seemsUnder;
-  looksDown = down * inversesqrt(levelFromEyeSquared + down * down);
-  goesDown = sqrt(1.0 - BENT_LEAVING_WATER * BENT_LEAVING_WATER * (1.0 - looksDown * looksDown));
-  seemsUnder = under * BENT_LEAVING_WATER * looksDown / goesDown;
+  float comesOut = max(away * eye / (eye + under * BENT_LEAVING_WATER), away - under * STEEPEST_WAY_OUT);
+  comesOut = nearerToWhereLightComesOut(comesOut, away, under, eye);
+  comesOut = nearerToWhereLightComesOut(comesOut, away, under, eye);
+  comesOut = nearerToWhereLightComesOut(comesOut, away, under, eye);
+  // (how deep it seems: its depth, by how steeply the eye looks down over how steeply its light comes up)
+  float toGo = away - comesOut;
+  float seemsUnder = min(under, BENT_LEAVING_WATER * eye
+    * inversesqrt(comesOut * comesOut + eye * eye) * sqrt(toGo * toGo + under * under));
 
   float outOfSea = min(max(-depth, 0.0), LOWERED_OUT_OF_SEA_WITHIN);
   return (under - seemsUnder) * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under))

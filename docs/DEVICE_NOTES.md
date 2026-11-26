@@ -190,6 +190,15 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   itself nothing is moved. Since 24 November 2026 it also moves what stands out of the sea, within 0.6 m of
   it, down, by at most that much (one more inverse square root, square root and division, as safe): so that
   a triangle across a waterline is moved in proportion along its whole length.
+- New on 26 November 2026 and not yet on the phone, **to be read there**: that rule is now three of Newton's
+  steps (each two inverse square roots and a division by a number that cannot be nought), from a first guess
+  that takes one division, with a square root at each end: about twice the arithmetic for every corner of
+  everything drawn into the picture. One more number goes from every built-in material's vertex shader to
+  its fragment shader (how far the corner was raised). And in that picture only, every dot of the ground
+  works out by the law of refraction which point of itself it shows (one normalising, one square root, two
+  divisions, behind a test on a uniform, before any picture is read) and moves the place it looks its shadow
+  up at to match (`shaders/shared/seen-through-surface.glsl`, `world/terrain.ts`). If the frame rate has
+  fallen, the picture's size (`shareOfScreen`) and these are where to look first.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

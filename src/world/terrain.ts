@@ -3,6 +3,7 @@ import {
   Group,
   Mesh,
   MeshLambertMaterial,
+  ShaderChunk,
   type BufferGeometry,
   type IUniform,
   type Scene,
@@ -128,6 +129,18 @@ const scatteredLight = { most: 0.7, fromDepth: 0.3, byDepth: 2.5 };
  * So ground more than a little under water is lit as if it lay more nearly level. (It runs after
  * three.js has the vertex's normal and before it lights it.)
  */
+// three.js looks a dot's shadow up at the place its triangle has for it. In the picture of what
+// is under the sea a dot of the ground shows another point (terrain-colour.glsl): the shadow is
+// looked up there, by the shift the colouring works out.
+const SHADOW_PLACE = 'vDirectionalShadowCoord[ i ]';
+if (!ShaderChunk.shadowmask_pars_fragment.includes(SHADOW_PLACE)) {
+  throw new Error("three.js no longer looks the sun's shadow up as expected");
+}
+const SHADOW_WHERE_SHOWN = ShaderChunk.shadowmask_pars_fragment.replace(
+  SHADOW_PLACE,
+  `( ${SHADOW_PLACE} + groundShadowShift )`,
+);
+
 const LIGHT_UNDER_WATER = `
   float lightScattered = ${glslFloat(scatteredLight.most)}
     * smoothstep(${glslFloat(scatteredLight.fromDepth)}, ${glslFloat(scatteredLight.byDepth)}, uSeaLevel - vGroundPosition.y);
@@ -213,7 +226,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
       canMeasureAcrossPixel +
       declarations +
       withColouring(
-        shader.fragmentShader,
+        shader.fragmentShader.replace('#include <shadowmask_pars_fragment>', SHADOW_WHERE_SHOWN),
         // (Bare, the ground is its corners' colour with the grit: only the green of the grit's
         // picture is grit, ground-grit.ts.)
         `\n#ifndef TERRAIN_BARE\n${colourShader}\n#else\ndiffuseColor.rgb = diffuse * vColor * texelColor.g;\n#endif\n`,

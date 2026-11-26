@@ -24,10 +24,11 @@ import throughWater from '../shaders/shared/through-water.glsl';
 // stands a little out of the sea lower by the same rule (raised-through-surface.glsl), so that
 // the picture holds what the eye would see through a flat sea. (In the picture only. On the screen things stand where they are: raised there, the
 // far floor of the reef stood up out of the troughs of the waves.) For these a material must know
-// four numbers that three.js does not hand it: how high the eye is above the sea, whether it is
-// the picture that is being drawn, how much of the raising to draw (all of it, but for a debug
-// switch), and the height of the eye that the raising is worked out for (the eye's own, but for
-// another debug switch). They are one uniform, whose value is one array that every material shares: three.js copies a
+// four numbers that three.js does not hand it: how high the eye is above the still sea, whether
+// it is the picture that is being drawn, how much of the raising to draw (all of it, but for a
+// debug switch), and how high the eye is above the level the raising takes the sea to lie at
+// (the still sea's, but lifted with a swimmer whom a wave lifts: under-water-picture.ts). They
+// are one uniform, whose value is one array that every material shares: three.js copies a
 // material's uniforms when it first compiles it, but an array of this kind it hands over as it
 // is, so what is written into it reaches them all (docs/DEVICE_NOTES.md).
 
@@ -39,14 +40,17 @@ export const FOG_BEGINS_UNDER_WATER = -1;
 // is, and the fog and the depth written into the picture go by it. Then, in the picture of what is
 // under the sea, the point is drawn raised to where it seems to be (three.js has placed it
 // already: it is placed again). It is the last thing a vertex shader of three.js's does, and
-// nothing after it reads the place.
+// nothing after it reads the place. How far it was raised goes on to the fragment shader, for
+// the ground, which there works out which point of itself each dot shows
+// (shaders/shared/seen-through-surface.glsl).
 const PLACE_FROM_EYE = `
 #ifdef USE_FOG
 	vec3 worldUpFromEye = viewMatrix[ 1 ].xyz;
 	vPlaceFromEye = vec4( mvPosition.xyz, dot( mvPosition.xyz, worldUpFromEye ) );
 	vec3 alongLevel = mvPosition.xyz - worldUpFromEye * vPlaceFromEye.w;
-	mvPosition.xyz += worldUpFromEye * ( intoSeaPicture.y * intoSeaPicture.z * raisedThroughSurface(
-		dot( alongLevel, alongLevel ), - ( vPlaceFromEye.w + intoSeaPicture.x ), intoSeaPicture.w ) );
+	vRaisedBy = intoSeaPicture.y * intoSeaPicture.z * raisedThroughSurface(
+		dot( alongLevel, alongLevel ), - ( vPlaceFromEye.w + intoSeaPicture.w ), intoSeaPicture.w );
+	mvPosition.xyz += worldUpFromEye * vRaisedBy;
 	gl_Position = projectionMatrix * mvPosition;
 #endif`;
 
@@ -73,11 +77,11 @@ const SEEN_THROUGH_WATER = `
 export interface IntoSeaPicture {
   /**
    * While the picture is drawn: `eyeOverSea` is how high the eye is above the still sea, in
-   * metres. Then each thing writes its depth under the sea beside its colour, and is drawn where
-   * it seems to be through the surface to an eye `eyeForRaising` above the sea (the same height,
-   * but for a debug switch): `raisingShare` of the way there, which is 1 but for another.
+   * metres. Then each thing writes its depth under the still sea beside its colour, and is
+   * drawn where it seems to be through a flat sea that lies `eyeOverRaisingLevel` under the eye:
+   * `raisingShare` of the way there, which is 1 but for a debug switch.
    */
-  begin(eyeOverSea: number, eyeForRaising: number, raisingShare: number): void;
+  begin(eyeOverSea: number, eyeOverRaisingLevel: number, raisingShare: number): void;
   end(): void;
 }
 
@@ -89,11 +93,11 @@ export interface IntoSeaPicture {
 export function useWaterAsFog(): IntoSeaPicture {
   const numbers = new Float32Array(4);
   const intoSeaPicture: IntoSeaPicture = {
-    begin(eyeOverSea, eyeForRaising, raisingShare) {
+    begin(eyeOverSea, eyeOverRaisingLevel, raisingShare) {
       numbers[0] = eyeOverSea;
       numbers[1] = 1;
       numbers[2] = raisingShare;
-      numbers[3] = eyeForRaising;
+      numbers[3] = eyeOverRaisingLevel;
     },
     end() {
       numbers[1] = 0;
@@ -108,7 +112,7 @@ export function useWaterAsFog(): IntoSeaPicture {
 
   // (Each addition begins on a line of its own: three.js's chunks do not all end with one.)
   const declarations =
-    '\n#ifdef USE_FOG\n\tvarying vec4 vPlaceFromEye;\n\tuniform vec4 intoSeaPicture;\n#endif\n';
+    '\n#ifdef USE_FOG\n\tvarying vec4 vPlaceFromEye;\n\tvarying float vRaisedBy;\n\tuniform vec4 intoSeaPicture;\n#endif\n';
   ShaderChunk.fog_pars_vertex += `${declarations}${raisedThroughSurface}\n`;
   ShaderChunk.fog_vertex += PLACE_FROM_EYE;
   ShaderChunk.fog_pars_fragment += `${declarations}${throughWater}\n${depthInSeaPicture}\n`;

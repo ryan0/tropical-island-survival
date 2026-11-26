@@ -2,7 +2,7 @@
 // into a clip that plays at full speed:
 //
 //   node tools/look/wade.ts <folder> [--page <index.html>] [--walk lagoon-wade] [--seconds 3] [--rate 30]
-//     [--size 1280x720] [--switches "no bending,steady eye"] [--no-clip]
+//     [--size 1280x720] [--switches "no bending,steady eye"] [--no-clip] [--truth]
 //
 // The software renderer takes a second over a frame, so it cannot show motion as it runs. But the
 // page's clock is stepped by the tools, so a walk can be drawn one frame at a time, each a
@@ -13,7 +13,9 @@
 //
 // --walk is one of the walks below. --switches turns on switches of the debug panel by their
 // labels, as "what makes wading queasy" has them. Each frame's place goes into <folder>/walk.json:
-// where the eye was, which way it looked and how deep the floor lay under it.
+// where the eye was, which way it looked and how deep the floor lay under it. With --truth, every
+// tenth frame also records what the law of refraction would show through a flat, still sea at
+// spots over the screen: wade-flow.ts holds the picture against it.
 
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -53,6 +55,10 @@ const WALKS: Record<string, Walk> = {
 const FRAMES_TO_SETTLE = 20;
 // The corner button opens the debug panel when held for 1.3 s, on the browser's own clock.
 const LONG_PRESS_MILLISECONDS = 1600;
+// With --truth: what refraction would show is worked out for spots this far apart, every so many
+// frames.
+const TRUTH_SPOTS_APART = 16;
+const TRUTH_EVERY = 10;
 
 const { values, positionals } = parseArgs({
   allowPositionals: true,
@@ -64,6 +70,7 @@ const { values, positionals } = parseArgs({
     size: { type: 'string', default: '1280x720' },
     switches: { type: 'string' },
     'no-clip': { type: 'boolean', default: false },
+    truth: { type: 'boolean', default: false },
   },
 });
 if (positionals.length !== 1) throw new Error('say where the frames are to go');
@@ -137,18 +144,84 @@ const runAFrame = (milliseconds: number) =>
     };
   }, milliseconds);
 
+/**
+ * Runs in the page. For spots over the screen, the point of the sea floor that the law of
+ * refraction shows there through a flat sea at the still level: the eye's line to the surface,
+ * bent as it enters the water, followed down to the ground. Each spot is four numbers: across
+ * and down the screen in dots, then the point's x and z.
+ */
+function whatRefractionShows([width, height, spotsApart]: readonly number[]): number[] {
+  const INTO_WATER = 0.75;
+  const STEP = 0.02;
+  const FURTHEST = 14;
+  const hooks = window.__scene;
+  const { camera } = hooks;
+  const turn = camera.matrixWorld.elements;
+  const eye = camera.position;
+  const halfHeight = Math.tan((camera.fov * Math.PI) / 360);
+  const spots: number[] = [];
+  for (let down = spotsApart / 2; down < height; down += spotsApart) {
+    for (let across = spotsApart / 2; across < width; across += spotsApart) {
+      const right = (((across + 0.5) / width) * 2 - 1) * halfHeight * camera.aspect;
+      const up = (1 - ((down + 0.5) / height) * 2) * halfHeight;
+      let lineX = turn[0] * right + turn[4] * up - turn[8];
+      let lineY = turn[1] * right + turn[5] * up - turn[9];
+      let lineZ = turn[2] * right + turn[6] * up - turn[10];
+      const length = Math.hypot(lineX, lineY, lineZ);
+      lineX /= length;
+      lineY /= length;
+      lineZ /= length;
+      if (lineY > -0.01 || eye.y <= 0) continue;
+
+      const toSea = -eye.y / lineY;
+      const seaX = eye.x + lineX * toSea;
+      const seaZ = eye.z + lineZ * toSea;
+      if (hooks.groundHeight(seaX, seaZ) >= 0) continue;
+
+      const bentX = lineX * INTO_WATER;
+      const bentZ = lineZ * INTO_WATER;
+      const bentY = -Math.sqrt(1 - INTO_WATER * INTO_WATER * (1 - lineY * lineY));
+      let along = 0;
+      while (along < FURTHEST) {
+        const next = along + STEP;
+        if (next * bentY <= hooks.groundHeight(seaX + bentX * next, seaZ + bentZ * next)) break;
+        along = next;
+      }
+      if (along >= FURTHEST) continue;
+
+      // (the ground is met within the last step: halved eight times, to a tenth of a millimetre)
+      let above = along;
+      let below = along + STEP;
+      for (let halving = 0; halving < 8; halving++) {
+        const middle = (above + below) / 2;
+        const isUnder =
+          middle * bentY <= hooks.groundHeight(seaX + bentX * middle, seaZ + bentZ * middle);
+        if (isUnder) below = middle;
+        else above = middle;
+      }
+      spots.push(across, down, seaX + bentX * above, seaZ + bentZ * above);
+    }
+  }
+  return spots;
+}
+
 for (let frame = 0; frame < FRAMES_TO_SETTLE; frame++) await runAFrame(frameMilliseconds);
 const places = [];
+const truths: { frame: number; spots: number[] }[] = [];
 for (let frame = 0; frame < frameCount; frame++) {
   places.push(await runAFrame(frameMilliseconds));
   const name = `frame-${String(frame).padStart(4, '0')}.png`;
   writeFileSync(path.join(folder, name), await takePicture(page, view));
+  if (values.truth && frame % TRUTH_EVERY === 0) {
+    const spots = await page.evaluate(whatRefractionShows, [width, height, TRUTH_SPOTS_APART]);
+    truths.push({ frame, spots });
+  }
 }
 await browser.close();
 
 writeFileSync(
   path.join(folder, 'walk.json'),
-  JSON.stringify({ walk: values.walk, framesASecond, width, height, fieldOfView, places }),
+  JSON.stringify({ walk: values.walk, framesASecond, width, height, fieldOfView, places, truths }),
 );
 const depths = places.map((place) => -place.ground);
 const eyes = places.map((place) => place.y);

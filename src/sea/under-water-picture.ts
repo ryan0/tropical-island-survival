@@ -56,11 +56,13 @@ export interface UnderWaterPictureDependencies {
 }
 
 export interface UnderWaterPictureFrame {
-  dt: number;
   isCameraUnderWater: boolean;
   isSeaDrained: boolean;
-  /** The height of the water's surface under the eye, as the waves have it now. */
-  waterUnderEye: number;
+  /**
+   * How far the waves an eye afloat rides have lifted it, in metres: nought for an eye that
+   * stands or flies.
+   */
+  eyeLiftedByWaves: number;
 }
 
 export interface UnderWaterPicture {
@@ -71,15 +73,6 @@ export interface UnderWaterPicture {
   sortScene(): void;
   /** Draws the picture for the frame about to be drawn, while the eye is above a sea that is there. */
   update(frame: UnderWaterPictureFrame): void;
-  /**
-   * A debug switch, for finding what makes wading queasy: the raising is worked out for an eye
-   * at a steady height over the water, which follows the real eye slowly. So a step's bob, the
-   * rise and fall of an eye afloat and a wave ridden move what is under the sea as they move
-   * everything else, and no further. (Worked out for the eye's own height each frame, a swimmer
-   * lifted a hand's breadth by a wave sees the whole floor heave by five degrees.)
-   */
-  readonly isRaisingSteady: boolean;
-  setRaisingSteady(isSteady: boolean): void;
 }
 
 function takesNoFog(material: Material | Material[]): boolean {
@@ -126,18 +119,8 @@ export function createUnderWaterPicture(
   camera.layers.enable(NOT_IN_PICTURE);
 
   const screen = new Vector2();
-  let isRaisingSteady = false;
-  // (kept up whether or not the switch is on, so that switching it on moves nothing at once)
-  let steadyEyeOverWater = camera.position.y - uniforms.uSeaLevel.value;
 
   return {
-    get isRaisingSteady() {
-      return isRaisingSteady;
-    },
-    setRaisingSteady(isSteady) {
-      isRaisingSteady = isSteady;
-    },
-
     sortScene() {
       const clearOfTheSea = uniforms.uSeaLevel.value + config.clearOfTheSea;
       scene.updateMatrixWorld();
@@ -151,13 +134,16 @@ export function createUnderWaterPicture(
       });
     },
 
-    update({ dt, isCameraUnderWater, isSeaDrained, waterUnderEye }) {
+    update({ isCameraUnderWater, isSeaDrained, eyeLiftedByWaves }) {
       const eyeOverSea = camera.position.y - uniforms.uSeaLevel.value;
-      steadyEyeOverWater +=
-        (camera.position.y - waterUnderEye - steadyEyeOverWater) *
-        Math.min(1, dt * config.steadyRaisingFollows);
-      const eyeForRaising = isRaisingSteady ? steadyEyeOverWater : eyeOverSea;
-      uniforms.uEyeForRaising.value = eyeForRaising;
+      // The raising is worked out for a flat sea. A swimmer whom a wave lifts is lifted with the
+      // water round him, so for him that sea lies as far under his eye as before, and the floor
+      // further under it. (Worked out for the still sea's level, as if the sea had stayed down
+      // and the eye alone gone up, a wave a hand's breadth high heaved the floor three metres
+      // off by five degrees, where water lifted with the eye moves it two: measured, it was half
+      // of all that moved under a swimmer on the reef flat, and it turned Ryan's stomach.)
+      const eyeOverRaisingLevel = eyeOverSea - eyeLiftedByWaves;
+      uniforms.uEyeOverRaisingLevel.value = eyeOverRaisingLevel;
 
       const isDrawn = !isCameraUnderWater && !isSeaDrained;
       uniforms.uPictureDrawn.value = isDrawn ? 1 : 0;
@@ -181,7 +167,7 @@ export function createUnderWaterPicture(
       const clearAlpha = renderer.getClearAlpha();
       renderer.setClearAlpha(1);
       waterMaterials.show(false);
-      intoSeaPicture.begin(eyeOverSea, eyeForRaising, uniforms.uRaisingShare.value);
+      intoSeaPicture.begin(eyeOverSea, eyeOverRaisingLevel, uniforms.uRaisingShare.value);
       camera.layers.disable(NOT_IN_PICTURE);
       renderer.setRenderTarget(picture);
 

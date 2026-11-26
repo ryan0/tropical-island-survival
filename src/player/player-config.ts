@@ -41,35 +41,59 @@ export const playerConfig = {
   walking: {
     speed: 6.5,
     eyeHeight: 1.7,
-    /** How far the eye bobs with each step, and how fast: radians a second at full push. */
+    /**
+     * How far the eye bobs with each step, and how fast: radians a second at the walking pace
+     * (a slower pace takes slower steps of the same length).
+     */
     bob: 0.035,
     stepRate: 9,
   },
 
   /**
-   * Over ground lower than this the player wades, slower. With the debug panel's `slow wading`
-   * on, slower still the deeper the water: from `speed` at its edge down to `slowestSpeed` where
-   * swimming begins, as a wader pushing against water to the chest does.
+   * The pace through water goes by the water's depth, by one rule from the beach to the deep, so
+   * that it never jumps: the walking pace at the water's edge, `kneeDeepSpeed` where the water
+   * is `kneeDeep`, the swimmer's pace where swimming begins, each joined to the next by a
+   * straight line. (Ryan, 26 November 2026: moving through water in a full screen turned his
+   * stomach, and a slower wade took most of that away; "the occasional sudden jump in speed
+   * from walking/wading/swimming can be jarring".) And the water carries a wader: his step bobs
+   * the eye less the deeper he stands, `bobChestDeep` of a walker's where swimming begins.
    */
-  wading: { below: -0.2, speed: 4.2, slowestSpeed: 2.2 },
+  wading: { kneeDeep: 0.4, kneeDeepSpeed: 4.2, bobChestDeep: 0.5 },
+  /**
+   * The player's pace follows that rule this slowly: the share of the way a second, at first.
+   * Half a second sees a change of pace through.
+   */
+  paceFollows: 4,
 
   swimming: {
     /** Over ground lower than this the player swims. */
     below: -1.2,
-    speed: 3.6,
+    /**
+     * The pace with the head up, which is a wader's at his deepest, and the pace dived, which is
+     * quicker: the swimmer is dived once his eye is `divedBy` under the still sea.
+     */
+    speed: 2,
+    divedSpeed: 3,
+    divedBy: 0.3,
     /** The bob of the step keeps this slower time while swimming. */
     strokeRate: 4,
     /** Eye heights: at the surface, and the nearest a dive comes to the sea floor. */
     surfaceEyeHeight: 0.5,
     aboveSeaFloor: 0.55,
-    /** The waves carry the eye while it is higher than this. */
+    /**
+     * The waves carry the eye while it is higher than this. It follows the water's height under
+     * it `rideFollows` of the way a second, so that a chop does not jolt it, and no wave comes
+     * nearer to it than `leastOverWater`.
+     */
     ridesWavesAbove: 0.2,
+    rideFollows: 3,
+    leastOverWater: 0.2,
     /**
      * The eye rises and falls, floatRate radians a second: by float near the surface, by
      * floatDived once lower than floatsAbove.
      */
     floatRate: 1.6,
-    float: 0.04,
+    float: 0.03,
     floatDived: 0.02,
     floatsAbove: 0.3,
     hint: { title: 'Swimming', subtitle: 'look down and push forward to dive', seconds: 5 },

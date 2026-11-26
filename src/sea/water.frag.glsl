@@ -100,8 +100,8 @@ uniform vec2 uPictureScale;
 // How much of the ripples' bending, and of the raising, is drawn: 1 but for a debug switch (shared-uniforms.ts).
 uniform float uBendingShare;
 uniform float uRaisingShare;
-// The height above the sea of the eye that the raising is worked out for (under-water-picture.ts).
-uniform float uEyeForRaising;
+// How high the eye is above the level the raising takes the sea to lie at (under-water-picture.ts).
+uniform float uEyeOverRaisingLevel;
 uniform float uSunThroughCloud;
 
 // The point on the water and the normal of the sheet there (the waves', without the ripples).
@@ -1200,10 +1200,12 @@ void main() {
   if (uPictureDrawn > 0.5) {
     vec2 onPicture = gl_FragCoord.xy * uDotOfPicture;
     // (the sand under a sheet of water that lies above or below the still sea: A_SHEET_ON_THE_SAND, above)
-    float sheetFromStillSea = clamp(liftOverSea, -LOWERED_OUT_OF_SEA_WITHIN, LOWERED_OUT_OF_SEA_WITHIN)
+    // (measured from the level the raising takes the sea to lie at: the still sea's, but for a swimmer on a wave)
+    float liftOverRaisingLevel = vWaterPosition.y - (cameraPosition.y - uEyeOverRaisingLevel);
+    float sheetFromStillSea = clamp(liftOverRaisingLevel, -LOWERED_OUT_OF_SEA_WITHIN, LOWERED_OUT_OF_SEA_WITHIN)
       * (1.0 - smoothstep(A_SHEET_ON_THE_SAND.x, A_SHEET_ON_THE_SAND.y, waterDepth));
     float drawnLower = sheetFromStillSea * uRaisingShare
-      * raisedShareAtSurface(dot(toCamera.xz, toCamera.xz), uEyeForRaising);
+      * raisedShareAtSurface(dot(toCamera.xz, toCamera.xz), uEyeOverRaisingLevel);
     vec3 hereAsSeen = (viewMatrix * vec4(vWaterPosition, 1.0)).xyz;
     vec3 sandAsDrawn = hereAsSeen - viewMatrix[1].xyz * drawnLower;
     onPicture += (sandAsDrawn.xy / max(-sandAsDrawn.z, 0.05) - hereAsSeen.xy / max(-hereAsSeen.z, 0.05))

@@ -20,6 +20,12 @@
 //
 // A walk drawn with nothing bent or raised and a steady eye gives 0.2 to 0.4 degrees a second:
 // that is the floor's own unevenness and what the measure cannot tell apart.
+//
+// Where wade.ts was given --truth, the walk also holds what the law of refraction would show
+// through a flat, still sea at spots of some frames. Then the picture is held against it: how far
+// what is drawn at a spot lies from what should be seen there, in degrees on the screen (the
+// middle one of the spots', and the one that nine tenths are within). Draw such a walk with `no
+// bending` on, or the ripples' bending is counted as error.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -63,6 +69,8 @@ interface Plane {
 interface Walk {
   framesASecond: number;
   fieldOfView: number;
+  /** For some frames, spots of the screen as fours: across, down, and the x and z truly seen there. */
+  truths?: { frame: number; spots: number[] }[];
 }
 
 function readFrame(file: string): Frame {
@@ -235,9 +243,43 @@ function lessItsTrend(times: number[], values: number[]): { mean: number; left: 
   return { mean, left: values.map((value, k) => value - mean - slope * (times[k] - meanTime)) };
 }
 
-function middleOne(values: number[]): number {
+/** The value that a share of the values are no greater than: a half gives the middle one. */
+function atShare(values: number[], share: number): number {
   const sorted = [...values].sort((a, b) => a - b);
-  return sorted.length === 0 ? Number.NaN : sorted[Math.floor(sorted.length / 2)];
+  return sorted.length === 0 ? Number.NaN : sorted[Math.floor((sorted.length - 1) * share)];
+}
+
+function middleOne(values: number[]): number {
+  return atShare(values, 0.5);
+}
+
+/**
+ * How far what is drawn at each spot lies from what refraction would show there, in dots of the
+ * screen, band by band.
+ */
+function errorsAgainstTruth(walk: Walk, frames: Frame[]): number[][] {
+  const errors: number[][] = BANDS.map(() => []);
+  for (const truth of walk.truths ?? []) {
+    const frame = frames[truth.frame];
+    for (let k = 0; k + 3 < truth.spots.length; k += 4) {
+      const [across, down, x, z] = truth.spots.slice(k, k + 4);
+      const band = BANDS.findIndex(
+        (each) => down >= each.from * frame.height && down < each.to * frame.height,
+      );
+      const seen = band < 0 ? null : placeSeenAt(frame, across, down);
+      if (seen === null) continue;
+
+      const offX = wrapped(seen.x.value - x);
+      const offZ = wrapped(seen.z.value - z);
+      const determinant = seen.x.across * seen.z.down - seen.x.down * seen.z.across;
+      if (Math.abs(determinant) < 1e-9) continue;
+
+      const offAcross = (offX * seen.z.down - seen.x.down * offZ) / determinant;
+      const offDown = (seen.x.across * offZ - offX * seen.z.across) / determinant;
+      errors[band].push(Math.hypot(offAcross, offDown));
+    }
+  }
+  return errors;
 }
 
 function describeWalk(folder: string): string {
@@ -283,7 +325,17 @@ function describeWalk(folder: string): string {
       `${band.name}: wobble ${middleOne(band.wobbles).toFixed(1)} on a flow of ` +
       `${middleOne(band.flows).toFixed(0)} deg/s (${band.wobbles.length} spots)`,
   );
-  return `${path.basename(folder).padEnd(30)} ${parts.join(' | ')}`;
+  const lines = [`${path.basename(folder).padEnd(30)} ${parts.join(' | ')}`];
+  if (walk.truths !== undefined && walk.truths.length > 0) {
+    const degrees = walk.fieldOfView / height;
+    const against = errorsAgainstTruth(walk, frames).map(
+      (errors, band) =>
+        `${BANDS[band].name}: ${(middleOne(errors) * degrees).toFixed(2)} deg off, nine tenths within ` +
+        `${(atShare(errors, 0.9) * degrees).toFixed(2)} (${errors.length} spots)`,
+    );
+    lines.push(`${''.padEnd(30)} against the law of refraction: ${against.join(' | ')}`);
+  }
+  return lines.join('\n');
 }
 
 const folders = process.argv.slice(2);

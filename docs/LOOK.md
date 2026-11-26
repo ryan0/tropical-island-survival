@@ -334,6 +334,20 @@ tan disc by night: a print is light and shade, and now darkens the sand under it
 in), and spray with a colour rule of its own (warm whenever the sun was down, so tan against a blue sea at
 night, as the foam had been before it: the two now share one rule, `src/sea/foam-in-this-light.glsl`).
 
+Moving through that water in a full screen turned his stomach (26 November 2026; `ROADMAP.md`, "Wading made
+him queasy"). His eyes on six switches: a slower pace through water was a very large benefit, no raising a
+large one ("the effect is overdone and something about it seems off, something about the way we do this is
+far from natural": but without it "the scene does not look realistic"), a raising steadied against the
+eye's rise and fall and a steadier eye some, no bending and no net of light none. Rejected for it, each
+measured: a pace that jumps between walking, wading and swimming, and a swimmer at three times a
+swimmer's pace; **the raising worked out for the eye's height over the still sea** while a wave lifts the
+swimmer and the water with him (the floor heaved five degrees for a hand's breadth of wave); **a rule for
+the raising that had not settled** (from a swimmer's eye the floor lay up to two degrees from where the law
+of refraction puts it); and **only the ground's corners raised**, two metres apart, with the sand between
+them going in proportion where the raising does not (a level floor worked like dough as the eye passed
+over it). What is under the sea is now drawn where the law puts it, to a fifth of a degree at the worst
+measured, and a level floor flows steadily under a steadily moving eye.
+
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A
 pass at the water or at its floor is judged on them, and on the fly-round, at full size. What the photographs
