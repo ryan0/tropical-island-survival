@@ -177,7 +177,7 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   const material = new MeshLambertMaterial({ vertexColors: true, map: grit.texture });
   material.defines = {
     TERRAIN_FOOTPATHS: footpathStatements(landmarks),
-    TERRAIN_HOME: glslVec2(landmarks.home.x, landmarks.home.z),
+
     REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     LAGOON_WIND_DIRECTION: glslVec2(windDirection[0], windDirection[1]),
     CLOUD_SHADE_SPAN_M: glslFloat(dependencies.cloudShadeSpan),

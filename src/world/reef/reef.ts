@@ -14,20 +14,24 @@ import type { GroundHeight, Landmarks } from '../landmarks';
 import type { IsInRock } from '../rocks/rocks';
 import { createCoralShapes } from './coral-shapes';
 import { CORAL_KINDS, reefConfig } from './reef-config';
-import { layOutReef, type CoralHead } from './reef-layout';
+import { layOutReef, type CoralHead, type ReefZones } from './reef-layout';
 import { createReefMap } from './reef-map';
 import { createCoralSurfacePicture } from './coral-surface-picture';
 import { createCoralMaterial } from './reef-material';
 
-// The coral reef in the lagoon: coral heads (great boulder corals, "bommies") scattered over
-// the sandy floor in 1.8 to 7 m of water, each packed with corals of five kinds, and smaller
-// corals on the sand round them. Everything is built from simple shapes with colours painted
+// The coral reef: coral heads (great boulder corals, "bommies") scattered over the sandy floor
+// in 1.3 to 7 m of water, each packed with corals of five kinds, and smaller corals on the sand
+// round them; thickest off home, where it was first laid out, and thinner round the rest of the
+// atoll, where each of the gardens' deep basins has a few heads and the reef's high ground a
+// scatter of coral (reef-layout.ts). Everything is built from simple shapes with colours painted
 // on their corners; each kind is a few models, drawn many times with their own size, turn and
 // tint. Colours are dimmed by depth as the water does it: red goes first.
 
 export interface ReefDependencies {
   /** The models, where everything goes, and how each coral is turned and tinted: a stream each. */
   randomStream: RandomStreams;
+  /** What stands where on the reef, for the corals round the atoll. */
+  island: ReefZones;
   groundHeight: GroundHeight;
   landmarks: Landmarks;
   /** Whether a point is inside a rock or within `margin` of one. */
@@ -59,12 +63,15 @@ export function createReef(dependencies: ReefDependencies): Reef {
   const shapes = createCoralShapes(randomStream('coral shapes'));
   const layout = layOutReef({
     random: randomStream(`reef layout ${reefConfig.layoutRoll}`),
+    randomRoundAtoll: randomStream('reef round the atoll'),
     groundHeight,
     isInRock,
     landmarks,
+    zones: dependencies.island,
   });
-  const map = createReefMap(layout.heads, landmarks.home);
-  const random = randomStream('coral turns and tints');
+  const map = createReefMap(layout.heads);
+  const randomOffHome = randomStream('coral turns and tints');
+  const randomRoundAtoll = randomStream('turns and tints round the atoll');
 
   const { outOfWater } = reefConfig;
   const up = new Vector3(0, 1, 0);
@@ -85,6 +92,9 @@ export function createReef(dependencies: ReefDependencies): Reef {
 
       const mesh = new InstancedMesh(shapes[kind].shapes[model], coralMaterial, corals.length);
       corals.forEach((coral, index) => {
+        // (The reef off home keeps the stream it always had, in the order it always had: the
+        // corals round the rest of the atoll change no turn or tint of it.)
+        const random = index < layout.offHome[kind][model] ? randomOffHome : randomRoundAtoll;
         // It leans outward with the slope of the head it grows on, then turns about its own stem.
         leanAxis.set(Math.sin(coral.bearing), 0, -Math.cos(coral.bearing));
         lean.setFromAxisAngle(leanAxis, -coral.tilt);

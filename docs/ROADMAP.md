@@ -66,6 +66,9 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
   next of: the floor against the pairs (4 above: measured, not changed, "Not done of the night's plan" on
   the reef's branch says why); the coral placed round the atoll; "a first piece of the game", which settles
   the shape of `src/game/` and is his to discuss first.
+- *A third branch, `reef-3-coral-round-the-atoll`:* a few coral heads in each of the basins round the atoll,
+  and thin coral on the crest's heads and the high ground ("The night's fourth part"). To take or leave
+  apart from the shape.
 - *On this branch, for him to look at:* **the reef's new shape** ("The night's third part", far below, and
   `REEF.md`): the gardens deeper, half a dozen basins 4.5 to 6.5 m deep (the debug panel flies to `home
   basin` and `east basin`), heads and potholes behind the crest, the lagoon's knolls. And **what it costs
@@ -2624,12 +2627,28 @@ The dark sand under the water at the feet at dusk is the light under water's, an
   the water's glow over dark things is blue where a sandy lagoon's is green) and their edges and mottle
   close to; far off the new smear softens them. Each is a judgement of look, to make with his eyes on the
   pairs, and the rest of stage E's list with it.
-- *The coral placed by exposure and by the reef's curve* (`REEF.md`'s order, 2) is not begun. The coral is
-  already the dearest thing in the lagoon's views (266 thousand triangles of 626 when last counted, where
-  the budget above is 150), it stands only within 150 m of home, and placing it all round the atoll before
-  the phone has read tonight's costs, and before "many more kinds at a flat cost" has made far things
-  cheap, would be building on a frame rate nobody has measured. The basin off home lies within the
-  layout's reach and has its heads; the basins further round have none yet.
+- *The coral placed by exposure and by the reef's curve* (`REEF.md`'s order, 2): a first step is on a third
+  branch, below. (It was first set aside here for the frame's sake. That reasoning was wrong: coral round the
+  atoll costs nothing in the views off home, which are the dearest and the ones the phone has held 60 in.)
+
+**The night's fourth part: coral round the atoll** (branch `reef-3-coral-round-the-atoll`, stacked on
+`reef-2-deeper-gardens`; `REEF.md`, the order of work, 2).
+
+- The reef off home is as it was, to the corals' turns and tints: the rest is laid out after it, from
+  streams of its own. Round the rest of the atoll: 14 coral heads in the gardens' deep basins (a basin off
+  home had its heads already), with half the corals a head off home carries; 800 low corals on the heads
+  behind the crest; 1,000 on the reef's high ground. Each is of the kinds of its side of the atoll: bushes
+  and knobs where the swell arrives, lobed mounds, staghorn and tables in the lee, a giant clam in ten.
+- *The heads' map* (how high they stand, for the water and the ground) covers the whole atoll now: 512 dots
+  over 768 m about the atoll's centre, where it was 256 over 352 m about home. Off home the rock painted
+  round a head moved by less than a dot.
+- *What it costs,* counted in the test renderer. Nothing in any view off home (wading in the lagoon 562
+  thousand triangles in 276 draws, before and after). In the east basin looking out to sea, 312 thousand in
+  106 draws where it was 165 in 47; looking back at the whole islet from it, the dearest view there is, 830
+  thousand in 466 draws where it was 706 in 396 (inland from the home beach is 976 in 418). The scene holds
+  3,217 objects where it held 2,405, each a mesh that three.js looks at every frame: **the program's time
+  for a frame is the phone's to read.** The page opens no slower.
+- The debug panel flies to `west basin` too. The reef fish school round the new heads as round the old.
 
 ## Later
 

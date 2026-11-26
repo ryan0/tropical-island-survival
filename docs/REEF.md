@@ -27,7 +27,14 @@ this. A number here is a good guide, not a fact.
 ## The order of work
 
 1. The reef's shape and depth, from the list below.
-2. The present models placed by exposure and by the reef's curve.
+2. The present models placed by exposure and by the reef's curve. *A first step, 26 November 2026* (branch
+   `reef-3-coral-round-the-atoll`): the reef off home is left as it was laid out, and round the rest of the
+   atoll there are now a few heads in each of the gardens' deep basins, low coral on the heads behind the
+   crest, and a scatter on the reef's high ground, each of the kinds of its side: bushes and knobs where the
+   swell arrives, lobed mounds, staghorn and tables in the lee, with giant clams bored in here and there
+   (`pickCoralByExposure`, `reef-layout.ts`). Thin, by what a frame can bear: 14 heads and 1,800 corals for
+   the whole of the rest of the atoll, against 70 heads off home. Still to do of this item: the reef off home
+   itself by the same rule, the lagoon's knolls dressed, and anything by the reef's curve.
 3. The pink ridge dressed: its colour, its blowholes.
 4. Fire coral, the first hazard.
 5. The drop-off and the lee dressed with the kinds we lack.

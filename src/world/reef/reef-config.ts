@@ -175,11 +175,27 @@ export const reefConfig = {
   /** Coral heads are looked for within this distance of home, to east and west and to north and south. */
   headsWithin: 150,
   /**
-   * The map of how high the heads stand, for the water and the ground: dots a side, and the metres
-   * it covers about home. It reaches 26 m past the furthest head, which is as far as the rock
-   * painted round the widest head does: a map that stopped short cut that rock off in a straight
-   * line.
+   * Beyond that square, all round the atoll (the reef off home was laid out first, and is left
+   * as it was): heads in the gardens' deep basins, corals on the flat-topped heads behind the
+   * crest, and corals on the reef's high ground. The search covers a square this far from the
+   * atoll's centre each way; `tries` are places looked at, and `most` the most kept. (Few, by the
+   * reef off home's measure: a head with its corals is some forty thousand triangles, and from
+   * a basin in the east the eye looks back at the whole islet, which is the dearest view there
+   * is. A basin's heads carry `coverShare` of the corals a head off home does.)
    */
-  mapSize: 256,
-  mapSpan: 352,
+  roundTheAtoll: {
+    reach: 375,
+    basinHeads: { tries: 50000, most: 14, coverShare: 0.5 },
+    onStripHeads: { tries: 40000, most: 800 },
+    onHighGround: { tries: 50000, most: 1000, shallowest: -1.5, deepest: -8 },
+  },
+  /**
+   * The map of how high the heads stand, for the water and the ground: dots a side, and the metres
+   * it covers about the atoll's centre, which is the whole reef to where coral stops. (It covered
+   * a square about home while heads stood only there.) Wherever a head stands near the map's
+   * edge, the rock painted round it must not be cut off in a straight line: `roundTheAtoll.reach`
+   * keeps heads clear of it.
+   */
+  mapSize: 512,
+  mapSpan: 768,
 } as const;

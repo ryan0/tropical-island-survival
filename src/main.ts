@@ -166,7 +166,6 @@ uniforms.uBreakerShapes.value = createBreakerShapes().texture;
 const waves = createWaveModel(island, seaFloor, crests.arc);
 const waterMaterials = createWaterMaterials({
   uniforms,
-  home: landmarks.home,
   cloudShadeSpan,
   windDirection: windDirection(),
   openSeaSpeed: seaFloor.openSeaSpeed,
@@ -242,6 +241,7 @@ createBeachFinds({
 });
 const reef = createReef({
   randomStream,
+  island,
   groundHeight: island.groundHeight,
   landmarks,
   isInRock: rocks.isInRock,

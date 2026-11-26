@@ -24,8 +24,6 @@ export type WaterSheet =
 export interface WaterMaterialsDependencies {
   /** The uniforms every shader shares. */
   uniforms: Record<string, IUniform>;
-  /** The middle of the home islet, which the map of the coral heads is centred on. */
-  home: { x: number; z: number };
   /** The side of the square the map of cloud shadows covers, in metres. */
   cloudShadeSpan: number;
   /** The way the wind blows, level and of unit length (x, z). */
@@ -110,7 +108,7 @@ function openSeaLinesDefine(): string {
 }
 
 export function createWaterMaterials(dependencies: WaterMaterialsDependencies): WaterMaterials {
-  const { uniforms, home, windDirection } = dependencies;
+  const { uniforms, windDirection } = dependencies;
   const meshRows = waterConfig.waveMesh.rows;
   const waveDefines = {
     SWELLS: swellsDefine(),
@@ -128,7 +126,6 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
     MODELLED_SWELL: modelledSwellDefine(dependencies.openSeaSpeed),
     WATER_SWELL: openSeaLinesDefine(),
     LONG_SWELL_SLOPE: glslFloat((seaConfig.longSwell * 0.7) / OPEN_SEA_LINES_SPEED),
-    HOME_ISLET: glslVec2(home.x, home.z),
     REEF_MAP_SPAN: glslFloat(reefConfig.mapSpan),
     OBSTACLE_FOAM_REACH: glslFloat(waterConfig.surfObstacles.foamReach),
     OBSTACLE_FOAM_REACH_BY_RADIUS: glslFloat(waterConfig.surfObstacles.foamReachByRadius),

@@ -1,10 +1,9 @@
 import { DataTexture, LinearFilter, RGBAFormat } from 'three';
 import { clamp, smoothstep } from '../../core/maths';
-import type { Point } from '../landmarks';
 import { reefConfig } from './reef-config';
 import { bottomOfHead, HEAD_ROCK_HEIGHT, type CoralHead } from './reef-layout';
 
-// A map of how high the coral heads stand, over a square about home, for the shaders. Over a head
+// A map of how high the coral heads stand, over a square about the atoll's centre, for the shaders. Over a head
 // the water is shallow, so it must be drawn as clear as shallow water, not as the deep water round
 // it; and the sand round a head's foot is painted with reef rock and rubble.
 
@@ -37,15 +36,15 @@ function nearness(radiiOut: number): number {
   return Math.round(255 * (1 - smoothstep(GREEN_FADE.from, GREEN_FADE.to, radiiOut)));
 }
 
-/** Where a distance from home falls on the map, in dots from its edge. */
-function dotsAcross(fromHome: number): number {
-  return (fromHome / mapSpan) * mapSize + mapSize / 2;
+/** Where a distance from the atoll's centre falls on the map, in dots from its edge. */
+function dotsAcross(fromCentre: number): number {
+  return (fromCentre / mapSpan) * mapSize + mapSize / 2;
 }
 
 /** Writes a head over what is there, keeping the higher top and the nearer head of the two. */
-function drawHead(pixels: Uint8Array, head: CoralHead, home: Point): void {
-  const middleColumn = dotsAcross(head.x - home.x);
-  const middleRow = dotsAcross(head.z - home.z);
+function drawHead(pixels: Uint8Array, head: CoralHead): void {
+  const middleColumn = dotsAcross(head.x);
+  const middleRow = dotsAcross(head.z);
   const reach = ((head.radius * DRAWN_WITHIN) / mapSpan) * mapSize;
   const last = mapSize - 1 - EMPTY_EDGE;
   const firstRow = Math.max(EMPTY_EDGE, Math.floor(middleRow - reach));
@@ -66,12 +65,12 @@ function drawHead(pixels: Uint8Array, head: CoralHead, home: Point): void {
 }
 
 /**
- * A map of how high the coral heads stand, `mapSpan` metres square about home: red is the height
- * of a head's top, green how near a head is.
+ * A map of how high the coral heads stand, `mapSpan` metres square about the atoll's centre: red
+ * is the height of a head's top, green how near a head is.
  */
-export function createReefMap(heads: readonly CoralHead[], home: Point): DataTexture {
+export function createReefMap(heads: readonly CoralHead[]): DataTexture {
   const pixels = new Uint8Array(mapSize * mapSize * 4);
-  for (const head of heads) drawHead(pixels, head, home);
+  for (const head of heads) drawHead(pixels, head);
   const map = new DataTexture(pixels, mapSize, mapSize, RGBAFormat);
   map.magFilter = LinearFilter;
   map.minFilter = LinearFilter;

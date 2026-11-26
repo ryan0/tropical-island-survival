@@ -14,7 +14,7 @@
 //   (lagwave.glsl); the net of light's readings and lightOfNet (light-net.glsl). The shore's shape, the
 //   reef's cover, the turf's broad patterns, what stands over the ground and what lies on it, it reads from
 //   pictures (uShoreRound, uReefCover, uTurfPatterns, uTreeCover, uGravelTile, uLitterTile, uLowPlantsTile).
-// Needs the defines TERRAIN_HOME and REEF_MAP_SPAN (the middle, and the side, of the square round home that the
+// Needs the defines REEF_MAP_SPAN (the side of the square about the atoll's centre that the
 //   reef's map covers), CLOUD_SHADE_SPAN_M, CAUSTICS_BRIGHTEST (caustics-texture.ts), and for each ground tile
 //   its span in metres and the share of it its things cover (GRAVEL_TILE_SPAN, GRAVEL_FULL_COVER and so on),
 //   the gravel's average colour (GRAVEL_AVERAGE_COLOUR), and the sea bed picture's span and the averages of
@@ -751,7 +751,7 @@ if (waterDepth > 0.0) {
 
   // Round the coral heads (reef-map.ts: its map's green channel) the floor is not sand but old reef, solid at a
   // head's foot and breaking up into the sand further out. (none beyond the edge of the map)
-  vec2 reefUv = (xz - TERRAIN_HOME) / REEF_MAP_SPAN + 0.5;
+  vec2 reefUv = xz / REEF_MAP_SPAN + 0.5;
   float apron = texture2D(uReefMap, reefUv).g * step(abs(reefUv.x - 0.5), 0.49) * step(abs(reefUv.y - 0.5), 0.49);
   if (apron > 0.01) {
     float apronEdge = apron + (groundFbm(xz * 0.9 + 5.0) - 0.5) * 0.8;

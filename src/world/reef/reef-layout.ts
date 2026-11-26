@@ -39,14 +39,34 @@ export interface ReefLayout {
   heads: CoralHead[];
   /** For each kind, the corals of each of its models: `corals[kind][model]`. */
   corals: Record<CoralKind, PlacedCoral[][]>;
+  /**
+   * How many of each model's corals, from the first, belong to the reef off home: the rest stand
+   * round the atoll, and are turned and tinted from a stream of their own.
+   */
+  offHome: Record<CoralKind, number[]>;
+}
+
+/** What the layout asks of the reef's shape, all round the atoll (island-shape.ts). */
+export interface ReefZones {
+  /** How hard the sea beats on the reef in a direction: 0 round the north, 1 round the south. */
+  seaExposure: (direction: number) => number;
+  /** 1 on the floor of one of the gardens' deep basins, 0 outside. */
+  gardenBasin: (x: number, z: number) => number;
+  /** 1 on a flat-topped head of the strip behind the crest, 0 off one. */
+  headBehindCrest: (x: number, z: number) => number;
+  /** 1 on the reef's high ground, where coral grows; 0 on its sand. */
+  reefHighGround: (x: number, z: number) => number;
 }
 
 export interface ReefLayoutDependencies {
-  /** The layout's own stream. */
+  /** The layout's own stream, for the reef off home. */
   random: Random;
+  /** A stream of its own for the reef round the rest of the atoll, so that it moves nothing off home. */
+  randomRoundAtoll: Random;
   groundHeight: GroundHeight;
   isInRock: IsInRock;
   landmarks: Landmarks;
+  zones: ReefZones;
 }
 
 /** Places corals, keeping only those that fit under the surface and clear of the rocks. */
@@ -54,8 +74,11 @@ interface CoralPlacer {
   random: Random;
   groundHeight: GroundHeight;
   isInRock: IsInRock;
-  /** One that would reach too near the surface is made smaller, and left out if then too small. */
-  put(kind: CoralKind, coral: PlacedCoral): void;
+  /**
+   * One that would reach too near the surface is made smaller, and left out if then too small.
+   * It is one of its kind's models by chance, unless `modelRoll` (any whole number) picks it.
+   */
+  put(kind: CoralKind, coral: PlacedCoral, modelRoll?: number): void;
   corals: ReefLayout['corals'];
 }
 
@@ -110,18 +133,21 @@ function noCorals(): ReefLayout['corals'] {
   };
 }
 
-function createCoralPlacer(dependencies: ReefLayoutDependencies): CoralPlacer {
-  const { random, groundHeight, isInRock } = dependencies;
+function createCoralPlacer(
+  { groundHeight, isInRock }: ReefLayoutDependencies,
+  random: Random,
+  corals: ReefLayout['corals'],
+): CoralPlacer {
   const { highestTop, smallestSize } = reefConfig;
-  const corals = noCorals();
 
-  function put(kind: CoralKind, coral: PlacedCoral): void {
+  function put(kind: CoralKind, coral: PlacedCoral, modelRoll?: number): void {
     const { shapes, tall } = reefConfig.kinds[kind];
     const { x, y, z, squash } = coral;
     let size = coral.size;
     if (y + tall * size * squash > highestTop) size = (highestTop - y) / (tall * squash);
     if (size < smallestSize || isInRock(x, z, CORAL_CLEAR_OF_ROCKS)) return;
-    corals[kind][Math.floor(random() * shapes)].push({ ...coral, size });
+    const model = modelRoll === undefined ? Math.floor(random() * shapes) : modelRoll % shapes;
+    corals[kind][model].push({ ...coral, size });
   }
 
   return { random, groundHeight, isInRock, put, corals };
@@ -236,9 +262,9 @@ function layCoralsOnTop(placer: CoralPlacer, head: CoralHead, count: number): vo
 }
 
 /** Between the corals on a head, a carpet of small ones, so that little bare rock shows. */
-function layCarpet(placer: CoralPlacer, head: CoralHead): void {
+function layCarpet(placer: CoralPlacer, head: CoralHead, share = 1): void {
   const { random } = placer;
-  const count = head.radius * head.radius * 2.6;
+  const count = head.radius * head.radius * 2.6 * share;
   for (let i = 0; i < count; i++) {
     const towards = random() * FULL_TURN;
     const radiiOut = Math.sqrt(random());
@@ -336,10 +362,175 @@ function laySlopes(placer: CoralPlacer, home: Point): void {
   }
 }
 
+// ---- Round the rest of the atoll ----
+//
+// The reef off home was laid out first, with the atoll's only coral, and is left as it was. The
+// rest goes by what docs/REEF.md says grows where: by how hard the sea beats on a stretch of the
+// reef. Where it beats hardest the coral is stout and low, bushes and knobs (stout Acropora,
+// cauliflower coral); in the lee it is lobed mounds, staghorn thickets and tables.
+
+const { roundTheAtoll } = reefConfig;
+/** A basin's heads stand in clusters: a place is taken only where this pattern is above the level. */
+const BASIN_HEADS_ABOVE = -0.15;
+/** A place counts as a basin's floor, a strip head's top or high ground from this much of it. */
+const WELL_INSIDE = 0.8;
+
+/** Whether a place lies in the square about home that the first layout searched. */
+function isOffHome(home: Point, x: number, z: number, reach: number): boolean {
+  return Math.abs(x - home.x) < reach && Math.abs(z - home.z) < reach;
+}
+
+/** A coral for the top of a head, by how hard the sea beats there (0 to 1). */
+function pickCoralByExposure(random: Random, exposure: number): TopCoralKind {
+  const pick = random();
+  // (the shares in the lee, and where the swell arrives: each row adds up to 1)
+  const shares: [TopCoralKind, number, number][] = [
+    ['brain', 0.36, 0.2],
+    ['stag', 0.22, 0.03],
+    ['table', 0.24, 0.12],
+    ['bush', 0.12, 0.4],
+    ['knob', 0.06, 0.25],
+  ];
+  let upTo = 0;
+  for (const [kind, inLee, inSwell] of shares) {
+    upTo += inLee + (inSwell - inLee) * exposure;
+    if (pick < upTo) return kind;
+  }
+  return 'bush';
+}
+
+/**
+ * Corals scattered thinly over the ground are of one model of their kind over a patch this many
+ * metres across: each model of each kind in each square of the map is a mesh and a draw of its
+ * own, and with every model in every square there were two corals to a mesh.
+ */
+const ONE_MODEL_OVER = 64;
+
+/** A whole number for the patch of ground a place lies in. */
+function patchOf(x: number, z: number): number {
+  return Math.abs(Math.floor(x / ONE_MODEL_OVER) * 7 + Math.floor(z / ONE_MODEL_OVER) * 13);
+}
+
+/** A place somewhere in the square the rest of the atoll's reef is searched over. */
+function somewhereRoundAtoll(random: Random): Point {
+  return {
+    x: (random() * 2 - 1) * roundTheAtoll.reach,
+    z: (random() * 2 - 1) * roundTheAtoll.reach,
+  };
+}
+
+/** Heads on the floors of the gardens' deep basins, in clusters: something to dive to in each. */
+function findBasinHeads(placer: CoralPlacer, zones: ReefZones, home: Point): CoralHead[] {
+  const { random, groundHeight, isInRock } = placer;
+  const { tries, most } = roundTheAtoll.basinHeads;
+  const heads: CoralHead[] = [];
+  for (let tried = 0; tried < tries && heads.length < most; tried++) {
+    const { x, z } = somewhereRoundAtoll(random);
+    if (isOffHome(home, x, z, reefConfig.headsWithin)) continue;
+    if (zones.gardenBasin(x, z) < WELL_INSIDE) continue;
+    if (headPatches(x, z) < BASIN_HEADS_ABOVE + random() * 0.3) continue;
+
+    const floor = groundHeight(x, z);
+    if (floor > HEAD_FLOOR.shallowest || floor < HEAD_FLOOR.deepest) continue;
+    if (isInRock(x, z, HEAD_CLEAR_OF_ROCKS)) continue;
+
+    const radius = 1.4 + random() * random() * 5.5;
+    const height = Math.min(-floor - 0.72 - 0.3 * random(), 1.2 + radius * 0.6);
+    if (height <= LOWEST_HEAD) continue;
+    const crowds = (other: CoralHead) =>
+      Math.hypot(x - other.x, z - other.z) < (radius + other.radius) * CROWDING;
+    if (heads.some(crowds)) continue;
+
+    const head: CoralHead = { x, z, floor, radius, height };
+    heads.push(head);
+    const squash = (height * HEAD_ROCK_HEIGHT) / radius;
+    placer.put('head', {
+      x,
+      y: bottomOfHead(head),
+      z,
+      size: radius,
+      tilt: 0,
+      bearing: random() * FULL_TURN,
+      squash,
+    });
+  }
+  return heads;
+}
+
+/** A basin's head is covered as one off home is, but with the corals of its own side of the atoll. */
+function coverBasinHead(placer: CoralPlacer, head: CoralHead, exposure: number): void {
+  const { random } = placer;
+  const { coverShare } = roundTheAtoll.basinHeads;
+  const coralsOnTop = Math.round((6 + head.radius * head.radius * 4.4) * coverShare);
+  const scale = Math.min(1, 0.5 + head.radius * 0.2);
+  for (let i = 0; i < coralsOnTop; i++) {
+    const towards = random() * FULL_TURN;
+    const radiiOut = Math.sqrt(random()) * 1.04;
+    const kind = pickCoralByExposure(random, exposure);
+    const size = within(random, TOP_CORAL_SIZES[kind]) * scale;
+    const { x, z } = aroundHead(head, towards, radiiOut);
+    const y = topOfHead(head, radiiOut) - 0.06;
+    placer.put(kind, { x, y, z, size, tilt: leanAt(radiiOut), bearing: towards, squash: 1 });
+  }
+  layCarpet(placer, head, coverShare);
+  layRubble(placer, head);
+  layClams(placer, head);
+}
+
+/**
+ * Coral straight on the reef's own ground, wherever `grows` says it does: low and stubby, of
+ * the kinds of its side of the atoll, with a giant clam bored in here and there.
+ */
+function layOnTheGround(
+  placer: CoralPlacer,
+  zones: ReefZones,
+  home: Point,
+  search: { tries: number; most: number; shallowest?: number; deepest?: number },
+  grows: (x: number, z: number) => number,
+): void {
+  const { random, groundHeight } = placer;
+  for (let tried = 0, offered = 0; tried < search.tries && offered < search.most; tried++) {
+    const { x, z } = somewhereRoundAtoll(random);
+    if (isOffHome(home, x, z, SLOPES.reachFromHome)) continue;
+    if (grows(x, z) < WELL_INSIDE) continue;
+
+    const floor = groundHeight(x, z);
+    if (search.shallowest !== undefined && floor > search.shallowest) continue;
+    if (search.deepest !== undefined && floor < search.deepest) continue;
+
+    const exposure = zones.seaExposure(Math.atan2(z, x));
+    const kind: CoralKind = random() < 0.1 ? 'clam' : pickCoralByExposure(random, exposure);
+    const size = kind === 'clam' ? 0.3 + random() * 0.3 : 0.45 + random() * 0.8;
+    const bearing = random() * FULL_TURN;
+    placer.put(kind, { x, y: floor - 0.04, z, size, tilt: 0, bearing, squash: 1 }, patchOf(x, z));
+    offered++;
+  }
+}
+
+/** The heads round the rest of the atoll, with all that grows on them and on the reef's own ground. */
+function layRoundAtoll(placer: CoralPlacer, zones: ReefZones, home: Point): CoralHead[] {
+  const heads = findBasinHeads(placer, zones, home);
+  for (const head of heads) {
+    coverBasinHead(placer, head, zones.seaExposure(Math.atan2(head.z, head.x)));
+  }
+  layOnTheGround(placer, zones, home, roundTheAtoll.onStripHeads, zones.headBehindCrest);
+  layOnTheGround(placer, zones, home, roundTheAtoll.onHighGround, zones.reefHighGround);
+  return heads;
+}
+
 export function layOutReef(dependencies: ReefLayoutDependencies): ReefLayout {
-  const placer = createCoralPlacer(dependencies);
-  const heads = findHeads(placer, dependencies.landmarks);
-  for (const head of heads) coverHead(placer, head);
-  laySlopes(placer, dependencies.landmarks.home);
-  return { heads, corals: placer.corals };
+  const { landmarks, zones } = dependencies;
+  const corals = noCorals();
+  const offHome = createCoralPlacer(dependencies, dependencies.random, corals);
+  const heads = findHeads(offHome, landmarks);
+  for (const head of heads) coverHead(offHome, head);
+  laySlopes(offHome, landmarks.home);
+  const countOffHome = (models: PlacedCoral[][]) => models.map((placed) => placed.length);
+  const kinds = Object.keys(corals) as CoralKind[];
+  const counts = Object.fromEntries(kinds.map((kind) => [kind, countOffHome(corals[kind])]));
+
+  const elsewhere = createCoralPlacer(dependencies, dependencies.randomRoundAtoll, corals);
+  // (after the heads off home: the reef fish take their numbers head by head, in this order)
+  heads.push(...layRoundAtoll(elsewhere, zones, landmarks.home));
+  return { heads, corals, offHome: counts as Record<CoralKind, number[]> };
 }

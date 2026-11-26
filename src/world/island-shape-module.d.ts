@@ -12,6 +12,12 @@ declare module 'virtual:island-shape' {
   export function openSeaAt(th: number, offshore: number): number;
   export function shoreH(x: number, z: number): number;
   export function reefHighGround(x: number, z: number): number;
+  export function alongReefZones(x: number, z: number, along: number): number;
+  export function gardenBasins(x: number, z: number, along: number): number;
+  export function behindCrestStrip(along: number, ridge: number): number;
+  export function stripHeads(x: number, z: number): number;
+  export function seaExposure(th: number): number;
+  export function ridgeFor(exposure: number): number;
   export function sandbankX(): number;
   export function sandbankZ(): number;
 }

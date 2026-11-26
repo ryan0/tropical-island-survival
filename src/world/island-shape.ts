@@ -1,6 +1,13 @@
 import {
   hgt,
   alongReef,
+  alongReefZones,
+  behindCrestStrip,
+  gardenBasins,
+  ridgeFor,
+  reefHighGround,
+  seaExposure,
+  stripHeads,
   islandR,
   landW,
   offshoreOfReef,
@@ -42,6 +49,22 @@ export interface IslandShape {
   shoreHeight: (x: number, z: number) => number;
   /** The middle of the sandbank in the lagoon. */
   sandbank: Point;
+  /**
+   * What stands where on the ocean's reef, each 0 to 1: how hard the sea beats on it in a
+   * direction (0 round the north, 1 round the south); the floor of one of the gardens' deep
+   * basins; a flat-topped head of the strip behind the crest; and the reef's high ground, where
+   * coral and rock grow and sand does not lie.
+   */
+  seaExposure: (direction: number) => number;
+  gardenBasin: (x: number, z: number) => number;
+  headBehindCrest: (x: number, z: number) => number;
+  reefHighGround: (x: number, z: number) => number;
+}
+
+/** How far along the reef's zones a spot lies, as island.glsl reckons it. */
+function alongTheReef(x: number, z: number): number {
+  const direction = Math.atan2(z, x);
+  return alongReefZones(x, z, alongReef(Math.hypot(x, z) - islandR(direction), direction));
 }
 
 export function createIslandShape(): IslandShape {
@@ -56,5 +79,11 @@ export function createIslandShape(): IslandShape {
     openSeaAt,
     shoreHeight: shoreH,
     sandbank: { x: sandbankX(), z: sandbankZ() },
+    seaExposure,
+    gardenBasin: (x, z) => gardenBasins(x, z, alongTheReef(x, z)),
+    headBehindCrest: (x, z) =>
+      behindCrestStrip(alongTheReef(x, z), ridgeFor(seaExposure(Math.atan2(z, x)))) *
+      stripHeads(x, z),
+    reefHighGround,
   };
 }

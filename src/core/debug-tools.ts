@@ -388,6 +388,7 @@ const PLACES_TO_FLY_TO: PlaceToFlyTo[] = [
   lookingOut('home beach', 1.5708, 172, 6, -0.1),
   lookingOut('home basin', 1.62, 195, 25, -0.6),
   lookingOut('east basin', 0.31, 170, 30, -0.6),
+  lookingOut('west basin', 3.47, 143, 30, -0.6),
   lookingOut('ridge', 1.5708, 286, 10, -0.3),
   lookingBack('reef front', 1.5708, 410, 12, -0.2),
   lookingOut('wide notch', 2.05, 235, 40, -0.75),

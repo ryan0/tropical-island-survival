@@ -20,7 +20,7 @@
 //   the uniforms and varyings below, and three.js's cameraPosition (given to every ShaderMaterial);
 //   these defines, which water-materials.ts writes from the configs:
 //     WATER_SWELL, LONG_SWELL_SLOPE   the swell's trains (sea-config.ts)
-//     HOME_ISLET, REEF_MAP_SPAN       the middle, and the side, of the square round home that the reef's map covers
+//     REEF_MAP_SPAN                   the side of the square about the atoll's centre that the reef's map covers
 //     OBSTACLE_FOAM_REACH, OBSTACLE_FOAM_REACH_BY_RADIUS   how far beyond its edge a thing in the surf has foam
 //                                     (water-config.ts)
 //     FLOOR_HEIGHT_SPAN               the side of the square that the picture of the ground's height covers
@@ -665,7 +665,7 @@ vec3 seenFromUnderWater(vec3 towardsCamera, float cameraDistance, vec3 surfaceUp
   float toTheFloor = min(waterDepth / max(-mirroredSight.y, 0.1), MIRROR_REACHES);
   vec2 onFloor = xz + mirroredSight.xz * toTheFloor;
   float depthThere = max(uSeaLevel - groundHeightAt(onFloor), 0.0);
-  vec2 reefUvThere = (onFloor - HOME_ISLET) / REEF_MAP_SPAN + 0.5;
+  vec2 reefUvThere = onFloor / REEF_MAP_SPAN + 0.5;
   float headThere = 0.0;
   if (abs(reefUvThere.x - 0.5) < 0.49 && abs(reefUvThere.y - 0.5) < 0.49) {
     headThere = smoothstep(0.25, 0.85, texture2D(uReefMap, reefUvThere).g);
