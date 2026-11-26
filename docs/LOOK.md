@@ -348,6 +348,17 @@ them going in proportion where the raising does not (a level floor worked like d
 over it). What is under the sea is now drawn where the law puts it, to a fifth of a degree at the worst
 measured, and a level floor flows steadily under a steadily moving eye.
 
+*What real water shows from a low eye* (twenty photographs from a swimmer's eye to a boat's side,
+`docs/reference-photos/low-eye-water.md`; the physics in `docs/research/seeing-through-water-from-a-low-eye.md`):
+the floor's detail reads over the nearest quarter of the water at most from a swimmer's eye, over two
+thirds wading in very shallow water with the camera a metre up, over four to six tenths from standing
+height. In sun and ripples it goes by degrees, over a fifth of the water: a crisp net of light, then fine
+squeezed lines, then soft mottle, then plain tone, then the sky's mirror, and every abrupt change is a
+change of depth. The far water is the sky's mirror or the water's own colour. A breeze breaks up the near
+floor but hardly shortens the reach; glassy water under a low sun is mirror almost at once. Rejected by
+it: **the floor drawn sharp to the horizon from a low eye** (squeezed up under the surface, it crawled as
+the eye moved, and no photograph shows it). The fine ripples now smear it, by the law's own measure.
+
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A
 pass at the water or at its floor is judged on them, and on the fly-round, at full size. What the photographs

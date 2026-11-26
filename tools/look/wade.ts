@@ -2,7 +2,8 @@
 // into a clip that plays at full speed:
 //
 //   node tools/look/wade.ts <folder> [--page <index.html>] [--walk lagoon-wade] [--seconds 3] [--rate 30]
-//     [--size 1280x720] [--switches "no bending,steady eye"] [--no-clip] [--truth]
+//     [--size 1280x720] [--switches "steady eye"] [--levels "ripples bend=0,light net=1.5"] [--no-clip]
+//     [--truth]
 //
 // The software renderer takes a second over a frame, so it cannot show motion as it runs. But the
 // page's clock is stepped by the tools, so a walk can be drawn one frame at a time, each a
@@ -12,7 +13,7 @@
 // (README.md, "What moves as the eye moves").
 //
 // --walk is one of the walks below. --switches turns on switches of the debug panel by their
-// labels, as "what makes wading queasy" has them. Each frame's place goes into <folder>/walk.json:
+// labels, and --levels sets its sliders by theirs. Each frame's place goes into <folder>/walk.json:
 // where the eye was, which way it looked and how deep the floor lay under it. With --truth, every
 // tenth frame also records what the law of refraction would show through a flat, still sea at
 // spots over the screen: wade-flow.ts holds the picture against it.
@@ -69,6 +70,7 @@ const { values, positionals } = parseArgs({
     rate: { type: 'string', default: '30' },
     size: { type: 'string', default: '1280x720' },
     switches: { type: 'string' },
+    levels: { type: 'string' },
     'no-clip': { type: 'boolean', default: false },
     truth: { type: 'boolean', default: false },
   },
@@ -91,11 +93,21 @@ async function holdTheCornerButton(page: Page): Promise<void> {
   await page.locator('#tod').dispatchEvent('pointerup');
 }
 
-async function switchOn(page: Page, labels: string[]): Promise<void> {
-  if (labels.length === 0) return;
+/** Turns on the debug panel's switches so labelled, and sets its sliders as `label=level`. */
+async function setThePanel(page: Page, switches: string[], levels: string[]): Promise<void> {
+  if (switches.length === 0 && levels.length === 0) return;
 
   await holdTheCornerButton(page);
-  for (const label of labels) await page.getByRole('button', { name: label, exact: true }).click();
+  for (const label of switches)
+    await page.getByRole('button', { name: label, exact: true }).click();
+  for (const each of levels) {
+    const [label, level] = each.split('=').map((part) => part.trim());
+    const slider = page.locator('.debug-slider', { hasText: label }).locator('input');
+    await slider.evaluate((input: HTMLInputElement, value) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+    }, level);
+  }
   // (closed again: the panel would be in every frame)
   await holdTheCornerButton(page);
 }
@@ -114,7 +126,8 @@ const view: ReferenceView = {
   moments: [{ waveTime: 20, wind: 0.66, cloudCover: 0.2, sun: { dayPhase: 0.5 } }],
 };
 await showMoment(page, view, view.moments[0]);
-await switchOn(page, values.switches?.split(',').map((label) => label.trim()) ?? []);
+const listed = (list: string | undefined) => list?.split(',').map((each) => each.trim()) ?? [];
+await setThePanel(page, listed(values.switches), listed(values.levels));
 
 // The eye is the player's own from here on, and the waves run with the page's clock.
 await page.evaluate(

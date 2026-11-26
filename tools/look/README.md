@@ -100,7 +100,8 @@ the frames into a clip that plays at full speed:
 node tools/look/wade.ts node_modules/.cache/look/wade --walk lagoon-swim --seconds 3
 ```
 
-`--switches "no bending,steady eye"` turns on switches of the debug panel by their labels. The walks are
+`--switches "steady eye"` turns on switches of the debug panel by their labels, and `--levels "ripples
+bend=0,smeared by ripples=0"` sets its sliders by theirs. The walks are
 named in the tool: wading the lagoon's shore and the ocean beach's swash, and swimming the lagoon's shelf
 and the reef flat, where the eye is half a metre over the water. A clip shows motion; whether it is easy on
 the eye is his to say, in a full screen on the desktop and on the phone.
@@ -137,7 +138,7 @@ HEAD`, with `node_modules` linked into it) in which three things are changed and
 With `--truth`, `wade.ts` also records, for spots of every tenth frame, the point of the floor that the law
 of refraction shows there through a flat, still sea (the eye's line bent at the surface and followed down
 to the ground), and `wade-flow.ts` then says how far the picture lies from it, in degrees on the screen.
-Draw such a walk with `no bending` on.
+Draw such a walk with `--levels "ripples bend=0,smeared by ripples=0"`: the ripples' work is not the law's.
 
 ```
 node tools/look/wade.ts <frames> --page <the measuring build's dist/index.html> --walk reef-swim --size 960x540 --no-clip

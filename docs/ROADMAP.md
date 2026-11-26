@@ -2524,6 +2524,49 @@ wading and 0.4 swimming, where it was 1.9 and 0.9: what is left is the floor's o
 ground run unbroken across the water's edge on both shores, and lie straight on the floor from a swimmer's
 eye.
 
+**The night's second part: what real water shows from a low eye, and ours brought towards it.** Two agents
+gathered: the physics and what other renderers do (`docs/research/seeing-through-water-from-a-low-eye.md`),
+and twenty photographs from a swimmer's, a wader's, a standing and a boat's eye
+(`docs/reference-photos/low-eye-water.md`; the photographs are in `reference-photos/low-eye-water/` on the
+desktop). What they say for us:
+
+- *A camera sees what our rule now draws:* it records direction only, and the flat-surface rule done exactly
+  is what a photograph would show. So the raising is right, and not to be lessened for truth's sake. (Other
+  real-time water leaves the floor where it is and shifts it a little by the ripples: only ray tracers, and
+  one browser game, draw it where it seems.)
+- *But real water hides what ours showed.* The same ripple throws the floor's image seven to nine times as
+  far from a low eye as looking straight down (a quarter of its slope times the depth, against close on
+  twice). In the photographs the floor's detail reads over the nearest quarter of the water at most from a
+  swimmer's eye, over four to six tenths from standing height: crisp net of light, then fine squeezed lines,
+  then soft mottle, then plain tone, then the sky's mirror. Ours drew the floor sharp over three quarters
+  of the water from a swimmer's eye: squeezed up under the surface, and crawling as he moved.
+- *A slow rise and fall of the view is the worst of movements:* 0.2 to 0.4 times a second most of all. A
+  swimmer's float was a quarter of a time a second.
+- A person wades chest deep at 0.6 m/s and walks at 1.3 to 1.5: ours at 2 and 6.5 keep that proportion.
+
+Built from it: **the fine ripples smear what is under them** (`SMEARED_BY_FINE_RIPPLES`, `water.frag.glsl`):
+by the share of the water's depth that the law gives for the angle the eye looks down at, for a slope of
+0.08, a light breeze's; nothing in a calm; and, a liberty, nothing where the eye looks steeply down, so
+that the sand at a wader's feet stays sharp. The picture of what is under the sea keeps smaller, softer
+copies of itself for it (mipmaps, where the graphics card can make them for a picture of any size), and a
+copy is left unread where it has run a rock or the beach together with the water beside it. From a
+swimmer's eye the net of light now reads near the eye, runs into mottle and then into the water's own
+tone; from standing height the pairs are all but as they were. And a swimmer's float is half what it was.
+
+**The two softenings of 26 November, looked at again.** *The net of light* is most of the way back (0.7;
+it was 0.8, then 0.5): with none at all he found no difference, and against the photographs of shallow
+water over sand ours is the plainer even at 0.8 (0.9 of their spread of lightness; `tools/look/busyness.ts`).
+*The fine ripples' bending* stays out: they smear now, which is what such ripples do to an eye, and with a
+third of their bending back the picture changed a tenth more from frame to frame for no gain seen in a
+still. Both, and the raising's strength, the ripples' whole bending and the smear, are **sliders in the debug
+panel** ("what is seen through the water"), for his eyes to set: the middle of each is as designed. The
+switches `no bending`, `no raising` and `no light net` are those sliders at nought; `steady eye` is kept
+for comparing.
+
+*Found by the way:* the lists in `docs/reference-photos/` had never been in the repository. The rule that
+keeps the photographs out (`reference-photos/`) also matched the folder of their lists; it now names the
+top folder only, and the ten lists are in.
+
 ## Later
 
 - More passes on the reef.

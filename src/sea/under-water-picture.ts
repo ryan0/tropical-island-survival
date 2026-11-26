@@ -2,6 +2,7 @@ import {
   Box3,
   InstancedMesh,
   LinearFilter,
+  LinearMipmapLinearFilter,
   Mesh,
   RGBAFormat,
   Vector2,
@@ -101,15 +102,27 @@ function lowestPointOf(thing: Object3D): number | null {
   return null;
 }
 
+/**
+ * Whether the picture can keep smaller, softer copies of itself (mipmaps): the water's shaders
+ * are compiled to read them or not by this (water-materials.ts).
+ */
+export function canPictureBeSoftened(renderer: WebGLRenderer): boolean {
+  return renderer.capabilities.isWebGL2;
+}
+
 export function createUnderWaterPicture(
   dependencies: UnderWaterPictureDependencies,
 ): UnderWaterPicture {
   const { renderer, scene, camera, uniforms, intoSeaPicture, waterMaterials } = dependencies;
+  // Where the graphics card can make them for a picture of any size (WebGL 2), the picture keeps
+  // smaller copies of itself, each half the last: the surface reads a small one where the fine
+  // ripples would smear what is under them (water.frag.glsl, SMEARED_BY_FINE_RIPPLES).
+  const hasSofterCopies = canPictureBeSoftened(renderer);
   const picture = new WebGLRenderTarget(1, 1, {
     format: RGBAFormat,
-    minFilter: LinearFilter,
+    minFilter: hasSofterCopies ? LinearMipmapLinearFilter : LinearFilter,
     magFilter: LinearFilter,
-    generateMipmaps: false,
+    generateMipmaps: hasSofterCopies,
     depthBuffer: true,
     stencilBuffer: false,
   });
@@ -168,6 +181,8 @@ export function createUnderWaterPicture(
       renderer.setClearAlpha(1);
       waterMaterials.show(false);
       intoSeaPicture.begin(eyeOverSea, eyeOverRaisingLevel, uniforms.uRaisingShare.value);
+      // (no copies are made while nothing reads them: with the smear's slider at nought)
+      picture.texture.generateMipmaps = hasSofterCopies && uniforms.uSmearingShare.value > 0;
       camera.layers.disable(NOT_IN_PICTURE);
       renderer.setRenderTarget(picture);
 

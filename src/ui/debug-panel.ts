@@ -13,12 +13,26 @@ export interface DebugAction {
   run: () => void;
 }
 
-/** A group of the panel's buttons under a heading: switches, buttons that each do one thing, or both. */
+/** A level set by sliding: for what only an eye can find the right amount of. */
+export interface DebugSlider {
+  label: string;
+  lowest: number;
+  highest: number;
+  step: number;
+  get: () => number;
+  set: (value: number) => void;
+}
+
+/**
+ * A group of the panel's controls under a heading: switches, buttons that each do one thing,
+ * sliders, or any of them.
+ */
 export interface DebugSection {
   /** Left out for the first group, which needs none. */
   heading?: string;
   switches?: DebugSwitch[];
   actions?: DebugAction[];
+  sliders?: DebugSlider[];
 }
 
 export interface DebugPanel {
@@ -28,6 +42,28 @@ export interface DebugPanel {
 // What the panel reports changes as the page runs (the frame rate, the quality steps taken), so
 // it is asked for again this often while the panel is open.
 const REPORTED_EVERY_MILLISECONDS = 500;
+
+function slider({ label, lowest, highest, step, get, set }: DebugSlider): HTMLElement {
+  const element = document.createElement('label');
+  element.className = 'debug-slider';
+  const name = document.createElement('span');
+  const says = () => {
+    name.textContent = `${label} ${get().toFixed(2)}`;
+  };
+  const range = document.createElement('input');
+  range.type = 'range';
+  range.min = String(lowest);
+  range.max = String(highest);
+  range.step = String(step);
+  range.value = String(get());
+  range.addEventListener('input', () => {
+    set(Number(range.value));
+    says();
+  });
+  says();
+  element.append(name, range);
+  return element;
+}
 
 function button(className: string, label: string, onClick: () => void): HTMLButtonElement {
   const element = document.createElement('button');
@@ -100,6 +136,7 @@ export function createDebugPanel(
       for (const { label, run } of section.actions ?? []) {
         element.append(button('debug-switch', label, run));
       }
+      for (const one of section.sliders ?? []) element.append(slider(one));
     }
     return element;
   }

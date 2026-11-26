@@ -97,9 +97,13 @@ uniform sampler2D uUnderWaterPicture;
 uniform float uPictureDrawn;
 uniform vec2 uDotOfPicture;
 uniform vec2 uPictureScale;
-// How much of the ripples' bending, and of the raising, is drawn: 1 but for a debug switch (shared-uniforms.ts).
-uniform float uBendingShare;
+// Levels the debug panel's sliders set, each as designed until one is moved (shared-uniforms.ts): how much of
+// the raising is drawn, how much the ripples bend what is under them, the share of the fine ripples' slope that
+// does, and how much they smear it.
 uniform float uRaisingShare;
+uniform float uBendingShare;
+uniform float uFineRipplesBend;
+uniform float uSmearingShare;
 // How high the eye is above the level the raising takes the sea to lie at (under-water-picture.ts).
 uniform float uEyeOverRaisingLevel;
 uniform float uSunThroughCloud;
@@ -133,6 +137,17 @@ varying vec2 vWhiteMass;
 #include "../shaders/shared/raised-through-surface"
 #include "torn-edge"
 #include "foam-in-this-light"
+
+// The picture of what is under the sea, read at its own dots, whatever softer copies of itself it keeps. (A
+// reading that takes its copy from how its place changes across the screen may not be made inside a branch,
+// and these are: docs/DEVICE_NOTES.md.)
+vec4 pictureAt(vec2 place) {
+  #ifdef WATER_PICTURE_HAS_SOFTER_COPIES
+  return texture2DLodEXT(uUnderWaterPicture, place, 0.0);
+  #else
+  return texture2D(uUnderWaterPicture, place);
+  #endif
+}
 
 // ---- Numbers to retune ----
 
@@ -316,10 +331,25 @@ const float DEPTH_SPREADS = 0.8;
 // it lands that share of the thing's depth to one side; this is that share, and the depth it is taken over at
 // most (m). (At 0.3 a stone's width changed by a third from one moment to the next: if what is under the water
 // still wobbles too much on the phone, this is the number.)
-// It is the broad and middling ripples that bend it, and not the fine ones: bent by those too, everything under
-// shallow water shivered, which was a third of all that moved on the screen there and tiring to look into; the
-// slow sway is the others'. (The surface's own streaks of sky and its glints still go by every ripple.)
+// It is the broad and middling ripples that bend it, and the fine ones only by a share of their slope
+// (uFineRipplesBend, whose level shared-uniforms.ts gives): bent by all of them, everything under shallow water
+// shivered, which was a third of all that moved on the screen there and tiring to look into; the slow sway is
+// the others'. (The surface's own streaks of sky and its glints still go by every ripple.)
 const float BENDS = 0.14;
+// What the fine ripples do in place of bending: each is a small lens that throws what is under it a little
+// way off, now to this side and now to that, many times a second, and the eye takes the sum for softness.
+// Real water moves the image of its floor by a share of the ripple's slope times the water's depth that is a
+// quarter looking straight down and close on twice the depth looking along the sea
+// (docs/research/seeing-through-water-from-a-low-eye.md): so from a low eye the far floor, which is drawn
+// squeezed up under the surface, is smeared out of all detail, where drawn sharp it crawled as the eye moved.
+// This is the slope the smear is worked out for, in the island's usual breeze: a light breeze's ripples slope
+// about a tenth, one way and the other.
+const float SMEARED_BY_FINE_RIPPLES = 0.08;
+// (And a liberty: real ripples smear the floor by the feet a little too. Ours is left sharp where the eye looks
+// down on it more steeply than the second of these, the sine of the angle below level, and smeared in full
+// where it looks down less steeply than the first: the sand's ripples and the net of light at a wader's feet
+// are what Ryan liked best in the water, and it is the far floor that crawled.)
+const vec2 SMEARED_LOOKING_DOWN = vec2(0.22, 0.6);
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (Wherever the surface is drawn, it is drawn whole, over the picture: only the picture holds what is seen
 // through water. The frame's own drawing, straight behind the surface, was let show through the shallowest
@@ -1194,7 +1224,8 @@ void main() {
   // ---- What is behind the surface, read bent from its picture ----
 
   // (Not for an eye under the water, for which no picture is drawn: what follows is then for nothing, and the
-  // view from below takes its place at the end. The picture has no mipmaps, so it may be read inside this branch.)
+  // view from below takes its place at the end. Every reading here names the copy of the picture it wants, so
+  // it may be made inside this branch.)
   vec4 straightBehind = vec4(0.0, 0.0, 0.0, 1.0);
   vec4 behind = straightBehind;
   if (uPictureDrawn > 0.5) {
@@ -1210,31 +1241,53 @@ void main() {
     vec3 sandAsDrawn = hereAsSeen - viewMatrix[1].xyz * drawnLower;
     onPicture += (sandAsDrawn.xy / max(-sandAsDrawn.z, 0.05) - hereAsSeen.xy / max(-hereAsSeen.z, 0.05))
       * uPictureScale;
-    // (by the broad and middling ripples alone: BENDS, above)
-    vec3 slopeAsSeen = mat3(viewMatrix) * vec3(broadRipplesSlope.x, 0.0, broadRipplesSlope.y);
+    // (by the broad and middling ripples, and by a share of the fine ones: BENDS, above)
+    vec2 bendingSlope = broadRipplesSlope + smallRipplesSlope * uFineRipplesBend;
+    vec3 slopeAsSeen = mat3(viewMatrix) * vec3(bendingSlope.x, 0.0, bendingSlope.y);
     vec2 bentAMetreDown = slopeAsSeen.xy * uPictureScale * (BENDS * uBendingShare / max(cameraDistance, 0.5));
     // A thing is moved by its own depth under the surface: the top of a coral head hardly at all, the sand at its
     // foot by more. So the picture is read twice: straight behind this spot, to find how deep what is there
     // lies, and then to one side by that depth. (Moved all alike, by the floor's depth, a head and the ground
     // round it shifted as one flat picture.)
-    straightBehind = texture2D(uUnderWaterPicture, onPicture);
+    straightBehind = pictureAt(onPicture);
     // (past the smeared outline of anything that stands out of the sea: OUTLINE_SUSPECTED, above)
     if (depthHeld(straightBehind.a) < OUTLINE_SUSPECTED.x && waterDepth > OUTLINE_SUSPECTED.y) {
       vec2 aside = uDotOfPicture * OUTLINE_LOOKED_PAST;
-      vec4 toTheRight = texture2D(uUnderWaterPicture, onPicture + vec2(aside.x, 0.0));
-      vec4 toTheLeft = texture2D(uUnderWaterPicture, onPicture - vec2(aside.x, 0.0));
-      vec4 above = texture2D(uUnderWaterPicture, onPicture + vec2(0.0, aside.y));
-      vec4 below = texture2D(uUnderWaterPicture, onPicture - vec2(0.0, aside.y));
+      vec4 toTheRight = pictureAt(onPicture + vec2(aside.x, 0.0));
+      vec4 toTheLeft = pictureAt(onPicture - vec2(aside.x, 0.0));
+      vec4 above = pictureAt(onPicture + vec2(0.0, aside.y));
+      vec4 below = pictureAt(onPicture - vec2(0.0, aside.y));
       if (toTheRight.a > straightBehind.a) straightBehind = toTheRight;
       if (toTheLeft.a > straightBehind.a) straightBehind = toTheLeft;
       if (above.a > straightBehind.a) straightBehind = above;
       if (below.a > straightBehind.a) straightBehind = below;
     }
     float itsDepth = clamp(depthHeld(straightBehind.a) + liftOverSea, 0.0, BENDS_NO_DEEPER_THAN);
-    behind = texture2D(uUnderWaterPicture, onPicture + bentAMetreDown * itsDepth);
+    vec2 bentTo = onPicture + bentAMetreDown * itsDepth;
+    behind = pictureAt(bentTo);
     // (A thing that stands out of the sea is not behind the water beside it: where the bent reading finds one,
     // the line is left unbent.)
     if (behind.a < 0.004) behind = straightBehind;
+
+    // The ripples too fine to bend what is under them smear it (SMEARED_BY_FINE_RIPPLES, above): by a share of its
+    // depth that grows as the eye looks less steeply down, as seen from as far off as the eye's line runs to it,
+    // through the air and then the water. The picture's smaller copies are its softer ones: the one read is as
+    // many of the picture's dots across as the smear.
+    #ifdef WATER_PICTURE_HAS_SOFTER_COPIES
+    float looksDown = clamp(towardsCamera.y, 0.02, 1.0);
+    float goesDown = sqrt(1.0 - INTO_WATER * INTO_WATER * (1.0 - looksDown * looksDown));
+    float smearedBy = (1.0 - INTO_WATER * looksDown / goesDown)
+      * SMEARED_BY_FINE_RIPPLES * uSmearingShare * min(ruffling, SMALL_RIPPLES_STEEPEST) * (1.0 - 0.65 * slick)
+      * (1.0 - smoothstep(SMEARED_LOOKING_DOWN.x, SMEARED_LOOKING_DOWN.y, looksDown))
+      * itsDepth / max(cameraDistance + itsDepth / goesDown, 0.5);
+    float dotsAcross = smearedBy * uPictureScale.x / uDotOfPicture.x * UNDER_WATER_PICTURE_SHARE;
+    vec4 smeared = texture2DLodEXT(uUnderWaterPicture, bentTo, log2(max(dotsAcross, 1.0)));
+    // (A softer copy has run together what stands out of the sea, whose depth is nought, with the floor round
+    // it: where its depth reads shallower than the picture's own, by a third and more, it is left unread, or a
+    // rock's colour would spread over the water beside it and the beach's over the shallows.)
+    float standsNear = clamp(3.0 * (behind.a - smeared.a) / max(behind.a, 0.02), 0.0, 1.0);
+    behind = mix(smeared, behind, standsNear);
+    #endif
   }
   // (how far under the still sea the thing behind this spot lies)
   float depthBehind = depthHeld(behind.a);

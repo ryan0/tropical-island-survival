@@ -6,7 +6,8 @@ site/
 node_modules/
 
 # reference photographs: kept on each machine, never in the repository (see docs/LOOK.md)
-reference-photos/
+# (the folder at the top only: the lists of what it holds are docs/reference-photos/, and are kept)
+/reference-photos/
 
 # the raw notes behind a research report: kept on the machine; the report itself is in docs/research/
 research_notes/

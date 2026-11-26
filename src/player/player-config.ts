@@ -90,10 +90,12 @@ export const playerConfig = {
     leastOverWater: 0.2,
     /**
      * The eye rises and falls, floatRate radians a second: by float near the surface, by
-     * floatDived once lower than floatsAbove.
+     * floatDived once lower than floatsAbove. (Small on purpose: a slow rise and fall of the
+     * whole view, a quarter of a time a second, is of all movements the one that most turns a
+     * stomach: docs/research/seeing-through-water-from-a-low-eye.md.)
      */
     floatRate: 1.6,
-    float: 0.03,
+    float: 0.02,
     floatDived: 0.02,
     floatsAbove: 0.3,
     hint: { title: 'Swimming', subtitle: 'look down and push forward to dive', seconds: 5 },

@@ -32,6 +32,11 @@ export interface WaterMaterialsDependencies {
   windDirection: readonly [number, number];
   /** Metres a second a swell makes in the open sea (sea-floor-pictures.ts). */
   openSeaSpeed: number;
+  /**
+   * Whether the picture of what is under the sea keeps smaller, softer copies of itself
+   * (under-water-picture.ts's canPictureBeSoftened).
+   */
+  isPictureSoftened: boolean;
 }
 
 export interface WaterMaterials {
@@ -185,6 +190,8 @@ export function createWaterMaterials(dependencies: WaterMaterialsDependencies): 
           // (the ground's height read from its picture, where the graphics card could draw one)
           ...(uniforms.uFloorHeight.value === null ? {} : { WATER_FLOOR_FROM_PICTURE: '' }),
           WATER_SHORE_FROM_PICTURE: '',
+          ...(dependencies.isPictureSoftened ? { WATER_PICTURE_HAS_SOFTER_COPIES: '' } : {}),
+          UNDER_WATER_PICTURE_SHARE: glslFloat(seaConfig.underWaterPicture.shareOfScreen),
           ...(isWaveMesh || isBreaker ? { WATER_STANDS_STEEP: '' } : {}),
           ...(isBreaker ? { WATER_HAS_TORN_EDGE: '' } : {}),
           ...(isBreakerDepth ? { BREAKER_DEPTH_ONLY: '' } : {}),

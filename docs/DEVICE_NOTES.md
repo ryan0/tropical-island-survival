@@ -199,6 +199,12 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   divisions, behind a test on a uniform, before any picture is read) and moves the place it looks its shadow
   up at to match (`shaders/shared/seen-through-surface.glsl`, `world/terrain.ts`). If the frame rate has
   fallen, the picture's size (`shareOfScreen`) and these are where to look first.
+- New the same night, and **to be read on the phone with the debug panel's `smeared by ripples` slider at
+  nought and at 1**: the picture of what is under the sea keeps smaller copies of itself (mipmaps), made
+  afresh every frame, where WebGL 2 allows (`under-water-picture.ts`); the sea's surface reads one of them
+  once more for every dot (`texture2DLodEXT`, which names its copy and so may sit inside a branch), and its
+  other readings of the picture name the picture's own dots likewise. With the slider at nought no copies
+  are made, and what is left is one reading of the same dots twice.
 - A built-in material's uniforms are copied from three.js's own list for its kind when it is first compiled:
   colours, vectors and plain arrays are copied, but a typed array (`Float32Array`) is handed over as it is. So
   one typed array put into every kind's list is shared by every built-in material, and writing into it

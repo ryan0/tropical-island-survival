@@ -9,8 +9,9 @@ import {
   FRAME_COST_HEADING,
   frameCostSwitches,
   placesToFlyTo,
-  QUEASINESS_HEADING,
-  queasinessSwitches,
+  SEEN_THROUGH_WATER_HEADING,
+  seenThroughWaterSliders,
+  steadyEyeSwitch,
   WATER_STAGES_HEADING,
   waterStageSwitches,
 } from './core/debug-tools';
@@ -26,7 +27,11 @@ import { createPlayer, type PlayerFrame } from './player/player';
 import { seaConfig } from './sea/sea-config';
 import { createSpray, type SprayFrame } from './sea/spray';
 import { createUnderWater, type UnderWaterFrame } from './sea/under-water';
-import { createUnderWaterPicture, type UnderWaterPictureFrame } from './sea/under-water-picture';
+import {
+  canPictureBeSoftened,
+  createUnderWaterPicture,
+  type UnderWaterPictureFrame,
+} from './sea/under-water-picture';
 import { createWater, type WaterFrame } from './sea/water';
 import { createWaterMaterials } from './sea/water-materials';
 import { createCrestLine } from './sea/crest-line';
@@ -165,6 +170,7 @@ const waterMaterials = createWaterMaterials({
   cloudShadeSpan,
   windDirection: windDirection(),
   openSeaSpeed: seaFloor.openSeaSpeed,
+  isPictureSoftened: canPictureBeSoftened(renderer),
 });
 const water = createWater({
   scene,
@@ -352,8 +358,9 @@ const debugPanel = createDebugPanel(
       switches: debugSwitches(water, uniforms, testHooks, player, frameRateLabel, crestLine),
     },
     {
-      heading: QUEASINESS_HEADING,
-      switches: queasinessSwitches(uniforms, player),
+      heading: SEEN_THROUGH_WATER_HEADING,
+      sliders: seenThroughWaterSliders(uniforms),
+      switches: [steadyEyeSwitch(player)],
     },
     {
       heading: FRAME_COST_HEADING,

@@ -10,6 +10,13 @@ import type { SkyLightUniforms } from '../sky/sky-light';
 export const SEA_DRAINED = 5;
 
 /**
+ * The share of the fine ripples' slope that bends what is under the water (`uFineRipplesBend`).
+ * None, since 26 November 2026: Ryan found the water "a bit busy for eyes", and the fine ripples'
+ * bending was the shiver in it. They smear what is under them instead (water.frag.glsl).
+ */
+const FINE_RIPPLES_BEND = 0;
+
+/**
  * The one set of uniforms that every hand-written shader shares. The sky's light and the
  * clouds own theirs; the rest are these.
  */
@@ -63,13 +70,18 @@ export type SharedUniforms = Record<string, IUniform> &
     uDotOfPicture: { value: Vector2 };
     uPictureScale: { value: Vector2 };
     /**
-     * How much is drawn of three things that move what is seen under the sea, each 1 as designed:
-     * the ripples' bending of it, its raising to where it seems to be through the surface, and
-     * the net of light on it. The debug panel's switches for finding what makes wading queasy
-     * set one to nought (core/debug-tools.ts).
+     * Levels the debug panel's sliders set, for what only an eye can find the right amount of
+     * (core/debug-tools.ts). How much of the raising of what is under the sea to where it seems
+     * to be is drawn, 1 as designed. How much the ripples bend it, 1 as designed. The share of the
+     * fine ripples' slope that bends what is
+     * under them, as the broad ripples' whole slope does: at 1 everything under shallow water
+     * shivers, at nought it only sways. How much the fine ripples smear it, 1 as designed. And how
+     * much of the net of light there is on it, 1 as designed.
      */
-    uBendingShare: { value: number };
     uRaisingShare: { value: number };
+    uBendingShare: { value: number };
+    uFineRipplesBend: { value: number };
+    uSmearingShare: { value: number };
     uLightNetShare: { value: number };
     /**
      * How high the eye is above the level the raising takes the sea to lie at, in metres: the
@@ -114,8 +126,10 @@ export function createSharedUniforms(
     uPictureDrawn: { value: 0 },
     uDotOfPicture: { value: new Vector2(1, 1) },
     uPictureScale: { value: new Vector2(1, 1) },
-    uBendingShare: { value: 1 },
     uRaisingShare: { value: 1 },
+    uBendingShare: { value: 1 },
+    uFineRipplesBend: { value: FINE_RIPPLES_BEND },
+    uSmearingShare: { value: 1 },
     uLightNetShare: { value: 1 },
     uEyeOverRaisingLevel: { value: 1 },
     uSurfObstacles: { value: noObstacles },

@@ -8,7 +8,7 @@ import type { Water } from '../sea/water';
 import type { Player } from '../player/player';
 import { FULL_TURN } from './maths';
 import type { BuildInfo } from '../ui/build-label';
-import type { DebugAction, DebugSwitch } from '../ui/debug-panel';
+import type { DebugAction, DebugSlider, DebugSwitch } from '../ui/debug-panel';
 import type { FrameRateLabel } from '../ui/frame-rate-label';
 import type { InstanceCells, InstanceKind } from '../world/instance-cells';
 import type { IslandShape } from '../world/island-shape';
@@ -286,33 +286,50 @@ export function frameCostSwitches(
   ];
 }
 
-/** The heading over `queasinessSwitches`. */
-export const QUEASINESS_HEADING = 'what makes wading queasy: wade with one on';
+/** The heading over `seenThroughWaterSliders` and `steadyEyeSwitch`. */
+export const SEEN_THROUGH_WATER_HEADING =
+  'what is seen through the water: levels only an eye can find (the middle of each is as designed)';
 
 /**
- * Switches for finding what it is about wading through the water that turns the stomach, which
- * nothing but a person's eyes can say (docs/ROADMAP.md, "Wading made him queasy"): each takes away
- * one thing that moves what is seen under the sea, or how the eye moves over it.
+ * Levels for how what is under the water looks and moves, which nothing but a person's eyes can
+ * set (docs/ROADMAP.md, "Wading made him queasy"): moving through water in a full screen turned
+ * Ryan's stomach, and what eases one person is not what eases another.
  */
-export function queasinessSwitches(
-  uniforms: SharedUniforms,
-  player: Pick<Player, 'isEyeSteady' | 'setEyeSteady'>,
-): DebugSwitch[] {
-  const leaveOut = (share: { value: number }) => ({
-    set(on: boolean) {
-      share.value = on ? 0 : 1;
+export function seenThroughWaterSliders(uniforms: SharedUniforms): DebugSlider[] {
+  const level = (
+    label: string,
+    held: { value: number },
+    highest: number,
+    step = 0.05,
+  ): DebugSlider => ({
+    label,
+    lowest: 0,
+    highest,
+    step,
+    get: () => held.value,
+    set(value) {
+      held.value = value;
     },
-    isOn: () => share.value === 0,
   });
   return [
-    // (the ripples no longer move what is under them from side to side)
-    { label: 'no bending', ...leaveOut(uniforms.uBendingShare) },
-    // (what is under the sea is drawn where it is, not where it seems to be through the surface:
-    // the look before 20 November 2026, with the faults that had)
-    { label: 'no raising', ...leaveOut(uniforms.uRaisingShare) },
-    { label: 'no light net', ...leaveOut(uniforms.uLightNetShare) },
-    { label: 'steady eye', set: player.setEyeSteady, isOn: () => player.isEyeSteady },
+    // (at nought what is under the sea is drawn where it is, not where it seems to be through
+    // the surface: the look before 20 November 2026, with the faults that had)
+    level('raising', uniforms.uRaisingShare, 1),
+    level('ripples bend', uniforms.uBendingShare, 2),
+    // (the far floor smeared by the fine ripples: at nought it is drawn sharp to the horizon)
+    level('smeared by ripples', uniforms.uSmearingShare, 3),
+    // (at 1 everything under shallow water shivers with the fine ripples, as before 26 November)
+    level('fine ripples bend', uniforms.uFineRipplesBend, 1),
+    level('light net', uniforms.uLightNetShare, 2),
   ];
+}
+
+/**
+ * A switch kept for comparing: the eye does not bob with each step, nor rise and fall while
+ * afloat, nor ride the waves.
+ */
+export function steadyEyeSwitch(player: Pick<Player, 'isEyeSteady' | 'setEyeSteady'>): DebugSwitch {
+  return { label: 'steady eye', set: player.setEyeSteady, isOn: () => player.isEyeSteady };
 }
 
 /** The heading over `waterStageSwitches`. */

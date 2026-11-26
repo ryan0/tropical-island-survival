@@ -25,9 +25,12 @@ const vec2 SMALL_WAVES_CROSS = vec2(0.026, -0.020);
 // of the other reading's light and dark the bold net takes on. The broad light and dark the small waves gather
 // the light into, and how uneven that makes the net. And how much of it all is left in a calm, when the water is
 // never quite still.
-// (At 0.8 the net was the largest part of what moves on a floor seen from the beach, and with the ripples'
-// bending made shallow water tiring to look into: fainter, it is still plainly there.)
-const float NET_OF_LIGHT = 0.5;
+// (At 0.8 the net was the largest part of what changes from frame to frame on a floor seen from the beach, and
+// it was made fainter, 0.5, when Ryan found the water busy. But what tired him proved to be how the floor moved
+// as he moved, and with no net at all he found no difference; and against the photographs of shallow water
+// over sand ours is the plainer even at 0.8 (tools/look/busyness.ts: 0.9 of their spread of lightness). So it
+// is most of the way back, and far off the ripples now smear it soft: water.frag.glsl.)
+const float NET_OF_LIGHT = 0.7;
 const float NET_LEAVES_ALONE = 0.85;
 const float OTHER_NET_COUNTS = 0.55;
 const float BROAD_LIGHT = 0.3;
