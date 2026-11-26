@@ -99,6 +99,11 @@ export async function takePicture(page: Page, view: ReferenceView): Promise<Buff
   return page.screenshot({
     animations: 'disabled',
     style: view.showsControls ? undefined : `${CONTROLS} { display: none !important; }`,
+    // A picture waits until the software renderer has drawn every frame run before it: on a small
+    // shared machine that is the longest wait there is. So it is bounded by the test's own time
+    // and by nothing shorter: the wait a test allows for a control (controls.spec.ts) cut it off
+    // on GitHub's machines, and failed every run there.
+    timeout: 0,
   });
 }
 

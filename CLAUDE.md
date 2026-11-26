@@ -175,7 +175,7 @@ is built with the working files' packages, so a run cannot compare across a chan
 
 GitHub publishes `main` to <https://ryan0.github.io/tropical-island-survival/>, every unmerged branch to
 `preview/<branch>/` below it (`preview/` lists them). Its checks have no reference build to compare with, so
-they catch only what is broken.
+they catch only what is broken; a test that fails there is named on the run's own page.
 
 ## Conventions
 

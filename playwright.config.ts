@@ -5,7 +5,11 @@ export default defineConfig({
   forbidOnly: Boolean(process.env.CI),
   // Finds the reference build before the tests; turns what they recorded into the review page after.
   globalSetup: './tests/prepare-run.ts',
-  reporter: [['list'], ['./tests/review-reporter.ts']],
+  // (On GitHub a failed test is written onto the run's own page too, where it can be read
+  // without opening the log.)
+  reporter: process.env.CI
+    ? [['list'], ['github'], ['./tests/review-reporter.ts']]
+    : [['list'], ['./tests/review-reporter.ts']],
   fullyParallel: true,
   // A scene test draws in the software renderer: seconds a picture here, and several times that
   // on a small shared machine.
