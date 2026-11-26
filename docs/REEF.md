@@ -47,8 +47,23 @@ The shape and depth work. Ryan agreed items 1 to 6 on 16 November 2026 and they 
 5. The pass: a flat scoured floor, a low ridge of coral across it, and a lobe of sand off its seaward mouth.
 6. The lee: a wall below the sill, not a slope, and no spurs.
 7. Behind the crest: a lower strip of flat-topped heads and pothole pools (1.5-3 m across, 1-1.5 m deep).
+   Built 26 November 2026, at the least size the ground's squares draw: heads some 6 m across standing to half
+   a metre under the sea, potholes some 5 m across and 1.3 m deep, crowded here and few there, on the sides
+   the sea beats on.
 8. The lagoon: patch reefs steep-sided and flat-topped, 3-9 m across; the shelf's edge in lobes; the hole's
-   walls steep.
+   walls steep. Built 26 November 2026: the patch reefs are clusters of flat-topped knolls some 8 m across
+   (they were broad domes), the shelf's edge has a second, finer wander, and the hole's walls were steep
+   already. And the way in from the inlet has broad, wandering sides: cut like the inlet itself, it was two
+   straight ledges of rock across the shelf.
+
+**The gardens deeper, with basins (Ryan, 26 November 2026):** "I would like the garden area between the
+breaking waves and shore to be slightly deeper. And as well I would like the depth of this area to vary a
+bit more just so there are deeper areas here (think 10-20 ft) for the player to explore while protected
+from the open ocean." The gardens lie 2.7 m down, give or take 1.9 (they were 2.3, give or take 1.7); the bare
+flat behind the high ridge 1.5 m (it was 1.2); and some half dozen basins lie round the atoll, each fifty to
+eighty metres long, 4.5 to 6.5 m deep with a floor of sand: one straight off home, 55 to 95 m off the beach.
+The shallows by the beach, the crest and everything outside it are as they were, so the swell breaks where
+it did. The debug panel flies to two of the basins.
 
 How items 1 to 6 came out, and the choices made in building them:
 
@@ -371,7 +386,7 @@ For a setting from the Marshall Islands to Kiribati (and we are free to mix):
 ## Liberties we take
 
 - **The crest lies 0.65 m under water.** A real ridge stands at the waterline and is awash at low tide.
-- **The gardens' pools reach 4 m.** No measured pool on a reef flat is deeper than 1.5 m. The deeper water is
+- **The gardens' pools reach 4.6 m and their basins 6.5 m.** No measured pool on a reef flat is deeper than 1.5 m. The deeper water is
   there to explore.
 - **The sea floor is 30 m down.** A real atoll's slope goes on into the deep.
 - **The pass is 45 m wide.** Real ones are 90-200 m.

@@ -2567,6 +2567,25 @@ for comparing.
 keeps the photographs out (`reference-photos/`) also matched the folder of their lists; it now names the
 top folder only, and the ten lists are in.
 
+**The night's third part: the gardens deeper, with basins; the reef's last two shape items** (branch
+`reef-2-deeper-gardens`, stacked on `look-6-water-colours`). `docs/REEF.md` has the sizes ("The gardens
+deeper, with basins", and items 7 and 8 of the shape list):
+
+- *The gardens* lie 2.7 m down, give or take 1.9, and the bare flat behind the high ridge 1.5 m. Some half
+  dozen *basins* lie round the atoll, fifty to eighty metres long and 4.5 to 6.5 m deep (15 to 21 ft), with
+  floors of sand and coral heads on them: one straight off home, 55 to 95 m off the beach, which shows
+  from the beach as a band of deeper blue. The debug panel flies to it and to one in the east.
+- *Behind the crest,* on the sides the sea beats on: a strip of heads standing to half a metre under the
+  sea, with pothole pools between them.
+- *The lagoon's patch reefs* are clusters of flat-topped knolls; its shelf's edge wanders more; and *the way
+  in from the inlet* has broad wandering sides, which rids the lagoon of the two straight ledges.
+- The shallows a wader keeps to, the crest and all outside it are untouched: the swell breaks where it did
+  (the surf's views and the wave model's check say so). Of the scene's 2429 objects 28 are gone and half
+  have moved: whatever is placed by the floor's height (corals, rocks, heads) went where the new floor has
+  it. **Not looked at one by one:** the next part places the coral afresh in any case.
+- More of the shallows are now swum than waded, at the swimmer's 2 m/s: across the reef flat from the home
+  beach to the crest is about a minute.
+
 ## Later
 
 - More passes on the reef.

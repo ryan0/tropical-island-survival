@@ -34,16 +34,27 @@ const float HOLE_RADIUS = 20.0;
 // mid-tide: a tide of half a metre either way is planned for, so the highest of the reef is just awash at low
 // water.
 // The shallows are sand under SHALLOWS_DEPTH of water, to wade in. The gardens lie about GARDENS_DEPTH down and
-// rise and fall GARDENS_RELIEF either way: pools, and mounds that nearly reach the surface.
+// rise and fall GARDENS_RELIEF either way: pools, and mounds that nearly reach the surface. Here and there
+// their floor falls away into a basin some fifty metres across, BASIN_DEPTH deeper and evener: deep water behind
+// the crest, out of the open sea, to dive in. (Ryan, 26 November 2026: the gardens "slightly deeper", and
+// "deeper areas here (think 10-20 ft) for the player to explore while protected from the open ocean". They
+// were 2.3 m down, give or take 1.7, with no basins.)
 const float SHALLOWS_DEPTH = 0.95;
-const float GARDENS_DEPTH = 2.3;
-const float GARDENS_RELIEF = 1.7;
+const float GARDENS_DEPTH = 2.7;
+const float GARDENS_RELIEF = 1.9;
+const float BASIN_DEPTH = 2.8;
 // The crest. Where the sea beats on it, it is a ridge. Where the reef bulges towards the sea the ridge is high:
 // its top RIDGE_TOP down, and behind it a bare flat BEHIND_RIDGE down. Where the reef curves away it is a low
 // arch, ARCH_TOP down, with the gardens close behind it, BEHIND_ARCH down. Where little sea reaches it (the west)
 // it is flat rock CREST_DEPTH down.
 const float RIDGE_TOP = 0.4;
-const float BEHIND_RIDGE = 1.2;
+const float BEHIND_RIDGE = 1.5;
+// Just behind the crest, on the sides the sea beats on, lies a strip of flat-topped heads that stand to
+// HEAD_TOPS under the sea (awash at low water), with pothole pools between them, POTHOLE_DEPTH deeper than the
+// floor round them (docs/REEF.md, the gardens). A real head is 1 to 8 m across and a pothole 1.5 to 3: ours are
+// some 6 and 5, the least the ground's squares can draw.
+const float HEAD_TOPS = 0.5;
+const float POTHOLE_DEPTH = 1.3;
 const float ARCH_TOP = 0.55;
 const float BEHIND_ARCH = 0.8;
 const float CREST_DEPTH = 0.65;
@@ -173,6 +184,19 @@ float gardenMounds(float x, float z) {
   return 0.5 * sin(bentX * 0.071 + 0.9) * sin(bentZ * 0.066 + 2.1)
     + 0.3 * sin(bentX * 0.153 + bentZ * 0.047) * sin(bentZ * 0.139 - bentX * 0.031 + 1.3)
     + 0.2 * sin(x * 0.027 + 0.5) * sin(z * 0.031 + 1.9);
+}
+
+// The gardens' basins: 1 on the floor of one, 0 outside. A broad pattern of their own, bent out of line, so that
+// some half dozen lie round the atoll; and only within the gardens (`along` is the distance along the reef),
+// clear of the shallows a wader keeps to and of the crest the swell breaks on.
+float gardenBasins(float x, float z, float along) {
+  float bentX = x + 22.0 * sin(z * 0.017 + 0.4);
+  float bentZ = z + 22.0 * sin(x * 0.015 + 1.7);
+  // (their rims wander with a finer pattern, or each would be a rounded square)
+  float rim = 0.16 * sin(x * 0.083 + z * 0.041 + 1.2) * sin(z * 0.077 - x * 0.036 + 0.7);
+  return smoothstep(0.35, 0.7, sin(bentX * 0.026 + 2.6) * sin(bentZ * 0.029 + 0.3) + rim)
+    * smoothstep(GARDENS_BEGIN + 6.0, GARDENS_BEGIN + 22.0, along)
+    * (1.0 - smoothstep(CREST_BEGINS - 30.0, CREST_BEGINS - 14.0, along));
 }
 
 // How hard the sea beats on a stretch of the reef: 1 round the south, where the swell arrives; about a half on the
@@ -370,6 +394,26 @@ float reefLumps(float x, float z) {
   return sin(x * 0.75 + 1.7 * sin(z * 0.33)) * sin(z * 0.7 + 1.7 * sin(x * 0.29));
 }
 
+// The strip of heads and potholes behind the crest: 1 in it, 0 outside. `along` is the distance along the reef,
+// `ridge` how much of a ridge the crest is here (none on the sheltered sides, where there is no strip).
+float behindCrestStrip(float along, float ridge) {
+  return ridge * smoothstep(CREST_BEGINS - 28.0, CREST_BEGINS - 20.0, along)
+    * (1.0 - smoothstep(CREST_BEGINS - 7.0, CREST_BEGINS + 1.0, along));
+}
+
+// The strip's flat-topped heads (1 on one, 0 between) and its potholes (1 in one): each from the reef's lumps,
+// read at a size of its own, so that neither lies in the other's rows.
+float stripHeads(float x, float z) {
+  // (crowded here and few there, by the gardens' broad pattern: evenly spaced, they were a string of beads
+  // from the air)
+  float crowding = 0.3 * gardenMounds(x * 1.4 + 50.0, z * 1.4 - 20.0);
+  return smoothstep(0.2, 0.42, reefLumps(x * 0.62 + 3.0, z * 0.62 + 11.0) + crowding);
+}
+
+float stripPotholes(float x, float z) {
+  return smoothstep(0.4, 0.6, reefLumps(x * 0.8 - 7.0, z * 0.8 + 2.0)) * (1.0 - stripHeads(x, z));
+}
+
 // Fallen blocks, where the lumps are as given: 1 on the top of one, 0 on the floor between, over a quarter of it.
 float fallenBlocks(float lumps) {
   return smoothstep(0.1, 0.7, lumps);
@@ -405,7 +449,11 @@ float reefHighGround(float x, float z) {
   float spurWave = spurWaveAt(direction);
   float edgeWave = edgeWaveAt(direction);
   float spursEnd = spursEndFor(spurWave, edgeWave);
-  float mounds = smoothstep(-0.15, 0.45, gardenPattern) * (1.0 - 0.8 * bareBehindRidge(highRidge, along));
+  // (a basin's floor is sand; behind the crest the heads are rock and coral, and a pothole's floor sand)
+  float mounds = smoothstep(-0.15, 0.45, gardenPattern) * (1.0 - 0.8 * bareBehindRidge(highRidge, along))
+    * (1.0 - gardenBasins(x, z, along));
+  float strip = behindCrestStrip(along, ridgeFor(exposure));
+  mounds = max(mounds, strip * stripHeads(x, z)) * (1.0 - strip * stripPotholes(x, z));
   float groove = foreReefGroove(direction, distanceFromCentre, along, highRidge, exposure, spurWave, spursEnd);
   float betweenGrooves = 1.0 - smoothstep(0.08, 0.5, groove);
   float onCrest = mix(betweenGrooves, leePatches(leeMounds(x, z)), lee);
@@ -453,14 +501,25 @@ float hgt(float x, float z) {
   float fromShore = -min(fromLagoonShore, 0.0);
   float beach = LAGOON_BEACH_FALLS_TO * (1.0 - exp(-fromShore / 24.0));
   float shelf = -smin(-beach, -(LAGOON_SHELF_DEPTH + 0.012 * fromShore), 0.5);
-  float shelfEnds = LAGOON_SHELF_WIDTH + 7.0 * gardenMounds(x + 71.0, z - 43.0);
+  // (its edge runs in lobes: a broad wander and a finer one)
+  float shelfEnds = LAGOON_SHELF_WIDTH + 7.0 * gardenMounds(x + 71.0, z - 43.0)
+    + 5.0 * sin(x * 0.11 + 0.8) * sin(z * 0.097 + 2.4);
   float inBasin = smoothstep(shelfEnds, shelfEnds + 20.0, fromShore);
   float lagoonDepth = shelf + (LAGOON_DEPTH - LAGOON_SHELF_DEPTH) * inBasin
     - 0.5 * gardenMounds(x * 0.6 + 19.0, z * 0.6 - 7.0) * inBasin;
   // The way in from the inlet: along the inlet's line the floor is as deep as the basin all the way to the sandbar.
-  lagoonDepth = mix(lagoonDepth, max(lagoonDepth, LAGOON_DEPTH), passChannel(direction, distanceFromCentre, 0.0));
-  // The patch reefs: the tops of an uneven pattern of mounds, in the basin only.
-  float patchReefs = PATCH_REEF_HEIGHT * smoothstep(0.1, 0.45, gardenMounds(x - 211.0, z + 97.0)) * inBasin;
+  // Its sides are broad, some fifteen degrees of the turn, and wander: cut as the inlet is cut through the
+  // sandbar (passChannel), they were two straight ledges of bare rock across the lagoon's shelf, plain from the
+  // air once the water was made clearer.
+  float alongInlet = 0.5 + 0.5 * cos(direction - CHANNEL_DIRECTION - 0.05 * sin(distanceFromCentre * 0.05));
+  float wayIn = smoothstep(CHANNEL_EDGE - 0.022 + 0.008 * gardenMounds(x * 1.7 + 40.0, z * 1.7 - 90.0),
+    CHANNEL_EDGE + CHANNEL_EDGE_WIDTH, alongInlet);
+  lagoonDepth = mix(lagoonDepth, max(lagoonDepth, LAGOON_DEPTH), wayIn);
+  // The patch reefs, in the basin only: knolls with flat tops and steep sides, some eight metres across, in
+  // clusters where an uneven pattern of mounds stands high (docs/REEF.md: a lagoon's patch reefs are
+  // steep-sided and flat-topped, not domes).
+  float knolls = smoothstep(0.15, 0.4, reefLumps(x * 0.42 + 9.0, z * 0.42 - 4.0));
+  float patchReefs = PATCH_REEF_HEIGHT * knolls * smoothstep(0.1, 0.3, gardenMounds(x - 211.0, z + 97.0)) * inBasin;
   // The deep hole: steep-sided, its rim a little out of round.
   float holeAcross = x - holeX();
   float holeAlong = z - holeZ();
@@ -499,6 +558,13 @@ float hgt(float x, float z) {
   float gardens = -GARDENS_DEPTH + GARDENS_RELIEF * gardenPattern + 0.5 * ripples;
   float bareFlat = -BEHIND_RIDGE + 0.3 * gardenPattern + 0.5 * ripples;
   gardens = mix(gardens, bareFlat, bareBehindRidge(highRidge, along));
+  // (a basin lies wherever its pattern has it, in the bare flat as in the gardens)
+  float basinFloor = -GARDENS_DEPTH - BASIN_DEPTH + 0.5 * GARDENS_RELIEF * gardenPattern + 0.5 * ripples;
+  gardens = mix(gardens, min(gardens, basinFloor), gardenBasins(x, z, along));
+  // (behind the crest: the heads stand up from whatever the floor is there, and the potholes are sunk in it)
+  float strip = behindCrestStrip(along, ridge);
+  gardens = mix(gardens, max(gardens, -HEAD_TOPS + 0.3 * ripples), strip * stripHeads(x, z));
+  gardens -= POTHOLE_DEPTH * strip * stripPotholes(x, z);
   // The crest rises from its back to its top, which lies towards the sea. On the sheltered side it is a sill,
   // with patches of reef left standing on it.
   float crestBack = mix(CREST_DEPTH, mix(BEHIND_ARCH, BEHIND_RIDGE, highRidge), ridge);
