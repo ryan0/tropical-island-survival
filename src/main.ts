@@ -364,12 +364,15 @@ const debugPanel = createDebugPanel(
     },
     {
       heading: FRAME_COST_HEADING,
-      switches: frameCostSwitches(water, uniforms, breaker, spray, quality, {
-        instanceCells,
-        terrain,
-        sky: skyDome.material,
-        skyLamp: lights.skyLamp,
-      }),
+      switches: frameCostSwitches(
+        water,
+        uniforms,
+        breaker,
+        spray,
+        quality,
+        { instanceCells, terrain, sky: skyDome.material, skyLamp: lights.skyLamp },
+        underWaterPicture,
+      ),
     },
     { heading: WATER_STAGES_HEADING, switches: waterStageSwitches(water) },
     { heading: 'fly to', actions: placesToFlyTo(player) },

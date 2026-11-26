@@ -74,6 +74,13 @@ export interface UnderWaterPicture {
   sortScene(): void;
   /** Draws the picture for the frame about to be drawn, while the eye is above a sea that is there. */
   update(frame: UnderWaterPictureFrame): void;
+  /**
+   * A cost switch: whether the picture's smaller, softer copies of itself are made each frame
+   * (they are, wherever the graphics card can make them). Without them nothing is smeared by
+   * the ripples.
+   */
+  readonly hasSofterCopies: boolean;
+  keepSofterCopies(areKept: boolean): void;
 }
 
 function takesNoFog(material: Material | Material[]): boolean {
@@ -134,8 +141,29 @@ export function createUnderWaterPicture(
   camera.layers.enable(NOT_IN_PICTURE);
 
   const screen = new Vector2();
+  let areSofterCopiesKept = hasSofterCopies;
+  let smearingWithCopies = uniforms.uSmearingShare.value;
 
   return {
+    get hasSofterCopies() {
+      return areSofterCopiesKept;
+    },
+    keepSofterCopies(areKept) {
+      if (!hasSofterCopies || areKept === areSofterCopiesKept) return;
+
+      areSofterCopiesKept = areKept;
+      // (A picture that is to have copies and has none reads as nothing: so it is told that it
+      // has none, and made afresh, and the surface asks for nothing softer than its own dots.)
+      picture.texture.generateMipmaps = areKept;
+      picture.texture.minFilter = areKept ? LinearMipmapLinearFilter : LinearFilter;
+      picture.dispose();
+      if (areKept) uniforms.uSmearingShare.value = smearingWithCopies;
+      else {
+        smearingWithCopies = uniforms.uSmearingShare.value;
+        uniforms.uSmearingShare.value = 0;
+      }
+    },
+
     sortScene() {
       const clearOfTheSea = uniforms.uSeaLevel.value + config.clearOfTheSea;
       scene.updateMatrixWorld();
