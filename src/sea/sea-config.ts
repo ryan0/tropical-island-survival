@@ -172,9 +172,43 @@ export const seaConfig = {
     shareOfScreen: 0.5,
     /**
      * A thing whose lowest point is this far above the still sea (m) is never drawn into it: no
-     * wave stands so high where anything stands.
+     * wave stands so high where anything stands. Within the island's outer shore, where the land
+     * and the lagoon lie, it is the second, for a thing that stands on the ground (a palm, a
+     * bush, a stone): the swash runs less than that up the ocean beaches and the lagoon lies
+     * flat. (Until that was told apart, every square of palms and bushes with one foot lower
+     * than a man's chest was drawn into the picture whole: a fifth of a frame's triangles,
+     * looking inland from a beach. The ground itself is another matter: all of it near the
+     * sea is drawn into the picture, however high, since the surface, reading the picture a
+     * little to one side of itself, must find there that the beach beside it is out of the
+     * sea. With the beach left out, it found the deep, and drew a dark band along the shore.)
      */
-    clearOfTheSea: 1.5,
+    clearOfTheSea: { offshore: 1.5, withinOuterShore: 0.5 },
+    /**
+     * And what lies this far under the still sea (m) is drawn into it alone, while the eye is
+     * above the sea: the sea's surface is never so low, so on the screen the surface always hides
+     * it, and drawing it there too was work thrown away (the ground's colouring most of all,
+     * worked out for every dot of the screen the water then covered). The lagoon's water lies
+     * flat; the lowest the swell's troughs go anywhere else is 0.66 m, by the program's wave
+     * model, over a minute and a half of it.
+     */
+    alwaysUnderSea: { inLagoon: 0.15, elsewhere: 1.0 },
+    /**
+     * Under all of that, this far under the still sea (m), lies a level sheet as wide as this
+     * each way from the eye (m), on which the screen shows the picture itself: the sea's sheets
+     * do not everywhere quite meet, and through a crack between two of them a hair's breadth
+     * wide the floor used to show, drawn straight. With the floor left out, the sky showed
+     * through instead, as a dark thread across the far water. (It reaches less far than the far
+     * sea's own sheet does, water-config.ts: past the sea's edge it showed as a dark line along
+     * the horizon.)
+     */
+    backing: { under: 1.1, reach: 2500 },
+    /**
+     * An eye lower over the sea than the first of these (m) is given the second as the nearest
+     * distance it draws at, in place of the camera's usual one: at that the bottom of the screen,
+     * looking steeply down, cut under the surface a hand's breadth from a swimmer's eye, and
+     * showed the floor with no water over it.
+     */
+    eyeLowOverSea: { within: 0.6, drawsFrom: 0.12 },
   },
 
   /**

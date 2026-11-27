@@ -7,6 +7,13 @@ photographs are not in the repository (most are other people's); each group is d
 ## Standing rules
 
 - **Match the reference.** When Ryan sends a photo, the scene is compared with it and worked on until it matches.
+- **As a person's eye sees it, not a camera.** "We are not going for a camera perfect look, we instead want it
+  to be exactly what a human eye would see, so any effects specific to cameras but not human eye are out"
+  (Ryan, 26 November 2026). Nothing is added that is a camera's: darkened corners, flare from a lens, a depth
+  of field, blur from motion, grain. And a photograph is matched for what an eye there would have seen, not
+  for what is the camera's in it: a polarising filter takes most of the sky's mirror off water, exposure
+  blows out the bright and blackens the dark, a wide lens bends the horizon. (A screen shows one eye's view:
+  what two eyes tell a person of depth has to be told some other way.)
 - **Nothing regular.** No grids, rows, rings or repeats. A pattern made of cells needs random size, shape, angle
   and gaps, in more than one layer. Never colour by a cell alone; shape the thing inside it.
 - **No hard bands and no drawn lines**, above all at the water's edge. A line that follows a height reads as a
@@ -360,6 +367,23 @@ it: **the floor drawn sharp to the horizon from a low eye** (squeezed up under t
 the eye moved, and no photograph shows it). The fine ripples now smear it, by the law's own measure. Dusk
 is a step lighter (the water's own colour with the sun at the horizon, 0.54 of its day colour where it was
 0.46): his "maybe a bit lighter".
+
+*How deep water looks, and why* (26 November 2026, when Ryan asked what the raising is in the world: with
+it whole the water "looks more natural" but "loses all of its feeling of depth"). Water does look shallower
+than it is, by an amount that is the law of refraction's and no one's to choose: three quarters of its depth
+looking straight down, half at thirty degrees below level, a third at twenty, a fifth at ten. So a level
+floor 1.5 m down seems, to a wader with his eye a metre over the water, 1.1 m down at his feet, 0.75 m three
+metres off and a hand's depth (0.26 m) at eight; to a swimmer's eye it seems a hand's depth at five metres.
+That is what a camera at the eye records, and what we draw to a twentieth of a degree. What tells a man the
+water is deep all the same is not the floor's place: it is the water's colour, which deepens with every
+metre (ours does as clear water's does: seen straight down, sand five metres down is 0.43 as bright as sand
+one metre down and has lost its red, where the arithmetic of clear water gives four to five tenths); the
+surface seen as a sheet of its own, with the sky in it, sliding over the floor as he moves; the far floor
+lost in that mirror, so that he sees the floor clearly only near his feet, where it is least raised; his own
+legs and shadow; and knowing how deep he stands. Of these ours lacks the last two outright, and shows the
+far floor further out than the photographs do when the smear is turned down. The debug panel's `raising`
+slider sets how strongly the sea bends light, as a share of what water does: less than 1 is another liquid,
+drawn truly for what it is.
 
 *The targets (20 November 2026):* eight pairs, each a photograph beside our view from the same height, way of
 looking and light (`tools/look/boards/pairs.json`, which says what each shows; `ROADMAP.md`, "the plan"). A

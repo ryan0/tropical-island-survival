@@ -183,7 +183,10 @@ export function frameCostSwitches(
   spray: Pick<Spray, 'throwFromCrest' | 'isThrownFromCrest'>,
   quality: Pick<AutomaticQuality, 'drawMoreDots' | 'isDrawingMoreDots'>,
   land: LandToLeaveOut,
-  underWaterPicture: Pick<UnderWaterPicture, 'hasSofterCopies' | 'keepSofterCopies'>,
+  underWaterPicture: Pick<
+    UnderWaterPicture,
+    'hasSofterCopies' | 'keepSofterCopies' | 'isCoveredDrawnTwice' | 'drawCoveredTwice'
+  >,
 ): DebugSwitch[] {
   const leaveOut = (kind: InstanceKind): DebugSwitch => ({
     label: `hide ${kind}`,
@@ -219,6 +222,16 @@ export function frameCostSwitches(
         underWaterPicture.keepSofterCopies(!on);
       },
       isOn: () => !underWaterPicture.hasSofterCopies,
+    },
+    {
+      // What it saves that the ground and the coral the sea's surface always covers are drawn into the
+      // picture of what is under the sea and not onto the screen as well: with this on they are drawn
+      // onto the screen too, under the surface that hides them, as they were.
+      label: 'the deep drawn twice',
+      set(on) {
+        underWaterPicture.drawCoveredTwice(on);
+      },
+      isOn: () => underWaterPicture.isCoveredDrawnTwice,
     },
     // (each kind of thing left out of the picture and of the shadows)
     leaveOut('plants'),
@@ -307,14 +320,18 @@ export function frameCostSwitches(
   ];
 }
 
-/** The heading over `seenThroughWaterSliders` and `steadyEyeSwitch`. */
+/** The heading over `seenThroughWaterSliders` and `steadyEyeSwitch`, and the switch that unfolds them. */
 export const SEEN_THROUGH_WATER_HEADING =
   'what is seen through the water: levels only an eye can find (the middle of each is as designed)';
+export const SEEN_THROUGH_WATER_SHOWN_BY = 'levels';
 
 /**
  * Levels for how what is under the water looks and moves, which nothing but a person's eyes can
  * set (docs/ROADMAP.md, "Wading made him queasy"): moving through water in a full screen turned
- * Ryan's stomach, and what eases one person is not what eases another.
+ * Ryan's stomach, and what eases one person is not what eases another. He has set them (the
+ * evening of 26 November 2026: core/shared-uniforms.ts has where), and they are folded away
+ * behind the panel's `levels` switch, where they do not crowd it; the tools that measure what
+ * moves under the water still set them (tools/look/wade.ts).
  */
 export function seenThroughWaterSliders(uniforms: SharedUniforms): DebugSlider[] {
   const level = (
@@ -333,8 +350,10 @@ export function seenThroughWaterSliders(uniforms: SharedUniforms): DebugSlider[]
     },
   });
   return [
-    // (at nought what is under the sea is drawn where it is, not where it seems to be through
-    // the surface: the look before 20 November 2026, with the faults that had)
+    // (How strongly the sea bends light, as a share of what water does: at 1 what is under it is
+    // drawn where it seems to be through water, at nought where it is, which is the look before
+    // 20 November 2026 with the faults that had. Every level between is a liquid that bends light
+    // less than water, and all that is under it keeps its places by that one law.)
     level('raising', uniforms.uRaisingShare, 1),
     level('ripples bend', uniforms.uBendingShare, 2),
     // (the far floor smeared by the fine ripples: at nought it is drawn sharp to the horizon)

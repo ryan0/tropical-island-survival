@@ -68,10 +68,13 @@ the git tag `build-78`.
     under the sea that is drawn before each frame (`sea/under-water-picture.ts`): the surface reads the
     picture a little to one side, as its ripples bend the eye's line, and greys each thing, puts the water's
     glow before it and hides it in the water's colour, by that thing's own depth
-    (`shaders/shared/water-veil.glsl`). Into that picture every thing under the sea is drawn raised to where
-    it seems to be through a flat surface (`shaders/shared/raised-through-surface.glsl`), since the picture
+    (`shaders/shared/water-veil.glsl`). Into that picture every thing under the sea is drawn on the line it
+    seems to lie on through a flat surface (`shaders/shared/raised-through-surface.glsl`), since the picture
     is drawn by straight lines and the eye's line is bent down at the surface: without that, an eye looking
-    down a slope that falls away saw past it to the deep. (And what stands a little out of the sea is drawn
+    down a slope that falls away saw past it to the deep. (On that line, further off, at its own depth: not
+    raised where it stands, as it was until 26 November 2026. Only corners are moved, and raised each by
+    its own amount a level floor was no longer level between them.) What lies so deep that the surface
+    always covers it is drawn into that picture and not onto the screen. (And what stands a little out of the sea is drawn
     lower by the same rule, so that the sand at a waterline, between a corner that is moved and one that is
     not, stays where it is; the surface allows for it where a wave has run up a beach.) Other engines measure the water in front of a thing from the scene's
     depth behind the surface, which may not be read here (`DEVICE_NOTES.md`): so each thing writes its depth

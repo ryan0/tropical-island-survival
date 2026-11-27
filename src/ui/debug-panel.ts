@@ -30,6 +30,11 @@ export interface DebugSlider {
 export interface DebugSection {
   /** Left out for the first group, which needs none. */
   heading?: string;
+  /**
+   * Folded away, heading and all, until a switch of this name is on: the panel makes the switch
+   * and puts it at the end of its first group. For controls that are seldom wanted and take room.
+   */
+  shownBy?: string;
   switches?: DebugSwitch[];
   actions?: DebugAction[];
   sliders?: DebugSlider[];
@@ -86,7 +91,18 @@ export function createDebugPanel(
   describe: () => string[],
   sections: DebugSection[],
 ): DebugPanel {
-  const switches = sections.flatMap((section) => section.switches ?? []);
+  // (A folded section's own element is made when the panel is first opened: till then there is
+  // nothing to show or hide.)
+  const folded = sections.filter((section) => section.shownBy !== undefined);
+  const elementOfFolded = new Map<DebugSection, HTMLElement>();
+  const unfolding: DebugSwitch[] = folded.map((section) => ({
+    label: section.shownBy ?? '',
+    set(on) {
+      const element = elementOfFolded.get(section);
+      if (element !== undefined) element.hidden = !on;
+    },
+  }));
+  const switches = [...sections.flatMap((section) => section.switches ?? []), ...unfolding];
   const report = document.createElement('div');
   report.className = 'debug-report';
   // Whether each switch is on, for those that do not say so themselves.
@@ -124,20 +140,29 @@ export function createDebugPanel(
       }),
     );
     element.append(report);
-    for (const section of sections) {
+    sections.forEach((section, place) => {
+      // (a folded section is a block of its own, which its switch shows and hides)
+      const into = section.shownBy === undefined ? element : document.createElement('div');
+      if (into !== element) {
+        into.hidden = !isOn(switches.indexOf(unfolding[folded.indexOf(section)]));
+        elementOfFolded.set(section, into);
+        element.append(into);
+      }
       if (section.heading !== undefined) {
         const heading = document.createElement('div');
         heading.className = 'debug-heading';
         heading.textContent = section.heading;
-        element.append(heading);
+        into.append(heading);
       }
-      for (const one of section.switches ?? [])
-        element.append(switchButtons[switches.indexOf(one)]);
+      for (const one of section.switches ?? []) into.append(switchButtons[switches.indexOf(one)]);
       for (const { label, run } of section.actions ?? []) {
-        element.append(button('debug-switch', label, run));
+        into.append(button('debug-switch', label, run));
       }
-      for (const one of section.sliders ?? []) element.append(slider(one));
-    }
+      for (const one of section.sliders ?? []) into.append(slider(one));
+      if (place === 0) {
+        for (const one of unfolding) element.append(switchButtons[switches.indexOf(one)]);
+      }
+    });
     return element;
   }
 

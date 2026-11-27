@@ -179,9 +179,14 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   may not be drawn into a picture it reads; and the shadow map is not redrawn, since the first drawing of a
   frame draws it from what its own camera sees. On the phone on 20 November 2026 as a trial: with `more dots`
   on as well it made 39 to 42 frames a second (its cost by itself has not been read), and Ryan named no fault
-  in the drawing. Its size is `seaConfig.underWaterPicture.shareOfScreen`. Still to save if it is wanted:
-  what lies under the sea is drawn twice, into the picture and onto the screen, where the surface then
-  covers all of it.
+  in the drawing. Its size is `seaConfig.underWaterPicture.shareOfScreen`. What lay under the sea was drawn
+  twice, into the picture and onto the screen, where the surface then covered all of it: since 26 November
+  2026 what the surface always covers is drawn into the picture alone (`sea/sea-reach.ts`). **Read on the
+  phone that evening:** "fairly consistently 60 fps, rare brief dips to 55ish", where the same work drawn
+  twice had been about 50; with the cost switch `the deep drawn twice` on, "the frames drop". And `ground by
+  its corners` and `no softer copies` had "little to no discernible effect": the three Newton steps for
+  every corner, the ground's dot-by-dot rule and the picture's softer copies are not what a frame is spent
+  on.
 - New on 20 November 2026 and not yet on the phone: every built-in material's vertex shader ends by moving
   the vertex, while the picture of what is under the sea is drawn (`sea/water-as-fog.ts`, in three.js's
   `fog_vertex`): up, by how much nearer the surface it seems (`raised-through-surface.glsl`). It is two
@@ -199,11 +204,21 @@ another try when three.js or the phone's driver has moved on: the trial's branch
   divisions, behind a test on a uniform, before any picture is read) and moves the place it looks its shadow
   up at to match (`shaders/shared/seen-through-surface.glsl`, `world/terrain.ts`). If the frame rate has
   fallen, the picture's size (`shareOfScreen`) and these are where to look first.
+- New the evening of 26 November 2026 and not yet on the phone: that rule now moves a corner *along the
+  level*, further from the eye, to where the eye's line comes down to the corner's own depth (and up only
+  where 3000 m stops it short); the same arithmetic with one more division, by the eye's height, which is
+  never less than 0.1. Three numbers go on to the fragment shader where one did. The ground's dot-by-dot
+  rule now asks how its place changes across the screen (`dFdx`, `dFdy`: WebGL 2's own, worked out before
+  any branch) and divides by a number held above 0.06. The picture's depth is 24 bits and comes with a
+  stencil, which nothing uses. And an eye within 0.6 m of the sea draws from 0.12 m, where the camera's
+  usual nearest is 0.2: the camera's projection is made afresh when the eye crosses that height.
 - New the same night, and **to be read on the phone with the debug panel's `smeared by ripples` slider at
   nought and at 1**: the picture of what is under the sea keeps smaller copies of itself (mipmaps), made
   afresh every frame, where WebGL 2 allows (`under-water-picture.ts`); the sea's surface reads one of them
   once more for every dot (`texture2DLodEXT`, which names its copy and so may sit inside a branch), and its
-  other readings of the picture name the picture's own dots likewise. The copies are made whatever the
+  other readings of the picture name the picture's own dots likewise. (Four times more, since that evening,
+  and only where there is a smear to read: inside a branch on a number that differs from dot to dot. Each
+  names its copy, so none needs to know how its place changes across the screen.) The copies are made whatever the
   slider says (a picture that is to have copies and has none reads as nothing): at nought what is saved is
   only the reading of a softer copy.
 - **To read these on the phone,** two cost switches (the debug panel, "what a frame costs"): `ground by its

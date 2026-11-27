@@ -54,14 +54,16 @@ The shape and depth work. Ryan agreed items 1 to 6 on 16 November 2026 and they 
 5. The pass: a flat scoured floor, a low ridge of coral across it, and a lobe of sand off its seaward mouth.
 6. The lee: a wall below the sill, not a slope, and no spurs.
 7. Behind the crest: a lower strip of flat-topped heads and pothole pools (1.5-3 m across, 1-1.5 m deep).
-   Built 26 November 2026, at the least size the ground's squares draw: heads some 6 m across standing to
-   0.85 m under the sea, with sloping sides (flat-topped and half a metre down they were white slabs with
-   stepped outlines from the air), potholes some 5 m across and 1.3 m deep, crowded here and few there, on
-   the sides the sea beats on.
+   Built 26 November 2026 as rises and hollows of the ground itself, some 6 and 5 m across, and taken out
+   of its shape again the same evening: three of the ground's squares across, each was plainly a few flat
+   faces, and Ryan saw it at once. Their places are still there, as rock and coral and as sand on a level
+   floor (`behindCrestStrip`, `stripHeads`, `stripPotholes`). What stands at them is a model's to draw: low,
+   flat-topped heads as the reef's own heads are made. Proposed, not built.
 8. The lagoon: patch reefs steep-sided and flat-topped, 3-9 m across; the shelf's edge in lobes; the hole's
-   walls steep. Built 26 November 2026: the patch reefs are clusters of flat-topped knolls some 8 m across
-   (they were broad domes), the shelf's edge has a second, finer wander, and the hole's walls were steep
-   already. And the way in from the inlet has broad, wandering sides: cut like the inlet itself, it was two
+   walls steep. Built 26 November 2026: the shelf's edge has a second, finer wander, and the hole's walls
+   were steep already. (The patch reefs were made clusters of flat-topped knolls of the ground, some 8 m
+   across, and are broad domes again since the same evening, for the reason given under 7: the steep-sided,
+   flat-topped things are the coral heads, which are models.) And the way in from the inlet has broad, wandering sides: cut like the inlet itself, it was two
    straight ledges of rock across the shelf.
 
 **The gardens deeper, with basins (Ryan, 26 November 2026):** "I would like the garden area between the

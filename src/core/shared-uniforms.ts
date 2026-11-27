@@ -11,10 +11,13 @@ export const SEA_DRAINED = 5;
 
 /**
  * The share of the fine ripples' slope that bends what is under the water (`uFineRipplesBend`).
- * None, since 26 November 2026: Ryan found the water "a bit busy for eyes", and the fine ripples'
- * bending was the shiver in it. They smear what is under them instead (water.frag.glsl).
+ * It was all of it, and then none, when Ryan found the water "a bit busy for eyes" and the fine
+ * ripples' bending was the shiver in it: they smear what is under them instead (water.frag.glsl).
+ * A quarter is where he set it, with the sliders in hand, the evening of 26 November 2026. (The
+ * other levels he left as designed, at 1: the bending of light at the surface, which is water's
+ * own and no less; the broad ripples' bending; the smear; the net of light.)
  */
-const FINE_RIPPLES_BEND = 0;
+const FINE_RIPPLES_BEND = 0.25;
 
 /**
  * The one set of uniforms that every hand-written shader shares. The sky's light and the
@@ -71,8 +74,9 @@ export type SharedUniforms = Record<string, IUniform> &
     uPictureScale: { value: Vector2 };
     /**
      * Levels the debug panel's sliders set, for what only an eye can find the right amount of
-     * (core/debug-tools.ts). How much of the raising of what is under the sea to where it seems
-     * to be is drawn, 1 as designed. How much the ripples bend it, 1 as designed. The share of the
+     * (core/debug-tools.ts). How strongly the sea bends light, as a share of what water does:
+     * at 1 what is under it is drawn where it seems to be through water, at nought where it is
+     * (shaders/shared/raised-through-surface.glsl). How much the ripples bend it, 1 as designed. The share of the
      * fine ripples' slope that bends what is
      * under them, as the broad ripples' whole slope does: at 1 everything under shallow water
      * shivers, at nought it only sways. How much the fine ripples smear it, 1 as designed. And how

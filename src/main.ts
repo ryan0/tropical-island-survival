@@ -10,6 +10,7 @@ import {
   frameCostSwitches,
   placesToFlyTo,
   SEEN_THROUGH_WATER_HEADING,
+  SEEN_THROUGH_WATER_SHOWN_BY,
   seenThroughWaterSliders,
   steadyEyeSwitch,
   WATER_STAGES_HEADING,
@@ -64,6 +65,7 @@ import { watchSoundButton } from './ui/sound-button';
 import { createBeachFinds } from './world/beach/beach-finds';
 import { createCamp } from './world/camp/camp';
 import { createFire } from './world/camp/fire';
+import { createSeaReach } from './sea/sea-reach';
 import { createInstanceCells } from './world/instance-cells';
 import { createIslandShape } from './world/island-shape';
 import { createLandmarks } from './world/landmarks';
@@ -127,6 +129,7 @@ const cloudShadeSpan = cloudsConfig.shadeMapSpan * 1000;
 // ---- the land, the lights and the sky ----
 const island = createIslandShape();
 const landmarks = createLandmarks(island.groundHeight, island.radius);
+const seaReach = createSeaReach(island.radius);
 const terrain = createTerrain({
   scene,
   renderer,
@@ -136,6 +139,7 @@ const terrain = createTerrain({
   seaBed: createSeaBedPicture(randomStream('sea bed'), maxAnisotropy),
   groundHeight: island.groundHeight,
   landmarks,
+  seaReach,
   uniforms,
   windDirection: windDirection(),
   cloudShadeSpan,
@@ -304,6 +308,8 @@ const underWaterPicture = createUnderWaterPicture({
   uniforms,
   intoSeaPicture,
   waterMaterials,
+  seaReach,
+  ground: terrain,
 });
 const audio = createAudio();
 // The biggest things standing in the surf also go to the water's shader, which draws foam round them.
@@ -359,6 +365,7 @@ const debugPanel = createDebugPanel(
     },
     {
       heading: SEEN_THROUGH_WATER_HEADING,
+      shownBy: SEEN_THROUGH_WATER_SHOWN_BY,
       sliders: seenThroughWaterSliders(uniforms),
       switches: [steadyEyeSwitch(player)],
     },

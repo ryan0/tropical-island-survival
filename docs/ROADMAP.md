@@ -66,13 +66,24 @@ What comes after the refactor (`REFACTOR_PLAN.md`, finished). The order was agre
   next of: the floor against the pairs (4 above: measured, not changed, "Not done of the night's plan" on
   the reef's branch says why); the coral placed round the atoll; "a first piece of the game", which settles
   the shape of `src/game/` and is his to discuss first.
+- **His notes on the night's work, the same evening, and what was done about each** ("His four notes on the
+  night's work", far below): the floor moved against what stands on it; the smear showed its dots; rock was
+  drawn out into streaks on steep walls; the new ground was plainly a few flat faces; and the phone had
+  fallen to about 50 frames a second. All five are worked on, **uncommitted on
+  `reef-3-coral-round-the-atoll`** until he says. The phone is back at 60. The levels are his and set: the
+  bending of light at the surface whole ("lets keep 1 and add the missing cues"), the smear whole, the fine
+  ripples' bending a quarter; the sliders are folded away behind the panel's `levels` switch. **Next, to
+  agree: "The feeling of depth: a plan"** (far below). And still his to say: what to do about the older
+  faceted ground.
+- *The standard is a person's eye, not a camera* (his words, 26 November 2026: `LOOK.md`, the standing
+  rules).
 - *A third branch, `reef-3-coral-round-the-atoll`:* a few coral heads in each of the basins round the atoll,
   and thin coral on the crest's heads and the high ground ("The night's fourth part"). To take or leave
   apart from the shape.
 - *On this branch, for him to look at:* **the reef's new shape** ("The night's third part", far below, and
   `REEF.md`): the gardens deeper, half a dozen basins 4.5 to 6.5 m deep (the debug panel flies to `home
-  basin` and `east basin`), heads and potholes behind the crest, the lagoon's knolls. And **what it costs
-  on the phone**: 4 to 19 percent more triangles by the view, counted in the test renderer.
+  basin` and `east basin`). (Its heads and potholes behind the crest and its knolls in the lagoon were
+  taken out of the ground's shape again the same evening: "His four notes on the night's work".)
 - *GitHub's checks* failed on every push for a week, for a reason in the tests and not in the code ("Softer
   and clearer water" has it, and the mending), and pass again from `886698e`. A test that fails there is now
   named on the run's page: look there first if one does. (Runs also ended red with every check passed, four
@@ -2697,6 +2708,154 @@ The dark sand under the water at the feet at dusk is the light under water's, an
 - The lagoon's raised waves and the ocean's shore break are slightly stepped where the mesh is coarse.
 - Nothing can be picked up or moved yet.
 
+**His four notes on the night's work** (26 November 2026, the evening; uncommitted on
+`reef-3-coral-round-the-atoll`). "This is good but there are several areas that need refinement." Each
+cause was found by drawing before anything was mended.
+
+- *"The ocean floor does not seem to follow the same refraction rules as everything else"* (seen as the
+  camera moves: the floor warps at a different rate from what stands on it). **The cause:** every corner of
+  every thing was raised to where it seems to be, each by its own amount, and the ground's corners are two
+  metres apart. Between two corners the floor's *shape* went in a straight piece (the night's dot-by-dot
+  rule had put its *colour* right and left its shape): from a swimmer's eye, four metres off, a hand too
+  high, where the whole of what is under the sea is squeezed into a band two hands deep. So the floor cut
+  into every head and coral along edges as straight as its triangles, more here and less there as the eye
+  moved. Drawn from three spots a metre apart, with the ring where a head meets the floor marked by the law
+  of refraction, the head's outline changed from one to the next. **What was done:** a thing under the sea
+  is now drawn *further off at its own depth*, on the same line from the eye, and not raised where it
+  stands (`shaders/shared/raised-through-surface.glsl`). Both look the same from the eye; but a level floor
+  whose corners are each moved along the level is still level, and what stands on it still stands on it.
+  The ground's dot-by-dot rule is unchanged in what it shows on a level floor: within 0.02 degrees of the
+  law of refraction for a wader and 0.04 for a swimmer, nine tenths within 0.15. The pairs and the
+  fly-round (44 views) differ clearly from before in at most a fifth of a percent of their dots, at the feet
+  of things.
+- *"One of our effects is warping the textures when I move"* (on steep walls: rock drawn out into streaks
+  that crawl). **The cause** was the night's own dot-by-dot rule, which took the ground to be level where
+  the eye's line comes down. On a wall the line missed by as much as the wall's corners had been wrongly
+  placed between them, a metre and more, now to this side and now to that. Shown by the cost switch `ground
+  by its corners`: on, the streaks went. **What was done:** each dot follows the eye's line down to its own
+  flat piece of the ground, sloping as that piece slopes (`seen-through-surface.glsl`; the way the piece
+  faces is had from how the dot's place changes across the screen). The streaks are gone and the wall's
+  rock keeps its place as the eye moves.
+- *"The smudge effect is a good idea but very pixelated, especially when moving."* **The cause:** one
+  reading of a copy of the picture as coarse as the whole smear shows that copy's dots, as blocks that jump
+  from dot to dot as the eye moves. **What was done:** four readings of a finer copy, half a dot apart and
+  askew to its rows, each left out by its own depth where it holds something that stands out of the sea
+  (`water.frag.glsl`, `SMEAR_COPYS_DOT`). As soft as it was at the same level of the slider (the fine detail
+  left in a moving frame measures 2.90, from 2.93, and its change from frame to frame 1.87, from 1.89), and
+  no blocks. The readings sit inside a branch, made only where there is a smear.
+- *"The new terrain is very jagged and obviously faceted."* **The cause:** the knolls in the lagoon and the
+  heads and potholes behind the crest were features six to eight metres across, on ground whose squares are
+  two: each was three or four squares, and plainly a few flat faces. **What was done:** they are taken out
+  of the ground's shape. The lagoon's patch reefs are the broad mounds they were, with the coral heads,
+  which are models, standing on and among them; behind the crest the floor is level again, and the heads'
+  and potholes' places are rock and sand on it. And every square of the ground is now cut along whichever
+  of its diagonals lies the more nearly level (`terrain-shape.ts`), which costs nothing. The ground has 333
+  thousand triangles, from 366. **Still faceted, and older:** the blocks in the reef's notches and the
+  stepped walls of its grooves, which are on `main` as they are here. To make those round takes models, or
+  finer ground there: to agree.
+- *Found by the way:* from 40 m up, coral heads were drawn in stripes of themselves and the floor. The
+  picture's depth was 16 bits, too coarse from that height to tell a head's top from the floor a metre
+  under it. It is 24 now (asked for with a stencil, the only way three.js gives it without a depth texture).
+- *"The frames on the phone have dropped to around 50."* A first pass, of work that was thrown away:
+  1. **What the sea's surface always covers is drawn into the picture alone.** Everything under the sea was
+     drawn twice a frame: into the picture, and onto the screen, where the surface then covered every dot of
+     it, the ground's costly colouring worked out for nothing. The surface is never lower than 0.66 m under
+     its still level anywhere (the program's wave model, a minute and a half of it), and the lagoon's lies
+     flat: so what lies deeper than a metre outside the outer shore, and a hand's breadth within it
+     (`sea/sea-reach.ts`), is left off the screen while there is a picture. The ground does it by drawing
+     only the first part of each tile's triangles (`terrain.ts`), 39 thousand of its 333; squares of coral
+     by a layer of their own (`under-water-picture.ts`). A level sheet under the sea shows the picture
+     through any crack between the sea's own sheets, as the floor did.
+  2. **Palms and bushes that the sea never reaches are not drawn into the picture.** A square of them went
+     in whole if one foot in it stood lower than 1.5 m, which is most of a low island. Within the outer
+     shore it is 0.5 m now. (The ground itself all goes in, however high: left out, the swash found the deep
+     where the beach should be, and drew a dark band along the shore.)
+
+  A whole frame, counted in the test renderer (the picture, the shadows and the screen together:
+  `tools/look/frame-counts.ts`, new), in thousands of triangles and in draws:
+
+  | view | this morning | now |
+  |---|---|---|
+  | wading in the lagoon | 1041 in 495 | 674 in 348 |
+  | swimming in the lagoon | 1664 in 565 | 1083 in 442 |
+  | the lagoon from the home beach | 1185 in 556 | 810 in 418 |
+  | swimming over the home basin | 639 in 276 | 469 in 214 |
+  | the sea from the home beach | 602 in 298 | 471 in 248 |
+  | inland from the home beach | 1415 in 584 | 1081 in 518 |
+  | the lagoon from 40 m | 1272 in 582 | 992 in 506 |
+
+  And on the screen the ground under the sea is no longer coloured at all, which no count here shows.
+  Fourteen views drawn both ways are the same picture, but for the birds. **The phone is to say what it
+  gives back:** the cost switch `the deep drawn twice` draws it as it was. If the frame rate is still short
+  of 60, the next readings wanted are the frame rate and the program's time with `ground by its corners`
+  and `no softer copies` on, one at a time.
+- *The reef off home has placed itself afresh,* as it does whenever the ground under it changes: its heads
+  are looked for where the floor suits them, one after another from one stream of chances, and a floor
+  that suits one differently moves all that follow. (A weak point: a head he has come to know can move
+  for a change made a hundred metres off.)
+- *Also mended:* at a swimmer's lowest eye, looking steeply down, the bottom of the screen cut under the
+  surface and showed a strip of floor with no water over it. An eye within 0.6 m of the sea now draws from
+  0.12 m and not 0.2.
+- *Proposed, not built:* heads behind the crest as models (low, flat-topped boulders with little coral, as
+  the reef's own heads are made), once the phone's frame rate says there is room.
+- **The phone, the same evening:** "fairly consistently 60 fps, rare brief dips to 55ish". With `the deep
+  drawn twice` on the frames drop; `ground by its corners` and `no softer copies` make "little to no
+  discernible" difference (`DEVICE_NOTES.md`). So there is room again, and last night's three additions to
+  the shaders are not where a frame goes.
+- **His levels, with the sliders in hand,** each "hard to decide" at first: the ripples' bending 1; the
+  smear "lean towards .5"; the fine ripples' bending "lean toward .25"; the net of light 1, "good for now";
+  the raising "0.5 to 1, but something feels off about it. Higher looks more natural, but then the water
+  loses all of its feeling of depth", and at less than 1 the floor slid under what stands on it. **Settled
+  later that evening,** when he had asked what the raising is in the world: "lets keep 1 and add the missing
+  cues. As well smear can be back near one." So: the raising 1, the ripples' bending 1, the smear 1, the
+  fine ripples' bending 0.25, the net of light 1 (`core/shared-uniforms.ts`), and the sliders folded away
+  behind the debug panel's `levels` switch.
+- *That sliding was the slider's own fault.* A share of the raising was a share of the way each corner was
+  moved, which is no law's doing, and which the ground, working its place out dot by dot from the law, could
+  not follow. The slider now sets how strongly the sea bends light, as a share of what water does
+  (`bentLeavingSea`, `raised-through-surface.glsl`), and every rule that places a thing under the sea is
+  given that one number: at 0.5 a head's foot lies on the ring the law draws for it, from three spots a
+  metre apart, where by the old rule it lay well inside. At 1 nothing is changed.
+- *What the raising is in the world,* for his decision: `LOOK.md`, "How deep water looks, and why". In
+  short: at 1 it is what a camera at the eye records, and less is another liquid. Real water looks as
+  shallow as that too; what makes it feel deep is its colour by depth (ours measures as clear water's does),
+  the surface seen as a sheet of its own, the far floor lost in the sky's mirror, and the wader's own body
+  and shadow, of which ours has neither. He chose to keep it at 1 and add what is missing: "The feeling of
+  depth: a plan", below.
+
+**The feeling of depth: a plan** (26 November 2026, late; to agree before any of it is built). With the
+bending of light whole, water looks as shallow as water does, and "loses all of its feeling of depth": what
+tells a person the water is deep is not where its floor seems to lie (`LOOK.md`, "How deep water looks, and
+why"). He chose to keep the law and add what is missing. In the order proposed, each shown before and
+after, each with the phone's frame rate read:
+
+0. *Out with what is a camera's.* The page lays darkened corners over the picture (`#vig`, `index.html`): a
+   lens's, not an eye's. His word wanted. (The sun's soft glare stays: an eye has that. The page's small lift
+   of contrast and colour is no camera's as such: his to say.)
+1. *The far floor gives way to the sky's mirror, as an unaided eye sees it.* The smear is whole again. Then
+   our mirror's share is measured by the angle of the look against the law for a rippled sea (the table is
+   in `docs/research/seeing-through-water-from-a-low-eye.md`), not against photographs, many of which were
+   taken through a polarising filter and show less mirror than an eye sees; and corrected if it falls short.
+   An hour or two, by measure.
+2. *The wader's own wake.* Rings spreading over the surface from where his legs or body cut it, and a bow
+   wave before a swimmer: they catch the sky and bend what is under them, and make the surface a sheet of
+   its own exactly where he looks. The sea's shader, with the last few places the player disturbed it handed
+   to it. Half a day; its cost is the phone's to read.
+3. *His shadow on the floor, and on the land.* A soft figure's shadow along the sun's line. In water it
+   leaves him at the waterline and lands on the floor the further off the deeper the floor lies, broken by
+   the net of light. Laid on the ground as the footprints are, not cast through the shadows' own picture,
+   which is drawn afresh only now and then (a shadow that moves every frame would draw every palm into it
+   every frame). Half a day.
+4. *His legs and feet seen through the water, then his arms as he swims.* The strongest of them: legs look
+   short under water and broken at the waterline, and nothing says "water" and "this deep" more plainly. It
+   is also the largest, and the first piece of the player as someone with a body: what he looks like is
+   Ryan's to say first. It could begin as plain legs of simple shapes that step in time with the pace the
+   player already keeps.
+5. *Small things afloat by the shore* (a leaf, a husk), which mark where the surface is. If wanted.
+
+Proposed: 1 to 3 in one sitting, since none of them needs a decision about what anything looks like; then 4,
+after he has said what the body should be.
+
 ## Performance: what is in place
 
 - On Ryan's phone (a Pixel 10) the scene held 60 frames a second, 57 at the lowest, before the water's look was
@@ -2712,8 +2871,11 @@ The dark sand under the water at the feet at dusk is the light under water's, an
 - The wave mesh is 16 sectors, each cut across into three tiles, at three levels of detail. Its vertex shader
   evaluates the wave model three times per vertex and is the dearest thing per vertex. The breaker's ribbon is 20
   pieces at three levels of detail.
-- The ground is 77 tiles of 80 m (`world/terrain-shape.ts`): three.js leaves out the ones out of view, which is
-  half to three quarters of its 332 thousand triangles from any place a player stands.
+- The ground is 76 tiles of 80 m (`world/terrain-shape.ts`): three.js leaves out the ones out of view, which is
+  half to three quarters of its 333 thousand triangles from any place a player stands. And while the eye is
+  above the sea, the part of each tile that the sea's surface always covers is drawn into the picture of what
+  is under the sea and not onto the screen (26 November 2026): 39 thousand of them are left for the screen.
+  Coral so deep goes the same way. The cost switch `the deep drawn twice` undoes it.
 - The ground's colouring is still the dearest thing per pixel, and is drawn last so that hidden pixels are
   skipped. What it once worked out by arithmetic for every dot it now reads from pictures made at start-up: its
   noise (`world/ground-noise.ts`: some fifty readings for a dot of turf), the shore's shape in its direction (the

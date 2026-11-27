@@ -72,6 +72,7 @@ export function createInstanceCells(scene: Scene): InstanceCells {
   const cells: Cell[] = [];
   const meshesOfKind: Record<InstanceKind, InstancedMesh[]> = { plants: [], rocks: [], coral: [] };
   const kindsLeftOut = new Set<InstanceKind>();
+  const layersWhenShown = new Map<InstancedMesh, number>();
 
   /** One mesh of a square. It shares the vertex buffers of `shape` and, for the simpler level, the instance buffers of `full`. */
   function addCellMesh(
@@ -203,9 +204,18 @@ export function createInstanceCells(scene: Scene): InstanceCells {
     },
 
     show(kind, isShown) {
+      if (isShown === !kindsLeftOut.has(kind)) return;
+
       if (isShown) kindsLeftOut.delete(kind);
       else kindsLeftOut.add(kind);
-      for (const mesh of meshesOfKind[kind]) mesh.layers.set(isShown ? 0 : NOT_DRAWN_LAYER);
+      for (const mesh of meshesOfKind[kind]) {
+        // (brought back onto the layers it was on: the sea's picture has sorted some onto its own)
+        if (isShown) mesh.layers.mask = layersWhenShown.get(mesh) ?? mesh.layers.mask;
+        else {
+          layersWhenShown.set(mesh, mesh.layers.mask);
+          mesh.layers.set(NOT_DRAWN_LAYER);
+        }
+      }
     },
     isShown: (kind) => !kindsLeftOut.has(kind),
   };

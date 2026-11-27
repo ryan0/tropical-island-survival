@@ -106,14 +106,27 @@ export function createTerrainShape(groundHeight: GroundHeight): BufferGeometry {
     else cornerOrder.push(a, c, b);
   }
 
-  /** A square as two triangles, its sides `halves` half squares long. */
+  const heightOf = (corner: number) => corners[corner * 3 + 1];
+
+  /**
+   * A square as two triangles, its sides `halves` half squares long. It is cut along whichever
+   * of its diagonals lies the more nearly level: along a wall's foot or a ridge's top, and not
+   * across it. (All cut the same way, a wall that ran across the cuts was drawn as a row of teeth.)
+   */
   function addSquare(halfColumn: number, halfRow: number, halves: number): void {
     const nearLeft = cornerAt(halfColumn, halfRow);
     const nearRight = cornerAt(halfColumn + halves, halfRow);
     const farLeft = cornerAt(halfColumn, halfRow + halves);
     const farRight = cornerAt(halfColumn + halves, halfRow + halves);
-    addTriangle(nearLeft, farLeft, nearRight);
-    addTriangle(farLeft, farRight, nearRight);
+    const acrossOneWay = Math.abs(heightOf(farLeft) - heightOf(nearRight));
+    const acrossTheOther = Math.abs(heightOf(nearLeft) - heightOf(farRight));
+    if (acrossOneWay <= acrossTheOther) {
+      addTriangle(nearLeft, farLeft, nearRight);
+      addTriangle(farLeft, farRight, nearRight);
+    } else {
+      addTriangle(nearLeft, farLeft, farRight);
+      addTriangle(nearLeft, farRight, nearRight);
+    }
   }
 
   /**
@@ -181,6 +194,12 @@ export function createTerrainShape(groundHeight: GroundHeight): BufferGeometry {
   return shape;
 }
 
+/** A tile of the ground, and how many of its triangles' corners come before those the sea always covers. */
+export interface GroundTile {
+  shape: BufferGeometry;
+  cornersNotCovered: number;
+}
+
 /**
  * Cuts the whole ground into square tiles, each a shape of its own, so that three.js can leave
  * out the tiles that are out of view. Every triangle goes to the tile its middle lies in; the sea
@@ -188,14 +207,23 @@ export function createTerrainShape(groundHeight: GroundHeight): BufferGeometry {
  * it needs worked out already (its corners' colours and normals), so that two tiles agree along
  * the edge they share; and the corners stay where they are in the world, so that a corner two
  * tiles share is drawn at the very same place by each, and no gap can open between them.
+ *
+ * A tile's triangles are put in order: those with every corner so deep that the sea's surface
+ * always covers it (`isAlwaysCovered`) come last, so that a drawing can leave them out by
+ * stopping short.
  */
-export function cutIntoTiles(whole: BufferGeometry): BufferGeometry[] {
+export function cutIntoTiles(
+  whole: BufferGeometry,
+  isAlwaysCovered: (x: number, height: number, z: number) => boolean,
+): GroundTile[] {
   const corners = whole.getAttribute('position');
   const order = whole.getIndex();
   if (order === null) throw new Error('the ground has no triangles');
   const names = Object.keys(whole.attributes);
+  const isCovered = (corner: number) =>
+    isAlwaysCovered(corners.getX(corner), corners.getY(corner), corners.getZ(corner));
 
-  const trianglesOfTile = new Map<string, number[]>();
+  const trianglesOfTile = new Map<string, { notCovered: number[]; covered: number[] }>();
   for (let first = 0; first < order.count; first += 3) {
     const a = order.getX(first);
     const b = order.getX(first + 1);
@@ -213,12 +241,17 @@ export function cutIntoTiles(whole: BufferGeometry): BufferGeometry[] {
       (corners.getZ(a) + corners.getZ(b) + corners.getZ(c)) / 3 / config.tileSide,
     );
     const tile = span > config.tileSide ? 'sea floor' : `${across},${down}`;
-    const triangles = trianglesOfTile.get(tile);
-    if (triangles === undefined) trianglesOfTile.set(tile, [a, b, c]);
-    else triangles.push(a, b, c);
+    let triangles = trianglesOfTile.get(tile);
+    if (triangles === undefined) {
+      triangles = { notCovered: [], covered: [] };
+      trianglesOfTile.set(tile, triangles);
+    }
+    const ofKind = isCovered(a) && isCovered(b) && isCovered(c) ? 'covered' : 'notCovered';
+    triangles[ofKind].push(a, b, c);
   }
 
-  return [...trianglesOfTile.values()].map((wholesCorners) => {
+  return [...trianglesOfTile.values()].map(({ notCovered, covered }) => {
+    const wholesCorners = [...notCovered, ...covered];
     // The tile's own corners, numbered as its triangles first name them.
     const ownNumber = new Map<number, number>();
     const tilesOrder = wholesCorners.map((corner) => {
@@ -246,6 +279,6 @@ export function cutIntoTiles(whole: BufferGeometry): BufferGeometry[] {
     shape.setIndex(tilesOrder);
     // (what three.js goes by to tell whether the tile is in view)
     shape.computeBoundingSphere();
-    return shape;
+    return { shape, cornersNotCovered: notCovered.length };
   });
 }

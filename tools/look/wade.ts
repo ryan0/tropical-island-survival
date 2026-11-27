@@ -52,6 +52,8 @@ const WALKS: Record<string, Walk> = {
   'reef-swim': { from: [-28, 200], yaw: -Math.PI / 2, pitch: 0 },
   // out from the shallows off home over the rim of the basin there
   'basin-swim': { from: [-15, 206], yaw: Math.PI, pitch: 0 },
+  // through the gardens east of home, close by a coral head that stands in 2 m of water
+  'head-swim': { from: [64, 243.5], yaw: -Math.PI / 2, pitch: 0 },
 };
 
 // Frames run before the first is kept: the eye settles to its height and the walk to its pace.
@@ -100,11 +102,16 @@ async function setThePanel(page: Page, switches: string[], levels: string[]): Pr
   if (switches.length === 0 && levels.length === 0) return;
 
   await holdTheCornerButton(page);
+  // (the levels, and the switch kept with them, are folded away behind this one)
+  await page.getByRole('button', { name: 'levels', exact: true }).click();
   for (const label of switches)
     await page.getByRole('button', { name: label, exact: true }).click();
   for (const each of levels) {
     const [label, level] = each.split('=').map((part) => part.trim());
-    const slider = page.locator('.debug-slider', { hasText: label }).locator('input');
+    // (by its whole label: 'ripples bend' is also the end of 'fine ripples bend')
+    const slider = page
+      .locator('.debug-slider', { hasText: new RegExp(`^${label} [0-9.]+$`) })
+      .locator('input');
     await slider.evaluate((input: HTMLInputElement, value) => {
       input.value = value;
       input.dispatchEvent(new Event('input'));

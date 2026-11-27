@@ -217,20 +217,28 @@ const vec3 DEAD_CORAL_TINT = vec3(1.16, 1.15, 1.11);
 // ---- Where this point is ----
 
 // The point of the ground that this dot shows. On the screen it is the one drawn here. In the picture of what is
-// under the sea the ground's corners are drawn raised to where they seem to be, and each dot between them works
+// under the sea the ground's corners are drawn on the lines they seem to lie on, and each dot between them works
 // out for itself which point the law of refraction shows along the eye's line through it
-// (shaders/shared/seen-through-surface.glsl; intoSeaPicture and vRaisedBy are sea/water-as-fog.ts's). The
-// ground's height there is taken to be its height here: the sea floor is gentle where it is seen clearly.
+// (shaders/shared/seen-through-surface.glsl; intoSeaPicture, vPlaceFromEye and vMovedInPicture are
+// sea/water-as-fog.ts's).
 vec3 groundPoint = vGroundPosition;
+// (the way this dot's flat piece of the ground faces: worked out here, before any branch)
+#ifdef CAN_MEASURE_ACROSS_A_PIXEL
+vec3 pieceFaces = cross(dFdx(vGroundPosition), dFdy(vGroundPosition));
+pieceFaces *= (pieceFaces.y < 0.0 ? -1.0 : 1.0) * inversesqrt(max(dot(pieceFaces, pieceFaces), 1e-24));
+#else
+vec3 pieceFaces = vec3(0.0, 1.0, 0.0);
+#endif
 if (intoSeaPicture.y * uGroundSeenDotByDot > 0.5) {
   float raisingLevel = uCameraPosition.y - intoSeaPicture.w;
   float under = raisingLevel - vGroundPosition.y;
-  // (by as much of the raising as the corners were given: none out of the sea, less and less in the deep)
-  float raised = intoSeaPicture.z * step(0.0, under)
-    * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under));
-  vec2 seenAt = seenThroughSurface(uCameraPosition, vGroundPosition + vec3(0.0, vRaisedBy, 0.0), raisingLevel,
-    vGroundPosition.y);
-  groundPoint.xz = mix(vGroundPosition.xz, seenAt, raised);
+  // (by as much of the moving as the corners were given: none out of the sea, less and less in the deep)
+  float moved = step(0.0, under) * (1.0 - smoothstep(NOT_RAISED_BELOW.x, NOT_RAISED_BELOW.y, under));
+  // (the eye's line through this dot, turned from the eye's own axes into the world's)
+  vec3 eyesLine = normalize((vec4(vPlaceFromEye.xyz + vMovedInPicture, 0.0) * viewMatrix).xyz);
+  vec3 seenAt = seenThroughSurface(uCameraPosition, eyesLine, raisingLevel, vGroundPosition, pieceFaces,
+    bentLeavingSea(intoSeaPicture.z));
+  groundPoint = mix(vGroundPosition, seenAt, moved);
   // (and the sun's shadow is looked up at that point, not at the triangle's)
   #if defined( USE_SHADOWMAP ) && NUM_DIR_LIGHT_SHADOWS > 0
   groundShadowShift = directionalShadowMatrix[ 0 ] * vec4(groundPoint - vGroundPosition, 0.0);

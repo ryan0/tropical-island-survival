@@ -22,9 +22,10 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`src/sea/water.frag.glsl`).
 - For an eye above the sea, everything the water does to the look of what is under it is the sea's surface's to
   draw, and nothing else's: what is under the sea is drawn first into a picture, each thing with its depth
-  beside its colour and raised to where it seems to be through a flat surface
+  beside its colour and on the line it seems to lie on through a flat surface, further off at its own depth
   (`src/sea/under-water-picture.ts`, `src/shaders/shared/raised-through-surface.glsl`; the ground, whose
-  corners are far apart, finds dot by dot the point it shows, `seen-through-surface.glsl`), and the surface reads it
+  corners are far apart, finds dot by dot the point it shows, `seen-through-surface.glsl`; what the surface
+  always covers is drawn into that picture alone, `src/sea/sea-reach.ts`), and the surface reads it
   bent by its ripples, and greys and hides each thing by that thing's own depth
   (`src/shaders/shared/water-veil.glsl`). A thing's own shader
   draws only the light that reaches it (`src/shaders/shared/light-under-sea.glsl`).
@@ -73,7 +74,8 @@ Ryan directs it and judges it on his phone; Claude writes it.
   (`review/index.html`). The phone signs off a batch of related work.
 - **Match the references.** Ryan sends photos, phone screenshots and videos; they are kept in `reference-photos/`,
   which git ignores (videos of waves in `reference-photos/waves/`). The look rules and what each reference showed
-  are in `docs/LOOK.md`. Colour is measured against the photos, not judged by eye alone (`docs/LOOK.md`,
+  are in `docs/LOOK.md`. The aim is what a person's eye would see there, not a camera's picture of it: what is
+  the camera's in a photograph is not matched, and nothing a camera adds is drawn. Colour is measured against the photos, not judged by eye alone (`docs/LOOK.md`,
   "Colour, measured"; the tools are in `tools/look/`). He often asks for several passes in a row at one thing.
   A pass at the water or its floor is judged at the size he sees the game, on the pairs (our view beside a
   photo from the same height and light) and the fly-round (from 5 to 40 m up, at noon, dusk and under cloud):
@@ -86,7 +88,9 @@ Ryan directs it and judges it on his phone; Claude writes it.
   on 20 November 2026 three causes named from reading were wrong, and each cost a round (`docs/ROADMAP.md`,
   "Why the passes went round in circles"). What moves is measured with the eye moving as the player's does
   (`tools/look/wade.ts`, `wade-flow.ts`): measured with the eye still, on 26 November, the wrong thing was
-  softened. A change to how something is drawn is made across the whole code,
+  softened; and measured over level sand alone, the same day, a floor that moved against the coral standing
+  on it and rock that crawled on steep walls went unseen: look beside a thing and at a wall, from spots a
+  metre apart. A change to how something is drawn is made across the whole code,
   not in the file in hand (`docs/CODE_STANDARDS.md`, "One owner for each effect").
 - **Ryan commits, merges and deploys.** Edit freely and run safe commands. By default leave the work uncommitted
   on a branch for him to review; commits, merges, pushes and anything destructive are his. For a long sitting he

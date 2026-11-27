@@ -18,6 +18,7 @@ import { createGroundNoise, createGroundRandoms } from './ground-noise';
 import type { GroundTiles } from './ground-tiles/ground-tiles';
 import type { GroundHeight, Landmarks, Point } from './landmarks';
 import { seaConfig } from '../sea/sea-config';
+import type { SeaReach } from '../sea/sea-reach';
 import { reefConfig } from './reef/reef-config';
 import { createReefCoverPicture } from './reef-cover-picture';
 import { createSandRippleSlopes } from './sand-ripples';
@@ -63,6 +64,8 @@ export interface TerrainDependencies {
   seaBed: SeaBedPicture;
   groundHeight: GroundHeight;
   landmarks: Landmarks;
+  /** How far the sea's surface ever goes from its still level, at a place. */
+  seaReach: SeaReach;
   /** The uniforms every shader shares. They are read when the ground is first drawn. */
   uniforms: Record<string, IUniform>;
   /** The way the wind blows, level and of unit length (x, z). */
@@ -152,6 +155,12 @@ export interface Terrain {
   /** Its tiles: each is left out by three.js when it is out of view. */
   tiles: Group;
   /**
+   * Whether the next drawings draw the ground that lies so deep that the sea's surface always
+   * covers it (sea/sea-reach.ts): the picture of what is under the sea does, and the screen
+   * only when there is no surface between it and the eye (sea/under-water-picture.ts).
+   */
+  drawWhatSeaCovers(isDrawn: boolean): void;
+  /**
    * Its material. With the define TERRAIN_BARE (a debug switch) none of the colouring is worked
    * out: the ground is drawn in the plain colour of its corners, to read what the colouring costs.
    */
@@ -235,7 +244,12 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
   };
 
   const tiles = new Group();
-  for (const tileShape of cutIntoTiles(shape)) {
+  const seaLevel = uniforms.uSeaLevel.value as number;
+  const { seaReach } = dependencies;
+  const tilesOfGround = cutIntoTiles(
+    shape,
+    (x, height, z) => height < seaLevel - seaReach.alwaysUnder(x, z),
+  ).map(({ shape: tileShape, cornersNotCovered }) => {
     const tile = new Mesh(tileShape, material);
     tile.matrixAutoUpdate = false;
     tile.receiveShadow = true;
@@ -243,7 +257,18 @@ export function createTerrain(dependencies: TerrainDependencies): Terrain {
     // the ground.
     tile.renderOrder = 1;
     tiles.add(tile);
-  }
+    return { tile, cornersNotCovered };
+  });
   scene.add(tiles);
-  return { tiles, material };
+  return {
+    tiles,
+    material,
+    drawWhatSeaCovers(isDrawn) {
+      for (const { tile, cornersNotCovered } of tilesOfGround) {
+        tile.geometry.setDrawRange(0, isDrawn ? Infinity : cornersNotCovered);
+        // (a tile with nothing to draw is not handed to the graphics card at all)
+        tile.visible = isDrawn || cornersNotCovered > 0;
+      }
+    },
+  };
 }

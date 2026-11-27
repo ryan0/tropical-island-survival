@@ -60,7 +60,14 @@ interface SceneDebugHooks {
   scene: { traverse(visit: (object: SceneObject) => void): void };
   renderer: {
     compile(scene: object, camera: object): void;
-    info: { programs: object[] | null };
+    info: {
+      programs: object[] | null;
+      /** Whether the counts begin again at each drawing: three.js's own way. */
+      autoReset: boolean;
+      reset(): void;
+      /** What has been drawn since the counts last began. */
+      render: { triangles: number; calls: number };
+    };
   };
 }
 

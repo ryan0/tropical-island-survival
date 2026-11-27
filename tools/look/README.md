@@ -148,6 +148,11 @@ node tools/look/wade.ts <frames> --page <the measuring build's dist/index.html> 
 node tools/look/wade-flow.ts <frames>
 ```
 
+(Beside a level floor, look at what stands on it and at a steep wall, from a few spots a metre apart: on 26
+November 2026 the walks' measures, all over level sand, were good, and Ryan found at once that the floor
+moved against the coral heads and that rock crawled on the reef's walls. And what a frame costs to hand to
+the graphics card is counted by `frame-counts.ts`, the picture, the shadows and the screen together.)
+
 Draw each walk as it is and with each switch on, and one with nothing bent or raised and a steady eye, which
 gives the floor's own unevenness and the measure's blur (0.2 to 0.4 degrees a second): the differences say
 whose the wobble is. On 26 November 2026 they said it was the eye's own rise and fall, a step's bob and a

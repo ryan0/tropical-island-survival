@@ -351,6 +351,12 @@ const float SMEARED_BY_FINE_RIPPLES = 0.08;
 // are the best of the water's look, and it is the far floor that crawled.)
 const vec2 SMEARED_LOOKING_DOWN = vec2(0.22, 0.6);
 const float MOST_SMEARED_OVER = 8.0;
+// The picture's smaller copies are its softer ones, and a smear is read from the copy whose dots are this share
+// of the smear across, at four spots this share of the smear out from the middle, set askew to the copy's own
+// rows. (One reading of the copy as coarse as the whole smear showed that copy's dots: blocks of one colour,
+// that jumped from dot to dot as the eye moved. Four of a finer copy, half a dot apart, run into one another.)
+const float SMEAR_COPYS_DOT = 0.75;
+const vec2 SMEAR_READ_OUT_AT = vec2(0.36, 0.12);
 const float BENDS_NO_DEEPER_THAN = 5.0;
 // (Wherever the surface is drawn, it is drawn whole, over the picture: only the picture holds what is seen
 // through water. The frame's own drawing, straight behind the surface, was let show through the shallowest
@@ -1236,8 +1242,8 @@ void main() {
     float liftOverRaisingLevel = vWaterPosition.y - (cameraPosition.y - uEyeOverRaisingLevel);
     float sheetFromStillSea = clamp(liftOverRaisingLevel, -LOWERED_OUT_OF_SEA_WITHIN, LOWERED_OUT_OF_SEA_WITHIN)
       * (1.0 - smoothstep(A_SHEET_ON_THE_SAND.x, A_SHEET_ON_THE_SAND.y, waterDepth));
-    float drawnLower = sheetFromStillSea * uRaisingShare
-      * raisedShareAtSurface(dot(toCamera.xz, toCamera.xz), uEyeOverRaisingLevel);
+    float drawnLower = sheetFromStillSea
+      * raisedShareAtSurface(dot(toCamera.xz, toCamera.xz), uEyeOverRaisingLevel, bentLeavingSea(uRaisingShare));
     vec3 hereAsSeen = (viewMatrix * vec4(vWaterPosition, 1.0)).xyz;
     vec3 sandAsDrawn = hereAsSeen - viewMatrix[1].xyz * drawnLower;
     onPicture += (sandAsDrawn.xy / max(-sandAsDrawn.z, 0.05) - hereAsSeen.xy / max(-hereAsSeen.z, 0.05))
@@ -1272,8 +1278,8 @@ void main() {
 
     // The ripples too fine to bend what is under them smear it (SMEARED_BY_FINE_RIPPLES, above): by a share of its
     // depth that grows as the eye looks less steeply down, as seen from as far off as the eye's line runs to it,
-    // through the air and then the water. The picture's smaller copies are its softer ones: the one read is as
-    // many of the picture's dots across as the smear.
+    // through the air and then the water. It is read from the picture's smaller copies, which are its softer
+    // ones (SMEAR_COPYS_DOT, above).
     #ifdef WATER_PICTURE_HAS_SOFTER_COPIES
     float looksDown = clamp(towardsCamera.y, 0.02, 1.0);
     float goesDown = sqrt(1.0 - INTO_WATER * INTO_WATER * (1.0 - looksDown * looksDown));
@@ -1284,17 +1290,32 @@ void main() {
     // (Not on a wave's steep face, which is lifted far over what is behind it; and no further than
     // MOST_SMEARED_OVER dots of the picture: its smallest copies are a few dots each, and showed as blocks of
     // one colour, a head's pale top spread over the face of the wave in front of it.)
-    float dotsAcross = smearedBy * (1.0 - smoothstep(0.02, 0.12, steep))
-      * uPictureScale.x / uDotOfPicture.x * UNDER_WATER_PICTURE_SHARE;
-    vec4 smeared = texture2DLodEXT(uUnderWaterPicture, bentTo, log2(clamp(dotsAcross, 1.0, MOST_SMEARED_OVER)));
-    // (A softer copy has run together what stands out of the sea, whose depth is nought, with the floor round
-    // it: where its depth reads shallower than the picture's own, by a third and more, it is left unread, or a
-    // rock's colour would spread over the water beside it and the beach's over the shallows.)
-    // (Nor is anything smeared that lies in less than a hand's breadth of water: a head whose top a trough of
-    // the waves had bared showed as a block of the softer copy's dots.)
-    float standsNear = max(clamp(3.0 * (behind.a - smeared.a) / max(behind.a, 0.02), 0.0, 1.0),
-      1.0 - smoothstep(0.02, 0.06, behind.a));
-    behind = mix(smeared, behind, standsNear);
+    float dotsAcross = min(smearedBy * (1.0 - smoothstep(0.02, 0.12, steep))
+      * uPictureScale.x / uDotOfPicture.x * UNDER_WATER_PICTURE_SHARE, MOST_SMEARED_OVER);
+    // (Only where there is a smear to read: these readings name their copy, and may be made in a branch.)
+    if (dotsAcross > 1.0) {
+      float copy = max(log2(dotsAcross * SMEAR_COPYS_DOT), 0.0);
+      vec2 smearOnPicture = dotsAcross * uDotOfPicture / UNDER_WATER_PICTURE_SHARE;
+      vec2 out1 = SMEAR_READ_OUT_AT * smearOnPicture;
+      vec2 out2 = vec2(-SMEAR_READ_OUT_AT.y, SMEAR_READ_OUT_AT.x) * smearOnPicture;
+      // (A softer copy has run together what stands out of the sea, whose depth is nought, with the floor round
+      // it: a reading whose depth is shallower than the picture's own here, by a third and more, is left out,
+      // or a rock's colour would spread over the water beside it and the beach's over the shallows.)
+      float deepHere = 3.0 / max(behind.a, 0.02);
+      vec4 read1 = texture2DLodEXT(uUnderWaterPicture, bentTo + out1, copy);
+      vec4 read2 = texture2DLodEXT(uUnderWaterPicture, bentTo - out1, copy);
+      vec4 read3 = texture2DLodEXT(uUnderWaterPicture, bentTo + out2, copy);
+      vec4 read4 = texture2DLodEXT(uUnderWaterPicture, bentTo - out2, copy);
+      vec4 smeared = 0.25 * (
+        mix(read1, behind, clamp((behind.a - read1.a) * deepHere, 0.0, 1.0))
+        + mix(read2, behind, clamp((behind.a - read2.a) * deepHere, 0.0, 1.0))
+        + mix(read3, behind, clamp((behind.a - read3.a) * deepHere, 0.0, 1.0))
+        + mix(read4, behind, clamp((behind.a - read4.a) * deepHere, 0.0, 1.0)));
+      // (Nor is anything smeared that lies in less than a hand's breadth of water: a head whose top a trough of
+      // the waves had bared showed as a block of the softer copy's dots. And the smear comes in over its first
+      // dot's width: a smear narrower than a dot is the picture as it is.)
+      behind = mix(behind, smeared, smoothstep(0.02, 0.06, behind.a) * smoothstep(1.0, 2.0, dotsAcross));
+    }
     #endif
   }
   // (how far under the still sea the thing behind this spot lies)
